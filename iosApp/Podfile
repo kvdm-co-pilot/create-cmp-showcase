@@ -1,0 +1,18 @@
+# iOS native Firebase SDKs for the GitLive Firebase KMP bindings (v2.1.0 -> Firebase iOS 11.x).
+# The ComposeApp KMP framework references these Obj-C symbols at link time; the app provides them.
+platform :ios, '16.0'
+
+# Static linkage pairs with the static ComposeApp.framework (isStatic = true).
+use_frameworks! :linkage => :static
+
+target 'iosApp' do
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+    end
+  end
+end

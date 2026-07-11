@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cmp-evidence/1",
+  "title": "create-cmp verify-lane evidence receipt",
+  "type": "object",
+  "required": ["schema", "profile", "verdict", "commit", "steps", "artifacts", "toolVersions", "generatedAt"],
+  "properties": {
+    "schema": { "const": "cmp-evidence/1" },
+    "profile": { "enum": ["scaffold", "local", "ci"] },
+    "verdict": { "enum": ["PASS", "FAIL"] },
+    "commit": {
+      "type": "object",
+      "required": ["sha", "dirty"],
+      "properties": {
+        "sha": { "type": ["string", "null"], "description": "Parent HEAD at run time (the receipt is part of the NEXT commit)" },
+        "dirty": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Content-hash binding of the receipt to the verified surface (ADR-0005). Absent on receipts predating evidence binding.",
+      "required": ["hash", "fileCount"],
+      "properties": {
+        "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "fileCount": { "type": "number" }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "verdict", "durationMs"],
+        "properties": {
+          "name": { "type": "string" },
+          "verdict": { "enum": ["PASS", "FAIL", "SKIP"] },
+          "reason": { "type": "string" },
+          "durationMs": { "type": "number" },
+          "details": { "type": "object" }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "toolVersions": { "type": "object" },
+    "generatedAt": { "type": "string", "format": "date-time" }
+  }
+}

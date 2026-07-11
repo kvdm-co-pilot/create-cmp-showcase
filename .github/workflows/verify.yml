@@ -1,0 +1,92 @@
+# CI for your Compose Multiplatform app — stamped in by create-cmp.
+#
+# What runs on every push/PR: a toolchain report (advisory) and the VERIFY LANE
+# (qa/verify.mjs) — build + unit tests + every other gate this project carries,
+# producing the evidence receipt. Green here = your frozen version set still
+# builds AND the harness's checks pass.
+#
+# iOS: a ready-to-enable macOS job is included (commented out) at the bottom.
+# macOS runners cost ~10x Linux minutes, so it's opt-in.
+
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest # ships with JDK + Android SDK preinstalled
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17 # the version set is pinned against JDK 17
+
+      # Caches Gradle + the configuration cache between runs (big speedup).
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Advisory toolchain report from create-cmp's doctor. Non-blocking:
+      # doctor also checks emulator/AVD bits that assembleDebug doesn't need,
+      # so a red doctor on a CI runner is informative, not fatal.
+      - name: Toolchain doctor (advisory)
+        continue-on-error: true
+        run: npx --yes create-cmp-cli@latest doctor --yes --no-install --no-ios
+
+      # Receipt attests HEAD: the committed evidence receipt (qa/evidence/latest.json)
+      # must validly attest the checked-out tree — verdict PASS and the inputs-hash
+      # still matching the verified surface — BEFORE we spend a runner re-running the
+      # lane. Robust to rebase/merge/squash: validity is a content hash of the inputs,
+      # not a parent SHA (docs/adr/0005). This is the same predicate the local Stop
+      # hook runs (qa/receipt-check.mjs) — one check, two locations — so a stale or
+      # hand-edited receipt fails here even if the author bypassed the local hook.
+      - name: Receipt attests HEAD
+        run: node qa/receipt-check.mjs
+
+      # The verify lane: build + unit tests + all shipped gates, with a typed
+      # verdict and an evidence receipt. If the build step fails after a
+      # dependency bump, remember: Kotlin / KSP / Compose / Room / AGP move as
+      # ONE set (see the comments in gradle/libs.versions.toml).
+      - name: Verify lane
+        run: node qa/verify.mjs --profile ci
+
+      # The receipt this run produced, kept as a build artifact. The receipt
+      # committed by the author (qa/evidence/latest.json) lives in the repo —
+      # this artifact is CI's independent re-verification of the same change.
+      - name: Upload evidence receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-evidence
+          path: qa/evidence/latest.json
+
+  # ── iOS (opt-in) ──────────────────────────────────────────────────────────
+  # Uncomment to build the iOS app on every push to main. Uses the exact
+  # command set create-cmp verified this template with: XcodeGen + CocoaPods
+  # (LANG must be UTF-8) + an arm64-only simulator build (the Kotlin framework
+  # embed phase emits only the active arch — a generic destination fails).
+  #
+  # ios:
+  #   runs-on: macos-14
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: temurin
+  #         java-version: 17
+  #     - uses: gradle/actions/setup-gradle@v4
+  #     - run: brew install xcodegen   # CocoaPods is preinstalled on macos-14
+  #     - name: Build iOS (simulator)
+  #       run: |
+  #         cd iosApp
+  #         export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+  #         xcodegen generate
+  #         pod install
+  #         SIM_UDID=$(xcrun simctl list devices available | grep -Eo '[0-9A-F-]{36}' | head -1)
+  #         xcodebuild -workspace iosApp.xcworkspace -scheme iosApp -sdk iphonesimulator \
+  #           -configuration Debug ARCHS=arm64 ONLY_ACTIVE_ARCH=YES EXCLUDED_ARCHS=x86_64 \
+  #           -destination "id=$SIM_UDID" build

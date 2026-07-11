@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node qa/receipt-check.mjs --hook" }
+        ]
+      }
+    ]
+  }
+}

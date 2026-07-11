@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive-icon background: a brand gradient tile. Replace with your own brand colours. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="#0E2E50"
+        android:endColor="#0A2540" />
+</shape>

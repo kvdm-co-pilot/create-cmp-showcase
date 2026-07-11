@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PrivacyInfo.xcprivacy — Apple Privacy Manifest (required from May 2024).
+  Declare privacy-sensitive API usages used by the app and its SDKs. Extend as you add data
+  collection (Firebase Auth email/phone, location, etc.).
+  https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+-->
+<plist version="1.0">
+<dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- UserDefaults: required by Firebase, Koin, and local cache -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+        <!-- File timestamp APIs: SQLite (Room) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

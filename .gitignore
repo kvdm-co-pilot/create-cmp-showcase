@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+.DS_Store
+# Gradle build outputs — unanchored so module dirs (composeApp/build/, …) match too,
+# not just a root-level build/. Anchored `/build` misses composeApp/build/, which would
+# then get committed and destabilise the evidence receipt's inputs hash.
+build/
+/captures
+.externalNativeBuild
+.cxx
+*.log
+
+# Kotlin
+.kotlin/
+
+# Verify-lane binary evidence (screenshots, reports, page sources). The RECEIPT
+# (qa/evidence/latest.json) IS committed — these artifacts are hashed into it instead.
+qa-artifacts/
+
+# iOS / CocoaPods / XcodeGen
+iosApp/Pods/
+iosApp/Podfile.lock
+iosApp/*.xcodeproj/
+iosApp/*.xcworkspace/
+iosApp/build/
+xcuserdata/
+*.xcuserstate

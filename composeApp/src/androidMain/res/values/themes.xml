@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NoActionBar + a brand-coloured window background so the very first frames
+         (system launch window, any pre-Compose frame) match the app. Status/nav bar
+         styling is set in MainActivity (edge-to-edge), not here. -->
+    <style name="Theme.App" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_window_background</item>
+    </style>
+</resources>

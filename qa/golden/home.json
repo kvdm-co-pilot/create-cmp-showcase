@@ -1,0 +1,15 @@
+{"children": [
+  {"children": [
+    {"tag": "home_title", "text": "Home"},
+    {"children": [
+      {"children": [
+        {"text": "Golden first"},
+        {"text": "Structural baseline row one"}
+      ]},
+      {"children": [
+        {"text": "Golden second"},
+        {"text": "Structural baseline row two"}
+      ]}
+    ]}
+  ]}
+]}

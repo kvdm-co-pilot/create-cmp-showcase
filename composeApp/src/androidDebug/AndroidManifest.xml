@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The debug inspector server needs socket permission even if a future template fork
+         drops INTERNET from the main manifest; loopback-only bind, never on the LAN. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:networkSecurityConfig="@xml/debug_network_security_config"
+        android:usesCleartextTraffic="true" />
+</manifest>
