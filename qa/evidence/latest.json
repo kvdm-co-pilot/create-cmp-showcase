@@ -1,0 +1,79 @@
+{
+  "schema": "cmp-evidence/1",
+  "profile": "local",
+  "verdict": "PASS",
+  "commit": {
+    "sha": "560eb3b761a57d473f881a8e2a6f84199bd7bf6f",
+    "dirty": [
+      "composeApp/schemas/"
+    ]
+  },
+  "inputs": {
+    "hash": "61fe3ff2fd12a42ef406b3b911bb163435bd53bb7b92e25c1b33e3d3ee2b1be8",
+    "fileCount": 108
+  },
+  "steps": [
+    {
+      "name": "specCoverage",
+      "verdict": "PASS",
+      "durationMs": 15,
+      "details": {
+        "clauses": 15,
+        "withdrawn": 0,
+        "tags": 17,
+        "files": 62
+      }
+    },
+    {
+      "name": "build",
+      "verdict": "PASS",
+      "durationMs": 3209
+    },
+    {
+      "name": "unitTests",
+      "verdict": "PASS",
+      "durationMs": 3264,
+      "details": {
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "conformance",
+      "verdict": "PASS",
+      "durationMs": 3534
+    },
+    {
+      "name": "goldenTrees",
+      "verdict": "PASS",
+      "durationMs": 2396
+    },
+    {
+      "name": "tokenDrift",
+      "verdict": "PASS",
+      "durationMs": 248,
+      "details": {
+        "checked": 14,
+        "drifted": 0
+      }
+    },
+    {
+      "name": "a11y",
+      "verdict": "PASS",
+      "durationMs": 2084
+    },
+    {
+      "name": "e2eSmoke",
+      "verdict": "PASS",
+      "durationMs": 43232
+    }
+  ],
+  "artifacts": [],
+  "toolVersions": {
+    "node": "v24.7.0",
+    "platform": "darwin-arm64"
+  },
+  "generatedAt": "2026-07-11T22:29:02.751Z"
+}
