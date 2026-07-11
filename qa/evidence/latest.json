@@ -3,38 +3,49 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "560eb3b761a57d473f881a8e2a6f84199bd7bf6f",
+    "sha": "e291b14cbfc99c8e96cc10fc54c8f1c59cba28c1",
     "dirty": [
-      "composeApp/schemas/"
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/data/remote/FavoriteRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/model/Favorite.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/repository/FavoriteRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/usecase/GetFavoritesUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/navigation/Screen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/cmpshowcase/testing/fakes/FakeFavoriteRepository.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
+      "omposeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/di/AppModule.kt",
+      "specs/favorites.spec.md"
     ]
   },
   "inputs": {
-    "hash": "61fe3ff2fd12a42ef406b3b911bb163435bd53bb7b92e25c1b33e3d3ee2b1be8",
-    "fileCount": 108
+    "hash": "aeac19c8ec0864ea512f8623b98321e3a749afa8e1ee828d7e546eadd5e28b88",
+    "fileCount": 119
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 15,
+      "durationMs": 20,
       "details": {
-        "clauses": 15,
+        "clauses": 21,
         "withdrawn": 0,
-        "tags": 17,
-        "files": 62
+        "tags": 23,
+        "files": 72
       }
     },
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3209
+      "durationMs": 3147
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 3264,
+      "durationMs": 2010,
       "details": {
-        "tests": 20,
+        "tests": 28,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -43,17 +54,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3534
+      "durationMs": 1890
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2396
+      "durationMs": 1963
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 248,
+      "durationMs": 507,
       "details": {
         "checked": 14,
         "drifted": 0
@@ -62,12 +73,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2084
+      "durationMs": 1670
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 43232
+      "durationMs": 42125
     }
   ],
   "artifacts": [],
@@ -75,5 +86,5 @@
     "node": "v24.7.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-11T22:29:02.751Z"
+  "generatedAt": "2026-07-11T22:30:24.179Z"
 }

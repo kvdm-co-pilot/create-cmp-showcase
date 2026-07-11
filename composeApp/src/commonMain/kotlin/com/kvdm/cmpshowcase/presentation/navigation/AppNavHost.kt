@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import androidx.savedstate.read
 import com.kvdm.cmpshowcase.presentation.home.HomeScreen
 import com.kvdm.cmpshowcase.presentation.profile.ProfileScreen
+import com.kvdm.cmpshowcase.presentation.favorites.FavoritesScreen
 
 @Composable
 fun AppNavHost() {
@@ -39,6 +40,7 @@ fun AppNavHost() {
                 onBack = { navController.popBackStack() },
             )
         }
+        composable(Screen.Favorites.route) { FavoritesScreen(onItemClick = {}) }
         // cmp:anchor nav-destinations
     }
 }
