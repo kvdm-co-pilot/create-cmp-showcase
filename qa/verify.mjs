@@ -187,11 +187,11 @@ function stepBuild() {
 }
 
 // Runs a filtered slice of the JVM test tier and names the verdict after the gate it proves.
-// The full suite already ran in unitTests; these re-runs are cheap (compiled, cached) and give
-// each gate its own named verdict + failure text in the receipt.
+// The full suite already ran in unitTests; the filtered slices stay cheap (compilation is
+// cached) while `--rerun` forces the tests themselves to EXECUTE — see stepUnitTests.
 function gradleTestStep(name, testsFilter, failHint) {
   return () => {
-    const res = sh(`${GRADLEW} :composeApp:desktopTest --tests "${testsFilter}" --console=plain`);
+    const res = sh(`${GRADLEW} :composeApp:desktopTest --rerun --tests "${testsFilter}" --console=plain`);
     return {
       name,
       verdict: res.ok ? "PASS" : "FAIL",
@@ -204,7 +204,12 @@ function gradleTestStep(name, testsFilter, failHint) {
 }
 
 function stepUnitTests() {
-  const res = sh(`${GRADLEW} :composeApp:desktopTest --console=plain`);
+  // `--rerun` is EVIDENCE INTEGRITY, not pedantry: without it, Gradle's build cache can
+  // restore a PASS recorded against a *different* tree state (deterministic re-scaffolds
+  // produce byte-identical sources, and golden baselines aren't compile inputs), so the
+  // receipt would attest tests that never executed. Compilation stays cached — only the
+  // test execution is forced.
+  const res = sh(`${GRADLEW} :composeApp:desktopTest --rerun --console=plain`);
   const summary = junitSummary(path.join(ROOT, "composeApp/build/test-results/desktopTest"));
   return {
     name: "unitTests",

@@ -3,31 +3,23 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "e291b14cbfc99c8e96cc10fc54c8f1c59cba28c1",
+    "sha": "dc9f4f408f36982fc9bed6acc11d932bce7da407",
     "dirty": [
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/data/remote/FavoriteRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/model/Favorite.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/repository/FavoriteRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/domain/usecase/GetFavoritesUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/presentation/navigation/Screen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/cmpshowcase/testing/fakes/FakeFavoriteRepository.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/cmpshowcase/presentation/favorites/",
-      "omposeApp/src/commonMain/kotlin/com/kvdm/cmpshowcase/di/AppModule.kt",
-      "specs/favorites.spec.md"
+      "EADME.md",
+      "composeApp/build.gradle.kts",
+      "qa/golden/favorites.json",
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "aeac19c8ec0864ea512f8623b98321e3a749afa8e1ee828d7e546eadd5e28b88",
-    "fileCount": 119
+    "hash": "97be3d9b24d38e8bc52e5d1f872bc342e714392863fd106c6db558fecc49e34b",
+    "fileCount": 120
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 20,
+      "durationMs": 23,
       "details": {
         "clauses": 21,
         "withdrawn": 0,
@@ -38,12 +30,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3147
+      "durationMs": 2837
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 2010,
+      "durationMs": 6693,
       "details": {
         "tests": 28,
         "failures": 0,
@@ -54,17 +46,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1890
+      "durationMs": 3660
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 1963
+      "durationMs": 4823
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 507,
+      "durationMs": 258,
       "details": {
         "checked": 14,
         "drifted": 0
@@ -73,12 +65,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 1670
+      "durationMs": 4814
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 42125
+      "durationMs": 42204
     }
   ],
   "artifacts": [],
@@ -86,5 +78,5 @@
     "node": "v24.7.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-11T22:30:24.179Z"
+  "generatedAt": "2026-07-12T10:28:52.257Z"
 }

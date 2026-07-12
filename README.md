@@ -47,10 +47,19 @@ Every commit is held to all eight, on `:composeApp:desktopTest` plus an on-devic
 
 ## See it refuse
 
-The harness earns trust by *refusing*, not by passing. See the pull request labeled
-**`harness: refusal demo`** — it injects a single hardcoded color, and CI blocks the merge, naming
-the exact architecture clause (`ARCH-05`) that forbids it. A green checkmark is cheap; a red one
-that cites the rule is the product.
+The harness earns trust by *refusing*, not by passing.
+[**PR #1**](https://github.com/kvdm-co-pilot/create-cmp-showcase/pull/1) injects a single hardcoded
+color and is blocked at **two independent layers** — that reinforcement is the point:
+
+1. **The receipt gate** (CI's first step + the local Stop hook, both `qa/receipt-check.mjs`): the
+   change carries no valid `PASS` receipt for its tree, so it's refused *before a single test runs*.
+   And you can't manufacture one — producing a `PASS` receipt requires the lane to pass, and it won't.
+2. **The conformance lane** (`node qa/verify.mjs`): names the exact clause by hand —
+   `ARCH-05 no hardcoded Color literals outside the theme FAILED`. Not "a test broke": *this rule,
+   in this file.*
+
+A green checkmark is cheap; a red one that cites the rule — and a receipt you cannot forge — is the
+product.
 
 ## Run it yourself
 

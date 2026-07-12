@@ -204,3 +204,16 @@ compose.desktop {
         mainClass = "com.kvdm.cmpshowcase.MainKt"
     }
 }
+
+// Evidence integrity: golden-tree baselines (qa/golden) and the UPDATE_GOLDEN capture flag are
+// REAL inputs of the JVM test tier, but Gradle can't see either on its own — baselines are read
+// at runtime, not compiled, and env vars aren't tracked. Undeclared, the build cache will happily
+// replay a PASS from a tree whose baselines differed (or serve an UPDATE_GOLDEN capture run from
+// cache so it never writes the baseline at all). Declaring them makes caching honest; the verify
+// lane additionally forces `--rerun` so evidence receipts always attest actual execution.
+tasks.withType<Test>().configureEach {
+    inputs.files(fileTree(rootProject.layout.projectDirectory.dir("qa/golden")) { include("*.json") })
+        .withPropertyName("goldenBaselines")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property("updateGolden", System.getenv("UPDATE_GOLDEN") ?: "")
+}
