@@ -27,7 +27,14 @@ import { fileURLToPath } from "node:url";
 
 const TEMPLATE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REPO_ROOT = path.resolve(TEMPLATE_ROOT, "..");
-const CREATE_CMP_BIN = path.join(REPO_ROOT, "bin", "create-cmp.mjs");
+// Scaffolding the throwaway app: inside the create-cmp dev tree the engine sits at
+// ../bin relative to the template — use it directly (fast, offline, tests the local
+// code). In a real generated repo that path doesn't exist, so fall back to the
+// published CLI via npx (needs network on first run).
+const LOCAL_ENGINE = path.join(REPO_ROOT, "bin", "create-cmp.mjs");
+const SCAFFOLD_CMD = fs.existsSync(LOCAL_ENGINE)
+  ? `node "${LOCAL_ENGINE}"`
+  : "npx --yes create-cmp-cli@latest";
 const GRADLEW = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
 
 function log(msg) {
@@ -57,7 +64,7 @@ function scaffold() {
   log(`Scaffolding a throwaway app at ${projectDir} (never touching ${TEMPLATE_ROOT})…`);
 
   const res = sh(
-    `node "${CREATE_CMP_BIN}" "${projectDir}" --name RefusalDemo --package com.example.refusaldemo --no-ios --yes --no-verify`,
+    `${SCAFFOLD_CMD} "${projectDir}" --name RefusalDemo --package com.example.refusaldemo --no-ios --yes --no-verify`,
     REPO_ROOT,
     { timeout: 5 * 60_000 },
   );

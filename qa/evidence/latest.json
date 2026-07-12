@@ -3,23 +3,21 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "dc9f4f408f36982fc9bed6acc11d932bce7da407",
+    "sha": "a06aefd71c856ba937ac5ad80555bc5026b5bf60",
     "dirty": [
-      "EADME.md",
-      "composeApp/build.gradle.kts",
-      "qa/golden/favorites.json",
-      "qa/verify.mjs"
+      "a/evidence/latest.json",
+      "qa/refusal-demo.mjs"
     ]
   },
   "inputs": {
-    "hash": "97be3d9b24d38e8bc52e5d1f872bc342e714392863fd106c6db558fecc49e34b",
+    "hash": "769b2c38c45289b0c6598268a39a7f9069cf51e7d81f1b6b095ce07948446354",
     "fileCount": 120
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 23,
+      "durationMs": 26,
       "details": {
         "clauses": 21,
         "withdrawn": 0,
@@ -30,12 +28,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2837
+      "durationMs": 3695
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 6693,
+      "durationMs": 7856,
       "details": {
         "tests": 28,
         "failures": 0,
@@ -46,17 +44,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3660
+      "durationMs": 8296
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4823
+      "durationMs": 11007
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 258,
+      "durationMs": 545,
       "details": {
         "checked": 14,
         "drifted": 0
@@ -65,12 +63,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4814
+      "durationMs": 5889
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 42204
+      "durationMs": 37866
     }
   ],
   "artifacts": [],
@@ -78,5 +76,5 @@
     "node": "v24.7.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-12T10:28:52.257Z"
+  "generatedAt": "2026-07-12T15:34:30.842Z"
 }
