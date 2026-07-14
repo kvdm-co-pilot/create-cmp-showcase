@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,9 @@ fun HomeScreen(
         Text(
             text = "Home",
             style = MaterialTheme.typography.headlineMedium,
+            // Refusal demo: a hardcoded brand color instead of a theme token.
+            // ARCH-05 forbids Color(0x…) literals outside presentation/theme — CI will name it.
+            color = Color(0xFFE91E63),
             modifier = Modifier.semantics { testTag = "home_title" }.padding(bottom = 12.dp),
         )
 
