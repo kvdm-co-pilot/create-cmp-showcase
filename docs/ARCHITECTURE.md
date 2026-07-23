@@ -20,7 +20,7 @@ app").
 |---|---|---|
 | Maintainability | An AI session adds a feature; the lane names any layer violation as a clause, not a style nit | `[enforced: ARCH-01..05]` |
 | Reliability | A source fails; the failure crosses layers as a typed `DomainError`, never a raw exception, and the screen shows a mapped error state | `[enforced: ARCH-06/07/08]` |
-| Reliability (offline) | Network drops mid-session; cached Room data still renders, UI shows degraded state | `[advisory]` today — `NetworkMonitor` and Room ship as infrastructure (§4, §7) but no repository wires the cache-first fallback yet; clause candidate |
+| Reliability (offline) | Network drops mid-session; cached Room data still renders, UI shows degraded state | `[advisory]` today — the exemplar now **reads from** Room (Foods seeds its catalog into Room on first run and serves every query from it, so on-device content renders with no network), but no repository wires a **network→cache** fallback yet: Foods has no remote source and `NetworkMonitor` ships unused (§4, §7); clause candidate |
 | Interaction capability (a11y) | Every interactive element is perceivable by assistive tech and automation | `[enforced: SHELL-04 + A11y gates]` |
 | Security | The debug inspector HTTP server (§3) never ships in a release build | `[advisory]` today — true by source-set placement (`androidDebug`), not yet gated; clause candidate (`DEBUG-01`) |
 
@@ -51,7 +51,7 @@ app").
                      (GitLive SDK:  (on-device    (platform connectivity,
                       auth/firestore/ SSOT —        StateFlow<Boolean>)
                       functions/    AppDatabase,
-                      storage)      ItemDao)
+                      storage)      FoodDao)
 
    Development-time only — never in a release build or on a user's device:
       Debug inspector HTTP server            QA harness
@@ -63,7 +63,7 @@ app").
 | Integration | What | Where in the tree | Notes |
 |---|---|---|---|
 | Firebase | Auth / Firestore / Functions / Storage via the GitLive KMP SDK | `data/remote/FirebaseConfig.kt`, wired at `initKoin()`/`AppApplication`/`KoinHelper` | Emulator-backed in debug builds (`configureFirebaseEmulators()`); `google-services.json` ships as a placeholder — wire the real project before shipping. |
-| Room | On-device SSOT — `AppDatabase`, `ItemDao` | `data/local/*.kt` | Registered in DI on every platform (`single<AppDatabase>`); the exemplar's `ItemRepositoryImpl` does not yet read/write it — see §1's offline row. |
+| Room | On-device SSOT — `AppDatabase`, `FoodDao` | `data/local/*.kt` | Registered in DI on every platform (`single<AppDatabase>`); the exemplar's `FoodRepositoryImpl` reads and writes it — the Foods catalog is seeded into Room on first run and served from it (§7 Persistence). |
 | NetworkMonitor | Platform connectivity as `StateFlow<Boolean>` | `core/connectivity/NetworkMonitor.kt` (expect) + one `actual` per platform | Registered in DI (`single { NetworkMonitor(...) }`); not yet consumed by a repository — available, not wired. |
 | Debug inspector HTTP server | Loopback-only (`ServerSocket`, never the LAN) structural/crash/DB inspection endpoint for the AI verification loop | `composeApp/src/androidDebug/kotlin/.../inspector/*.kt` | **Never compiled into `androidRelease`** — a separate no-op twin ships there (source-set placement, not a runtime flag). |
 | QA harness | Maestro E2E flows + the desktop preview daemon | `qa/e2e/*.yaml`, `composeApp/src/desktopMain/.../inspector/PreviewHarness.kt` | Development/CI-time actors, never shipped to a device. |
@@ -123,7 +123,7 @@ release target. See project ADR
 │                AppResult/DomainError — imports nothing             │
 │                app-internal [enforced: ARCH-02]                    │
 ├──────────────────────────────────────────────────────────────────┤
-│ data           local/  (Room: AppDatabase, ItemDao)                │
+│ data           local/  (Room: AppDatabase, FoodDao)                │
 │                remote/ (repository implementations, FirebaseConfig)│
 │                never reaches into presentation or di               │
 │                [enforced: ARCH-09]                                 │
@@ -151,9 +151,9 @@ Every arrow in that box is a cited rule, not a wish:
   `[enforced: ARCH-06/07/08 — see §7]`.
 
 <!-- cmp:generated layer-file-inventory -->
-- `presentation/` — commonMain: `App.kt`, `brand/FuelledLogo.kt`, `components/AppBottomBar.kt`, `components/AppButton.kt`, `components/AppHeader.kt`, `components/BaseScreen.kt`, `components/ContentStateContainer.kt`, `components/ContentUiState.kt`, `components/EmptyState.kt`, `components/ErrorState.kt`, `components/ListItemCard.kt`, `components/PlaceholderScreen.kt`, `components/ProgressRing.kt`, `components/ScreenColumn.kt`, `components/Shimmer.kt`, `components/StatBar.kt`, `components/StatTile.kt`, `components/Tag.kt`, `components/TestTagAutomation.kt`, `foods/FoodDetailScreen.kt`, `foods/FoodsScreen.kt`, `home/DetailScreen.kt`, `home/HomeScreen.kt`, `home/HomeViewModel.kt`, `navigation/AppNavHost.kt`, `navigation/AppShell.kt`, `navigation/AppTab.kt`, `navigation/NavInspectionHook.kt`, `navigation/Screen.kt`, `profile/ProfileScreen.kt`, `supplements/SupplementsScreen.kt`, `theme/DesignToken.kt`, `theme/Shape.kt`, `theme/Theme.kt`, `theme/Tokens.kt`, `theme/Typography.kt`, `today/TodayScreen.kt`; androidMain: `components/TestTagAutomation.android.kt`; iosMain: `components/TestTagAutomation.ios.kt`; desktopMain: `components/TestTagAutomation.desktop.kt`
-- `domain/` — commonMain: `model/DomainError.kt`, `model/Item.kt`, `repository/ItemRepository.kt`, `result/AppResult.kt`, `usecase/GetItemsUseCase.kt`
-- `data/` — commonMain: `AppResultCatching.kt`, `local/AppDatabase.kt`, `local/DatabaseBuilder.kt`, `local/ItemDao.kt`, `remote/FirebaseConfig.kt`, `remote/ItemRepositoryImpl.kt`; androidMain: `local/DatabaseBuilder.android.kt`; iosMain: `local/DatabaseBuilder.ios.kt`; desktopMain: `local/DatabaseBuilder.desktop.kt`
+- `presentation/` — commonMain: `App.kt`, `brand/FuelledLogo.kt`, `components/AppBottomBar.kt`, `components/AppButton.kt`, `components/AppHeader.kt`, `components/BaseScreen.kt`, `components/ContentStateContainer.kt`, `components/ContentUiState.kt`, `components/EmptyState.kt`, `components/ErrorState.kt`, `components/ListItemCard.kt`, `components/PlaceholderScreen.kt`, `components/ProgressRing.kt`, `components/ScreenColumn.kt`, `components/Shimmer.kt`, `components/StatBar.kt`, `components/StatTile.kt`, `components/Tag.kt`, `components/TestTagAutomation.kt`, `foods/FoodDetailScreen.kt`, `foods/FoodDetailViewModel.kt`, `foods/FoodsScreen.kt`, `foods/FoodsViewModel.kt`, `navigation/AppNavHost.kt`, `navigation/AppShell.kt`, `navigation/AppTab.kt`, `navigation/NavInspectionHook.kt`, `navigation/Screen.kt`, `profile/ProfileScreen.kt`, `supplements/SupplementsScreen.kt`, `theme/DesignToken.kt`, `theme/Shape.kt`, `theme/Theme.kt`, `theme/Tokens.kt`, `theme/Typography.kt`, `today/TodayScreen.kt`; androidMain: `components/TestTagAutomation.android.kt`; iosMain: `components/TestTagAutomation.ios.kt`; desktopMain: `components/TestTagAutomation.desktop.kt`
+- `domain/` — commonMain: `model/DomainError.kt`, `model/Food.kt`, `repository/FoodRepository.kt`, `result/AppResult.kt`, `usecase/GetFoodsUseCase.kt`, `usecase/GetFoodUseCase.kt`, `usecase/SearchFoodsUseCase.kt`
+- `data/` — commonMain: `AppResultCatching.kt`, `local/AppDatabase.kt`, `local/DatabaseBuilder.kt`, `local/FoodDao.kt`, `local/FoodEntity.kt`, `remote/FirebaseConfig.kt`, `remote/FoodRepositoryImpl.kt`; androidMain: `local/DatabaseBuilder.android.kt`; iosMain: `local/DatabaseBuilder.ios.kt`; desktopMain: `local/DatabaseBuilder.desktop.kt`
 - `core/` — commonMain: `connectivity/NetworkMonitor.kt`, `format/Format.kt`; androidMain: `connectivity/NetworkMonitor.kt`; iosMain: `connectivity/NetworkMonitor.kt`; desktopMain: `connectivity/NetworkMonitor.desktop.kt`
 - `di/` — commonMain: `AppModule.kt`; androidMain: `AndroidModule.kt`; desktopMain: `DesktopModule.kt`
 <!-- /cmp:generated -->
@@ -217,13 +217,13 @@ carried by the exemplar and its tests, not gated.
 **Repositories are main-safe by delegation, not by ceremony.** Every I/O path the scaffold
 ships is main-safe under its own library's contract, so the template injects no dispatcher:
 
-- **Room suspend DAO calls** (`data/local/ItemDao.kt` — all `suspend fun`s): Room executes
+- **Room suspend DAO calls** (`data/local/FoodDao.kt` — all `suspend fun`s): Room executes
   suspending queries on its own background executor; calling them from `Dispatchers.Main` is
   safe by Room's documented contract.
 - **GitLive Firebase suspend APIs** (when you wire them into `data/remote/`): suspending
   wrappers over the async native SDKs — main-safe by the SDK's contract.
-- **The example source** (`data/remote/ItemRepositoryImpl.kt`): only `delay()` (a suspension,
-  not a block) and list construction.
+- **The exemplar source** (`data/remote/FoodRepositoryImpl.kt`): `suspend` Room DAO reads/writes
+  wrapped in `suspendRunCatching`, plus a one-time idempotent catalog seed — no blocking work.
 
 The rule when you add a source that does NOT carry such a guarantee (JDBC, direct file I/O,
 heavy parsing, any blocking call): inject a `CoroutineDispatcher` into the repository via
@@ -237,8 +237,9 @@ real guarantee lives.
 One Koin module per concern: `repositoryModule` / `useCaseModule` / `viewModelModule`
 (`di/AppModule.kt`, common to every platform), plus one platform module for platform-only
 bindings (`AndroidModule.kt`, `DesktopModule.kt`; iOS wires its platform singletons inline in
-`KoinHelper.kt`). **Constructor injection only** — see `GetItemsUseCase(repository:
-ItemRepository)` and `HomeViewModel(getItems: GetItemsUseCase)`; no field/property injection,
+`KoinHelper.kt`). **Constructor injection only** — see the exemplar wiring
+(`GetFoodsUseCase(repository: FoodRepository)`, `FoodsViewModel(getFoods, searchFoods)`,
+`FoodDetailViewModel(getFood)`); no field/property injection,
 no service-locator lookups inside domain or presentation code. Platform modules provide
 `actual`-backed singletons (`NetworkMonitor`, `AppDatabase`) that common modules then depend on
 via the domain-facing interface, not the concrete platform type.
@@ -264,14 +265,15 @@ differences belong behind the shared type, not in divergent call sites.
 
 ### Persistence `[advisory]`
 
-Room (`data/local/AppDatabase.kt`, `ItemDao.kt`) is the on-device single source of truth,
+Room (`data/local/AppDatabase.kt`, `FoodDao.kt`) is the on-device single source of truth,
 built via the shared `buildDatabase()` (`data/local/DatabaseBuilder.kt`, using
 `BundledSQLiteDriver()` for Room-on-Kotlin/Native) and registered in DI on every platform.
-It is wired but **not yet consumed**: `ItemRepositoryImpl` returns in-memory sample data,
-not a Room-backed cache (see §1, §6). When you wire a real persistence path, the repository
-stays the only place that talks to `AppDatabase`/`ItemDao` — domain never sees Room types;
-map `ItemEntity` → the domain `Item` inside `data/` — and schema changes get a `version`
-bump. `fallbackToDestructiveMigration` is a scaffold-stage convenience; replace it before
+The exemplar **consumes it**: `FoodRepositoryImpl` reads and writes `FoodDao`, seeding the
+catalog into Room on first run (idempotent `ensureSeeded`) and serving every query from it.
+The repository stays the only place that talks to `AppDatabase`/`FoodDao` — domain never sees
+Room types; `FoodEntity` ↔ the domain `Food` is mapped inside `data/` — and schema changes get
+a `version` bump (currently `2`, after the Item→Food schema change).
+`fallbackToDestructiveMigration` is a scaffold-stage convenience; replace it before
 shipping user data you can't afford to lose.
 
 ### Design tokens `[enforced: ARCH-05]`
@@ -320,13 +322,14 @@ _Lifted verbatim from the `## Glossary` section of [`specs/intent.md`](../specs/
 - **Supplement** — a planned intake (e.g. creatine, whey) with a schedule and reminder.
 <!-- /cmp:generated -->
 
-## The exemplar feature (`home` by default, configurable)
+## The exemplar feature (`foods` — this app's configured exemplar)
 
-The **configured exemplar** — `exemplarFeature` in `qa/approvals.json`, `home` on a fresh
-scaffold — is the **reference implementation** of every pattern above, including its tests
-(`commonTest`). The genesis walk typically promotes your own first feature to exemplar (see
-`CLAUDE.md`'s genesis section); `qa/scaffold-feature.mjs` then clones from *it*, and `home`
-demotes to a regular feature. To add a feature, mirror the exemplar exactly:
+The **configured exemplar** — `exemplarFeature` in `qa/approvals.json`, here **`foods`** (a
+fresh scaffold ships `home`; the genesis walk promoted Foods to exemplar for this app) — is
+the **reference implementation** of every pattern above, including its tests (`commonTest`)
+and its spec ([`specs/foods.spec.md`](../specs/foods.spec.md), clauses `FOODS-01…08`).
+`qa/scaffold-feature.mjs` clones new features from *it*. To add a feature, mirror the exemplar
+exactly:
 
 1. Domain: model + repository interface + use case (+ tests).
 2. Data: repository implementation (+ test through the domain contract).

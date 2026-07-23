@@ -32,26 +32,23 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kvdm.fuelled.domain.model.Food
+import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.Tag
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import org.koin.compose.viewmodel.koinViewModel
 
 // ── Foods: the searchable catalog (the exemplar feature) ─────────────────────────────
-// Search filters the local catalog; each row opens the Food detail. Stateless over a list;
-// the Room-backed repository/ViewModel wires in during the architecture pass.
+// Two entry points, the UI-first preview seam:
+//   • FoodsScreen — STATELESS, sample-defaulted. The preview registry renders it with no VM.
+//   • FoodsRoute  — the VM-backed wrapper the nav graph calls: search + Loading/Empty/Error
+//     are driven by FoodsViewModel through ContentStateContainer.
 
-data class Food(
-    val id: String,
-    val name: String,
-    val brand: String,
-    val serving: String,
-    val kcal: Int,
-    val proteinG: Int,
-    val carbsG: Int,
-    val fatG: Int,
-)
-
-// PREVIEW/DEMO fixtures — the screen's preview seam (UI-first pattern). Not production
-// data: replaced by the Room-backed repository when Foods is wired as the exemplar feature.
+// PREVIEW/DEMO fixtures — the screen's preview seam. Not production data: the Room-backed
+// repository (FoodRepositoryImpl) seeds the same catalog for the VM-backed FoodsRoute.
 val sampleFoods = listOf(
     Food("1", "Chicken breast", "Raw · skinless", "100 g", 165, 31, 0, 4),
     Food("2", "Whey protein", "Gold Standard", "1 scoop · 30 g", 120, 24, 3, 2),
@@ -62,6 +59,34 @@ val sampleFoods = listOf(
     Food("7", "Almonds", "Raw", "20 g", 116, 4, 4, 10),
 )
 
+/**
+ * The VM-backed Foods tab the nav graph hosts. Search query and the Loading/Content/Empty/
+ * Error state machine live in [FoodsViewModel]; this wrapper only renders them. The stateless
+ * [FoodsScreen] below stays VM-free for the preview registry.
+ */
+@Composable
+fun FoodsRoute(
+    onFoodClick: (Food) -> Unit,
+    viewModel: FoodsViewModel = koinViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
+
+    ScreenColumn(screenTag = "foods") {
+        AppHeader(title = "Foods", screenTag = "foods")
+        FoodSearchField(query = query, onQueryChange = viewModel::onQueryChange)
+        Spacer(Modifier.height(16.dp))
+        ContentStateContainer(state = state, screenTag = "foods", onRetry = viewModel::load) { foods ->
+            FoodList(foods = foods, onFoodClick = onFoodClick)
+        }
+    }
+}
+
+/**
+ * The stateless catalog — the preview/UI-first seam. Renders a search box and the list over a
+ * plain `List<Food>` with a local filter, so the preview registry can render it without a VM
+ * or Koin. The production search path is [FoodsRoute] + [FoodsViewModel].
+ */
 @Composable
 fun FoodsScreen(
     foods: List<Food> = sampleFoods,
@@ -70,7 +95,9 @@ fun FoodsScreen(
     var query by remember { mutableStateOf("") }
     val filtered = remember(query, foods) {
         if (query.isBlank()) foods
-        else foods.filter { it.name.contains(query, ignoreCase = true) || it.brand.contains(query, ignoreCase = true) }
+        else foods.filter {
+            it.name.contains(query, ignoreCase = true) || it.brand.contains(query, ignoreCase = true)
+        }
     }
 
     Column(
@@ -84,34 +111,48 @@ fun FoodsScreen(
             modifier = Modifier.semantics { testTag = "foods_title" },
         )
         Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search foods") },
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            singleLine = true,
-            shape = RoundedCornerShape(14.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = FuelledColors.Primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            ),
-        )
+        FoodSearchField(query = query, onQueryChange = { query = it })
         Spacer(Modifier.height(16.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(filtered, key = { it.id }) { food ->
-                FoodRow(food, onClick = { onFoodClick(food) })
-            }
+        FoodList(foods = filtered, onFoodClick = onFoodClick)
+    }
+}
+
+@Composable
+private fun FoodSearchField(query: String, onQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth().semantics { testTag = "foods_search" },
+        placeholder = { Text("Search foods") },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        singleLine = true,
+        shape = RoundedCornerShape(14.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = FuelledColors.Primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        ),
+    )
+}
+
+@Composable
+private fun FoodList(foods: List<Food>, onFoodClick: (Food) -> Unit) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        items(foods, key = { it.id }) { food ->
+            FoodRow(
+                food = food,
+                onClick = { onFoodClick(food) },
+                modifier = Modifier.semantics { testTag = "foods_item_${food.id}" },
+            )
         }
     }
 }
 
 @Composable
-private fun FoodRow(food: Food, onClick: () -> Unit) {
+private fun FoodRow(food: Food, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)

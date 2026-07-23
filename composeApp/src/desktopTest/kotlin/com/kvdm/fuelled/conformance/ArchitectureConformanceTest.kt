@@ -114,7 +114,7 @@ class ArchitectureConformanceTest {
             violation(
                 "ARCH-03", "every ViewModel has a corresponding *ViewModelTest in commonTest.",
                 offenders,
-                "add the test mirroring HomeViewModelTest (Turbine + fakes; loading/success/error paths).",
+                "add the test mirroring FoodsViewModelTest (Turbine + fakes; loading/success/error paths).",
             )
         )
     }
@@ -177,7 +177,7 @@ class ArchitectureConformanceTest {
                     "directly — loading is presented through ContentStateContainer/ContentStateDefaults.",
                 offenders,
                 "bind the screen's loading arm to ContentStateContainer(state = …, screenTag = …) instead " +
-                    "of drawing a progress indicator by hand (see the exemplar HomeScreen).",
+                    "of drawing a progress indicator by hand (see the exemplar FoodsRoute).",
             )
         )
     }

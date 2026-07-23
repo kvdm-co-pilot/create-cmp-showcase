@@ -9,50 +9,104 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import org.koin.compose.viewmodel.koinViewModel
 
 // ── Food detail: the full nutritional breakdown + log action ─────────────────────────
+// FoodDetailRoute is the VM-backed nav destination — it resolves the Food by id through
+// FoodDetailViewModel (the repository), then renders it. FoodDetailScreen stays stateless
+// and sample-defaulted for the preview registry (no VM, no Koin).
 
+/**
+ * The VM-backed detail destination the nav graph hosts. Resolves [foodId] via
+ * [FoodDetailViewModel] and presents Loading/Content/Error through [ContentStateContainer];
+ * a missing id renders the mapped NotFound copy, never a crash.
+ */
+@Composable
+fun FoodDetailRoute(
+    foodId: String,
+    onBack: () -> Unit,
+    onLog: () -> Unit = {},
+    viewModel: FoodDetailViewModel = koinViewModel(),
+) {
+    LaunchedEffect(foodId) { viewModel.load(foodId) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    BaseScreen { innerPadding ->
+        ContentStateContainer(
+            state = state,
+            screenTag = "food_detail",
+            onRetry = { viewModel.load(foodId) },
+        ) { food ->
+            FoodDetailContent(
+                food = food,
+                onBack = onBack,
+                onLog = onLog,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+    }
+}
+
+/**
+ * The stateless detail — the preview/UI-first seam. Renders a resolved [Food] inside
+ * [BaseScreen], defaulting to a sample so the preview registry can render it without a VM.
+ */
 @Composable
 fun FoodDetailScreen(
-    foodId: String = sampleFoods.first().id,
+    food: Food = sampleFoods.first(),
     onBack: () -> Unit = {},
     onLog: () -> Unit = {},
 ) {
-    // PREVIEW/DEMO: resolve from the in-memory sample catalog. Replaced by the
-    // ViewModel + repository (Room) when Foods is wired as the exemplar feature —
-    // see docs UI-first pattern; the nav layer already passes only the id.
-    val food = sampleFoods.firstOrNull { it.id == foodId } ?: sampleFoods.first()
+    BaseScreen { innerPadding ->
+        FoodDetailContent(
+            food = food,
+            onBack = onBack,
+            onLog = onLog,
+            modifier = Modifier.padding(innerPadding),
+        )
+    }
+}
+
+@Composable
+private fun FoodDetailContent(
+    food: Food,
+    onBack: () -> Unit,
+    onLog: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val pKcal = food.proteinG * 4
     val cKcal = food.carbsG * 4
     val fKcal = food.fatG * 9
     val totalMacroKcal = (pKcal + cKcal + fKcal).coerceAtLeast(1)
 
-    BaseScreen { innerPadding ->
-      Column(
-        modifier = Modifier
+    Column(
+        modifier = modifier
             .fillMaxSize()
-            .padding(innerPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
-      ) {
+    ) {
         AppHeader(title = food.name, screenTag = "food_detail", onBack = onBack)
 
         Text(
@@ -110,7 +164,6 @@ fun FoodDetailScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
-      }
     }
 }
 

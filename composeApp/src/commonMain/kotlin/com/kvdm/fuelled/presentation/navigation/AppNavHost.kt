@@ -10,8 +10,8 @@ import androidx.navigation.navArgument
 // Nav 2.9 (multiplatform): backStackEntry.arguments is a SavedState, not an Android Bundle.
 // Read it via the androidx.savedstate.read extension, NOT Bundle.getString().
 import androidx.savedstate.read
-import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
-import com.kvdm.fuelled.presentation.foods.FoodsScreen
+import com.kvdm.fuelled.presentation.foods.FoodDetailRoute
+import com.kvdm.fuelled.presentation.foods.FoodsRoute
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
@@ -36,7 +36,7 @@ fun AppNavHost() {
         composable(Screen.Shell.route) {
             val tabs = appTabs(
                 today = { TodayScreen() },
-                foods = { FoodsScreen(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
+                foods = { FoodsRoute(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
                 supplements = { SupplementsScreen() },
                 profile = { ProfileScreen() },
             )
@@ -44,21 +44,11 @@ fun AppNavHost() {
         }
 
         composable(
-            route = Screen.Detail.route,
-            arguments = listOf(navArgument("itemId") { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.read { getStringOrNull("itemId") }.orEmpty()
-            com.kvdm.fuelled.presentation.home.DetailScreen(
-                itemId = itemId,
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(
             route = Screen.FoodDetail.route,
             arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val foodId = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
-            FoodDetailScreen(foodId = foodId, onBack = { navController.popBackStack() })
+            FoodDetailRoute(foodId = foodId, onBack = { navController.popBackStack() })
         }
         // cmp:anchor nav-destinations
     }

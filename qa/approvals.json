@@ -2,24 +2,6 @@
   "schema": "cmp-approvals/1",
   "artifacts": [
     {
-      "artifact": "components",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
-    {
-      "artifact": "exemplar-feature",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
-    {
-      "artifact": "exemplar-spec",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
-    {
       "artifact": "intent",
       "status": "approved",
       "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
@@ -32,11 +14,29 @@
       "approvedAt": "2026-07-23T18:09:12.304Z"
     },
     {
+      "artifact": "components",
+      "status": "approved",
+      "hash": "8261afb3bc829e82477c4cb6ebb29de1e947eaa0caa276a741140345ea517f1b",
+      "approvedAt": "2026-07-23T19:55:44.123Z"
+    },
+    {
       "artifact": "architecture",
       "status": "approved",
-      "hash": "e80c5db05620248645e0f067a7c25d613e27283ce455c822514bdd665cbbc4c3",
-      "approvedAt": "2026-07-23T18:32:22.826Z"
+      "hash": "e2813f1486fa9b1c4a8a557f2759a031f25b4eb5dbe45c138166e0be5c73d02c",
+      "approvedAt": "2026-07-23T20:41:20.056Z"
+    },
+    {
+      "artifact": "exemplar-spec",
+      "status": "approved",
+      "hash": "a40ccdb51a37d4dd6fecd7cdaeaaebef05b7fc8605bb48a9b01d117cf13b5f7d",
+      "approvedAt": "2026-07-23T20:41:20.107Z"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "approved",
+      "hash": "d39b09e1b3179d33b7f873dedefa2be186553823cf58293a7b0c41fe11e7b18a",
+      "approvedAt": "2026-07-23T20:41:20.157Z"
     }
   ],
-  "exemplarFeature": "home"
+  "exemplarFeature": "foods"
 }

@@ -7,15 +7,17 @@ import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.domain.model.DomainError
-import com.kvdm.fuelled.domain.model.Item
-import com.kvdm.fuelled.domain.usecase.GetItemsUseCase
-import com.kvdm.fuelled.presentation.home.HomeScreen
-import com.kvdm.fuelled.presentation.home.HomeViewModel
+import com.kvdm.fuelled.domain.model.Food
+import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
+import com.kvdm.fuelled.domain.usecase.SearchFoodsUseCase
+import com.kvdm.fuelled.presentation.foods.FoodsRoute
+import com.kvdm.fuelled.presentation.foods.FoodsViewModel
 import com.kvdm.fuelled.testing.awaitNode
-import com.kvdm.fuelled.testing.fakes.FakeItemRepository
+import com.kvdm.fuelled.testing.fakes.FakeFoodRepository
 import kotlin.test.Test
 
 /**
@@ -28,57 +30,64 @@ import kotlin.test.Test
 @OptIn(ExperimentalTestApi::class)
 class ComponentConformanceTest {
 
+    private fun viewModel(repository: FakeFoodRepository) =
+        FoodsViewModel(GetFoodsUseCase(repository), SearchFoodsUseCase(repository))
+
     // SPEC: COMP-01
     @Test
     fun `a failed load is presented by ContentStateContainer with the screen-derived error tag`() = runComposeUiTest {
-        val repository = FakeItemRepository().apply { failure = DomainError.Network }
+        val repository = FakeFoodRepository().apply { failure = DomainError.Network }
         setContent {
             MaterialTheme {
-                HomeScreen(onItemClick = {}, viewModel = HomeViewModel(GetItemsUseCase(repository)))
+                FoodsRoute(onFoodClick = {}, viewModel = viewModel(repository))
             }
         }
-        awaitNode(hasTestTag("home_error"))
+        awaitNode(hasTestTag("foods_error"))
     }
 
     // SPEC: COMP-01
     @Test
-    fun `a zero-item load is presented by ContentStateContainer with the screen-derived empty tag`() = runComposeUiTest {
-        val repository = FakeItemRepository().apply { items = emptyList() }
+    fun `a zero-result search is presented by ContentStateContainer with the screen-derived empty tag`() = runComposeUiTest {
+        val repository = FakeFoodRepository().apply {
+            foods = listOf(Food("1", "Chicken breast", "Raw", "100 g", 165, 31, 0, 4))
+        }
         setContent {
             MaterialTheme {
-                HomeScreen(onItemClick = {}, viewModel = HomeViewModel(GetItemsUseCase(repository)))
+                FoodsRoute(onFoodClick = {}, viewModel = viewModel(repository))
             }
         }
-        awaitNode(hasTestTag("home_empty"))
+        awaitNode(hasText("Chicken breast"))
+        onNodeWithTag("foods_search").performTextInput("zzz")
+        awaitNode(hasTestTag("foods_empty"))
     }
 
     // SPEC: COMP-02
     @Test
     fun `a recoverable error renders a retry control of at least 48dp`() = runComposeUiTest {
-        val repository = FakeItemRepository().apply { failure = DomainError.Network }
+        val repository = FakeFoodRepository().apply { failure = DomainError.Network }
         setContent {
             MaterialTheme {
-                HomeScreen(onItemClick = {}, viewModel = HomeViewModel(GetItemsUseCase(repository)))
+                FoodsRoute(onFoodClick = {}, viewModel = viewModel(repository))
             }
         }
-        awaitNode(hasTestTag("home_retry"))
-        onNodeWithTag("home_retry")
+        awaitNode(hasTestTag("foods_retry"))
+        onNodeWithTag("foods_retry")
             .assertWidthIsAtLeast(48.dp)
             .assertHeightIsAtLeast(48.dp)
     }
 
     // SPEC: COMP-03
     @Test
-    fun `every ListItemCard row clears the 48dp minimum pointer target`() = runComposeUiTest {
-        val repository = FakeItemRepository().apply {
-            items = listOf(Item(id = "1", title = "Row", subtitle = "sub"))
+    fun `every food row clears the 48dp minimum pointer target`() = runComposeUiTest {
+        val repository = FakeFoodRepository().apply {
+            foods = listOf(Food("1", "Chicken breast", "Raw", "100 g", 165, 31, 0, 4))
         }
         setContent {
             MaterialTheme {
-                HomeScreen(onItemClick = {}, viewModel = HomeViewModel(GetItemsUseCase(repository)))
+                FoodsRoute(onFoodClick = {}, viewModel = viewModel(repository))
             }
         }
-        awaitNode(hasText("Row"))
-        onNodeWithTag("home_item_1").assertHeightIsAtLeast(48.dp)
+        awaitNode(hasText("Chicken breast"))
+        onNodeWithTag("foods_item_1").assertHeightIsAtLeast(48.dp)
     }
 }

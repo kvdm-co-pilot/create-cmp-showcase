@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.PlaceholderScreen
-import com.kvdm.fuelled.presentation.home.DetailScreen
 import com.kvdm.fuelled.presentation.navigation.AppShell
 import com.kvdm.fuelled.presentation.navigation.appTabs
 import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
@@ -62,7 +61,6 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
     ScreenPreview("profile", "Profile tab") { TabHost { ProfileScreen() } },
-    ScreenPreview("detail", "Detail (nav destination)") { DetailScreen(itemId = "1", onBack = {}) },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()
 

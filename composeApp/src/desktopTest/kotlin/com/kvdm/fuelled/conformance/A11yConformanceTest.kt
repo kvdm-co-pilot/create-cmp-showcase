@@ -9,12 +9,13 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.runComposeUiTest
-import com.kvdm.fuelled.domain.model.Item
-import com.kvdm.fuelled.domain.usecase.GetItemsUseCase
-import com.kvdm.fuelled.presentation.home.HomeScreen
-import com.kvdm.fuelled.presentation.home.HomeViewModel
+import com.kvdm.fuelled.domain.model.Food
+import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
+import com.kvdm.fuelled.domain.usecase.SearchFoodsUseCase
+import com.kvdm.fuelled.presentation.foods.FoodsRoute
+import com.kvdm.fuelled.presentation.foods.FoodsViewModel
 import com.kvdm.fuelled.testing.awaitNode
-import com.kvdm.fuelled.testing.fakes.FakeItemRepository
+import com.kvdm.fuelled.testing.fakes.FakeFoodRepository
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -29,13 +30,14 @@ class A11yConformanceTest {
 
     // SPEC: SHELL-04
     @Test
-    fun `every clickable on Home is perceivable`() = runComposeUiTest {
-        val repository = FakeItemRepository().apply {
-            items = listOf(Item(id = "1", title = "A11y row", subtitle = "sub"))
+    fun `every clickable on Foods is perceivable`() = runComposeUiTest {
+        val repository = FakeFoodRepository().apply {
+            foods = listOf(Food("1", "A11y row", "Brand", "100 g", 100, 10, 10, 5))
         }
+        val viewModel = FoodsViewModel(GetFoodsUseCase(repository), SearchFoodsUseCase(repository))
         setContent {
             MaterialTheme {
-                HomeScreen(onItemClick = {}, viewModel = HomeViewModel(GetItemsUseCase(repository)))
+                FoodsRoute(onFoodClick = {}, viewModel = viewModel)
             }
         }
         awaitNode(hasText("A11y row"))
