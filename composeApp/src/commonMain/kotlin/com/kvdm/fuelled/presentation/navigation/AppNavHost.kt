@@ -12,7 +12,6 @@ import androidx.navigation.navArgument
 import androidx.savedstate.read
 import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
 import com.kvdm.fuelled.presentation.foods.FoodsScreen
-import com.kvdm.fuelled.presentation.foods.sampleFoods
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
@@ -59,8 +58,7 @@ fun AppNavHost() {
             arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val foodId = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
-            val food = sampleFoods.firstOrNull { it.id == foodId } ?: sampleFoods.first()
-            FoodDetailScreen(food = food, onBack = { navController.popBackStack() })
+            FoodDetailScreen(foodId = foodId, onBack = { navController.popBackStack() })
         }
         // cmp:anchor nav-destinations
     }

@@ -31,10 +31,14 @@ import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 @Composable
 fun FoodDetailScreen(
-    food: Food = sampleFoods.first(),
+    foodId: String = sampleFoods.first().id,
     onBack: () -> Unit = {},
     onLog: () -> Unit = {},
 ) {
+    // PREVIEW/DEMO: resolve from the in-memory sample catalog. Replaced by the
+    // ViewModel + repository (Room) when Foods is wired as the exemplar feature —
+    // see docs UI-first pattern; the nav layer already passes only the id.
+    val food = sampleFoods.firstOrNull { it.id == foodId } ?: sampleFoods.first()
     val pKcal = food.proteinG * 4
     val cKcal = food.carbsG * 4
     val fKcal = food.fatG * 9

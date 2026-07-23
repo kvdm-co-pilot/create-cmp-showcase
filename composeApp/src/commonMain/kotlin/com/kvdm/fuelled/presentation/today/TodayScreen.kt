@@ -56,6 +56,8 @@ data class TodayModel(
     val remainingKcal: Int get() = (targetKcal - consumedKcal).coerceAtLeast(0)
 }
 
+// PREVIEW/DEMO fixture — the screen's preview seam (UI-first pattern). Not production
+// data: replaced by the ViewModel's real daily totals when Today is wired to its sources.
 val sampleToday = TodayModel(
     dateLabel = "Wednesday, Jul 23",
     consumedKcal = 1840,

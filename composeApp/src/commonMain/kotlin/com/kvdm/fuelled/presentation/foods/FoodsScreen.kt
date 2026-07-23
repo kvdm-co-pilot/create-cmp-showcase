@@ -49,6 +49,8 @@ data class Food(
     val fatG: Int,
 )
 
+// PREVIEW/DEMO fixtures — the screen's preview seam (UI-first pattern). Not production
+// data: replaced by the Room-backed repository when Foods is wired as the exemplar feature.
 val sampleFoods = listOf(
     Food("1", "Chicken breast", "Raw · skinless", "100 g", 165, 31, 0, 4),
     Food("2", "Whey protein", "Gold Standard", "1 scoop · 30 g", 120, 24, 3, 2),

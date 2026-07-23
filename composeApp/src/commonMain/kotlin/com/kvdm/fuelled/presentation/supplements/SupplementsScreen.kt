@@ -38,6 +38,8 @@ import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 data class Supplement(val id: String, val name: String, val dose: String, val timing: String, val defaultTaken: Boolean)
 
+// PREVIEW/DEMO fixtures — the screen's preview seam (UI-first pattern). Not production
+// data: replaced by the ViewModel's real stack + reminders when Supplements is wired.
 val sampleSupplements = listOf(
     Supplement("1", "Creatine", "5 g", "Morning", true),
     Supplement("2", "Vitamin D3", "2000 IU", "Morning", true),
