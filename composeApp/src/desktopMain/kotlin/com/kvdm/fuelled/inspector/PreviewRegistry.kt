@@ -9,7 +9,11 @@ import com.kvdm.fuelled.presentation.components.PlaceholderScreen
 import com.kvdm.fuelled.presentation.home.DetailScreen
 import com.kvdm.fuelled.presentation.navigation.AppShell
 import com.kvdm.fuelled.presentation.navigation.appTabs
+import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
+import com.kvdm.fuelled.presentation.foods.FoodsScreen
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
+import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
+import com.kvdm.fuelled.presentation.today.TodayScreen
 
 /**
  * One previewable screen: a stable [id] (the `-Pscreen=` selector and output directory
@@ -46,16 +50,17 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("shell", "App shell — bottom nav (first tab selected)") {
         AppShell(
             tabs = appTabs(
-                today = { PlaceholderScreen(title = "Today", titleTag = "today_title") },
-                foods = { PlaceholderScreen(title = "Foods", titleTag = "foods_title") },
-                supplements = { PlaceholderScreen(title = "Supplements", titleTag = "supplements_title") },
+                today = { TodayScreen() },
+                foods = { FoodsScreen() },
+                supplements = { SupplementsScreen() },
                 profile = { ProfileScreen() },
             ),
         )
     },
-    ScreenPreview("today", "Today tab") { TabHost { PlaceholderScreen(title = "Today", titleTag = "today_title") } },
-    ScreenPreview("foods", "Foods tab") { TabHost { PlaceholderScreen(title = "Foods", titleTag = "foods_title") } },
-    ScreenPreview("supplements", "Supplements tab") { TabHost { PlaceholderScreen(title = "Supplements", titleTag = "supplements_title") } },
+    ScreenPreview("today", "Today tab") { TabHost { TodayScreen() } },
+    ScreenPreview("foods", "Foods tab") { TabHost { FoodsScreen() } },
+    ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
+    ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
     ScreenPreview("profile", "Profile tab") { TabHost { ProfileScreen() } },
     ScreenPreview("detail", "Detail (nav destination)") { DetailScreen(itemId = "1", onBack = {}) },
     // cmp:anchor preview-registry

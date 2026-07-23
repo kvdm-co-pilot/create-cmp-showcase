@@ -1,13 +1,6 @@
 {
   "schema": "cmp-approvals/1",
-  "exemplarFeature": "home",
   "artifacts": [
-    {
-      "artifact": "intent",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
     {
       "artifact": "design-system",
       "status": "unreviewed",
@@ -37,6 +30,13 @@
       "status": "unreviewed",
       "hash": null,
       "approvedAt": null
+    },
+    {
+      "artifact": "intent",
+      "status": "approved",
+      "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
+      "approvedAt": "2026-07-23T17:04:37.670Z"
     }
-  ]
+  ],
+  "exemplarFeature": "home"
 }
