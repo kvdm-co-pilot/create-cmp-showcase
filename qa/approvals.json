@@ -2,12 +2,6 @@
   "schema": "cmp-approvals/1",
   "artifacts": [
     {
-      "artifact": "architecture",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
-    {
       "artifact": "components",
       "status": "unreviewed",
       "hash": null,
@@ -36,6 +30,12 @@
       "status": "approved",
       "hash": "ce5091d6045e9286548fde2167d362efdbbbce3403ab76d89370409a795b204d",
       "approvedAt": "2026-07-23T18:09:12.304Z"
+    },
+    {
+      "artifact": "architecture",
+      "status": "approved",
+      "hash": "e80c5db05620248645e0f067a7c25d613e27283ce455c822514bdd665cbbc4c3",
+      "approvedAt": "2026-07-23T18:32:22.826Z"
     }
   ],
   "exemplarFeature": "home"
