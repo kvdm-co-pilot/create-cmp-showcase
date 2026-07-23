@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Supplements: today's stack, grouped by timing, tap-to-take ────────────────────────
@@ -106,9 +107,7 @@ private fun TakenSummary(taken: Int, total: Int) {
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
-        Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
-            Box(Modifier.fillMaxWidth(progress).height(8.dp).clip(RoundedCornerShape(4.dp)).background(FuelledColors.Primary))
-        }
+        StatBar(progress = progress, color = FuelledColors.Primary)
     }
 }
 

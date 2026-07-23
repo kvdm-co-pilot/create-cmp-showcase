@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kvdm.fuelled.presentation.components.MacroTag
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Foods: the searchable catalog (the exemplar feature) ─────────────────────────────
@@ -132,7 +133,6 @@ private fun FoodRow(food: Food, onClick: () -> Unit) {
                 MacroTag("F", food.fatG, FuelledColors.Fat)
             }
         }
-        Spacer(Modifier.height(0.dp))
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = food.kcal.toString(),
@@ -142,14 +142,5 @@ private fun FoodRow(food: Food, onClick: () -> Unit) {
             )
             Text("kcal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    }
-}
-
-@Composable
-private fun MacroTag(letter: String, grams: Int, color: androidx.compose.ui.graphics.Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(letter, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(0.dp))
-        Text(" ${grams}g", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

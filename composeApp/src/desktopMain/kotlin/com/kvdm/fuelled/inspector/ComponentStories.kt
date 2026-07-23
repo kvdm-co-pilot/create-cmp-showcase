@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -32,8 +33,12 @@ import com.kvdm.fuelled.presentation.components.EmptyState
 import com.kvdm.fuelled.presentation.components.ErrorState
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ListItemSkeleton
+import com.kvdm.fuelled.presentation.components.MacroTag
 import com.kvdm.fuelled.presentation.components.NavItem
+import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.components.StatBar
+import com.kvdm.fuelled.presentation.components.StatTile
 import com.kvdm.fuelled.presentation.navigation.AppTab
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
@@ -227,6 +232,26 @@ fun componentStories(): List<ScreenPreview> = listOf(
     },
     story("component.spinner", "ContentStateDefaults.Spinner") {
         ContentStateDefaults.Spinner(screenTag = "story")
+    },
+    // Distilled from the screens — clean reusable PRIMITIVES only (do-not-force-reuse:
+    // the segmented bar and the five feature rows deliberately stayed local).
+    story("component.progress-ring", "ProgressRing") {
+        ProgressRing(progress = 0.66f, modifier = Modifier.size(120.dp)) {
+            Text("560", color = FuelledColors.OnSurface)
+        }
+    },
+    variantsStory("component.stat-bar", "StatBar") {
+        StatBar(progress = 0.82f, label = "Protein", valueText = "148 / 180g", color = FuelledColors.Protein)
+        StatBar(progress = 0.4f, color = FuelledColors.Primary)
+    },
+    variantsStory("component.stat-tile", "StatTile") {
+        StatTile(value = "12", label = "day streak")
+        StatTile(value = "172g", label = "avg protein")
+    },
+    variantsStory("component.macro-tag", "MacroTag") {
+        MacroTag("P", 38, FuelledColors.Protein)
+        MacroTag("C", 40, FuelledColors.Carbs)
+        MacroTag("F", 8, FuelledColors.Fat)
     },
 )
 

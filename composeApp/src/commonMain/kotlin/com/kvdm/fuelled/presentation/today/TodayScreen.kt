@@ -32,6 +32,8 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
+import com.kvdm.fuelled.presentation.components.ProgressRing
+import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Today: the daily macro dashboard ────────────────────────────────────────────────
@@ -127,75 +129,32 @@ private fun HeroCard(model: TodayModel) {
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CalorieRing(
-            consumed = model.consumedKcal,
-            target = model.targetKcal,
-            remaining = model.remainingKcal,
+        ProgressRing(
+            progress = if (model.targetKcal <= 0) 0f else model.consumedKcal.toFloat() / model.targetKcal,
             modifier = Modifier.size(132.dp),
-        )
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = model.remainingKcal.toString(),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text("kcal left", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            MacroBar(model.protein)
-            MacroBar(model.carbs)
-            MacroBar(model.fat)
-        }
-    }
-}
-
-@Composable
-private fun CalorieRing(consumed: Int, target: Int, remaining: Int, modifier: Modifier = Modifier) {
-    val progress = if (target <= 0) 0f else (consumed.toFloat() / target).coerceIn(0f, 1f)
-    val track = FuelledColors.OutlineVariant
-    val arc = FuelledColors.Primary
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val stroke = 14.dp.toPx()
-            val inset = stroke / 2
-            val arcSize = Size(size.width - stroke, size.height - stroke)
-            val topLeft = Offset(inset, inset)
-            drawArc(color = track, startAngle = -90f, sweepAngle = 360f, useCenter = false,
-                topLeft = topLeft, size = arcSize, style = Stroke(width = stroke, cap = StrokeCap.Round))
-            drawArc(color = arc, startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
-                topLeft = topLeft, size = arcSize, style = Stroke(width = stroke, cap = StrokeCap.Round))
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = remaining.toString(),
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "kcal left",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MacroBar(m: MacroProgress) {
-    val progress = if (m.target <= 0) 0f else (m.current.toFloat() / m.target).coerceIn(0f, 1f)
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            Text(m.label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = "${m.current} / ${m.target}${m.unit}",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Box(
-            Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-        ) {
-            Box(
-                Modifier.fillMaxWidth(progress).height(8.dp).clip(RoundedCornerShape(4.dp)).background(m.color),
-            )
+            listOf(model.protein, model.carbs, model.fat).forEach { m ->
+                StatBar(
+                    progress = if (m.target <= 0) 0f else m.current.toFloat() / m.target,
+                    color = m.color,
+                    label = m.label,
+                    valueText = "${m.current} / ${m.target}${m.unit}",
+                )
+            }
         }
     }
 }

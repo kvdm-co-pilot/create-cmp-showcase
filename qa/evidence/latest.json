@@ -3,37 +3,43 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "fb5e1d9eb5c98d65c361b3eae7dfe197a7e6d31c",
+    "sha": "360aa8f0954d9fd131b480ed44b3e2947e51aef5",
     "dirty": [
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/MacroTag.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ProgressRing.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatBar.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatTile.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
+      "docs/ARCHITECTURE.md",
       "gradlew",
-      "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt"
+      "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
+      "qa/evidence/latest.json"
     ]
   },
   "inputs": {
-    "hash": "8fdf4ff5d7ed465eeb42598cd2a16a7e58dd08d23b3108fd269ba874b4749efd",
-    "fileCount": 158
+    "hash": "85bb0c7eb215e8ad8cecd48b66122fe40dc670bce1128a8f434eea3beea3ad37",
+    "fileCount": 162
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 23,
+      "durationMs": 8,
       "details": {
         "clauses": 26,
         "withdrawn": 0,
         "tags": 35,
-        "files": 94
+        "files": 98
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [architecture] Architecture + structure (specs/app-base.spec.md + docs/ARCHITECTURE.md, generated sections stripped) — unreviewed. Approve: node qa/approve.mjs architecture\n  [components] Components (presentation/components/*.kt) — unreviewed. Approve: node qa/approve.mjs components\n  [exemplar-feature] Exemplar feature (home — the 11-file set the stamper clones) — unreviewed. Approve: node qa/approve.mjs exemplar-feature\n  [exemplar-spec] Exemplar spec (specs/home.spec.md) — unreviewed. Approve: node qa/approve.mjs exemplar-spec",
-      "durationMs": 12,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [components] Components (presentation/components/*.kt) — unreviewed. Approve: node qa/approve.mjs components\n  [exemplar-feature] Exemplar feature (home — the 11-file set the stamper clones) — unreviewed. Approve: node qa/approve.mjs exemplar-feature\n  [exemplar-spec] Exemplar spec (specs/home.spec.md) — unreviewed. Approve: node qa/approve.mjs exemplar-spec",
+      "durationMs": 11,
       "details": {
         "artifacts": [
           {
@@ -48,13 +54,13 @@
           },
           {
             "id": "architecture",
-            "status": "unreviewed",
+            "status": "approved",
             "hash": "e80c5db05620248645e0f067a7c25d613e27283ce455c822514bdd665cbbc4c3"
           },
           {
             "id": "components",
             "status": "unreviewed",
-            "hash": "89e0fea5f0308888b9af845f9d32188ff4a8e6d9e374543010b2e45fdd10c82b"
+            "hash": "8382f841a35288f6bac7d5692c948c72ac65a1196eee7febf7e677a2553b442b"
           },
           {
             "id": "exemplar-feature",
@@ -74,8 +80,8 @@
       "verdict": "PASS",
       "durationMs": 2,
       "details": {
-        "components": 15,
-        "stories": 15,
+        "components": 19,
+        "stories": 19,
         "missing": [],
         "orphans": []
       }
@@ -83,7 +89,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 7,
+      "durationMs": 6,
       "details": {
         "sectionsChecked": 4
       }
@@ -91,12 +97,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 32943
+      "durationMs": 1429
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 7446,
+      "durationMs": 3132,
       "details": {
         "tests": 42,
         "failures": 0,
@@ -107,23 +113,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1779
+      "durationMs": 1400
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2355
+      "durationMs": 2260
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 18
+      "durationMs": 17
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2465
+      "durationMs": 2196
     },
     {
       "name": "e2eSmoke",
@@ -137,5 +143,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-23T18:31:24.546Z"
+  "generatedAt": "2026-07-23T19:10:37.283Z"
 }

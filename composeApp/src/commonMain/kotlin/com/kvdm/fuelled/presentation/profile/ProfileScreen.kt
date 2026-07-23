@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kvdm.fuelled.presentation.components.StatTile
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Profile: goals, weekly stats, settings ───────────────────────────────────────────
@@ -109,21 +110,6 @@ private fun StatsRow() {
         StatTile("12", "day streak", Modifier.weight(1f))
         StatTile("172g", "avg protein", Modifier.weight(1f))
         StatTile("82.4", "kg", Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun StatTile(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(vertical = 18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(2.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
