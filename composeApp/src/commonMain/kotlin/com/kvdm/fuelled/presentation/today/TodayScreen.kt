@@ -1,6 +1,5 @@
 package com.kvdm.fuelled.presentation.today
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,61 +11,50 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kvdm.fuelled.domain.model.MacroProgress
+import com.kvdm.fuelled.domain.model.MealGroup
+import com.kvdm.fuelled.domain.model.LogEntry
+import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import org.koin.compose.viewmodel.koinViewModel
 
-// ── Today: the daily macro dashboard ────────────────────────────────────────────────
-// The hero screen. Calorie ring (consumed vs target) + protein-first macro bars + the
-// day's log. Stateless: it renders a [TodayModel]; a ViewModel/Room source wires in later
-// (the exemplar-feature conversation). Sample data keeps the preview honest for now.
+// ── Today: the daily macro dashboard (the hero screen) ───────────────────────────────
+// The UI-first preview seam, mirroring the Foods exemplar's two entry points:
+//   • TodayScreen — STATELESS, sample-defaulted. The preview registry renders it with no VM.
+//   • TodayRoute  — the VM-backed tab the nav graph hosts: Loading/Content/Error are driven
+//     by TodayViewModel through ContentStateContainer.
+// Macro colours are a PRESENTATION concern assigned here per-macro; the domain MacroProgress
+// carries none (ARCH-02 keeps domain free of Compose types).
 
-data class MacroProgress(val label: String, val current: Int, val target: Int, val unit: String, val color: Color)
-data class LogEntry(val name: String, val serving: String, val kcal: Int, val proteinG: Int)
-data class MealGroup(val name: String, val entries: List<LogEntry>) {
-    val kcal: Int get() = entries.sumOf { it.kcal }
-}
-data class TodayModel(
-    val dateLabel: String,
-    val consumedKcal: Int,
-    val targetKcal: Int,
-    val protein: MacroProgress,
-    val carbs: MacroProgress,
-    val fat: MacroProgress,
-    val meals: List<MealGroup>,
-) {
-    val remainingKcal: Int get() = (targetKcal - consumedKcal).coerceAtLeast(0)
-}
-
-// PREVIEW/DEMO fixture — the screen's preview seam (UI-first pattern). Not production
-// data: replaced by the ViewModel's real daily totals when Today is wired to its sources.
+// PREVIEW/DEMO fixture — the screen's preview seam. Not production data: the Room-backed
+// TodayRepositoryImpl seeds its own realistic day for the VM-backed TodayRoute.
 val sampleToday = TodayModel(
     dateLabel = "Wednesday, Jul 23",
-    consumedKcal = 1840,
+    consumedKcal = 1461,
     targetKcal = 2400,
-    protein = MacroProgress("Protein", 148, 180, "g", FuelledColors.Protein),
-    carbs = MacroProgress("Carbs", 190, 260, "g", FuelledColors.Carbs),
-    fat = MacroProgress("Fat", 52, 70, "g", FuelledColors.Fat),
+    protein = MacroProgress("Protein", 121, 180, "g"),
+    carbs = MacroProgress("Carbs", 168, 260, "g"),
+    fat = MacroProgress("Fat", 31, 70, "g"),
     meals = listOf(
         MealGroup("Breakfast", listOf(
             LogEntry("Rolled oats & whey", "80 g · 1 scoop", 430, 38),
@@ -83,6 +71,29 @@ val sampleToday = TodayModel(
     ),
 )
 
+/**
+ * The VM-backed Today tab the nav graph hosts. The Loading/Content/Error state machine lives in
+ * [TodayViewModel]; this wrapper only renders it through [ContentStateContainer] (which owns the
+ * `today_loading`/`today_error`/`today_retry` arms). A day with no entries is still Content — the
+ * stateless [TodayScreen] shows its own `today_empty` affordance while the ring stays visible.
+ * A tab: it inherits BaseScreen (insets) from AppShell, so it does not re-wrap it (SHELL-05).
+ */
+@Composable
+fun TodayRoute(
+    viewModel: TodayViewModel = koinViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ContentStateContainer(state = state, screenTag = "today", onRetry = viewModel::load) { model ->
+        TodayScreen(model = model)
+    }
+}
+
+/**
+ * The stateless dashboard — the preview/UI-first seam. Renders a [TodayModel]; defaults to a
+ * sample so the preview registry can render it without a VM or Koin. When the day has no logged
+ * entries the log area shows the `today_empty` affordance and the ring reads the full target as
+ * remaining (TODAY-04). The production path is [TodayRoute] + [TodayViewModel].
+ */
 @Composable
 fun TodayScreen(model: TodayModel = sampleToday) {
     Column(
@@ -113,10 +124,17 @@ fun TodayScreen(model: TodayModel = sampleToday) {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        model.meals.forEach { MealCard(it) }
+        if (model.meals.isEmpty()) {
+            TodayEmptyLog()
+        } else {
+            model.meals.forEach { MealCard(it) }
+        }
         Spacer(Modifier.height(8.dp))
     }
 }
+
+// The per-macro colours are assigned here, in presentation — the domain model carries none.
+private fun MacroProgress.colored(color: Color): Pair<MacroProgress, Color> = this to color
 
 @Composable
 private fun HeroCard(model: TodayModel) {
@@ -147,10 +165,14 @@ private fun HeroCard(model: TodayModel) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            listOf(model.protein, model.carbs, model.fat).forEach { m ->
+            listOf(
+                model.protein.colored(FuelledColors.Protein),
+                model.carbs.colored(FuelledColors.Carbs),
+                model.fat.colored(FuelledColors.Fat),
+            ).forEach { (m, color) ->
                 StatBar(
                     progress = if (m.target <= 0) 0f else m.current.toFloat() / m.target,
-                    color = m.color,
+                    color = color,
                     label = m.label,
                     valueText = "${m.current} / ${m.target}${m.unit}",
                 )
@@ -237,5 +259,29 @@ private fun EntryRow(entry: LogEntry) {
             Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Primary)
         }
+    }
+}
+
+/**
+ * The empty log affordance (TODAY-04): shown in place of the meal cards when the day has no
+ * logged entries. The hero ring above still renders — reading the full target as remaining —
+ * so the empty state lives inside the content, not the dataless container Empty arm.
+ */
+@Composable
+private fun TodayEmptyLog() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 32.dp)
+            .semantics { testTag = "today_empty" },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "No meals logged yet",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

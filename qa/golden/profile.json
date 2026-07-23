@@ -1,0 +1,49 @@
+{"children": [
+  {"tag": "profile_screen", "children": [
+    {"children": [
+      {"text": "GU"}
+    ]},
+    {"tag": "profile_title", "text": "Golden User"},
+    {"text": "Cutting · 2,400 kcal target"},
+    {"children": [
+      {"tag": "profile_goal_calories", "children": [
+        {"text": "Calorie target"},
+        {"text": "2,400 kcal"}
+      ]},
+      {"tag": "profile_goal_protein", "children": [
+        {"text": "Protein goal"},
+        {"text": "180 g"}
+      ]},
+      {"tag": "profile_goal_activity", "children": [
+        {"text": "Activity"},
+        {"text": "Trains 5×/week"}
+      ]}
+    ]},
+    {"children": [
+      {"text": "12"},
+      {"text": "day streak"}
+    ]},
+    {"children": [
+      {"text": "172g"},
+      {"text": "avg protein"}
+    ]},
+    {"children": [
+      {"text": "82.4"},
+      {"text": "kg"}
+    ]},
+    {"children": [
+      {"tag": "profile_setting_units", "children": [
+        {"text": "Units & measurements"}
+      ]},
+      {"tag": "profile_setting_reminders", "children": [
+        {"text": "Reminders"}
+      ]},
+      {"tag": "profile_setting_connected", "children": [
+        {"text": "Connected apps"}
+      ]},
+      {"tag": "profile_setting_account", "children": [
+        {"text": "Account"}
+      ]}
+    ]}
+  ]}
+]}

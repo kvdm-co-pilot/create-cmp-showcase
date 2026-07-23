@@ -1,0 +1,41 @@
+{"children": [
+  {"tag": "today_screen", "children": [
+    {"tag": "brand_mark", "contentDescription": "Fuelled"},
+    {"text": "Fuelled"},
+    {"tag": "today_title", "text": "GOLDEN DAY"},
+    {"children": [
+      {"text": "1865"},
+      {"text": "kcal left"},
+      {"text": "Protein"},
+      {"text": "39 / 180g"},
+      {"text": "Carbs"},
+      {"text": "79 / 260g"},
+      {"text": "Fat"},
+      {"text": "9 / 70g"}
+    ]},
+    {"children": [
+      {"text": "PROTEIN"},
+      {"text": "39"},
+      {"text": " / 180 g"},
+      {"text": "141g"},
+      {"text": "to go"}
+    ]},
+    {"text": "TODAY'S LOG"},
+    {"children": [
+      {"text": "Breakfast"},
+      {"text": "430 kcal"},
+      {"text": "Golden oats"},
+      {"text": "80 g"},
+      {"text": "430 kcal"},
+      {"text": "38g P"}
+    ]},
+    {"children": [
+      {"text": "Snack"},
+      {"text": "105 kcal"},
+      {"text": "Golden banana"},
+      {"text": "1 medium"},
+      {"text": "105 kcal"},
+      {"text": "1g P"}
+    ]}
+  ]}
+]}

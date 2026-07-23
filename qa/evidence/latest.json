@@ -3,82 +3,95 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "5a7cddfb6f1f24e0c969787bb9df4183a5c59cae",
+    "sha": "2f4f22f2436f94c96e7af107a5123ece8065f389",
     "dirty": [
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/2.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/2.json",
-      "composeApp/schemas/iosSimulatorArm64/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/ItemDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ItemRepositoryImpl.kt",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/3.json",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/4.json",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/5.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/3.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/4.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/5.json",
+      "composeApp/schemas/iosSimulatorArm64/com.kvdm.fuelled.data.local.AppDatabase/4.json",
+      "composeApp/schemas/iosSimulatorArm64/com.kvdm.fuelled.data.local.AppDatabase/5.json",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/ProfileDao.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/ProfileEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementDao.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayDao.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Food.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Item.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/FoodRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/ItemRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetFoodUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetFoodsUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetItemsUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SearchFoodsUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/home/DetailScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/home/HomeScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/home/HomeViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Profile.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Supplement.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Today.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/ProfileRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/SupplementRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/TodayRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetProfileUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetSupplementStackUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetTodaySummaryUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SetSupplementTakenUseCase.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/ItemRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetFoodsUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetItemsUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/SearchFoodsUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/foods/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/home/HomeViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeFoodDao.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeFoodRepository.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeItemRepository.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/di/DesktopModule.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/A11yConformanceTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ArchitectureConformanceTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ComponentConformanceTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/foods/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/home/HomeGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/home/HomeScreenTest.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImplTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImplTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImplTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetProfileUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetSupplementStackUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetTodaySummaryUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/SetSupplementTakenUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/profile/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/supplements/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeProfileDao.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeProfileRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementDao.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayDao.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayRepository.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/",
       "docs/ARCHITECTURE.md",
       "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
       "qa/approvals.json",
+      "qa/e2e/smoke.yaml",
       "qa/evidence/latest.json",
-      "qa/golden/foods.json",
-      "qa/golden/home.json",
-      "specs/foods.spec.md",
-      "specs/home.spec.md"
+      "qa/golden/profile.json",
+      "qa/golden/supplements.json",
+      "qa/golden/today.json",
+      "specs/profile.spec.md",
+      "specs/supplements.spec.md",
+      "specs/today.spec.md"
     ]
   },
   "inputs": {
-    "hash": "e7c6c8bc90471779bf1d320453cc9678937003f022ef1dffd95dc03982a085d5",
-    "fileCount": 170
+    "hash": "735f76af0d82d3e0ae9626840aa7c1e45710ec27f612ff21ff748f14e1bb3a85",
+    "fileCount": 228
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 10,
+      "durationMs": 48,
       "details": {
-        "clauses": 27,
+        "clauses": 45,
         "withdrawn": 0,
-        "tags": 46,
-        "files": 103
+        "tags": 102,
+        "files": 147
       }
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 11,
+      "durationMs": 28,
       "details": {
         "artifacts": [
           {
@@ -110,6 +123,21 @@
             "id": "exemplar-spec",
             "status": "approved",
             "hash": "a40ccdb51a37d4dd6fecd7cdaeaaebef05b7fc8605bb48a9b01d117cf13b5f7d"
+          },
+          {
+            "id": "feature-spec:profile",
+            "status": "approved",
+            "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8"
+          },
+          {
+            "id": "feature-spec:supplements",
+            "status": "approved",
+            "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa"
+          },
+          {
+            "id": "feature-spec:today",
+            "status": "approved",
+            "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294"
           }
         ]
       }
@@ -117,7 +145,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 1,
+      "durationMs": 3,
       "details": {
         "components": 19,
         "stories": 19,
@@ -128,7 +156,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 6,
+      "durationMs": 12,
       "details": {
         "sectionsChecked": 4
       }
@@ -136,14 +164,14 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 4396
+      "durationMs": 2579
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 4269,
+      "durationMs": 9224,
       "details": {
-        "tests": 50,
+        "tests": 104,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -152,29 +180,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1650
+      "durationMs": 3308
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2627
+      "durationMs": 5426
     },
     {
       "name": "tokenDrift",
-      "verdict": "SKIP",
-      "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 50
+      "verdict": "PASS",
+      "durationMs": 603,
+      "details": {
+        "checked": 1,
+        "drifted": 0
+      }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2823
+      "durationMs": 5466
     },
     {
       "name": "e2eSmoke",
-      "verdict": "SKIP",
-      "reason": "no Android device/emulator attached (adb)",
-      "durationMs": 0
+      "verdict": "PASS",
+      "durationMs": 61890
     }
   ],
   "artifacts": [],
@@ -182,5 +212,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-23T20:45:59.185Z"
+  "generatedAt": "2026-07-23T22:06:33.360Z"
 }

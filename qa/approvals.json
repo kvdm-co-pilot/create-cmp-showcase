@@ -36,6 +36,24 @@
       "status": "approved",
       "hash": "d39b09e1b3179d33b7f873dedefa2be186553823cf58293a7b0c41fe11e7b18a",
       "approvedAt": "2026-07-23T20:41:20.157Z"
+    },
+    {
+      "artifact": "feature-spec:today",
+      "status": "approved",
+      "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294",
+      "approvedAt": "2026-07-23T21:01:48.804Z"
+    },
+    {
+      "artifact": "feature-spec:supplements",
+      "status": "approved",
+      "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa",
+      "approvedAt": "2026-07-23T21:01:48.874Z"
+    },
+    {
+      "artifact": "feature-spec:profile",
+      "status": "approved",
+      "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8",
+      "approvedAt": "2026-07-23T21:01:48.945Z"
     }
   ],
   "exemplarFeature": "foods"

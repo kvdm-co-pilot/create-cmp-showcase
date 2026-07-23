@@ -1,0 +1,48 @@
+{"children": [
+  {"tag": "supplements_screen", "children": [
+    {"tag": "supplements_title", "text": "Supplements"},
+    {"text": "Today's stack"},
+    {"tag": "supplements_summary", "children": [
+      {"text": "1"},
+      {"text": "of 3 taken"}
+    ]},
+    {"text": "MORNING"},
+    {"children": [
+      {"children": [
+        {"text": "G"}
+      ]},
+      {"text": "Golden creatine"},
+      {"text": "5 g"},
+      {"tag": "supplements_take_1", "role": "Button", "children": [
+        {"children": [
+          {"role": "Image", "contentDescription": "Taken"}
+        ]}
+      ]}
+    ]},
+    {"children": [
+      {"children": [
+        {"text": "G"}
+      ]},
+      {"text": "Golden omega"},
+      {"text": "1 g"},
+      {"tag": "supplements_take_2", "role": "Button", "children": [
+        {"children": [
+          {"role": "Image", "contentDescription": "Mark taken"}
+        ]}
+      ]}
+    ]},
+    {"text": "PRE-WORKOUT"},
+    {"children": [
+      {"children": [
+        {"text": "G"}
+      ]},
+      {"text": "Golden caffeine"},
+      {"text": "200 mg"},
+      {"tag": "supplements_take_3", "role": "Button", "children": [
+        {"children": [
+          {"role": "Image", "contentDescription": "Mark taken"}
+        ]}
+      ]}
+    ]}
+  ]}
+]}

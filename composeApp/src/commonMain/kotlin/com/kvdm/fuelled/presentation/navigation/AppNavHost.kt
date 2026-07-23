@@ -12,9 +12,9 @@ import androidx.navigation.navArgument
 import androidx.savedstate.read
 import com.kvdm.fuelled.presentation.foods.FoodDetailRoute
 import com.kvdm.fuelled.presentation.foods.FoodsRoute
-import com.kvdm.fuelled.presentation.profile.ProfileScreen
-import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
-import com.kvdm.fuelled.presentation.today.TodayScreen
+import com.kvdm.fuelled.presentation.profile.ProfileRoute
+import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
+import com.kvdm.fuelled.presentation.today.TodayRoute
 
 @Composable
 fun AppNavHost() {
@@ -35,10 +35,10 @@ fun AppNavHost() {
     NavHost(navController = navController, startDestination = Screen.Shell.route) {
         composable(Screen.Shell.route) {
             val tabs = appTabs(
-                today = { TodayScreen() },
+                today = { TodayRoute() },
                 foods = { FoodsRoute(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
-                supplements = { SupplementsScreen() },
-                profile = { ProfileScreen() },
+                supplements = { SupplementsRoute() },
+                profile = { ProfileRoute() },
             )
             AppShell(tabs = tabs)
         }

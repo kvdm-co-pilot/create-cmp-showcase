@@ -1,10 +1,12 @@
-# E2E smoke — Maestro flow. SPEC: SHELL-01, SHELL-02.
+# E2E smoke — Maestro flow. SPEC: SHELL-01, SHELL-02 (boot + shell), and on-device
+# behaviour proofs for the wired features: FOODS-02 (search filters) and SUPP-03
+# (tap-to-take round-trips through the VM → Room).
 #
-# Proves the real app boots on a device/emulator and the bottom-nav shell works.
-# Selectors go by testTag (surfaced as resource-ids on Android via TestTagAutomation),
-# never by display text. Nav-item ids are nav_<label-slug> — the slug rule lives in
-# AppShell.kt's navItemTag (lowercase, non-[a-z0-9] runs collapsed to "_", trimmed);
-# keep these ids in sync with it if the configured tabs change.
+# Proves the real app boots on a device/emulator, the bottom-nav shell works, and each
+# feature's headline behaviour runs end-to-end on-device with real DI + Room. Selectors go
+# by testTag (surfaced as resource-ids on Android via TestTagAutomation), never by display
+# text. Nav-item ids are nav_<label-slug> — the slug rule lives in AppShell.kt's navItemTag
+# (lowercase, non-[a-z0-9] runs collapsed to "_", trimmed); keep these ids in sync with it.
 #
 # Run:  maestro test qa/e2e/smoke.yaml      (device/emulator attached)
 # The verify lane's e2eSmoke step runs this automatically when maestro + a device are present.
@@ -24,21 +26,48 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "app_bottom_nav"
 
-# SPEC: SHELL-02 — switching tabs keeps the shell
+# SPEC: SHELL-02 + FOODS-02 — switch to Foods, then prove search filters the Room-backed
+# catalog on-device: typing "Chicken" keeps Chicken breast (item 1) and drops Whey (item 2).
 - tapOn:
     id: "nav_foods"
 - assertVisible:
     id: "foods_title"
 - assertVisible:
+    id: "foods_item_1"
+- tapOn:
+    id: "foods_search"
+- inputText: "Chicken"
+- hideKeyboard
+# The query round-trips through the ViewModel → Room (a brief Loading arm clears the list
+# between keystrokes), and a loaded emulator stretches that window. Wait for the search to
+# SETTLE rather than asserting into the transition — this is the FOODS-02 proof, on-device.
+- extendedWaitUntil:
+    visible:
+      id: "foods_item_1"
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      id: "foods_item_2"
+    timeout: 30000
+- assertVisible:
     id: "app_bottom_nav"
 
+# SPEC: SHELL-02 + SUPP-03 — switch to Supplements and tap a take control; the tap routes
+# through the ViewModel, persists to Room, and re-reads — the summary re-renders without crash.
 - tapOn:
     id: "nav_supplements"
 - assertVisible:
     id: "supplements_title"
 - assertVisible:
+    id: "supplements_summary"
+- tapOn:
+    id: "supplements_take_3"
+- assertVisible:
+    id: "supplements_summary"
+- assertVisible:
     id: "app_bottom_nav"
 
+# SPEC: SHELL-02 — Profile renders inside the shell.
 - tapOn:
     id: "nav_profile"
 - assertVisible:
@@ -46,7 +75,7 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "app_bottom_nav"
 
-# and back
+# and back to Today
 - tapOn:
     id: "nav_today"
 - assertVisible:
