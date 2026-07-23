@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CMP Showcase. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
+All notable changes to Fuelled. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]

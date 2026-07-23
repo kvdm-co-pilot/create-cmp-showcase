@@ -22,10 +22,11 @@ Every durable test cites the spec clause it verifies (`// SPEC: HOME-02` — see
 - **Frameworks:** `kotlin-test` assertions · `kotlinx-coroutines-test` (`runTest`,
   `StandardTestDispatcher`) · **Turbine** for Flow/StateFlow.
 - **Fakes, never mocks.** Every repository/source interface gets a hand-written fake in
-  `commonTest/…/testing/fakes/` — configurable (`shouldFail`, seeded data) and
-  call-recording. Mocking frameworks are banned: they're JVM-only in KMP and hide bad seams.
+  `commonTest/…/testing/fakes/` — configurable (a typed `failure: DomainError?`, seeded data)
+  and call-recording; it returns `AppResult.Failure`, it never throws (the domain contract
+  doesn't). Mocking frameworks are banned: they're JVM-only in KMP and hide bad seams.
 - **Style:** Arrange-Act-Assert; behavior-named backtick tests
-  (`` `emits error message when repository fails` ``); one behavior per test; no shared
+  (`` `emits Content when the repository returns items` ``); one behavior per test; no shared
   mutable state between tests.
 - **ViewModels:** install a `StandardTestDispatcher` as Main (`@BeforeTest setMain` /
   `@AfterTest resetMain`) because `viewModelScope` launches on Main; assert state with
@@ -36,8 +37,8 @@ Every durable test cites the spec clause it verifies (`// SPEC: HOME-02` — see
 
 | You added | You also add |
 |---|---|
-| a ViewModel | a `*ViewModelTest` (states: loading, success, failure, retry) |
-| a use case | a `*UseCaseTest` (behavior + failure propagation) |
+| a ViewModel | a `*ViewModelTest` (sealed states: loading, content, empty, error, retry) |
+| a use case | a `*UseCaseTest` (behavior + typed-failure passthrough) |
 | a repository impl | a test through its DOMAIN interface |
 | a screen | a testTag root (E2E reachable) |
 

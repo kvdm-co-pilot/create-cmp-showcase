@@ -2,11 +2,13 @@
 #
 # Proves the real app boots on a device/emulator and the bottom-nav shell works.
 # Selectors go by testTag (surfaced as resource-ids on Android via TestTagAutomation),
-# falling back to visible text only for content assertions.
+# never by display text. Nav-item ids are nav_<label-slug> — the slug rule lives in
+# AppShell.kt's navItemTag (lowercase, non-[a-z0-9] runs collapsed to "_", trimmed);
+# keep these ids in sync with it if the configured tabs change.
 #
 # Run:  maestro test qa/e2e/smoke.yaml      (device/emulator attached)
 # The verify lane's e2eSmoke step runs this automatically when maestro + a device are present.
-appId: com.kvdm.cmpshowcase
+appId: com.kvdm.fuelled
 ---
 - launchApp:
     clearState: true
@@ -17,19 +19,35 @@ appId: com.kvdm.cmpshowcase
 # proof, so wait explicitly with a generous budget rather than asserting immediately.
 - extendedWaitUntil:
     visible:
-      id: "home_title"
+      id: "today_title"
     timeout: 60000
 - assertVisible:
     id: "app_bottom_nav"
 
 # SPEC: SHELL-02 — switching tabs keeps the shell
-- tapOn: "Profile"
+- tapOn:
+    id: "nav_foods"
+- assertVisible:
+    id: "foods_title"
+- assertVisible:
+    id: "app_bottom_nav"
+
+- tapOn:
+    id: "nav_supplements"
+- assertVisible:
+    id: "supplements_title"
+- assertVisible:
+    id: "app_bottom_nav"
+
+- tapOn:
+    id: "nav_profile"
 - assertVisible:
     id: "profile_title"
 - assertVisible:
     id: "app_bottom_nav"
 
 # and back
-- tapOn: "Home"
+- tapOn:
+    id: "nav_today"
 - assertVisible:
-    id: "home_title"
+    id: "today_title"

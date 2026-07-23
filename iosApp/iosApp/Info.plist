@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>CMP Showcase</string>
+	<string>Fuelled</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,11 +23,11 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSCameraUsageDescription</key>
-	<string>CMP Showcase uses the camera to capture photos.</string>
+	<string>Fuelled uses the camera to capture photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>CMP Showcase uses your location to show nearby content.</string>
+	<string>Fuelled uses your location to show nearby content.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CMP Showcase lets you attach photos to your profile.</string>
+	<string>Fuelled lets you attach photos to your profile.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

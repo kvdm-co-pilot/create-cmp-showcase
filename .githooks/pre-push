@@ -1,0 +1,24 @@
+#!/bin/sh
+# create-cmp pre-push gate — the human checkpoint before code leaves the machine.
+#
+# The committed evidence receipt (qa/evidence/latest.json) must attest HEAD.
+# This is the SAME check CI runs (qa/receipt-check.mjs), moved earlier so an
+# unverified push is caught locally. It is the CHEAP predicate — a hash
+# comparison — not the full lane, so it never rebuilds anything.
+#
+# Enable once with `node qa/setup-hooks.mjs`. Bypass in a pinch with
+# `git push --no-verify`; CI still enforces the same check.
+
+if [ ! -f qa/receipt-check.mjs ]; then
+  exit 0 # not a create-cmp project layout — nothing to gate
+fi
+
+if node qa/receipt-check.mjs; then
+  exit 0
+fi
+
+echo ""
+echo "✗ pre-push blocked — the committed receipt does not attest HEAD."
+echo "  Run:  node qa/verify.mjs   then commit qa/evidence/latest.json, and push again."
+echo "  Bypass this local gate with: git push --no-verify  (CI still checks)."
+exit 1

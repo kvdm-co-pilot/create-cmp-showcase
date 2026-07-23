@@ -76,7 +76,7 @@ the real entity:
 
 **No spec clauses are added by this preset, and that's intentional** — a bare repository has no
 observable behavior to specify yet (no screen, no user-facing flow). Clauses attach once a
-screen consumes this entity; that's `add-screen`'s job (`FEATURE-01..06` bound to the repository
+screen consumes this entity; that's `add-screen`'s job (`FEATURE-01..07` bound to the repository
 you just built).
 
 ### 5. Gate

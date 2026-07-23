@@ -6,6 +6,13 @@ platform :ios, '16.0'
 use_frameworks! :linkage => :static
 
 target 'iosApp' do
+  pod 'FirebaseCore',          '~> 11.0'
+  pod 'FirebaseAuth',          '~> 11.0'
+  pod 'FirebaseFirestore',     '~> 11.0'
+  pod 'FirebaseFunctions',     '~> 11.0'
+  pod 'FirebaseStorage',       '~> 11.0'
+  pod 'FirebaseMessaging',     '~> 11.0'
+  pod 'FirebaseRemoteConfig',  '~> 11.0'
 end
 
 post_install do |installer|

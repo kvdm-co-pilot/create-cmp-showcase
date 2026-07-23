@@ -1,12 +1,12 @@
 {"children": [
-  {"children": [
+  {"tag": "home_screen", "children": [
     {"tag": "home_title", "text": "Home"},
     {"children": [
-      {"children": [
+      {"tag": "home_item_1", "children": [
         {"text": "Golden first"},
         {"text": "Structural baseline row one"}
       ]},
-      {"children": [
+      {"tag": "home_item_2", "children": [
         {"text": "Golden second"},
         {"text": "Structural baseline row two"}
       ]}

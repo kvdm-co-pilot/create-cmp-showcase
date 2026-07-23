@@ -20,9 +20,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { computeInputsHash } from "./lib/inputs-hash.mjs";
+import { evaluateReceipt, readReceipt } from "./lib/receipt-validate.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const RECEIPT_PATH = path.join(ROOT, "qa", "evidence", "latest.json");
 
 const args = process.argv.slice(2);
 const asHook = args.includes("--hook");
@@ -38,52 +38,15 @@ function readStdinJson() {
   }
 }
 
+// The predicate itself lives in qa/lib/receipt-validate.mjs (vendored from the
+// cmp-receipts package — one definition everywhere a receipt is judged); this
+// CLI only reads the receipt and frames the exit codes.
 function evaluate() {
-  let receipt;
-  try {
-    receipt = JSON.parse(fs.readFileSync(RECEIPT_PATH, "utf8"));
-  } catch {
+  const receipt = readReceipt(ROOT);
+  if (receipt === null) {
     return { valid: false, reason: "no receipt — run `node qa/verify.mjs`", profile: undefined };
   }
-
-  const profile = receipt.profile;
-
-  if (!receipt.inputs || typeof receipt.inputs.hash !== "string") {
-    return {
-      valid: false,
-      reason: `receipt predates evidence binding — re-run the lane (attesting profile: ${profile ?? "unknown"})`,
-      profile,
-    };
-  }
-
-  if (receipt.verdict === "FAIL") {
-    return {
-      valid: false,
-      reason: `the committed receipt is a FAIL (attesting profile: ${profile ?? "unknown"})`,
-      profile,
-    };
-  }
-
-  const recomputed = computeInputsHash(ROOT);
-
-  if (receipt.inputs.hash !== recomputed.hash) {
-    return {
-      valid: false,
-      reason: `source changed since the receipt — re-run the lane (attesting profile: ${profile ?? "unknown"})`,
-      profile,
-      recomputed,
-    };
-  }
-
-  if (receipt.verdict !== "PASS") {
-    return {
-      valid: false,
-      reason: `receipt verdict is "${receipt.verdict}", not PASS (attesting profile: ${profile ?? "unknown"})`,
-      profile,
-    };
-  }
-
-  return { valid: true, reason: `receipt is valid — PASS, attesting profile: ${profile ?? "unknown"}`, profile, recomputed };
+  return evaluateReceipt(receipt, () => computeInputsHash(ROOT));
 }
 
 const result = evaluate();

@@ -26,6 +26,9 @@ import { fileURLToPath } from "node:url";
 
 import { computeInputsHash } from "./lib/inputs-hash.mjs";
 import { compareTokenDrift } from "./lib/token-drift.mjs";
+import { evaluateApprovalsGate } from "./lib/approvals.mjs";
+import { evaluateComponentStoryParity } from "./lib/component-stories.mjs";
+import { ARCH_DOC_REL_PATH, SECTION_IDS, regenerateArchDoc } from "./lib/arch-doc.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE_DIR = path.join(ROOT, "qa", "evidence");
@@ -173,6 +176,77 @@ function stepSpecCoverage() {
       tags: tags.length,
       files: files.length,
     },
+  };
+}
+
+// Human-approval gate (VERIFICATION-LAYER-DESIGN.md §2) — pure Node, no Gradle,
+// same grouping as specCoverage. The decision itself lives in
+// qa/lib/approvals.mjs (evaluateApprovalsGate); this step only adds the
+// name/duration bookkeeping every step in this file carries.
+function stepApprovals() {
+  const started = Date.now();
+  const { verdict, reason, statuses } = evaluateApprovalsGate(ROOT);
+  return {
+    name: "approvals",
+    verdict,
+    reason,
+    durationMs: Date.now() - started,
+    details: { artifacts: statuses.map((s) => ({ id: s.id, status: s.status, hash: s.hash })) },
+  };
+}
+
+// Component ↔ story parity gate (STUDIO-REDESIGN.md §3.3) — pure Node, no
+// Gradle, same grouping as specCoverage/approvals. The decision itself lives
+// in qa/lib/component-stories.mjs (evaluateComponentStoryParity); this step
+// only adds the name/duration bookkeeping every step in this file carries.
+function stepComponentStories() {
+  const started = Date.now();
+  const { verdict, reason, details } = evaluateComponentStoryParity(ROOT);
+  return { name: "componentStories", verdict, reason, durationMs: Date.now() - started, details };
+}
+
+// Architecture-doc freshness gate (Wave B, docs/proposals/architecture-document-
+// standard.md §6) — pure Node, no Gradle, same grouping as specCoverage/
+// approvals. The decision itself lives in qa/lib/arch-doc.mjs
+// (regenerateArchDoc); this step only adds the name/duration bookkeeping every
+// step in this file carries, plus wording the FAIL reason for an AI
+// collaborator (name the stale/missing section, name the fix command).
+function stepArchDoc() {
+  const started = Date.now();
+  const elapsed = () => Date.now() - started;
+
+  const result = regenerateArchDoc(ROOT);
+  if (!result.ok) {
+    return { name: "archDoc", verdict: "SKIP", reason: `${result.reason} — nothing to check`, durationMs: elapsed() };
+  }
+  if (result.unknownSections.length > 0) {
+    return {
+      name: "archDoc",
+      verdict: "FAIL",
+      reason: `${ARCH_DOC_REL_PATH} has cmp:generated marker(s) with no registered generator: ${result.unknownSections.join(", ")} — add a generator in qa/lib/arch-doc.mjs or remove the marker.`,
+      durationMs: elapsed(),
+    };
+  }
+
+  const stale = result.changed || result.missingSections.length > 0;
+  if (!stale) {
+    return { name: "archDoc", verdict: "PASS", durationMs: elapsed(), details: { sectionsChecked: SECTION_IDS.length } };
+  }
+
+  const lines = [`${ARCH_DOC_REL_PATH} is stale — a generated section no longer matches the tree:`];
+  for (const id of result.changedSections) {
+    lines.push(`  [${id}] regenerating would change this section.`);
+  }
+  for (const id of result.missingSections) {
+    lines.push(`  [${id}] marker missing from the doc entirely — never generated.`);
+  }
+  lines.push("Run: node qa/arch-doc.mjs");
+  return {
+    name: "archDoc",
+    verdict: "FAIL",
+    reason: lines.join("\n"),
+    durationMs: elapsed(),
+    details: { changedSections: result.changedSections, missingSections: result.missingSections },
   };
 }
 
@@ -372,15 +446,44 @@ function stepE2eSmoke() {
   //    that steal focus over the app — a Maestro assert would then see only the dialog;
   //  - MAESTRO_DRIVER_STARTUP_TIMEOUT gives the UiAutomator2 driver a generous budget to come
   //    up on a slow emulator (the built-in default gives up too early under load).
-  // Both are benign, reversible, and only touch the device while the lane is driving it.
+  // Both are benign, reversible, and only touch the device while the lane is driving it —
+  // hide_error_dialogs is restored to its pre-run value (or deleted, returning the device
+  // to its default) in the finally below, on every exit path.
+  // hide_error_dialogs suppresses the OS dialog, NEVER the underlying event — so after the
+  // run we grep the device log for ANR/crash lines the dialog would have shown, and FAIL on
+  // them. The eyes must report what automation stability had to hide.
+  const prevHideErrorDialogs = sh("adb shell settings get global hide_error_dialogs").out.trim();
   sh("adb shell settings put global hide_error_dialogs 1");
-  const res = sh("maestro test qa/e2e/smoke.yaml", { env: { ...process.env, MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000" } });
-  return {
-    name: "e2eSmoke",
-    verdict: res.ok ? "PASS" : "FAIL",
-    reason: res.ok ? undefined : `Maestro smoke failed (flow cites the SHELL spec clauses it proves):\n${res.out.split("\n").slice(-15).join("\n")}`,
-    durationMs: install.durationMs + res.durationMs,
-  };
+  sh("adb logcat -c"); // clear so the post-run dump only reflects this run
+  try {
+    const res = sh("maestro test qa/e2e/smoke.yaml", { env: { ...process.env, MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000" } });
+    if (!res.ok) {
+      return {
+        name: "e2eSmoke",
+        verdict: "FAIL",
+        reason: `Maestro smoke failed (flow cites the SHELL spec clauses it proves):\n${res.out.split("\n").slice(-15).join("\n")}`,
+        durationMs: install.durationMs + res.durationMs,
+      };
+    }
+    const anrDump = sh("adb logcat -d -b system,crash,main");
+    const anrRe = /ANR in |FATAL EXCEPTION/i;
+    if (anrDump.ok && anrRe.test(anrDump.out)) {
+      const anrLines = anrDump.out.split("\n").filter((l) => anrRe.test(l)).slice(0, 10).join("\n");
+      return {
+        name: "e2eSmoke",
+        verdict: "FAIL",
+        reason: `Maestro smoke passed, but the device log shows an ANR/crash during the run (hide_error_dialogs only suppresses the OS dialog, never the underlying event):\n${anrLines}`,
+        durationMs: install.durationMs + res.durationMs,
+      };
+    }
+    return { name: "e2eSmoke", verdict: "PASS", durationMs: install.durationMs + res.durationMs };
+  } finally {
+    if (prevHideErrorDialogs && prevHideErrorDialogs !== "null") {
+      sh(`adb shell settings put global hide_error_dialogs ${prevHideErrorDialogs}`);
+    } else {
+      sh("adb shell settings delete global hide_error_dialogs");
+    }
+  }
 }
 
 // ── Lane ───────────────────────────────────────────────────────────────────
@@ -388,9 +491,12 @@ function stepE2eSmoke() {
 const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
-  scaffold: [stepSpecCoverage, stepBuild, stepUnitTests],
+  scaffold: [stepSpecCoverage, stepApprovals, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
   local: [
     stepSpecCoverage,
+    stepApprovals,
+    stepComponentStories,
+    stepArchDoc,
     stepBuild,
     stepUnitTests,
     stepConformance,
@@ -465,6 +571,9 @@ const receipt = {
 
 fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
 fs.writeFileSync(path.join(EVIDENCE_DIR, "latest.json"), `${JSON.stringify(receipt, null, 2)}\n`);
+// latest.json is the single receipt-of-record. Commit it with your change: the
+// studio console's Evidence audit trail reconstructs the full history from the
+// git log of this file — every commit is one verified, attributed state.
 
 if (asJson) console.log(JSON.stringify(receipt, null, 2));
 else console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict} — receipt written to qa/evidence/latest.json (commit it with your change)`);

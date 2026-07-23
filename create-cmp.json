@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "name": "Fuelled",
+  "package": "com.kvdm.fuelled",
+  "bundleId": "com.kvdm.fuelled",
+  "themePrefix": "Fuelled",
+  "region": "us-central1",
+  "platforms": {
+    "android": true,
+    "ios": true
+  },
+  "firebase": {
+    "enabled": true,
+    "auth": "both",
+    "firestore": true,
+    "storage": true,
+    "functions": true,
+    "fcm": true
+  },
+  "room": true,
+  "e2e": true,
+  "inspector": true,
+  "devClient": true,
+  "tabs": [
+    {
+      "label": "Today",
+      "icon": "today"
+    },
+    {
+      "label": "Foods",
+      "icon": "restaurant"
+    },
+    {
+      "label": "Supplements",
+      "icon": "medication"
+    },
+    {
+      "label": "Profile",
+      "icon": "person"
+    }
+  ],
+  "engineVersion": "0.9.0",
+  "stampedAt": "2026-07-23T16:51:01.410Z"
+}

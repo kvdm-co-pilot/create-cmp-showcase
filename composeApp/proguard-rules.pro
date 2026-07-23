@@ -3,11 +3,11 @@
 -dontnote kotlinx.serialization.AnnotationsKt
 -keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
 -keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
--keep,includedescriptorclasses class com.kvdm.cmpshowcase.**$$serializer { *; }
--keepclassmembers class com.kvdm.cmpshowcase.** {
+-keep,includedescriptorclasses class com.kvdm.fuelled.**$$serializer { *; }
+-keepclassmembers class com.kvdm.fuelled.** {
     *** Companion;
 }
--keepclasseswithmembers class com.kvdm.cmpshowcase.** {
+-keepclasseswithmembers class com.kvdm.fuelled.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

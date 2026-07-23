@@ -1,0 +1,269 @@
+package com.kvdm.fuelled.inspector
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.unit.dp
+import com.kvdm.fuelled.presentation.components.AppBottomBar
+import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.AppPrimaryButton
+import com.kvdm.fuelled.presentation.components.AppTextButton
+import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ContentStateDefaults
+import com.kvdm.fuelled.presentation.components.ContentUiState
+import com.kvdm.fuelled.presentation.components.EmptyState
+import com.kvdm.fuelled.presentation.components.ErrorState
+import com.kvdm.fuelled.presentation.components.ListItemCard
+import com.kvdm.fuelled.presentation.components.ListItemSkeleton
+import com.kvdm.fuelled.presentation.components.NavItem
+import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.navigation.AppTab
+import com.kvdm.fuelled.presentation.theme.FuelledColors
+import com.kvdm.fuelled.presentation.theme.FuelledTokens
+
+/**
+ * Component stories — one preview-registry entry per `@Composable` in
+ * `presentation/components` (the Storybook analog at component granularity).
+ * Each story renders the component in isolation on a plain tokened surface;
+ * a multi-variant component stacks its variants in ONE render. Ids follow
+ * `component.<kebab-case-of-composable-name>` (`AppHeader` →
+ * `component.app-header`), derivable mechanically from the name — the
+ * verify lane's `componentStories` step (qa/lib/component-stories.mjs)
+ * enforces exactly one story per component. The console excludes
+ * `component.*` entries from the Screens grid and shows each render at the
+ * top of that component's Components-page entry instead.
+ *
+ * These are preview-surface code (desktopMain), not production API: sample
+ * args only, tokens for every design value, testTags on every interactive
+ * node — a story meets the same bar the screens do.
+ */
+fun componentStories(): List<ScreenPreview> = listOf(
+    // Structure: the containers a screen roots itself in.
+    story("component.screen-column", "ScreenColumn") {
+        ScreenColumn(screenTag = "story") {
+            Text("ScreenColumn owns the tagged root and the PaddingPage inset.")
+            Text("Children stack vertically; scrollable = true adds scrolling.")
+        }
+    },
+    story("component.base-screen", "BaseScreen") {
+        BaseScreen { _ ->
+            Text(
+                "BaseScreen owns the status/navigation-bar insets; body content is safe with zero ceremony.",
+                modifier = Modifier.padding(FuelledTokens.PaddingPage),
+            )
+        }
+    },
+    // Header and navigation.
+    variantsStory("component.app-header", "AppHeader") {
+        AppHeader(title = "Screen title", screenTag = "story")
+        AppHeader(
+            title = "With back and action",
+            screenTag = "story_nav",
+            onBack = {},
+            actions = {
+                AppTextButton(
+                    text = "Action",
+                    onClick = {},
+                    modifier = Modifier.semantics { testTag = "story_header_action" },
+                )
+            },
+        )
+    },
+    story("component.app-bottom-bar", "AppBottomBar") {
+        AppBottomBar(
+            tabs = listOf(
+                AppTab("Home", Icons.Filled.Home) {},
+                AppTab("Profile", Icons.Filled.Person) {},
+            ),
+            selectedIndex = 0,
+            onSelect = {},
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    },
+    variantsStory("component.nav-item", "NavItem") {
+        NavItem(label = "Selected", selected = true, onClick = {}) {
+            Icon(
+                Icons.Filled.Home,
+                contentDescription = "Selected",
+                tint = FuelledColors.Primary,
+            )
+        }
+        NavItem(label = "Unselected", selected = false, onClick = {}) {
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = "Unselected",
+                tint = FuelledColors.OnSurfaceVariant,
+            )
+        }
+    },
+    // Buttons.
+    variantsStory("component.app-primary-button", "AppPrimaryButton") {
+        AppPrimaryButton(
+            text = "Primary",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_primary" },
+        )
+        AppPrimaryButton(
+            text = "Primary — disabled",
+            onClick = {},
+            enabled = false,
+            modifier = Modifier.semantics { testTag = "story_primary_disabled" },
+        )
+    },
+    variantsStory("component.app-text-button", "AppTextButton") {
+        AppTextButton(
+            text = "Text button",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_text" },
+        )
+        AppTextButton(
+            text = "Text button — disabled",
+            onClick = {},
+            enabled = false,
+            modifier = Modifier.semantics { testTag = "story_text_disabled" },
+        )
+    },
+    // The four-state contract: all four arms of the container, stacked.
+    variantsStory("component.content-state-container", "ContentStateContainer") {
+        ContentStateContainer<List<String>>(
+            state = ContentUiState.Loading,
+            screenTag = "story_loading",
+            modifier = Modifier.height(180.dp),
+        ) { }
+        ContentStateContainer<List<String>>(
+            state = ContentUiState.Empty,
+            screenTag = "story_empty",
+            modifier = Modifier.height(180.dp),
+        ) { }
+        ContentStateContainer<List<String>>(
+            state = ContentUiState.Error("Something went wrong."),
+            screenTag = "story_error",
+            onRetry = {},
+            modifier = Modifier.height(180.dp),
+        ) { }
+        ContentStateContainer(
+            state = ContentUiState.Content(listOf("First item", "Second item")),
+            screenTag = "story_content",
+            modifier = Modifier.height(180.dp),
+        ) { data ->
+            Column(verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard)) {
+                data.forEachIndexed { i, title ->
+                    ListItemCard(
+                        title = title,
+                        onClick = {},
+                        modifier = Modifier.semantics { testTag = "story_state_item_$i" },
+                    )
+                }
+            }
+        }
+    },
+    variantsStory("component.empty-state", "EmptyState") {
+        EmptyState(
+            screenTag = "story",
+            modifier = Modifier.height(220.dp),
+            body = "Items you add will show up here.",
+            action = {
+                AppTextButton(
+                    text = "Add an item",
+                    onClick = {},
+                    modifier = Modifier.semantics { testTag = "story_empty_action" },
+                )
+            },
+        )
+    },
+    variantsStory("component.error-state", "ErrorState") {
+        ErrorState(
+            message = "Something went wrong.",
+            screenTag = "story",
+            onRetry = {},
+            modifier = Modifier.height(220.dp),
+        )
+    },
+    // List vocabulary.
+    variantsStory("component.list-item-card", "ListItemCard") {
+        ListItemCard(
+            title = "Title only",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_item_1" },
+        )
+        ListItemCard(
+            title = "With subtitle",
+            subtitle = "Secondary line",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_item_2" },
+        )
+        ListItemCard(
+            title = "With a leading slot",
+            subtitle = "Leading content precedes the text column",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_item_3" },
+            leading = { Icon(Icons.Filled.Person, contentDescription = null) },
+        )
+    },
+    story("component.list-skeleton", "ContentStateDefaults.ListSkeleton") {
+        Box(Modifier.fillMaxSize().padding(FuelledTokens.PaddingPage)) {
+            ContentStateDefaults.ListSkeleton(screenTag = "story")
+        }
+    },
+    variantsStory("component.list-item-skeleton", "ListItemSkeleton") {
+        ListItemSkeleton()
+    },
+    story("component.spinner", "ContentStateDefaults.Spinner") {
+        ContentStateDefaults.Spinner(screenTag = "story")
+    },
+)
+
+/**
+ * `component.<kebab-name>` entry hosting [content] on the plain story surface.
+ * The id is passed as a full literal (never concatenated) so the lane's parity
+ * gate (qa/lib/component-stories.mjs) and a plain grep both find it.
+ */
+private fun story(
+    id: String,
+    title: String,
+    content: @Composable BoxScope.() -> Unit,
+): ScreenPreview = ScreenPreview(id, "$title — component story") {
+    StoryHost(content)
+}
+
+/** Stacked-variants flavor: the story surface with a padded, token-gapped column. */
+private fun variantsStory(
+    id: String,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
+): ScreenPreview = story(id, title) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(FuelledTokens.PaddingPage),
+        verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
+        content = content,
+    )
+}
+
+/**
+ * The plain tokened surface every story renders on: theme background, nothing
+ * else — the component is the only subject. Internal (not private) so the
+ * generated registry can host the PlaceholderScreen story on custom-tab
+ * scaffolds (PlaceholderScreen ships only when a configured tab has no
+ * feature yet, so its story rides PreviewRegistry.kt, not this file).
+ */
+@Composable
+internal fun StoryHost(content: @Composable BoxScope.() -> Unit) {
+    Box(Modifier.fillMaxSize().background(FuelledColors.Background)) { content() }
+}

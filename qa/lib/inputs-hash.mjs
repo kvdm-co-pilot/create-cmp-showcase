@@ -4,6 +4,12 @@
 // qa/receipt-check.mjs (recomputes it to test validity) import this module so
 // there is exactly one definition of the surface and the algorithm.
 //
+// SINGLE SOURCE OF TRUTH: packages/receipts/src/inputs-hash.mjs in the
+// create-cmp repo (the `cmp-receipts` package). The copy in a generated
+// project's qa/lib/ is vendored byte-identical at scaffold time and pinned by
+// test/receipts-parity.test.mjs — edit the package source, then run
+// `node scripts/sync-receipts.mjs`.
+//
 // See docs/adr/0005-evidence-binding-by-inputs-hash.md for the why.
 
 import { execSync } from "node:child_process";
@@ -49,14 +55,34 @@ function tryGitLsFiles(root) {
   }
 }
 
+// Directory names the walk fallback must skip wherever they appear under a
+// surface root. These mirror what the stamped .gitignore excludes: without
+// this, a pre-`git init` hash (walk mode) includes composeApp/build/** and
+// Gradle/Kotlin scratch that the post-`git init` hash (`git ls-files
+// --exclude-standard`) excludes — so the stamp-time PASS receipt would read
+// "INVALID — source changed" the moment the user runs `git init`, even though
+// no source changed. Pre-git and post-git hashes must agree for identical
+// source; that is the invariant the regression test pins.
+const WALK_EXCLUDED_DIRS = new Set(["build", ".gradle", ".kotlin", ".git", ".idea", "node_modules"]);
+// File-level mirror of the same principle (OS/editor junk the .gitignore covers).
+const WALK_EXCLUDED_FILES = new Set([".DS_Store"]);
+const WALK_EXCLUDED_SUFFIXES = [".iml", ".log"];
+
+function walkIncludesFile(name) {
+  if (WALK_EXCLUDED_FILES.has(name)) return false;
+  return !WALK_EXCLUDED_SUFFIXES.some((suffix) => name.endsWith(suffix));
+}
+
 // Dependency-free recursive walk, used when git is unavailable (non-git scaffold).
 function walkAllFiles(dir) {
   const out = [];
   if (!fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkAllFiles(p));
-    else if (entry.isFile()) out.push(p);
+    if (entry.isDirectory()) {
+      if (WALK_EXCLUDED_DIRS.has(entry.name)) continue; // non-source scratch — see note above
+      out.push(...walkAllFiles(p));
+    } else if (entry.isFile() && walkIncludesFile(entry.name)) out.push(p);
   }
   return out;
 }
@@ -99,7 +125,11 @@ function resolveSurfaceFiles(root) {
  * @returns {{ hash: string, fileCount: number }}
  */
 export function computeInputsHash(root) {
-  const files = [...new Set(resolveSurfaceFiles(root))].sort((a, b) => a.localeCompare(b));
+  // Code-unit sort (default String sort), NOT localeCompare: the hash depends
+  // on iteration order, and ICU collation varies with the machine's locale
+  // (e.g. a da_DK machine orders "aa" after "z"; en orders case-insensitively
+  // where code units do not) — the same tree must hash identically everywhere.
+  const files = [...new Set(resolveSurfaceFiles(root))].sort();
 
   const overall = createHash("sha256");
   for (const relPath of files) {

@@ -1,4 +1,4 @@
-rootProject.name = "CMP-Showcase"
+rootProject.name = "Fuelled"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

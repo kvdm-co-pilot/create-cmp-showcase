@@ -1,0 +1,42 @@
+{
+  "schema": "cmp-approvals/1",
+  "exemplarFeature": "home",
+  "artifacts": [
+    {
+      "artifact": "intent",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    },
+    {
+      "artifact": "design-system",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    },
+    {
+      "artifact": "architecture",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    },
+    {
+      "artifact": "components",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    },
+    {
+      "artifact": "exemplar-spec",
+      "status": "unreviewed",
+      "hash": null,
+      "approvedAt": null
+    }
+  ]
+}

@@ -17,7 +17,7 @@ save, and watch the window update — no emulator, no reinstall, no restart.
 ./gradlew :composeApp:run
 ```
 
-The window is phone-sized (411×891 dp) and titled `CMP Showcase dev-client`.
+The window is phone-sized (411×891 dp) and titled `Fuelled dev-client`.
 
 ### How reload triggers
 
