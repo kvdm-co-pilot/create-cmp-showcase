@@ -2,12 +2,6 @@
   "schema": "cmp-approvals/1",
   "artifacts": [
     {
-      "artifact": "design-system",
-      "status": "unreviewed",
-      "hash": null,
-      "approvedAt": null
-    },
-    {
       "artifact": "architecture",
       "status": "unreviewed",
       "hash": null,
@@ -36,6 +30,12 @@
       "status": "approved",
       "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
       "approvedAt": "2026-07-23T17:04:37.670Z"
+    },
+    {
+      "artifact": "design-system",
+      "status": "approved",
+      "hash": "ce5091d6045e9286548fde2167d362efdbbbce3403ab76d89370409a795b204d",
+      "approvedAt": "2026-07-23T18:09:12.304Z"
     }
   ],
   "exemplarFeature": "home"

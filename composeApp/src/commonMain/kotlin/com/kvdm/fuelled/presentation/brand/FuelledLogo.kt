@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ fun FuelledMark(
     Canvas(
         modifier = modifier
             .size(size)
-            .semantics { contentDescription = "Fuelled" },
+            .semantics { testTag = "brand_mark"; contentDescription = "Fuelled" },
     ) {
         val s = this.size.minDimension
         val radius = s * 0.28f

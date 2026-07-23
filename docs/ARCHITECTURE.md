@@ -151,7 +151,7 @@ Every arrow in that box is a cited rule, not a wish:
   `[enforced: ARCH-06/07/08 — see §7]`.
 
 <!-- cmp:generated layer-file-inventory -->
-- `presentation/` — commonMain: `App.kt`, `components/AppBottomBar.kt`, `components/AppButton.kt`, `components/AppHeader.kt`, `components/BaseScreen.kt`, `components/ContentStateContainer.kt`, `components/ContentUiState.kt`, `components/EmptyState.kt`, `components/ErrorState.kt`, `components/ListItemCard.kt`, `components/PlaceholderScreen.kt`, `components/ScreenColumn.kt`, `components/Shimmer.kt`, `components/TestTagAutomation.kt`, `home/DetailScreen.kt`, `home/HomeScreen.kt`, `home/HomeViewModel.kt`, `navigation/AppNavHost.kt`, `navigation/AppShell.kt`, `navigation/AppTab.kt`, `navigation/NavInspectionHook.kt`, `navigation/Screen.kt`, `profile/ProfileScreen.kt`, `theme/DesignToken.kt`, `theme/Shape.kt`, `theme/Theme.kt`, `theme/Tokens.kt`, `theme/Typography.kt`; androidMain: `components/TestTagAutomation.android.kt`; iosMain: `components/TestTagAutomation.ios.kt`; desktopMain: `components/TestTagAutomation.desktop.kt`
+- `presentation/` — commonMain: `App.kt`, `brand/FuelledLogo.kt`, `components/AppBottomBar.kt`, `components/AppButton.kt`, `components/AppHeader.kt`, `components/BaseScreen.kt`, `components/ContentStateContainer.kt`, `components/ContentUiState.kt`, `components/EmptyState.kt`, `components/ErrorState.kt`, `components/ListItemCard.kt`, `components/PlaceholderScreen.kt`, `components/ScreenColumn.kt`, `components/Shimmer.kt`, `components/TestTagAutomation.kt`, `foods/FoodDetailScreen.kt`, `foods/FoodsScreen.kt`, `home/DetailScreen.kt`, `home/HomeScreen.kt`, `home/HomeViewModel.kt`, `navigation/AppNavHost.kt`, `navigation/AppShell.kt`, `navigation/AppTab.kt`, `navigation/NavInspectionHook.kt`, `navigation/Screen.kt`, `profile/ProfileScreen.kt`, `supplements/SupplementsScreen.kt`, `theme/DesignToken.kt`, `theme/Shape.kt`, `theme/Theme.kt`, `theme/Tokens.kt`, `theme/Typography.kt`, `today/TodayScreen.kt`; androidMain: `components/TestTagAutomation.android.kt`; iosMain: `components/TestTagAutomation.ios.kt`; desktopMain: `components/TestTagAutomation.desktop.kt`
 - `domain/` — commonMain: `model/DomainError.kt`, `model/Item.kt`, `repository/ItemRepository.kt`, `result/AppResult.kt`, `usecase/GetItemsUseCase.kt`
 - `data/` — commonMain: `AppResultCatching.kt`, `local/AppDatabase.kt`, `local/DatabaseBuilder.kt`, `local/ItemDao.kt`, `remote/FirebaseConfig.kt`, `remote/ItemRepositoryImpl.kt`; androidMain: `local/DatabaseBuilder.android.kt`; iosMain: `local/DatabaseBuilder.ios.kt`; desktopMain: `local/DatabaseBuilder.desktop.kt`
 - `core/` — commonMain: `connectivity/NetworkMonitor.kt`, `format/Format.kt`; androidMain: `connectivity/NetworkMonitor.kt`; iosMain: `connectivity/NetworkMonitor.kt`; desktopMain: `connectivity/NetworkMonitor.desktop.kt`
@@ -308,7 +308,16 @@ re-solve edge-to-edge padding with a direct inset API call.
 <!-- /cmp:generated -->
 
 <!-- cmp:generated glossary -->
-_Domain glossary — seeded from the `## Glossary` section of [`specs/intent.md`](../specs/intent.md) once the genesis intent interview fills it in; empty on a fresh scaffold._
+_Lifted verbatim from the `## Glossary` section of [`specs/intent.md`](../specs/intent.md) — edit it there, not here; this block is regenerated from it.
+
+- **Food** — a catalog entry with nutritional values per serving (kcal, protein, carbs, fat).
+- **Serving** — a portion of a Food with its own gram weight and scaled macros.
+- **Entry** — a Food logged at a quantity, at a time, on a given day; entries sum into the
+  day's totals.
+- **Meal** — a grouping of entries within a day (Breakfast · Lunch · Dinner · Snack).
+- **Macro** — a tracked macronutrient: protein, carbs, or fat.
+- **Goal** — the user's daily targets: a calorie target and a protein goal.
+- **Supplement** — a planned intake (e.g. creatine, whey) with a schedule and reminder.
 <!-- /cmp:generated -->
 
 ## The exemplar feature (`home` by default, configurable)

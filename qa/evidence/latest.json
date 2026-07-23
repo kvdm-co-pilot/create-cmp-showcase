@@ -1,0 +1,141 @@
+{
+  "schema": "cmp-evidence/1",
+  "profile": "local",
+  "verdict": "PASS",
+  "commit": {
+    "sha": "6b5cdb32afa89f3247d58f6463f8263bec539541",
+    "dirty": [
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
+      "docs/ARCHITECTURE.md",
+      "gradlew",
+      "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/brand/FuelledLogo.kt",
+      "qa/approvals.json",
+      "qa/evidence/latest.json"
+    ]
+  },
+  "inputs": {
+    "hash": "85742a253d83c741610763e88a72a6beb4d4337fa4ebf421294aa1aedc73f005",
+    "fileCount": 158
+  },
+  "steps": [
+    {
+      "name": "specCoverage",
+      "verdict": "PASS",
+      "durationMs": 13,
+      "details": {
+        "clauses": 26,
+        "withdrawn": 0,
+        "tags": 35,
+        "files": 94
+      }
+    },
+    {
+      "name": "approvals",
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [architecture] Architecture + structure (specs/app-base.spec.md + docs/ARCHITECTURE.md, generated sections stripped) — unreviewed. Approve: node qa/approve.mjs architecture\n  [components] Components (presentation/components/*.kt) — unreviewed. Approve: node qa/approve.mjs components\n  [exemplar-feature] Exemplar feature (home — the 11-file set the stamper clones) — unreviewed. Approve: node qa/approve.mjs exemplar-feature\n  [exemplar-spec] Exemplar spec (specs/home.spec.md) — unreviewed. Approve: node qa/approve.mjs exemplar-spec",
+      "durationMs": 11,
+      "details": {
+        "artifacts": [
+          {
+            "id": "intent",
+            "status": "approved",
+            "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
+          },
+          {
+            "id": "design-system",
+            "status": "approved",
+            "hash": "ce5091d6045e9286548fde2167d362efdbbbce3403ab76d89370409a795b204d"
+          },
+          {
+            "id": "architecture",
+            "status": "unreviewed",
+            "hash": "e80c5db05620248645e0f067a7c25d613e27283ce455c822514bdd665cbbc4c3"
+          },
+          {
+            "id": "components",
+            "status": "unreviewed",
+            "hash": "89e0fea5f0308888b9af845f9d32188ff4a8e6d9e374543010b2e45fdd10c82b"
+          },
+          {
+            "id": "exemplar-feature",
+            "status": "unreviewed",
+            "hash": "87f7c2d09913b9ef3c543de1cc4936c9e93597e6d4354798c4dd65ff60e1cdfb"
+          },
+          {
+            "id": "exemplar-spec",
+            "status": "unreviewed",
+            "hash": "e67ee9d3be559243dc0f3fbff3ae22ba4782c5272b104503f30c009af5974116"
+          }
+        ]
+      }
+    },
+    {
+      "name": "componentStories",
+      "verdict": "PASS",
+      "durationMs": 1,
+      "details": {
+        "components": 15,
+        "stories": 15,
+        "missing": [],
+        "orphans": []
+      }
+    },
+    {
+      "name": "archDoc",
+      "verdict": "PASS",
+      "durationMs": 5,
+      "details": {
+        "sectionsChecked": 4
+      }
+    },
+    {
+      "name": "build",
+      "verdict": "PASS",
+      "durationMs": 1793
+    },
+    {
+      "name": "unitTests",
+      "verdict": "PASS",
+      "durationMs": 3406,
+      "details": {
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "conformance",
+      "verdict": "PASS",
+      "durationMs": 1593
+    },
+    {
+      "name": "goldenTrees",
+      "verdict": "PASS",
+      "durationMs": 2197
+    },
+    {
+      "name": "tokenDrift",
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
+      "durationMs": 25
+    },
+    {
+      "name": "a11y",
+      "verdict": "PASS",
+      "durationMs": 2371
+    },
+    {
+      "name": "e2eSmoke",
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb)",
+      "durationMs": 0
+    }
+  ],
+  "artifacts": [],
+  "toolVersions": {
+    "node": "v24.18.0",
+    "platform": "darwin-arm64"
+  },
+  "generatedAt": "2026-07-23T18:16:25.016Z"
+}

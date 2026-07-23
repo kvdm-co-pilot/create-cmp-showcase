@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Food detail: the full nutritional breakdown + log action ─────────────────────────
@@ -39,13 +40,15 @@ fun FoodDetailScreen(
     val fKcal = food.fatG * 9
     val totalMacroKcal = (pKcal + cKcal + fKcal).coerceAtLeast(1)
 
-    Column(
+    BaseScreen { innerPadding ->
+      Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
+      ) {
         AppHeader(title = food.name, screenTag = "food_detail", onBack = onBack)
 
         Text(
@@ -103,6 +106,7 @@ fun FoodDetailScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
+      }
     }
 }
 
