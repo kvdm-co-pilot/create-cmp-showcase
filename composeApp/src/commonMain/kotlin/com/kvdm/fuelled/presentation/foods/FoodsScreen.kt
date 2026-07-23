@@ -32,7 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kvdm.fuelled.presentation.components.MacroTag
+import com.kvdm.fuelled.presentation.components.Tag
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Foods: the searchable catalog (the exemplar feature) ─────────────────────────────
@@ -128,9 +128,9 @@ private fun FoodRow(food: Food, onClick: () -> Unit) {
             )
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                MacroTag("P", food.proteinG, FuelledColors.Protein)
-                MacroTag("C", food.carbsG, FuelledColors.Carbs)
-                MacroTag("F", food.fatG, FuelledColors.Fat)
+                Tag("P", "${food.proteinG}g", FuelledColors.Protein)
+                Tag("C", "${food.carbsG}g", FuelledColors.Carbs)
+                Tag("F", "${food.fatG}g", FuelledColors.Fat)
             }
         }
         Column(horizontalAlignment = Alignment.End) {

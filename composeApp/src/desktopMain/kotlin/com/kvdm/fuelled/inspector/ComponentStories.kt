@@ -33,12 +33,12 @@ import com.kvdm.fuelled.presentation.components.EmptyState
 import com.kvdm.fuelled.presentation.components.ErrorState
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ListItemSkeleton
-import com.kvdm.fuelled.presentation.components.MacroTag
 import com.kvdm.fuelled.presentation.components.NavItem
 import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.components.StatTile
+import com.kvdm.fuelled.presentation.components.Tag
 import com.kvdm.fuelled.presentation.navigation.AppTab
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
@@ -248,10 +248,10 @@ fun componentStories(): List<ScreenPreview> = listOf(
         StatTile(value = "12", label = "day streak")
         StatTile(value = "172g", label = "avg protein")
     },
-    variantsStory("component.macro-tag", "MacroTag") {
-        MacroTag("P", 38, FuelledColors.Protein)
-        MacroTag("C", 40, FuelledColors.Carbs)
-        MacroTag("F", 8, FuelledColors.Fat)
+    variantsStory("component.tag", "Tag") {
+        Tag("P", "38g", FuelledColors.Protein)
+        Tag("C", "40g", FuelledColors.Carbs)
+        Tag("F", "8g", FuelledColors.Fat)
     },
 )
 

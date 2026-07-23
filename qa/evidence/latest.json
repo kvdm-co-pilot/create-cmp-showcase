@@ -3,31 +3,25 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "360aa8f0954d9fd131b480ed44b3e2947e51aef5",
+    "sha": "67443f903d37692647121194bbb2869a69720338",
     "dirty": [
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/MacroTag.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ProgressRing.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatBar.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatTile.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/Tag.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
       "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
       "docs/ARCHITECTURE.md",
       "gradlew",
-      "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
-      "qa/evidence/latest.json"
+      "omposeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/MacroTag.kt"
     ]
   },
   "inputs": {
-    "hash": "85bb0c7eb215e8ad8cecd48b66122fe40dc670bce1128a8f434eea3beea3ad37",
+    "hash": "5289b7cfa4fb7ddb7193936326592b21635e365287e5c3ced97a74522588168a",
     "fileCount": 162
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 8,
+      "durationMs": 14,
       "details": {
         "clauses": 26,
         "withdrawn": 0,
@@ -60,7 +54,7 @@
           {
             "id": "components",
             "status": "unreviewed",
-            "hash": "8382f841a35288f6bac7d5692c948c72ac65a1196eee7febf7e677a2553b442b"
+            "hash": "8261afb3bc829e82477c4cb6ebb29de1e947eaa0caa276a741140345ea517f1b"
           },
           {
             "id": "exemplar-feature",
@@ -89,7 +83,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 6,
+      "durationMs": 7,
       "details": {
         "sectionsChecked": 4
       }
@@ -97,12 +91,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1429
+      "durationMs": 18935
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 3132,
+      "durationMs": 3640,
       "details": {
         "tests": 42,
         "failures": 0,
@@ -113,23 +107,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1400
+      "durationMs": 1665
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2260
+      "durationMs": 2354
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 17
+      "durationMs": 20
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2196
+      "durationMs": 2393
     },
     {
       "name": "e2eSmoke",
@@ -143,5 +137,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-23T19:10:37.283Z"
+  "generatedAt": "2026-07-23T19:25:14.149Z"
 }
