@@ -11,6 +11,11 @@
 //                                            artifact, each stamped "defaults-accepted"
 //   node qa/approve.mjs --reopen <artifact> moves an approved artifact back to "reopened" for
 //                                            redesign (refuses anything not currently approved)
+//   node qa/approve.mjs --deliver <name>    the AGENT's claim of done for a feature brief
+//                                            (feature-intent:<name>): ARMS its cmp:intent-checks —
+//                                            from here the lane FAILs on any unsatisfied check
+//   node qa/approve.mjs --accept <name>     the HUMAN's bookend on a delivered brief — refused
+//                                            while any armed check fails
 //
 // This file has NO logic of its own — every decision (the registry, hashing,
 // state, the transitions) lives in qa/lib/approvals.mjs. That's deliberate: the
@@ -22,13 +27,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  acceptFeature,
   approveAllDefaults,
   approveArtifact,
+  deliverFeature,
   getApprovalStatuses,
+  getDeliveredFeatureNames,
   isPackageResolvable,
   listGovernedArtifacts,
   reopenArtifact,
 } from "./lib/approvals.mjs";
+import { resolveAllProposals } from "./lib/intent-checks.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -63,9 +72,23 @@ function printStatus() {
               ? `would approve at ${shortHash(s.hash)}`
               : `unresolvable (${s.fileCount} of expected files resolved) — not approvable`;
     const modeInfo = s.mode ? ` [${s.mode}]` : "";
-    console.log(`${mark} ${s.id}: ${s.status} (${hashInfo})${modeInfo} — ${s.label}`);
+    // Feature-brief lifecycle (delivered/accepted live on the ledger row, not
+    // in the doc — see qa/lib/intent-checks.mjs) — shown as a phase suffix.
+    const lifecycle = s.accepted ? ` · accepted ${s.acceptedAt}` : s.delivered ? ` · delivered ${s.deliveredAt} (checks armed)` : "";
+    console.log(`${mark} ${s.id}: ${s.status} (${hashInfo})${modeInfo}${lifecycle} — ${s.label}`);
     if (s.missing.length > 0) {
       console.log(`    missing: ${s.missing.join(", ")}`);
+    }
+  }
+
+  // Per-brief check tallies — the same resolution the intentChecks lane step
+  // reports, so --status and the lane never tell different stories.
+  const proposals = resolveAllProposals(ROOT, getDeliveredFeatureNames(ROOT));
+  if (proposals.length > 0) {
+    console.log("\nFeature briefs (cmp:intent-checks):");
+    for (const p of proposals) {
+      const armed = p.delivered ? " (armed — unsatisfied checks FAIL the lane)" : " (informational until --deliver)";
+      console.log(`  ${p.name}: ${p.satisfied}/${p.total} checks${p.error ? ` — BLOCK ERROR: ${p.error}` : armed}`);
     }
   }
 }
@@ -119,10 +142,50 @@ if (reopenFlagIdx !== -1) {
   process.exit(0);
 }
 
+// Feature-brief lifecycle: --deliver (the agent's claim of done, arms checks)
+// and --accept (the human's bookend). Both take the brief NAME, not the full
+// artifact id — the docs/proposals/<name>.md filename is what a human knows.
+const deliverFlagIdx = args.indexOf("--deliver");
+if (deliverFlagIdx !== -1) {
+  refuseIfUnresolvable();
+  const name = args[deliverFlagIdx + 1];
+  if (!name) {
+    console.error("usage: node qa/approve.mjs --deliver <name>   (the brief's name — docs/proposals/<name>.md)");
+    process.exit(1);
+  }
+  const result = deliverFeature(ROOT, name);
+  if (!result.ok) {
+    console.error(`error: ${result.reason}`);
+    process.exit(1);
+  }
+  console.log(
+    `● delivered ${result.artifact} at ${result.deliveredAt} — checks armed (${result.satisfied}/${result.total} currently satisfied).` +
+      (result.satisfied < result.total ? " The lane now FAILs until every check passes." : " The lane's intentChecks gate is green."),
+  );
+  process.exit(0);
+}
+
+const acceptFlagIdx = args.indexOf("--accept");
+if (acceptFlagIdx !== -1) {
+  refuseIfUnresolvable();
+  const name = args[acceptFlagIdx + 1];
+  if (!name) {
+    console.error("usage: node qa/approve.mjs --accept <name>   (the brief's name — docs/proposals/<name>.md)");
+    process.exit(1);
+  }
+  const result = acceptFeature(ROOT, name);
+  if (!result.ok) {
+    console.error(`error: ${result.reason}`);
+    process.exit(1);
+  }
+  console.log(`✓ accepted ${result.artifact} at ${result.acceptedAt} — the feature's card closes; the brief is its doc-of-record.`);
+  process.exit(0);
+}
+
 if (args.length === 0) {
   const ids = listGovernedArtifacts(ROOT).map((a) => a.id);
   console.error(
-    "usage: node qa/approve.mjs <artifact> | --status | --accept-defaults | --reopen <artifact>\n" +
+    "usage: node qa/approve.mjs <artifact> | --status | --accept-defaults | --reopen <artifact> | --deliver <name> | --accept <name>\n" +
       `  valid artifacts: ${ids.length > 0 ? ids.join(", ") : "(none resolved in this project)"}`,
   );
   process.exit(1);

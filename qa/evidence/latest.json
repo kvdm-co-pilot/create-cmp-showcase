@@ -3,43 +3,25 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "116e535392731fe95fbc971875459fae0b4b9bf5",
+    "sha": "9e17709b2d15443057711e9917ad6d08f68e68f8",
     "dirty": [
-      "composeApp/src/androidDebug/kotlin/com/kvdm/fuelled/inspector/InspectorCatalog.kt",
-      "composeApp/src/androidDebug/kotlin/com/kvdm/fuelled/inspector/InspectorHttpServer.kt",
-      "composeApp/src/androidDebug/kotlin/com/kvdm/fuelled/inspector/NavInspector.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppButton.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppHeader.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppIconButton.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/NavInspectionHook.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Typography.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewDaemon.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewHarness.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ArchitectureConformanceTest.kt",
-      "docs/ARCHITECTURE.md",
-      "docs/TESTING.md",
-      "qa/approvals.json",
-      "qa/comments.json",
+      "docs/proposals/",
+      "qa/approve.mjs",
       "qa/evidence/latest.json",
-      "qa/evidence/walkthrough/",
       "qa/lib/approvals.mjs",
-      "qa/verify.mjs",
-      "qa/walkthrough.mjs",
-      "specs/app-base.spec.md"
+      "qa/lib/intent-checks.mjs",
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "a02a1c6f0bbaae4c25d379b7014ecebc4f3e85b490ad1755bf5dcb4289e3a918",
-    "fileCount": 230
+    "hash": "146f5b85822718f808dad227d429ad0e3ebbc8696b34d0521d9c582689c94a61",
+    "fileCount": 231
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 36,
+      "durationMs": 58,
       "details": {
         "clauses": 46,
         "withdrawn": 0,
@@ -49,8 +31,9 @@
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 18,
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-intent:meal-logging-deep-dive] Feature brief (docs/proposals/meal-logging-deep-dive.md) — unreviewed. Approve: node qa/approve.mjs feature-intent:meal-logging-deep-dive",
+      "durationMs": 21,
       "details": {
         "artifacts": [
           {
@@ -97,6 +80,27 @@
             "id": "feature-spec:today",
             "status": "approved",
             "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294"
+          },
+          {
+            "id": "feature-intent:meal-logging-deep-dive",
+            "status": "unreviewed",
+            "hash": "cd9ed2eb4d775376c4fd12a407c9072507c7b174e6c80486bf57abea0f2efbe9"
+          }
+        ]
+      }
+    },
+    {
+      "name": "intentChecks",
+      "verdict": "SKIP",
+      "reason": "1 feature brief(s) in progress — checks are informational until delivery is claimed:\n  [meal-logging-deep-dive] 0/7 checks satisfied. Claim delivery when done: node qa/approve.mjs --deliver meal-logging-deep-dive",
+      "durationMs": 1,
+      "details": {
+        "proposals": [
+          {
+            "name": "meal-logging-deep-dive",
+            "delivered": false,
+            "satisfied": 0,
+            "total": 7
           }
         ]
       }
@@ -104,7 +108,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -115,7 +119,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 12,
+      "durationMs": 14,
       "details": {
         "sectionsChecked": 4
       }
@@ -123,12 +127,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2773
+      "durationMs": 3421
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 7369,
+      "durationMs": 9377,
       "details": {
         "tests": 105,
         "failures": 0,
@@ -139,31 +143,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2865
+      "durationMs": 4005
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4387
+      "durationMs": 5578
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 232,
+      "durationMs": 136,
       "details": {
-        "checked": 1,
+        "checked": 2,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3941
+      "durationMs": 4782
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 46170
+      "durationMs": 60199
     }
   ],
   "strength": {
@@ -177,5 +181,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-24T12:38:05.674Z"
+  "generatedAt": "2026-07-24T21:38:25.603Z"
 }

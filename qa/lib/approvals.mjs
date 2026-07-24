@@ -57,6 +57,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { ARCH_DOC_REL_PATH, stripGeneratedSections } from "./arch-doc.mjs";
+import { evaluateIntentChecks, listProposals, resolveAllProposals } from "./intent-checks.mjs";
 
 export const APPROVALS_REL_PATH = "qa/approvals.json";
 export const APPROVALS_SCHEMA = "cmp-approvals/1";
@@ -340,6 +341,21 @@ export function listGovernedArtifacts(root) {
     }
   }
 
+  // Feature briefs (intent-checks.mjs): one `feature-intent:<name>` per doc
+  // under docs/proposals/ that carries a cmp:intent-checks block — the block is
+  // the opt-in; block-less docs there stay ordinary documents. Approving one
+  // hashes the doc's bytes, so a signed brief cannot be quietly rewritten;
+  // delivery/acceptance are LEDGER fields on the same row (deliverFeature/
+  // acceptFeature below), so claiming done never touches the signed bytes.
+  for (const proposal of listProposals(root)) {
+    artifacts.push({
+      id: `feature-intent:${proposal.name}`,
+      label: `Feature brief (${proposal.rel})`,
+      files: [proposal.rel],
+      complete: true,
+    });
+  }
+
   return artifacts;
 }
 
@@ -619,6 +635,12 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
     missing: recomputed.missing,
     resolvable,
     ...(storedRecord.mode ? { mode: storedRecord.mode } : {}),
+    // Feature-brief lifecycle (deliverFeature/acceptFeature) — surfaced only
+    // when the row actually carries the fields, same stance as `mode`: never an
+    // explicit `undefined` key, so plain-status structural equality still holds.
+    ...(storedRecord.via ? { via: storedRecord.via } : {}),
+    ...(storedRecord.delivered ? { delivered: true, deliveredAt: storedRecord.deliveredAt ?? null } : {}),
+    ...(storedRecord.accepted ? { accepted: true, acceptedAt: storedRecord.acceptedAt ?? null } : {}),
   };
 }
 
@@ -652,12 +674,18 @@ export function getApprovalStatuses(root) {
  * unresolvable (raw template / pre-stamp tree), the artifact's expected files
  * are all missing on disk, or (a dynamic artifact, e.g. `components`) nothing
  * currently matches its pattern.
+ * A fresh approval also clears any feature-brief lifecycle fields (`delivered`,
+ * `accepted`): re-signing a brief whose bytes changed is a NEW signature over
+ * new content, and a delivery claim made against the old content does not carry
+ * over — the agent re-claims with --deliver when the tree satisfies the new
+ * brief. Same wholesale-replace semantics that already clear `mode`/`reopenedAt`.
  * @param {string} root
  * @param {string} artifactId
- * @param {{mode?: string}} [options] `mode` (e.g. `"defaults-accepted"`) is
- *   stamped onto the record when the express lane approves a resolvable-but-
- *   unshaped artifact (GENESIS-FLOW-DESIGN.md §2). Omitted for a normal/real
- *   approval.
+ * @param {{mode?: string, via?: string}} [options] `mode` (e.g.
+ *   `"defaults-accepted"`) is stamped onto the record when the express lane
+ *   approves a resolvable-but-unshaped artifact (GENESIS-FLOW-DESIGN.md §2).
+ *   Omitted for a normal/real approval. `via` records the surface the approval
+ *   came through (`"console"` / `"cli"`) — an audit field, never behavior.
  * @returns {{ok: true, artifact: string, hash: string, approvedAt: string, mode?: string} | {ok: false, reason: string}}
  */
 export function approveArtifact(root, artifactId, options = {}) {
@@ -691,6 +719,7 @@ export function approveArtifact(root, artifactId, options = {}) {
   const approvedAt = new Date().toISOString();
   const record = { artifact: artifactId, status: "approved", hash: resolved.hash, approvedAt };
   if (options.mode) record.mode = options.mode;
+  if (options.via) record.via = options.via;
   others.push(record);
   saveApprovals(root, { artifacts: others, exemplarFeature: state.exemplarFeature });
   return { ok: true, artifact: artifactId, hash: resolved.hash, approvedAt, ...(options.mode ? { mode: options.mode } : {}) };
@@ -819,4 +848,209 @@ export function evaluateApprovalsGate(root) {
   }
 
   return { verdict: "PASS", reason: undefined, statuses };
+}
+
+// ── Feature-brief lifecycle (intent-checks.mjs is the doc/check model; this ──
+// ── file owns the LEDGER side: delivered/accepted live on the approval row) ──
+
+/** The `feature-intent:` id prefix — one place, so the CLI/console/gate never drift on it. */
+export const FEATURE_INTENT_PREFIX = "feature-intent:";
+
+/**
+ * Brief names whose ledger row claims delivery — the set intent-checks.mjs's
+ * evaluator arms. Only an APPROVED row's claim counts: a row hand-edited into
+ * `delivered` without an approval underneath has no signed brief to check
+ * against, and a reopened brief's old claim is void (its content is fluid
+ * again — re-deliver after re-approval).
+ * @param {string} root
+ * @returns {string[]}
+ */
+export function getDeliveredFeatureNames(root) {
+  return loadApprovals(root)
+    .artifacts.filter((a) => a.status === "approved" && a.delivered === true && a.artifact.startsWith(FEATURE_INTENT_PREFIX))
+    .map((a) => a.artifact.slice(FEATURE_INTENT_PREFIX.length));
+}
+
+/**
+ * The agent's claim of done: mark an approved feature brief `delivered`, which
+ * ARMS its checks — from this write on, any unsatisfied check FAILs the lane
+ * (evaluateIntentChecksGate) until the tree satisfies the brief.
+ *
+ * Refusals, each a real gap in the claim's standing:
+ *   - unknown brief (no such doc, or the doc carries no cmp:intent-checks block)
+ *   - brief not approved (a delivery claim against an unsigned brief attests
+ *     nothing — the walk is approve first, build, then claim)
+ *   - brief drifted (changed-since-approval — the claim would reference bytes
+ *     nobody signed; re-approve first)
+ *   - zero checks in the block (a mechanical claim with nothing to check is
+ *     vacuous — the same refusal stance as approving an empty artifact)
+ *   - malformed block (nothing it claims can be trusted)
+ * @param {string} root
+ * @param {string} name the brief's name (docs/proposals/<name>.md)
+ * @returns {{ok: true, artifact: string, deliveredAt: string, satisfied: number, total: number} | {ok: false, reason: string}}
+ */
+export function deliverFeature(root, name) {
+  const artifactId = `${FEATURE_INTENT_PREFIX}${name}`;
+  const registry = listGovernedArtifacts(root);
+  const artifact = registry.find((a) => a.id === artifactId);
+  if (!artifact) {
+    const briefs = registry.filter((a) => a.id.startsWith(FEATURE_INTENT_PREFIX)).map((a) => a.id.slice(FEATURE_INTENT_PREFIX.length));
+    return {
+      ok: false,
+      reason:
+        `unknown feature brief "${name}" — known briefs: ${briefs.join(", ") || "(none — a brief is a docs/proposals/<name>.md carrying a cmp:intent-checks block)"}`,
+    };
+  }
+
+  const state = loadApprovals(root);
+  const stored = state.artifacts.find((a) => a.artifact === artifactId);
+  const live = resolveArtifactStatus(root, artifact, stored);
+  if (live.status !== "approved") {
+    return {
+      ok: false,
+      reason:
+        `cannot deliver "${name}" — the brief is "${live.status}", not "approved". ` +
+        (live.status === "changed-since-approval"
+          ? "It changed after sign-off; re-approve it first (node qa/approve.mjs " + artifactId + "), then claim delivery."
+          : "The walk is: approve the brief, build, then claim delivery."),
+    };
+  }
+
+  // Evaluate as-if-delivered so the refusals below (and the returned tally) are
+  // computed exactly the way the armed gate will compute them.
+  const resolved = resolveAllProposals(root, [name]).find((p) => p.name === name);
+  if (!resolved || resolved.error) {
+    return { ok: false, reason: `cannot deliver "${name}" — its cmp:intent-checks block is malformed: ${resolved ? resolved.error : "brief unreadable"}` };
+  }
+  if (resolved.total === 0) {
+    return {
+      ok: false,
+      reason: `cannot deliver "${name}" — its cmp:intent-checks block has zero checks. A delivery claim with nothing to check is vacuous; add checks for what the brief promises, or don't claim delivery mechanically.`,
+    };
+  }
+
+  const deliveredAt = new Date().toISOString();
+  // MERGE into the approved row (not wholesale-replace): the signature —
+  // hash/approvedAt/mode/via — is the human's record and must survive the
+  // agent's claim verbatim. Contrast approveArtifact, where replacement is the
+  // point (a new signature clears old lifecycle).
+  const next = state.artifacts.map((a) => (a.artifact === artifactId ? { ...a, delivered: true, deliveredAt } : a));
+  saveApprovals(root, { artifacts: next, exemplarFeature: state.exemplarFeature });
+  return { ok: true, artifact: artifactId, deliveredAt, satisfied: resolved.satisfied, total: resolved.total };
+}
+
+/**
+ * The human's bookend: mark a delivered brief `accepted`. Refuses while any
+ * armed check fails (accepting a red delivery would sign off on a claim the
+ * lane itself rejects) and refuses a drifted brief (the bytes being accepted
+ * must be the bytes that were signed). Acceptance never gates the lane — it
+ * closes the card, on the human's schedule.
+ * @param {string} root
+ * @param {string} name
+ * @returns {{ok: true, artifact: string, acceptedAt: string} | {ok: false, reason: string}}
+ */
+export function acceptFeature(root, name) {
+  const artifactId = `${FEATURE_INTENT_PREFIX}${name}`;
+  const registry = listGovernedArtifacts(root);
+  const artifact = registry.find((a) => a.id === artifactId);
+  if (!artifact) {
+    return { ok: false, reason: `unknown feature brief "${name}"` };
+  }
+  const state = loadApprovals(root);
+  const stored = state.artifacts.find((a) => a.artifact === artifactId);
+  const live = resolveArtifactStatus(root, artifact, stored);
+  if (live.status !== "approved") {
+    return { ok: false, reason: `cannot accept "${name}" — the brief is "${live.status}", not "approved".` };
+  }
+  if (!stored || stored.delivered !== true) {
+    return { ok: false, reason: `cannot accept "${name}" — delivery has not been claimed (node qa/approve.mjs --deliver ${name}). Acceptance confirms a delivery; there is nothing to confirm yet.` };
+  }
+  const resolved = resolveAllProposals(root, [name]).find((p) => p.name === name);
+  if (resolved && resolved.failing.length > 0) {
+    const lines = resolved.failing.map((f) => `[${f.id}] ${f.detail}`).join("; ");
+    return { ok: false, reason: `cannot accept "${name}" — ${resolved.failing.length} armed check(s) failing: ${lines}. Acceptance of a red delivery is refused.` };
+  }
+  const acceptedAt = new Date().toISOString();
+  const next = state.artifacts.map((a) => (a.artifact === artifactId ? { ...a, accepted: true, acceptedAt } : a));
+  saveApprovals(root, { artifacts: next, exemplarFeature: state.exemplarFeature });
+  return { ok: true, artifact: artifactId, acceptedAt };
+}
+
+/**
+ * The verify lane's `intentChecks` gate: intent-checks.mjs's evaluator, armed
+ * with the LEDGER's delivered-set. Same pure-decision/step-bookkeeping split as
+ * evaluateApprovalsGate — qa/verify.mjs wraps this in name/duration only.
+ * @param {string} root
+ * @returns {{verdict: "PASS"|"FAIL"|"SKIP", reason: (string|undefined), proposals: Array<object>}}
+ */
+export function evaluateIntentChecksGate(root) {
+  return evaluateIntentChecks(root, getDeliveredFeatureNames(root));
+}
+
+/**
+ * The console's Features board — every brief with its full live state, in one
+ * call, so the section renders without composing (the console never re-implements
+ * the model; VERIFICATION-LAYER-DESIGN.md §4).
+ *
+ * Per feature: the approval status (signed/drifted/reopened…), the ledger
+ * lifecycle (delivered/accepted + stamps), the checks tally, and the DECLARED
+ * blast radius resolved against each touched artifact's live status — so the
+ * console can render "components: changed-since-approval (as declared)" as
+ * expected work, not alarm.
+ *
+ * `undeclared`: governed artifacts currently `changed-since-approval` that NO
+ * open brief (approved, not yet accepted) declared in `touches` — with the
+ * feature-intent/feature-spec families excluded (a brief's own doc drifting is
+ * its card's business; spec drift is the feature-spec artifact's own row). The
+ * plan drifted from reality; the console shows it as exactly that.
+ * @param {string} root
+ * @returns {{features: Array<object>, undeclared: Array<{id: string, label: string}>}}
+ */
+export function getFeatureBoard(root) {
+  const statuses = getApprovalStatuses(root);
+  const byId = new Map(statuses.map((s) => [s.id, s]));
+  const proposals = resolveAllProposals(root, getDeliveredFeatureNames(root));
+
+  const features = proposals.map((p) => {
+    const record = byId.get(`${FEATURE_INTENT_PREFIX}${p.name}`) ?? null;
+    const phase = !record
+      ? "proposed"
+      : record.accepted
+        ? "accepted"
+        : record.delivered
+          ? "delivered"
+          : record.status === "approved"
+            ? "approved"
+            : record.status; // unreviewed → "unreviewed" (proposed), drifted/reopened read as themselves
+    return {
+      name: p.name,
+      rel: p.rel,
+      phase: phase === "unreviewed" ? "proposed" : phase,
+      record,
+      checks: { satisfied: p.satisfied, total: p.total, results: p.results, error: p.error },
+      failing: p.failing,
+      touches: p.touches.map((id) => {
+        const t = byId.get(id);
+        return t ? { id, status: t.status, label: t.label } : { id, status: "unknown", label: `(no governed artifact "${id}")` };
+      }),
+    };
+  });
+
+  const declaredByOpenBriefs = new Set();
+  for (const f of features) {
+    if (f.record && f.record.status === "approved" && !f.record.accepted) {
+      for (const t of f.touches) declaredByOpenBriefs.add(t.id);
+    }
+  }
+  const undeclared = statuses
+    .filter(
+      (s) =>
+        s.status === "changed-since-approval" &&
+        !s.id.startsWith(FEATURE_INTENT_PREFIX) &&
+        !s.id.startsWith("feature-spec:") &&
+        !declaredByOpenBriefs.has(s.id),
+    )
+    .map((s) => ({ id: s.id, label: s.label }));
+
+  return { features, undeclared };
 }

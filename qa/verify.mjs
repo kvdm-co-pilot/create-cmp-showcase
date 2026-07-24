@@ -26,7 +26,7 @@ import { fileURLToPath } from "node:url";
 
 import { computeInputsHash } from "./lib/inputs-hash.mjs";
 import { compareTokenDrift } from "./lib/token-drift.mjs";
-import { evaluateApprovalsGate } from "./lib/approvals.mjs";
+import { evaluateApprovalsGate, evaluateIntentChecksGate } from "./lib/approvals.mjs";
 import { evaluateComponentStoryParity } from "./lib/component-stories.mjs";
 import { ARCH_DOC_REL_PATH, SECTION_IDS, regenerateArchDoc } from "./lib/arch-doc.mjs";
 
@@ -232,6 +232,26 @@ function stepApprovals() {
     reason,
     durationMs: Date.now() - started,
     details: { artifacts: statuses.map((s) => ({ id: s.id, status: s.status, hash: s.hash })) },
+  };
+}
+
+// Feature-brief delivery gate — pure Node, no Gradle. The decision lives in
+// qa/lib/intent-checks.mjs armed by the ledger's delivered-set
+// (evaluateIntentChecksGate in qa/lib/approvals.mjs); this step only adds the
+// name/duration bookkeeping every step in this file carries. In-progress
+// briefs SKIP (checks informational); a DELIVERED brief with unsatisfied
+// checks FAILs — the claim of done is the thing being verified.
+function stepIntentChecks() {
+  const started = Date.now();
+  const { verdict, reason, proposals } = evaluateIntentChecksGate(ROOT);
+  return {
+    name: "intentChecks",
+    verdict,
+    reason,
+    durationMs: Date.now() - started,
+    details: {
+      proposals: proposals.map((p) => ({ name: p.name, delivered: p.delivered, satisfied: p.satisfied, total: p.total })),
+    },
   };
 }
 
@@ -531,10 +551,11 @@ function stepE2eSmoke() {
 const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
-  scaffold: [stepSpecCoverage, stepApprovals, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
+  scaffold: [stepSpecCoverage, stepApprovals, stepIntentChecks, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
   local: [
     stepSpecCoverage,
     stepApprovals,
+    stepIntentChecks,
     stepComponentStories,
     stepArchDoc,
     stepBuild,
