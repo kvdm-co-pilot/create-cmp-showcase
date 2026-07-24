@@ -10,10 +10,13 @@
 //
 // Three concerns, kept separable:
 //   1. The REGISTRY (`listGovernedArtifacts`) — artifact id -> resolved file list, in
-//      GENESIS-FLOW-DESIGN.md §1 order: intent(0), design-system(1), architecture(2),
-//      components(3), exemplar-feature(4), exemplar-spec(5), then one
+//      GENESIS-FLOW-DESIGN.md §1 order: intent(0), architecture(1), exemplar-spec(2),
+//      exemplar-feature(3), design-system(4), components(5), then one
 //      `feature-spec:<name>` (6+) per non-base, non-exemplar spec file present in
-//      specs/ right now. The exemplar (feature 4/5) is CONFIGURABLE — see
+//      specs/ right now. (Spec-first: the exemplar's clauses are confirmed before the
+//      slice is built. UI-first: design system + components are distilled from the
+//      real screens, so they lock after the exemplar.) The exemplar (2/3) is
+//      CONFIGURABLE — see
 //      `getExemplarFeature`/`resolveExemplarNames` below — defaulting to `home` so
 //      every ledger written before this config key existed keeps meaning what it
 //      meant. The registry is recomputed on every call — it reflects the tree as it
@@ -235,9 +238,17 @@ function listComponentFiles(root) {
 
 /**
  * The governed-artifact registry, resolved against the project at `root` right
- * now (GENESIS-FLOW-DESIGN.md §1 order: intent(0), design-system(1),
- * architecture(2), components(3), exemplar-feature(4), exemplar-spec(5), then one
- * feature-spec:<name> (6+) per non-base, non-CONFIGURED-exemplar spec present).
+ * now. GENESIS-FLOW-DESIGN.md §1 definition order — two ordering principles,
+ * one per artifact kind (the dogfooding-run correction):
+ *   BEHAVIORAL artifacts are SPEC-FIRST — the exemplar's clauses are proposed
+ *   and human-confirmed BEFORE the slice is built (exemplar-spec precedes
+ *   exemplar-feature, matching add-feature's discipline).
+ *   VISUAL artifacts are UI-FIRST — the design system and component vocabulary
+ *   are distilled FROM the real screens, so they lock AFTER the exemplar
+ *   exists (a provisional palette carries the build until then).
+ * Order: intent(0), architecture(1), exemplar-spec(2), exemplar-feature(3),
+ * design-system(4), components(5), then one feature-spec:<name> (6+) per
+ * non-base, non-CONFIGURED-exemplar spec present.
  *
  * `complete: false` marks an artifact whose kotlin-rooted files could NOT be
  * resolved (unresolvable package — raw template / pre-stamp tree). Such an
@@ -259,16 +270,6 @@ export function listGovernedArtifacts(root) {
   });
 
   artifacts.push({
-    id: "design-system",
-    label: "Design system (presentation/theme/Theme.kt, Tokens.kt)",
-    files: [
-      kotlinFile(root, "commonMain", "presentation/theme/Theme.kt"),
-      kotlinFile(root, "commonMain", "presentation/theme/Tokens.kt"),
-    ].filter(Boolean),
-    complete: packageResolved,
-  });
-
-  artifacts.push({
     id: "architecture",
     label: `Architecture + structure (${ARCHITECTURE_SPEC_REL} + ${ARCH_DOC_REL_PATH}, generated sections stripped)`,
     // Hashed via hashArchitectureArtifact (spec bytes + stripped-doc content),
@@ -279,20 +280,22 @@ export function listGovernedArtifacts(root) {
     complete: true,
   });
 
-  artifacts.push({
-    id: "components",
-    label: "Components (presentation/components/*.kt)",
-    files: listComponentFiles(root),
-    complete: packageResolved,
-  });
-
   const { f: exemplarF, F: exemplarF_Pascal, E: exemplarE } = resolveExemplarNames(root);
   const exemplarSpecRel = `specs/${exemplarF}.spec.md`;
   const exemplarKotlinFiles = exemplarKotlinFileSet(exemplarF_Pascal, exemplarF, exemplarE);
 
+  // Spec-first: the exemplar's behavior clauses are confirmed BEFORE the slice
+  // is built — the definition order is the discipline, not just a display order.
+  artifacts.push({
+    id: "exemplar-spec",
+    label: `Exemplar spec (${exemplarSpecRel})`,
+    files: [exemplarSpecRel],
+    complete: true,
+  });
+
   artifacts.push({
     id: "exemplar-feature",
-    label: `Exemplar feature (${exemplarF} — the 11-file set the stamper clones)`,
+    label: `Exemplar feature (${exemplarF} — the file set the stamper clones)`,
     files: [
       ...exemplarKotlinFiles.map((f) => kotlinFile(root, f.sourceSet, f.rel)).filter(Boolean),
       exemplarSpecRel,
@@ -300,11 +303,24 @@ export function listGovernedArtifacts(root) {
     complete: packageResolved,
   });
 
+  // UI-first: the design system LOCKS on the real exemplar (candidates render on
+  // real screens, never stubs), and the component vocabulary is DISTILLED from
+  // those screens — both follow the exemplar in the definition order.
   artifacts.push({
-    id: "exemplar-spec",
-    label: `Exemplar spec (${exemplarSpecRel})`,
-    files: [exemplarSpecRel],
-    complete: true,
+    id: "design-system",
+    label: "Design system (presentation/theme/Theme.kt, Tokens.kt)",
+    files: [
+      kotlinFile(root, "commonMain", "presentation/theme/Theme.kt"),
+      kotlinFile(root, "commonMain", "presentation/theme/Tokens.kt"),
+    ].filter(Boolean),
+    complete: packageResolved,
+  });
+
+  artifacts.push({
+    id: "components",
+    label: "Components (presentation/components/*.kt)",
+    files: listComponentFiles(root),
+    complete: packageResolved,
   });
 
   const specsDir = path.join(root, "specs");

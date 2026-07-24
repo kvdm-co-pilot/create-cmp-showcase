@@ -1,6 +1,5 @@
 package com.kvdm.fuelled.inspector
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -11,9 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.presentation.components.AppBottomBar
 import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
@@ -143,6 +145,21 @@ fun componentStories(): List<ScreenPreview> = listOf(
             onClick = {},
             enabled = false,
             modifier = Modifier.semantics { testTag = "story_text_disabled" },
+        )
+    },
+    variantsStory("component.app-icon-button", "AppIconButton") {
+        AppIconButton(
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back",
+            onClick = {},
+            modifier = Modifier.semantics { testTag = "story_icon_button" },
+        )
+        AppIconButton(
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back — disabled",
+            onClick = {},
+            enabled = false,
+            modifier = Modifier.semantics { testTag = "story_icon_button_disabled" },
         )
     },
     // The four-state contract: all four arms of the container, stacked.
@@ -287,8 +304,22 @@ private fun variantsStory(
  * generated registry can host the PlaceholderScreen story on custom-tab
  * scaffolds (PlaceholderScreen ships only when a configured tab has no
  * feature yet, so its story rides PreviewRegistry.kt, not this file).
+ *
+ * A `Surface`, not a bare `Box`: real screens root in [BaseScreen]'s `Scaffold`, which
+ * provides `LocalContentColor` to everything below it. A Box only PAINTS a background —
+ * it supplies no content color — so any component that correctly inherits one (an
+ * [AppIconButton] tint, a bare `Text`) fell back to `LocalContentColor`'s black default
+ * and rendered black-on-near-black. The story read as an empty rectangle while the
+ * component was in fact drawing perfectly. Stories must sit in the same content-color
+ * context as the screens they document, or they document a lie.
  */
 @Composable
 internal fun StoryHost(content: @Composable BoxScope.() -> Unit) {
-    Box(Modifier.fillMaxSize().background(FuelledColors.Background)) { content() }
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = FuelledColors.Background,
+        contentColor = FuelledColors.OnSurface,
+    ) {
+        Box(Modifier.fillMaxSize()) { content() }
+    }
 }

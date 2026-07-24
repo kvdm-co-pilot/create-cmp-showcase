@@ -5,9 +5,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.FuelledTypeRamp
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -56,6 +59,22 @@ object InspectorCatalog {
                 put("RadiusPill", FuelledTokens.RadiusPill.token())
                 put("RadiusModal", FuelledTokens.RadiusModal.token())
                 put("RadiusInput", FuelledTokens.RadiusInput.token())
+            })
+            // The type ramp, from the same ramp data the Typography factory builds
+            // its styles from — so the LIVE tier answers with the same block the
+            // headless preview catalog writes, and the console renders one ramp
+            // whichever tier it read.
+            put("typography", buildJsonArray {
+                FuelledTypeRamp.forEach { spec ->
+                    add(buildJsonObject {
+                        put("name", spec.name)
+                        put("weight", spec.weight)
+                        put("size", "${spec.sizeSp}sp")
+                        put("lineHeight", "${spec.lineHeightSp}sp")
+                        val tracking = spec.tracking
+                        if (tracking == null) put("tracking", JsonNull) else put("tracking", "${tracking}sp")
+                    })
+                }
             })
         }
         return prettyJson.encodeToString(JsonElement.serializer(), doc)

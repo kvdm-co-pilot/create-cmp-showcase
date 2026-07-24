@@ -46,6 +46,11 @@
   When its source is inspected, Then it references neither `CircularProgressIndicator` nor
   `LinearProgressIndicator` directly — loading is presented through the components
   registry (`ContentStateContainer`/`ContentStateDefaults`), never hand-rolled per screen.
+- **ARCH-12** — Given a `sample*` preview fixture declared in a `commonMain` presentation
+  file, When any OTHER `commonMain` file references it, Then the conformance gate fails —
+  a sample is the UI-first preview seam (the stateless screen's own default parameter,
+  plus the preview registry/stories and tests), never production wiring. Fake data
+  resolving a nav route or seeding a repository is exactly the drift this stops.
 
 ## App shell
 

@@ -1,0 +1,401 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-24T10:26:30.091Z",
+  "appId": "com.kvdm.fuelled",
+  "processStartedAtMs": 1784888500766,
+  "inspector": "http://127.0.0.1:9500",
+  "designSystemSource": "live",
+  "screens": [
+    {
+      "id": "today",
+      "kind": "tab",
+      "slug": "today",
+      "route": "shell",
+      "png": "today.png",
+      "treeJson": "today.tree.json",
+      "sha256": "1dfdb6fd6821f8a8e8960b4de68032ff1d16b1b6b2179d0b8b7d580794e426c0",
+      "captureAttempts": 1,
+      "settled": true,
+      "nodes": 69,
+      "tags": [
+        "today_screen",
+        "brand_mark",
+        "today_title",
+        "app_bottom_nav",
+        "nav_today",
+        "nav_foods",
+        "nav_supplements",
+        "nav_profile"
+      ],
+      "a11y": {
+        "violations": [],
+        "warnings": [],
+        "passCount": 4
+      },
+      "spec": {
+        "file": "specs/today.spec.md",
+        "clauses": [
+          "TODAY-01",
+          "TODAY-02",
+          "TODAY-03",
+          "TODAY-04",
+          "TODAY-05",
+          "TODAY-06"
+        ]
+      },
+      "variants": [],
+      "visitedVia": "tap nav_today"
+    },
+    {
+      "id": "foods",
+      "kind": "tab",
+      "slug": "foods",
+      "route": "shell",
+      "png": "foods.png",
+      "treeJson": "foods.tree.json",
+      "sha256": "c9e893f08eb313c6fabcb0da1d1c20b726ba0cd787a2b818243416e140e0e155",
+      "captureAttempts": 1,
+      "settled": true,
+      "nodes": 21,
+      "tags": [
+        "foods_screen",
+        "foods_title",
+        "foods_search",
+        "foods_item_7",
+        "foods_item_5",
+        "foods_item_1",
+        "foods_item_4",
+        "foods_item_3",
+        "foods_item_2",
+        "foods_item_6",
+        "app_bottom_nav",
+        "nav_today",
+        "nav_foods",
+        "nav_supplements",
+        "nav_profile"
+      ],
+      "a11y": {
+        "violations": [],
+        "warnings": [],
+        "passCount": 12
+      },
+      "spec": {
+        "file": "specs/foods.spec.md",
+        "clauses": [
+          "FOODS-01",
+          "FOODS-02",
+          "FOODS-03",
+          "FOODS-04",
+          "FOODS-05",
+          "FOODS-06",
+          "FOODS-07",
+          "FOODS-08"
+        ]
+      },
+      "variants": [],
+      "visitedVia": "tap nav_foods"
+    },
+    {
+      "id": "supplements",
+      "kind": "tab",
+      "slug": "supplements",
+      "route": "shell",
+      "png": "supplements.png",
+      "treeJson": "supplements.tree.json",
+      "sha256": "fe05099da626df2a2214ce602508c49ced1c49464544bcec9ed1942319113437",
+      "captureAttempts": 1,
+      "settled": true,
+      "nodes": 57,
+      "tags": [
+        "supplements_screen",
+        "supplements_title",
+        "supplements_summary",
+        "supplements_take_1",
+        "supplements_take_2",
+        "supplements_take_3",
+        "supplements_take_4",
+        "supplements_take_5",
+        "supplements_take_6",
+        "app_bottom_nav",
+        "nav_today",
+        "nav_foods",
+        "nav_supplements",
+        "nav_profile"
+      ],
+      "a11y": {
+        "violations": [],
+        "warnings": [],
+        "passCount": 10
+      },
+      "spec": {
+        "file": "specs/supplements.spec.md",
+        "clauses": [
+          "SUPP-01",
+          "SUPP-02",
+          "SUPP-03",
+          "SUPP-04",
+          "SUPP-05",
+          "SUPP-06"
+        ]
+      },
+      "variants": [],
+      "visitedVia": "tap nav_supplements"
+    },
+    {
+      "id": "profile",
+      "kind": "tab",
+      "slug": "profile",
+      "route": "shell",
+      "png": "profile.png",
+      "treeJson": "profile.tree.json",
+      "sha256": "d3baec3e4d8bb2509377d839b6345a98e5703e0be961d1031505da559e80765b",
+      "captureAttempts": 1,
+      "settled": true,
+      "nodes": 38,
+      "tags": [
+        "profile_screen",
+        "profile_title",
+        "profile_goal_calories",
+        "profile_goal_protein",
+        "profile_goal_activity",
+        "profile_setting_units",
+        "profile_setting_reminders",
+        "profile_setting_connected",
+        "profile_setting_account",
+        "app_bottom_nav",
+        "nav_today",
+        "nav_foods",
+        "nav_supplements",
+        "nav_profile"
+      ],
+      "a11y": {
+        "violations": [],
+        "warnings": [],
+        "passCount": 11
+      },
+      "spec": {
+        "file": "specs/profile.spec.md",
+        "clauses": [
+          "PROF-01",
+          "PROF-02",
+          "PROF-03",
+          "PROF-04",
+          "PROF-05",
+          "PROF-06"
+        ]
+      },
+      "variants": [],
+      "visitedVia": "tap nav_profile"
+    }
+  ],
+  "notWalked": [
+    {
+      "target": "food/{foodId}",
+      "reason": "parameterized — needs a behaviour flow (e2e), not blind coverage"
+    }
+  ],
+  "db": {
+    "source": "GET /inspect/db at capture time",
+    "tables": [
+      {
+        "name": "foods",
+        "rowCount": 5,
+        "sample": [
+          {
+            "id": "1",
+            "name": "Chicken breast",
+            "brand": "Raw · skinless",
+            "serving": "100 g",
+            "kcal": "165",
+            "proteinG": "31",
+            "carbsG": "0",
+            "fatG": "4"
+          },
+          {
+            "id": "2",
+            "name": "Whey protein",
+            "brand": "Gold Standard",
+            "serving": "1 scoop · 30 g",
+            "kcal": "120",
+            "proteinG": "24",
+            "carbsG": "3",
+            "fatG": "2"
+          },
+          {
+            "id": "3",
+            "name": "Rolled oats",
+            "brand": "Quaker",
+            "serving": "80 g",
+            "kcal": "303",
+            "proteinG": "11",
+            "carbsG": "54",
+            "fatG": "6"
+          },
+          {
+            "id": "4",
+            "name": "Greek yogurt 0%",
+            "brand": "Fage",
+            "serving": "170 g",
+            "kcal": "100",
+            "proteinG": "17",
+            "carbsG": "6",
+            "fatG": "0"
+          },
+          {
+            "id": "5",
+            "name": "Banana",
+            "brand": "Medium",
+            "serving": "1 · 118 g",
+            "kcal": "105",
+            "proteinG": "1",
+            "carbsG": "27",
+            "fatG": "0"
+          }
+        ]
+      },
+      {
+        "name": "profile",
+        "rowCount": 1,
+        "sample": [
+          {
+            "id": "current",
+            "name": "Karel",
+            "planLabel": "Cutting",
+            "calorieTarget": "2400",
+            "proteinGoalG": "180",
+            "activity": "Trains 5×/week",
+            "streakDays": "12",
+            "avgProteinG": "172",
+            "weightKg": "82.4"
+          }
+        ]
+      },
+      {
+        "name": "supplements",
+        "rowCount": 5,
+        "sample": [
+          {
+            "id": "1",
+            "name": "Creatine",
+            "dose": "5 g",
+            "timing": "Morning",
+            "timingOrder": "0",
+            "taken": "1"
+          },
+          {
+            "id": "2",
+            "name": "Vitamin D3",
+            "dose": "2000 IU",
+            "timing": "Morning",
+            "timingOrder": "0",
+            "taken": "1"
+          },
+          {
+            "id": "3",
+            "name": "Omega-3",
+            "dose": "1 g",
+            "timing": "Morning",
+            "timingOrder": "0",
+            "taken": "1"
+          },
+          {
+            "id": "4",
+            "name": "Caffeine",
+            "dose": "200 mg",
+            "timing": "Pre-workout",
+            "timingOrder": "1",
+            "taken": "0"
+          },
+          {
+            "id": "5",
+            "name": "Beta-alanine",
+            "dose": "3 g",
+            "timing": "Pre-workout",
+            "timingOrder": "1",
+            "taken": "0"
+          }
+        ]
+      },
+      {
+        "name": "today_goal",
+        "rowCount": 1,
+        "sample": [
+          {
+            "id": "current",
+            "dateLabel": "Wednesday, Jul 23",
+            "targetKcal": "2400",
+            "proteinTargetG": "180",
+            "carbsTargetG": "260",
+            "fatTargetG": "70"
+          }
+        ]
+      },
+      {
+        "name": "today_log",
+        "rowCount": 5,
+        "sample": [
+          {
+            "id": "b1",
+            "meal": "Breakfast",
+            "mealOrder": "0",
+            "entryOrder": "0",
+            "name": "Rolled oats & whey",
+            "serving": "80 g · 1 scoop",
+            "kcal": "430",
+            "proteinG": "38",
+            "carbsG": "52",
+            "fatG": "9"
+          },
+          {
+            "id": "b2",
+            "meal": "Breakfast",
+            "mealOrder": "0",
+            "entryOrder": "1",
+            "name": "Banana",
+            "serving": "1 medium",
+            "kcal": "105",
+            "proteinG": "1",
+            "carbsG": "27",
+            "fatG": "0"
+          },
+          {
+            "id": "l1",
+            "meal": "Lunch",
+            "mealOrder": "1",
+            "entryOrder": "0",
+            "name": "Chicken breast & rice",
+            "serving": "200 g · 150 g",
+            "kcal": "620",
+            "proteinG": "58",
+            "carbsG": "68",
+            "fatG": "8"
+          },
+          {
+            "id": "l2",
+            "meal": "Lunch",
+            "mealOrder": "1",
+            "entryOrder": "1",
+            "name": "Mixed greens",
+            "serving": "1 bowl",
+            "kcal": "90",
+            "proteinG": "3",
+            "carbsG": "11",
+            "fatG": "4"
+          },
+          {
+            "id": "s1",
+            "meal": "Snack",
+            "mealOrder": "2",
+            "entryOrder": "0",
+            "name": "Greek yogurt 0%",
+            "serving": "170 g",
+            "kcal": "100",
+            "proteinG": "17",
+            "carbsG": "6",
+            "fatG": "0"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -17,18 +17,24 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.kvdm.fuelled.core.connectivity.NetworkMonitor
+// >>> cmp:feature room
 import com.kvdm.fuelled.data.local.AppDatabase
 import com.kvdm.fuelled.data.local.buildDatabase
+// <<< cmp:feature room
 import com.kvdm.fuelled.di.appModules
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTheme
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.FuelledTypeRamp
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
+import org.jetbrains.skia.Image
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import java.io.File
@@ -98,7 +104,9 @@ internal fun initPreviewKoin() {
     startKoin {
         modules(
             module {
+                // >>> cmp:feature room
                 single<AppDatabase> { buildDatabase() }
+                // <<< cmp:feature room
                 single { NetworkMonitor(null) }
             },
             *appModules.toTypedArray(),
@@ -185,12 +193,81 @@ internal fun renderPng(entry: ScreenPreview, outFile: File, scale: Float) {
             }
             iterations++
         }
-        val data = image.encodeToData(EncodedImageFormat.PNG)
+        val framed = if (isComponentStory(entry.id)) cropToContent(image, scale) else image
+        val data = framed.encodeToData(EncodedImageFormat.PNG)
             ?: error("Skia failed to encode ${entry.id} as PNG")
         outFile.writeBytes(data.bytes)
     } finally {
         scene.close()
     }
+}
+
+/**
+ * Component stories are the ONLY previews cropped. A screen's frame is part of
+ * what is being reviewed (insets, bottom bar, where content sits on the page),
+ * so screens keep the full phone viewport. A component story is the opposite:
+ * a 48 dp button rendered on an 891 dp canvas is 3% component and 97% empty
+ * background, which is what made the Components gallery read as broken.
+ */
+private fun isComponentStory(id: String) = id.startsWith("component.")
+
+/**
+ * Tightest rectangle whose pixels differ from the frame's own background,
+ * plus one page-padding gutter. Measured from the PIXELS, not the semantics
+ * tree — decoration with no semantics (a ring, a shimmer, a divider) is part
+ * of the component and must not be cropped off.
+ *
+ * The background reference is the top-left pixel: [StoryHost] paints the whole
+ * canvas in the Background token before drawing, so that corner is background
+ * by construction. Two honest fallbacks, never a wrong crop:
+ *   - nothing differs (a story whose content IS the background color) -> the
+ *     full frame, uncropped;
+ *   - a degenerate box (under 8 px on a side) -> the full frame too.
+ * Cropping is lossless: the kept pixels are the rendered pixels, untouched.
+ */
+private fun cropToContent(image: Image, scale: Float): Image {
+    val bitmap = Bitmap.makeFromImage(image)
+    val info = bitmap.imageInfo
+    val w = info.width
+    val h = info.height
+    val bpp = info.bytesPerPixel
+    if (w <= 0 || h <= 0 || bpp <= 0) return image
+    // One bulk read, then scan in memory — getColor(x, y) per pixel would be
+    // ~1.5M native calls per story.
+    val rowBytes = w * bpp
+    val pixels = bitmap.readPixels(info, rowBytes, 0, 0) ?: return image
+    fun samePixelAsOrigin(offset: Int): Boolean {
+        for (b in 0 until bpp) if (pixels[offset + b] != pixels[b]) return false
+        return true
+    }
+    var minX = w
+    var minY = h
+    var maxX = -1
+    var maxY = -1
+    for (y in 0 until h) {
+        val row = y * rowBytes
+        for (x in 0 until w) {
+            if (!samePixelAsOrigin(row + x * bpp)) {
+                if (x < minX) minX = x
+                if (y < minY) minY = y
+                if (x > maxX) maxX = x
+                if (y > maxY) maxY = y
+            }
+        }
+    }
+    if (maxX < 0 || maxY < 0) return image
+    val gutter = (FuelledTokens.PaddingPage.value * scale).toInt().coerceAtLeast(1)
+    val left = (minX - gutter).coerceAtLeast(0)
+    val top = (minY - gutter).coerceAtLeast(0)
+    val right = (maxX + 1 + gutter).coerceAtMost(w)
+    val bottom = (maxY + 1 + gutter).coerceAtMost(h)
+    val cw = right - left
+    val ch = bottom - top
+    if (cw < 8 || ch < 8) return image
+    val croppedInfo = info.withWidthHeight(cw, ch)
+    val croppedRowBytes = cw * bpp
+    val cropped = bitmap.readPixels(croppedInfo, croppedRowBytes, left, top) ?: return image
+    return Image.makeRaster(croppedInfo, cropped, croppedRowBytes)
 }
 
 /** The declared design-system catalog — generated FROM the theme objects, so it can't drift. */
@@ -232,6 +309,23 @@ internal fun designSystemCatalog(): String {
             put("RadiusPill", dp(FuelledTokens.RadiusPill))
             put("RadiusModal", dp(FuelledTokens.RadiusModal))
             put("RadiusInput", dp(FuelledTokens.RadiusInput))
+        })
+        // The type ramp, published from the SAME data the Typography factory
+        // builds its styles from (presentation/theme/Typography.kt) — the
+        // console's Design language page renders the ramp from this block, so a
+        // ramp that ships and a ramp that is documented cannot diverge. Font
+        // family is deliberately absent: it resolves through @Composable Font()
+        // and is not derivable here, and a guessed name would be a fabrication.
+        put("typography", buildJsonArray {
+            FuelledTypeRamp.forEach { spec ->
+                add(buildJsonObject {
+                    put("name", JsonPrimitive(spec.name))
+                    put("weight", JsonPrimitive(spec.weight))
+                    put("size", JsonPrimitive("${spec.sizeSp}sp"))
+                    put("lineHeight", JsonPrimitive("${spec.lineHeightSp}sp"))
+                    put("tracking", spec.tracking?.let { JsonPrimitive("${it}sp") } ?: JsonNull)
+                })
+            }
         })
     }
     return pretty.encodeToString(JsonElement.serializer(), doc)

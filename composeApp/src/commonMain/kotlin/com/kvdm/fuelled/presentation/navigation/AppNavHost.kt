@@ -24,11 +24,20 @@ fun AppNavHost() {
     // androidDebug inspector registered a listener (see NavInspectionHook.kt). Best-effort:
     // `currentBackStack` is a live snapshot, not a durable history.
     LaunchedEffect(navController) {
-        navController.currentBackStack.collect { stack ->
-            NavInspectionHook.listener?.invoke(
-                navController.currentDestination?.route,
-                stack.mapNotNull { it.destination.route },
-            )
+        // The jump half of the same seam: lets the debug inspector navigate by route
+        // (its navigate endpoint) so walkthrough coverage enumerates the graph instead of
+        // synthesizing taps. Registered/cleared with the controller's composition lifetime;
+        // NavController rejects unknown routes itself (IllegalArgumentException).
+        NavInspectionHook.navigator = { route -> navController.navigate(route) }
+        try {
+            navController.currentBackStack.collect { stack ->
+                NavInspectionHook.listener?.invoke(
+                    navController.currentDestination?.route,
+                    stack.mapNotNull { it.destination.route },
+                )
+            }
+        } finally {
+            NavInspectionHook.navigator = null
         }
     }
 

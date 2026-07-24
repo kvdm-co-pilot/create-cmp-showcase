@@ -30,9 +30,9 @@ fun AppPrimaryButton(
 }
 
 /**
- * The low-emphasis text button, with the same 48 dp floor as [AppPrimaryButton]. These
- * two are the registry's only buttons — a new variant (icon, loading, destructive, FAB)
- * is a registry addition a human approves, not a local tweak.
+ * The low-emphasis text button, with the same 48 dp floor as [AppPrimaryButton]. The
+ * registry's buttons are these two plus [AppIconButton] — a new variant (loading,
+ * destructive, FAB) is a registry addition a human approves, not a local tweak.
  */
 @Composable
 fun AppTextButton(

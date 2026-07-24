@@ -28,4 +28,35 @@ object NavInspector {
     }
 
     fun current(): Snapshot = state.get()
+
+    /**
+     * The jump half (`GET /inspect/navigate?route=…`): request navigation to [route] on the
+     * main thread and wait (bounded) for the outcome. Coverage tool, not a behaviour proof —
+     * see [NavInspectionHook.navigator]. Outcomes are honest, never fabricated:
+     *  - `null` on success (the NavController accepted the route);
+     *  - a message when no navigator is registered (nav host not composed yet — retry), when
+     *    the route is unknown (NavController's own IllegalArgumentException, surfaced
+     *    verbatim), or when the main thread didn't get to it in time.
+     */
+    fun navigate(route: String, timeoutMs: Long = 5_000): String? {
+        val error = java.util.concurrent.atomic.AtomicReference<String?>(null)
+        val latch = java.util.concurrent.CountDownLatch(1)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            val nav = NavInspectionHook.navigator
+            if (nav == null) {
+                error.set("nav host not composed yet — no navigator registered. Retry shortly.")
+            } else {
+                try {
+                    nav(route)
+                } catch (e: IllegalArgumentException) {
+                    error.set("unknown route ${'"'}$route${'"'} — ${e.message}")
+                }
+            }
+            latch.countDown()
+        }
+        if (!latch.await(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+            return "main thread did not service the navigation within ${timeoutMs}ms"
+        }
+        return error.get()
+    }
 }

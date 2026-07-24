@@ -156,6 +156,11 @@ object InspectorHttpServer {
                 tapResponse(readBody(reader, contentLength)).let { (s, b) -> writeJson(client, s, b) }
             method == "GET" && path == "/inspect/nav" ->
                 writeJson(client, 200, navJson())
+            // The JUMP half of the nav seam (the read half is /inspect/nav above): coverage
+            // by route, not by synthesized taps. GET (not POST) deliberately — it is
+            // idempotent-ish debug tooling meant to be curl-able, like everything else here.
+            method == "GET" && path == "/inspect/navigate" ->
+                navigateResponse(query).let { (s, b) -> writeJson(client, s, b) }
             method == "GET" && path == "/inspect/crashes" ->
                 writeJson(client, 200, crashesJson())
             method == "GET" && path == "/inspect/db" ->
@@ -184,8 +189,35 @@ object InspectorHttpServer {
         return String(buf, 0, read)
     }
 
-    private fun healthJson(appId: String): String =
-        """{"status":"ok","schemaVersion":1,"source":"live-android","appId":${JsonPrimitive(appId)},"buildType":"debug"}"""
+    private fun healthJson(appId: String): String {
+        // Process start as epoch millis: elapsedRealtime anchors the boot clock to the wall
+        // clock. This is the DETERMINISM primitive — an external relaunch (force-stop +
+        // launch) is VERIFIED by this value moving forward, so a walk can prove it started
+        // from a fresh process instead of trusting that a retained ViewModel isn't lurking.
+        val startedAtMs = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime() +
+            android.os.Process.getStartElapsedRealtime()
+        return """{"status":"ok","schemaVersion":1,"source":"live-android","appId":${JsonPrimitive(appId)},"buildType":"debug",""" +
+            """"processStartedAtMs":$startedAtMs,"processUptimeMs":${android.os.SystemClock.elapsedRealtime() - android.os.Process.getStartElapsedRealtime()}}"""
+    }
+
+    private fun navigateResponse(query: String): Pair<Int, String> {
+        val route = query.split('&')
+            .firstOrNull { it.startsWith("route=") }
+            ?.substringAfter('=')
+            ?.let { java.net.URLDecoder.decode(it, "UTF-8") }
+            ?.takeIf { it.isNotBlank() }
+            ?: return 400 to errorJson("missing route parameter — /inspect/navigate?route=<route>")
+        val error = NavInspector.navigate(route)
+        return if (error == null) {
+            200 to """{"ok":true,"route":${JsonPrimitive(route)}}"""
+        } else if (error.startsWith("nav host not composed")) {
+            503 to errorJson(error)
+        } else if (error.startsWith("unknown route")) {
+            404 to errorJson(error)
+        } else {
+            500 to errorJson(error)
+        }
+    }
 
     private fun treeResponse(): Pair<Int, String> {
         val root = ComposeRootRegistry.current()

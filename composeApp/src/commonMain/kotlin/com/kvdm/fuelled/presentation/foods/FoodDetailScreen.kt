@@ -68,13 +68,19 @@ fun FoodDetailRoute(
     }
 }
 
+// PREVIEW/DEMO fixture — this screen's own preview seam. Declared here, not borrowed from
+// FoodsScreen's `sampleFoods`: ARCH-12 keeps a sample* symbol inside its declaring file, so
+// a screen's fixture can never become a shared dependency that later leaks into production
+// wiring. Each screen owning its fixture is the cost of that guarantee.
+val sampleFood = Food("1", "Chicken breast", "Raw · skinless", "100 g", 165, 31, 0, 4)
+
 /**
  * The stateless detail — the preview/UI-first seam. Renders a resolved [Food] inside
  * [BaseScreen], defaulting to a sample so the preview registry can render it without a VM.
  */
 @Composable
 fun FoodDetailScreen(
-    food: Food = sampleFoods.first(),
+    food: Food = sampleFood,
     onBack: () -> Unit = {},
     onLog: () -> Unit = {},
 ) {

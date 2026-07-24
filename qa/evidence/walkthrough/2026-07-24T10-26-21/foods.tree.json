@@ -1,0 +1,451 @@
+{
+  "schemaVersion": 1,
+  "source": "live-android",
+  "root": {
+    "testTag": null,
+    "text": null,
+    "contentDescription": null,
+    "role": null,
+    "clickable": false,
+    "disabled": false,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1080,
+      "height": 2400
+    },
+    "size": {
+      "width": 1080,
+      "height": 2400
+    },
+    "designToken": null,
+    "children": [
+      {
+        "testTag": null,
+        "text": null,
+        "contentDescription": null,
+        "role": null,
+        "clickable": false,
+        "disabled": false,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 2400
+        },
+        "size": {
+          "width": 1080,
+          "height": 2400
+        },
+        "designToken": null,
+        "children": [
+          {
+            "testTag": null,
+            "text": null,
+            "contentDescription": null,
+            "role": null,
+            "clickable": false,
+            "disabled": false,
+            "bounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1080,
+              "height": 2400
+            },
+            "size": {
+              "width": 1080,
+              "height": 2400
+            },
+            "designToken": null,
+            "children": [
+              {
+                "testTag": null,
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 63,
+                  "width": 1080,
+                  "height": 2082
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 2082
+                },
+                "designToken": {
+                  "tokens": [],
+                  "resolved": {
+                    "statusBarPadding": "true",
+                    "navBarPadding": "false"
+                  }
+                },
+                "children": [
+                  {
+                    "testTag": "foods_screen",
+                    "text": null,
+                    "contentDescription": null,
+                    "role": null,
+                    "clickable": false,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 0,
+                      "y": 63,
+                      "width": 1080,
+                      "height": 2082
+                    },
+                    "size": {
+                      "width": 1080,
+                      "height": 2082
+                    },
+                    "designToken": {
+                      "tokens": [
+                        "PaddingPage"
+                      ],
+                      "resolved": {
+                        "padding": "16dp"
+                      }
+                    },
+                    "children": [
+                      {
+                        "testTag": "foods_title",
+                        "text": "Foods",
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 42,
+                          "y": 105,
+                          "width": 996,
+                          "height": 75
+                        },
+                        "size": {
+                          "width": 996,
+                          "height": 75
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": "foods_search",
+                        "text": "Search foods",
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": true,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 42,
+                          "y": 212,
+                          "width": 996,
+                          "height": 147
+                        },
+                        "size": {
+                          "width": 996,
+                          "height": 147
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 42,
+                          "y": 401,
+                          "width": 996,
+                          "height": 1702
+                        },
+                        "size": {
+                          "width": 996,
+                          "height": 1702
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": "foods_item_7",
+                            "text": "Almonds Raw · 20 g P  4g C  4g F  10g 116 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 401,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_5",
+                            "text": "Banana Medium · 1 · 118 g P  1g C  27g F  0g 105 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 670,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_1",
+                            "text": "Chicken breast Raw · skinless · 100 g P  31g C  0g F  4g 165 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 939,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_4",
+                            "text": "Greek yogurt 0% Fage · 170 g P  17g C  6g F  0g 100 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 1208,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_3",
+                            "text": "Rolled oats Quaker · 80 g P  11g C  54g F  6g 303 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 1477,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_2",
+                            "text": "Whey protein Gold Standard · 1 scoop · 30 g P  24g C  3g F  2g 120 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 1746,
+                              "width": 996,
+                              "height": 243
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": "foods_item_6",
+                            "text": "White rice Cooked · 150 g P  4g C  42g F  0g 195 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": true,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 42,
+                              "y": 2015,
+                              "width": 996,
+                              "height": 88
+                            },
+                            "size": {
+                              "width": 996,
+                              "height": 243
+                            },
+                            "designToken": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "testTag": null,
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 2145,
+                  "width": 1080,
+                  "height": 3
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 3
+                },
+                "designToken": null,
+                "children": []
+              },
+              {
+                "testTag": "app_bottom_nav",
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 2148,
+                  "width": 1080,
+                  "height": 189
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 189
+                },
+                "designToken": {
+                  "tokens": [
+                    "BottomNavHeight"
+                  ],
+                  "resolved": {
+                    "height": "72dp"
+                  }
+                },
+                "children": [
+                  {
+                    "testTag": "nav_today",
+                    "text": "Today",
+                    "contentDescription": "Today",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 98,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_foods",
+                    "text": "Foods",
+                    "contentDescription": "Foods",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 323,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_supplements",
+                    "text": "Supplements",
+                    "contentDescription": "Supplements",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 547,
+                      "y": 2153,
+                      "width": 210,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 210,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_profile",
+                    "text": "Profile",
+                    "contentDescription": "Profile",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 856,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

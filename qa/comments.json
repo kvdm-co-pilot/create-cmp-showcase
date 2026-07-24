@@ -1,4 +1,19 @@
 {
   "schema": "cmp-comments/1",
-  "comments": []
+  "comments": [
+    {
+      "id": "c1",
+      "target": {
+        "type": "design-system",
+        "token": "component:AppIconButton"
+      },
+      "text": "why is this blank? Investigate the rebdering",
+      "author": "human-console",
+      "createdAt": "2026-07-24T09:06:52.873Z",
+      "status": "resolved",
+      "resolvedAt": "2026-07-24T09:24:09.399Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Not a rendering failure — the components were drawing correctly, in black, on a near-black background. StoryHost wrapped stories in a Box, which paints a background but provides no LocalContentColor; that comes from Surface (real screens get it via BaseScreen's Scaffold). So components inheriting content colour — AppIconButton's default tint, ScreenColumn's bare Text — fell back to black. StoryHost is now a Surface(color = Background, contentColor = OnSurface); fixed in the template and mirrored here. Re-rendered: AppIconButton enabled arrow white + disabled dimmed, ScreenColumn text legible, AppHeader title white. Story canvas sizing (small component on a full-height frame) is a separate open item."
+    }
+  ]
 }

@@ -69,6 +69,11 @@ fun main(args: Array<String>) {
             put("ok", JsonPrimitive(true))
             put("pid", JsonPrimitive(ProcessHandle.current().pid()))
             put("port", JsonPrimitive(port))
+            // WHICH project this daemon serves. The port is machine-global, so a
+            // preview service that finds a healthy daemon here has no other way to
+            // tell "my project's daemon" from "another checkout's daemon on the
+            // same port" — and adopting the wrong one renders another app's screens.
+            put("previewsDir", JsonPrimitive(outRoot.absolutePath))
             put("reloadCount", JsonPrimitive(reloadCount.get()))
             put("reloadErrors", JsonPrimitive(reloadErrors.get()))
             put("reloadHooked", JsonPrimitive(reloadHooked))

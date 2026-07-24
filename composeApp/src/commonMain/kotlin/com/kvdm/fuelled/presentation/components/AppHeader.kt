@@ -4,11 +4,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,9 +22,10 @@ import androidx.compose.ui.unit.dp
  * handling (`BaseScreen` owns insets, SHELL-03). A collapsing toolbar would be a
  * registry addition, not a default.
  *
- * The back affordance is a Material `IconButton` with the auto-mirrored arrow (RTL-correct,
- * 48 dp touch target) — never a text link. It renders only when [onBack] is non-null, so a
- * tab root never shows a back control.
+ * The back affordance is a Material icon button with the auto-mirrored arrow
+ * (RTL-correct), via [AppIconButton] so the 48 dp touch-target floor holds by
+ * construction — never a text link. It renders only when [onBack] is non-null, so a tab
+ * root never shows a back control.
  *
  * @param title Headline text, rendered in `headlineMedium`.
  * @param screenTag Feature slug; derives the `<screenTag>_title` and `<screenTag>_back` tags.
@@ -43,25 +41,21 @@ fun AppHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            IconButton(
+            AppIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
                 onClick = onBack,
-                modifier = Modifier.size(48.dp).semantics { testTag = "${screenTag}_back" },
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { testTag = "${screenTag}_back" },
+            )
         }
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f).semantics { testTag = "${screenTag}_title" },
         )
         actions()

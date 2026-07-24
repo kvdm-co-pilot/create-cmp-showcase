@@ -340,6 +340,44 @@ class ArchitectureConformanceTest {
         )
     }
 
+    // SPEC: ARCH-12
+    @Test
+    fun `ARCH-12 sample fixtures never cross into production wiring`() {
+        // The UI-first pattern's hazard gate. A stateless screen may default its own state
+        // parameter to a `sample*` fixture — that same-file default IS the preview seam —
+        // and the preview registry / stories / tests (desktopMain, commonTest) render it
+        // freely. But the moment ANOTHER commonMain file references the fixture (a nav
+        // host resolving entities from sample data, a repository seeding from it), fake
+        // data is driving production behavior. Proven drift: the Fuelled dogfood run's
+        // AppNavHost read `sampleFoods.firstOrNull { it.id == foodId }` for a real route.
+        val sampleDecl = Regex("""\bval\s+(sample[A-Z][A-Za-z0-9]*)""")
+        val declarations = mutableMapOf<String, File>() // symbol -> declaring file
+        for (file in sources(commonMain)) {
+            for (m in sampleDecl.findAll(file.readText())) declarations[m.groupValues[1]] = file
+        }
+        if (declarations.isEmpty()) return
+        val offenders = mutableListOf<String>()
+        for (file in sources(commonMain)) {
+            val lines = nonCommentLines(file)
+            for ((symbol, declaring) in declarations) {
+                if (file == declaring) continue
+                if (lines.any { Regex("""\b$symbol\b""").containsMatchIn(it) }) {
+                    offenders.add("${file.path} (references $symbol from ${declaring.name})")
+                }
+            }
+        }
+        if (offenders.isNotEmpty()) fail(
+            violation(
+                "ARCH-12", "a sample*/fixture symbol is never referenced outside its declaring file, " +
+                    "the preview registry, or test sources — sample data is a preview seam, not " +
+                    "production wiring.",
+                offenders.distinct(),
+                "wire the real path (repository → use case → ViewModel) and keep the sample only as " +
+                    "the stateless screen's default parameter.",
+            )
+        )
+    }
+
     // SPEC: SHELL-05
     @Test
     fun `SHELL-05 every non-shell nav destination wraps its content in BaseScreen`() {

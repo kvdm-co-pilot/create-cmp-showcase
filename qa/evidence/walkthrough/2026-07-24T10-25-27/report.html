@@ -1,0 +1,226 @@
+<!doctype html><meta charset="utf-8">
+<title>com.kvdm.fuelled — walkthrough 2026-07-24T10:25:35.263Z</title>
+<style>
+  :root { color-scheme: dark; }
+  body { background:#0A0C0B; color:#F3F6F4; font: 15px/1.5 system-ui, sans-serif; margin: 0 auto; max-width: 900px; padding: 24px; }
+  h1 { font-size: 22px; } h2 { font-size: 17px; margin: 0 0 6px; } h3 { font-size: 14px; margin: 14px 0 4px; }
+  .card { background:#121614; border: 1px solid #232A26; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .meta { color:#A7B2AC; font-size: 13px; margin: 2px 0; }
+  .dim { opacity:.7 } .ok { color:#B8FF3C } .bad { color:#FF6B6B }
+  .chip { background:#0A0C0B; border:1px solid #232A26; border-radius:999px; padding:1px 9px; font-size:11px; vertical-align:2px; color:#A7B2AC }
+  img.shot { width: 260px; border-radius: 10px; border:1px solid #232A26; margin-top: 8px; }
+  .variants { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap }
+  .variants img { width: 150px; border-radius:8px; border:1px solid #232A26 }
+  .variants figcaption { font-size:11px; color:#A7B2AC; text-align:center }
+  pre { background:#0A0C0B; border-radius:8px; padding:10px; overflow-x:auto; font-size:12px }
+  code { color:#B8FF3C }
+</style>
+<h1>com.kvdm.fuelled — walkthrough</h1>
+<div class="meta">2026-07-24T10:25:35.263Z · inspector http://127.0.0.1:9500 · process started 2026-07-24T10:21:40.766Z · design tokens: live</div>
+<div class="meta">Evidence, not decoration — every card is pixels + tree + a11y from one proven frame; variants are tier-0 renders and say so; the DB appendix was read at capture time.</div>
+<section class="card">
+  <h2>today <span class="chip">tab</span></h2>
+  <div class="meta">route: <code>shell</code> · via tap nav_today · 69 nodes · frame 1dfdb6fd6821… · <span class="ok">a11y: 0 violations</span></div>
+  <div class="meta">spec: specs/today.spec.md — TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06</div>
+  <img class="shot" src="today.png" loading="lazy">
+  
+</section>
+<section class="card">
+  <h2>foods <span class="chip">tab</span></h2>
+  <div class="meta">route: <code>shell</code> · via tap nav_foods · 21 nodes · frame c9e893f08eb3… · <span class="ok">a11y: 0 violations</span></div>
+  <div class="meta">spec: specs/foods.spec.md — FOODS-01, FOODS-02, FOODS-03, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08</div>
+  <img class="shot" src="foods.png" loading="lazy">
+  
+</section>
+<section class="card">
+  <h2>supplements <span class="chip">tab</span></h2>
+  <div class="meta">route: <code>shell</code> · via tap nav_supplements · 57 nodes · frame fe05099da626… · <span class="ok">a11y: 0 violations</span></div>
+  <div class="meta">spec: specs/supplements.spec.md — SUPP-01, SUPP-02, SUPP-03, SUPP-04, SUPP-05, SUPP-06</div>
+  <img class="shot" src="supplements.png" loading="lazy">
+  
+</section>
+<section class="card">
+  <h2>profile <span class="chip">tab</span></h2>
+  <div class="meta">route: <code>shell</code> · via tap nav_profile · 38 nodes · frame d3baec3e4d8b… · <span class="ok">a11y: 0 violations</span></div>
+  <div class="meta">spec: specs/profile.spec.md — PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06</div>
+  <img class="shot" src="profile.png" loading="lazy">
+  
+</section>
+<section class="card"><h2>Not walked</h2><ul><li><code>food/{foodId}</code> — parameterized — needs a behaviour flow (e2e), not blind coverage</li></ul></section>
+<section class="card"><h2>DB appendix <span class="chip">persistence receipt</span></h2>
+<div class="meta">GET /inspect/db at capture time</div>
+<h3>foods <span class="dim">(5 rows)</span></h3><pre>[
+ {
+  &quot;id&quot;: &quot;1&quot;,
+  &quot;name&quot;: &quot;Chicken breast&quot;,
+  &quot;brand&quot;: &quot;Raw · skinless&quot;,
+  &quot;serving&quot;: &quot;100 g&quot;,
+  &quot;kcal&quot;: &quot;165&quot;,
+  &quot;proteinG&quot;: &quot;31&quot;,
+  &quot;carbsG&quot;: &quot;0&quot;,
+  &quot;fatG&quot;: &quot;4&quot;
+ },
+ {
+  &quot;id&quot;: &quot;2&quot;,
+  &quot;name&quot;: &quot;Whey protein&quot;,
+  &quot;brand&quot;: &quot;Gold Standard&quot;,
+  &quot;serving&quot;: &quot;1 scoop · 30 g&quot;,
+  &quot;kcal&quot;: &quot;120&quot;,
+  &quot;proteinG&quot;: &quot;24&quot;,
+  &quot;carbsG&quot;: &quot;3&quot;,
+  &quot;fatG&quot;: &quot;2&quot;
+ },
+ {
+  &quot;id&quot;: &quot;3&quot;,
+  &quot;name&quot;: &quot;Rolled oats&quot;,
+  &quot;brand&quot;: &quot;Quaker&quot;,
+  &quot;serving&quot;: &quot;80 g&quot;,
+  &quot;kcal&quot;: &quot;303&quot;,
+  &quot;proteinG&quot;: &quot;11&quot;,
+  &quot;carbsG&quot;: &quot;54&quot;,
+  &quot;fatG&quot;: &quot;6&quot;
+ },
+ {
+  &quot;id&quot;: &quot;4&quot;,
+  &quot;name&quot;: &quot;Greek yogurt 0%&quot;,
+  &quot;brand&quot;: &quot;Fage&quot;,
+  &quot;serving&quot;: &quot;170 g&quot;,
+  &quot;kcal&quot;: &quot;100&quot;,
+  &quot;proteinG&quot;: &quot;17&quot;,
+  &quot;carbsG&quot;: &quot;6&quot;,
+  &quot;fatG&quot;: &quot;0&quot;
+ },
+ {
+  &quot;id&quot;: &quot;5&quot;,
+  &quot;name&quot;: &quot;Banana&quot;,
+  &quot;brand&quot;: &quot;Medium&quot;,
+  &quot;serving&quot;: &quot;1 · 118 g&quot;,
+  &quot;kcal&quot;: &quot;105&quot;,
+  &quot;proteinG&quot;: &quot;1&quot;,
+  &quot;carbsG&quot;: &quot;27&quot;,
+  &quot;fatG&quot;: &quot;0&quot;
+ }
+]</pre><h3>profile <span class="dim">(1 rows)</span></h3><pre>[
+ {
+  &quot;id&quot;: &quot;current&quot;,
+  &quot;name&quot;: &quot;Karel&quot;,
+  &quot;planLabel&quot;: &quot;Cutting&quot;,
+  &quot;calorieTarget&quot;: &quot;2400&quot;,
+  &quot;proteinGoalG&quot;: &quot;180&quot;,
+  &quot;activity&quot;: &quot;Trains 5×/week&quot;,
+  &quot;streakDays&quot;: &quot;12&quot;,
+  &quot;avgProteinG&quot;: &quot;172&quot;,
+  &quot;weightKg&quot;: &quot;82.4&quot;
+ }
+]</pre><h3>supplements <span class="dim">(5 rows)</span></h3><pre>[
+ {
+  &quot;id&quot;: &quot;1&quot;,
+  &quot;name&quot;: &quot;Creatine&quot;,
+  &quot;dose&quot;: &quot;5 g&quot;,
+  &quot;timing&quot;: &quot;Morning&quot;,
+  &quot;timingOrder&quot;: &quot;0&quot;,
+  &quot;taken&quot;: &quot;1&quot;
+ },
+ {
+  &quot;id&quot;: &quot;2&quot;,
+  &quot;name&quot;: &quot;Vitamin D3&quot;,
+  &quot;dose&quot;: &quot;2000 IU&quot;,
+  &quot;timing&quot;: &quot;Morning&quot;,
+  &quot;timingOrder&quot;: &quot;0&quot;,
+  &quot;taken&quot;: &quot;1&quot;
+ },
+ {
+  &quot;id&quot;: &quot;3&quot;,
+  &quot;name&quot;: &quot;Omega-3&quot;,
+  &quot;dose&quot;: &quot;1 g&quot;,
+  &quot;timing&quot;: &quot;Morning&quot;,
+  &quot;timingOrder&quot;: &quot;0&quot;,
+  &quot;taken&quot;: &quot;1&quot;
+ },
+ {
+  &quot;id&quot;: &quot;4&quot;,
+  &quot;name&quot;: &quot;Caffeine&quot;,
+  &quot;dose&quot;: &quot;200 mg&quot;,
+  &quot;timing&quot;: &quot;Pre-workout&quot;,
+  &quot;timingOrder&quot;: &quot;1&quot;,
+  &quot;taken&quot;: &quot;0&quot;
+ },
+ {
+  &quot;id&quot;: &quot;5&quot;,
+  &quot;name&quot;: &quot;Beta-alanine&quot;,
+  &quot;dose&quot;: &quot;3 g&quot;,
+  &quot;timing&quot;: &quot;Pre-workout&quot;,
+  &quot;timingOrder&quot;: &quot;1&quot;,
+  &quot;taken&quot;: &quot;0&quot;
+ }
+]</pre><h3>today_goal <span class="dim">(1 rows)</span></h3><pre>[
+ {
+  &quot;id&quot;: &quot;current&quot;,
+  &quot;dateLabel&quot;: &quot;Wednesday, Jul 23&quot;,
+  &quot;targetKcal&quot;: &quot;2400&quot;,
+  &quot;proteinTargetG&quot;: &quot;180&quot;,
+  &quot;carbsTargetG&quot;: &quot;260&quot;,
+  &quot;fatTargetG&quot;: &quot;70&quot;
+ }
+]</pre><h3>today_log <span class="dim">(5 rows)</span></h3><pre>[
+ {
+  &quot;id&quot;: &quot;b1&quot;,
+  &quot;meal&quot;: &quot;Breakfast&quot;,
+  &quot;mealOrder&quot;: &quot;0&quot;,
+  &quot;entryOrder&quot;: &quot;0&quot;,
+  &quot;name&quot;: &quot;Rolled oats &amp; whey&quot;,
+  &quot;serving&quot;: &quot;80 g · 1 scoop&quot;,
+  &quot;kcal&quot;: &quot;430&quot;,
+  &quot;proteinG&quot;: &quot;38&quot;,
+  &quot;carbsG&quot;: &quot;52&quot;,
+  &quot;fatG&quot;: &quot;9&quot;
+ },
+ {
+  &quot;id&quot;: &quot;b2&quot;,
+  &quot;meal&quot;: &quot;Breakfast&quot;,
+  &quot;mealOrder&quot;: &quot;0&quot;,
+  &quot;entryOrder&quot;: &quot;1&quot;,
+  &quot;name&quot;: &quot;Banana&quot;,
+  &quot;serving&quot;: &quot;1 medium&quot;,
+  &quot;kcal&quot;: &quot;105&quot;,
+  &quot;proteinG&quot;: &quot;1&quot;,
+  &quot;carbsG&quot;: &quot;27&quot;,
+  &quot;fatG&quot;: &quot;0&quot;
+ },
+ {
+  &quot;id&quot;: &quot;l1&quot;,
+  &quot;meal&quot;: &quot;Lunch&quot;,
+  &quot;mealOrder&quot;: &quot;1&quot;,
+  &quot;entryOrder&quot;: &quot;0&quot;,
+  &quot;name&quot;: &quot;Chicken breast &amp; rice&quot;,
+  &quot;serving&quot;: &quot;200 g · 150 g&quot;,
+  &quot;kcal&quot;: &quot;620&quot;,
+  &quot;proteinG&quot;: &quot;58&quot;,
+  &quot;carbsG&quot;: &quot;68&quot;,
+  &quot;fatG&quot;: &quot;8&quot;
+ },
+ {
+  &quot;id&quot;: &quot;l2&quot;,
+  &quot;meal&quot;: &quot;Lunch&quot;,
+  &quot;mealOrder&quot;: &quot;1&quot;,
+  &quot;entryOrder&quot;: &quot;1&quot;,
+  &quot;name&quot;: &quot;Mixed greens&quot;,
+  &quot;serving&quot;: &quot;1 bowl&quot;,
+  &quot;kcal&quot;: &quot;90&quot;,
+  &quot;proteinG&quot;: &quot;3&quot;,
+  &quot;carbsG&quot;: &quot;11&quot;,
+  &quot;fatG&quot;: &quot;4&quot;
+ },
+ {
+  &quot;id&quot;: &quot;s1&quot;,
+  &quot;meal&quot;: &quot;Snack&quot;,
+  &quot;mealOrder&quot;: &quot;2&quot;,
+  &quot;entryOrder&quot;: &quot;0&quot;,
+  &quot;name&quot;: &quot;Greek yogurt 0%&quot;,
+  &quot;serving&quot;: &quot;170 g&quot;,
+  &quot;kcal&quot;: &quot;100&quot;,
+  &quot;proteinG&quot;: &quot;17&quot;,
+  &quot;carbsG&quot;: &quot;6&quot;,
+  &quot;fatG&quot;: &quot;0&quot;
+ }
+]</pre></section>

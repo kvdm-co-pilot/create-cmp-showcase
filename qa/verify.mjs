@@ -49,11 +49,51 @@ function sh(cmd, opts = {}) {
   return { ok, status: res.status, error: res.error?.message, out: `${res.stdout ?? ""}${res.stderr ?? ""}`, durationMs: Date.now() - started };
 }
 
+// ── Preview-daemon coexistence ──────────────────────────────────────────────
+// The preview daemon (the eyes) and this lane both spawn Gradle against this
+// project and share composeApp/build/kspCaches, whose KSP incremental storage
+// is single-owner — two concurrent builds throw "Storage for [...] is already
+// registered" and one side dies. Two defenses, both automatic:
+//   1. COORDINATE: this lane stamps a marker file for its duration; the preview
+//      service defers renders while it exists (mtime-bounded, so a crashed lane
+//      never wedges the eyes for long).
+//   2. SELF-HEAL: a Gradle step that still hits the collision clears kspCaches
+//      and retries once — the manual recovery that always worked, automated.
+const LANE_MARKER = path.join(ROOT, "composeApp", "build", ".cmp-lane-in-progress");
+const KSP_COLLISION_RE = /Storage for \[[^\]]*\] is already registered/;
+
+function shGradle(cmd, opts = {}) {
+  const first = sh(cmd, opts);
+  if (first.ok || !KSP_COLLISION_RE.test(first.out)) return first;
+  console.error("· KSP cache collision (concurrent Gradle — the preview daemon?) — clearing kspCaches, retrying once");
+  fs.rmSync(path.join(ROOT, "composeApp", "build", "kspCaches"), { recursive: true, force: true });
+  const retry = sh(cmd, opts);
+  retry.durationMs += first.durationMs;
+  retry.selfHealed = "ksp-cache-collision";
+  return retry;
+}
+
 function tryGit(cmd) {
   try {
     return execSync(`git ${cmd}`, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     return null;
+  }
+}
+
+/**
+ * Line-oriented git output, WITHOUT [tryGit]'s trim. `git status --porcelain`
+ * has significant leading whitespace: an unstaged modification is `" M path"`,
+ * so trimming the whole blob eats the first line's leading space — and a fixed
+ * `slice(3)` then swallows that path's first character. The receipt would name
+ * a file that does not exist. Only trailing newlines are dropped here.
+ */
+function tryGitLines(cmd) {
+  try {
+    const out = execSync(`git ${cmd}`, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return out.replace(/\n+$/, "").split("\n").filter(Boolean);
+  } catch {
+    return [];
   }
 }
 
@@ -251,7 +291,7 @@ function stepArchDoc() {
 }
 
 function stepBuild() {
-  const res = sh(`${GRADLEW} :composeApp:assembleDebug --console=plain`);
+  const res = shGradle(`${GRADLEW} :composeApp:assembleDebug --console=plain`);
   return {
     name: "build",
     verdict: res.ok ? "PASS" : "FAIL",
@@ -265,7 +305,7 @@ function stepBuild() {
 // cached) while `--rerun` forces the tests themselves to EXECUTE — see stepUnitTests.
 function gradleTestStep(name, testsFilter, failHint) {
   return () => {
-    const res = sh(`${GRADLEW} :composeApp:desktopTest --rerun --tests "${testsFilter}" --console=plain`);
+    const res = shGradle(`${GRADLEW} :composeApp:desktopTest --rerun --tests "${testsFilter}" --console=plain`);
     return {
       name,
       verdict: res.ok ? "PASS" : "FAIL",
@@ -283,7 +323,7 @@ function stepUnitTests() {
   // produce byte-identical sources, and golden baselines aren't compile inputs), so the
   // receipt would attest tests that never executed. Compilation stays cached — only the
   // test execution is forced.
-  const res = sh(`${GRADLEW} :composeApp:desktopTest --rerun --console=plain`);
+  const res = shGradle(`${GRADLEW} :composeApp:desktopTest --rerun --console=plain`);
   const summary = junitSummary(path.join(ROOT, "composeApp/build/test-results/desktopTest"));
   return {
     name: "unitTests",
@@ -436,7 +476,7 @@ function stepE2eSmoke() {
   if (!maestroAvailable()) {
     return { name: "e2eSmoke", verdict: "SKIP", reason: "maestro CLI not installed — curl -fsSL https://get.maestro.mobile.dev | bash", durationMs: 0 };
   }
-  const install = sh(`${GRADLEW} :composeApp:installDebug --console=plain`);
+  const install = shGradle(`${GRADLEW} :composeApp:installDebug --console=plain`);
   if (!install.ok) {
     return { name: "e2eSmoke", verdict: "FAIL", reason: "installDebug failed — the APK could not be installed on the attached device", durationMs: install.durationMs };
   }
@@ -513,7 +553,12 @@ if (!stepsForProfile[profile]) {
   process.exit(2);
 }
 
+// Stamp the lane marker for the run's duration (coexistence defense 1 above);
+// always removed, even on a failing step, so the eyes only ever defer briefly.
+fs.mkdirSync(path.dirname(LANE_MARKER), { recursive: true });
+fs.writeFileSync(LANE_MARKER, `${process.pid} ${new Date().toISOString()}\n`);
 const steps = [];
+try {
 for (const step of stepsForProfile[profile]) {
   const result = step();
   steps.push(result);
@@ -523,8 +568,19 @@ for (const step of stepsForProfile[profile]) {
   }
   if (result.name === "build" && result.verdict === "FAIL") break; // nothing downstream is meaningful
 }
+} finally {
+  fs.rmSync(LANE_MARKER, { force: true });
+}
 
 const verdict = steps.some((s) => s.verdict === "FAIL") ? "FAIL" : "PASS";
+
+// Receipt STRENGTH — a desktop-only green and an on-device green are different
+// claims, and the difference should never live only in the SKIP lines. Device-
+// dependent steps that actually RAN (PASSed) are named on the receipt and in the
+// verdict line: "PASS (on-device: e2eSmoke)" vs "PASS (desktop-only)".
+const DEVICE_STEPS = ["e2eSmoke", "tokenDrift"];
+const onDeviceSteps = steps.filter((s) => DEVICE_STEPS.includes(s.name) && s.verdict === "PASS").map((s) => s.name);
+const strengthLabel = onDeviceSteps.length ? `on-device: ${onDeviceSteps.join("+")}` : "desktop-only";
 
 // Artifacts: hash whatever the run left under qa-artifacts/ (never committed).
 const artifacts = [];
@@ -554,13 +610,14 @@ const receipt = {
   verdict,
   commit: {
     sha: tryGit("rev-parse HEAD"),
-    dirty: (tryGit("status --porcelain") ?? "").split("\n").filter(Boolean).map((l) => l.slice(3)).sort(),
+    dirty: tryGitLines("status --porcelain").map((l) => l.slice(3)).sort(),
   },
   inputs: {
     hash: inputs.hash,
     fileCount: inputs.fileCount,
   },
   steps,
+  strength: { onDeviceSteps },
   artifacts,
   toolVersions: {
     node: process.version,
@@ -576,6 +633,6 @@ fs.writeFileSync(path.join(EVIDENCE_DIR, "latest.json"), `${JSON.stringify(recei
 // git log of this file — every commit is one verified, attributed state.
 
 if (asJson) console.log(JSON.stringify(receipt, null, 2));
-else console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict} — receipt written to qa/evidence/latest.json (commit it with your change)`);
+else console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict} (${strengthLabel}) — receipt written to qa/evidence/latest.json (commit it with your change)`);
 
 process.exit(verdict === "PASS" ? 0 : 1);

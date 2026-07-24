@@ -1,0 +1,1411 @@
+{
+  "schemaVersion": 1,
+  "source": "live-android",
+  "root": {
+    "testTag": null,
+    "text": null,
+    "contentDescription": null,
+    "role": null,
+    "clickable": false,
+    "disabled": false,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1080,
+      "height": 2400
+    },
+    "size": {
+      "width": 1080,
+      "height": 2400
+    },
+    "designToken": null,
+    "children": [
+      {
+        "testTag": null,
+        "text": null,
+        "contentDescription": null,
+        "role": null,
+        "clickable": false,
+        "disabled": false,
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 2400
+        },
+        "size": {
+          "width": 1080,
+          "height": 2400
+        },
+        "designToken": null,
+        "children": [
+          {
+            "testTag": null,
+            "text": null,
+            "contentDescription": null,
+            "role": null,
+            "clickable": false,
+            "disabled": false,
+            "bounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1080,
+              "height": 2400
+            },
+            "size": {
+              "width": 1080,
+              "height": 2400
+            },
+            "designToken": null,
+            "children": [
+              {
+                "testTag": null,
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 63,
+                  "width": 1080,
+                  "height": 2082
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 2082
+                },
+                "designToken": {
+                  "tokens": [],
+                  "resolved": {
+                    "statusBarPadding": "true",
+                    "navBarPadding": "false"
+                  }
+                },
+                "children": [
+                  {
+                    "testTag": "today_screen",
+                    "text": null,
+                    "contentDescription": null,
+                    "role": null,
+                    "clickable": false,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 0,
+                      "y": 63,
+                      "width": 1080,
+                      "height": 2082
+                    },
+                    "size": {
+                      "width": 1080,
+                      "height": 2082
+                    },
+                    "designToken": null,
+                    "children": [
+                      {
+                        "testTag": "brand_mark",
+                        "text": null,
+                        "contentDescription": "Fuelled",
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 53,
+                          "y": 127,
+                          "width": 68,
+                          "height": 68
+                        },
+                        "size": {
+                          "width": 68,
+                          "height": 68
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": null,
+                        "text": "Fuelled",
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 147,
+                          "y": 130,
+                          "width": 168,
+                          "height": 62
+                        },
+                        "size": {
+                          "width": 168,
+                          "height": 62
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": "today_title",
+                        "text": "WEDNESDAY, JUL 23",
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 724,
+                          "y": 142,
+                          "width": 303,
+                          "height": 38
+                        },
+                        "size": {
+                          "width": 303,
+                          "height": 38
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 106,
+                          "y": 301,
+                          "width": 868,
+                          "height": 347
+                        },
+                        "size": {
+                          "width": 868,
+                          "height": 347
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": null,
+                            "text": "939",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 203,
+                              "y": 400,
+                              "width": 153,
+                              "height": 109
+                            },
+                            "size": {
+                              "width": 153,
+                              "height": 109
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "kcal left",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 217,
+                              "y": 509,
+                              "width": 126,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 126,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Protein",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 312,
+                              "width": 125,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 125,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "121 / 180g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 826,
+                              "y": 318,
+                              "width": 148,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 148,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": null,
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 375,
+                              "width": 468,
+                              "height": 21
+                            },
+                            "size": {
+                              "width": 468,
+                              "height": 21
+                            },
+                            "designToken": null,
+                            "children": [
+                              {
+                                "testTag": null,
+                                "text": null,
+                                "contentDescription": null,
+                                "role": null,
+                                "clickable": false,
+                                "disabled": false,
+                                "bounds": {
+                                  "x": 506,
+                                  "y": 375,
+                                  "width": 315,
+                                  "height": 21
+                                },
+                                "size": {
+                                  "width": 315,
+                                  "height": 21
+                                },
+                                "designToken": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Carbs",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 433,
+                              "width": 103,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 103,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "168 / 260g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 806,
+                              "y": 439,
+                              "width": 168,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 168,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": null,
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 496,
+                              "width": 468,
+                              "height": 21
+                            },
+                            "size": {
+                              "width": 468,
+                              "height": 21
+                            },
+                            "designToken": null,
+                            "children": [
+                              {
+                                "testTag": null,
+                                "text": null,
+                                "contentDescription": null,
+                                "role": null,
+                                "clickable": false,
+                                "disabled": false,
+                                "bounds": {
+                                  "x": 506,
+                                  "y": 496,
+                                  "width": 302,
+                                  "height": 21
+                                },
+                                "size": {
+                                  "width": 302,
+                                  "height": 21
+                                },
+                                "designToken": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Fat",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 554,
+                              "width": 55,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 55,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "31 / 70g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 851,
+                              "y": 560,
+                              "width": 123,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 123,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": null,
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 506,
+                              "y": 617,
+                              "width": 468,
+                              "height": 21
+                            },
+                            "size": {
+                              "width": 468,
+                              "height": 21
+                            },
+                            "designToken": null,
+                            "children": [
+                              {
+                                "testTag": null,
+                                "text": null,
+                                "contentDescription": null,
+                                "role": null,
+                                "clickable": false,
+                                "disabled": false,
+                                "bounds": {
+                                  "x": 506,
+                                  "y": 617,
+                                  "width": 207,
+                                  "height": 21
+                                },
+                                "size": {
+                                  "width": 207,
+                                  "height": 21
+                                },
+                                "designToken": null,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 106,
+                          "y": 807,
+                          "width": 868,
+                          "height": 200
+                        },
+                        "size": {
+                          "width": 868,
+                          "height": 200
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": null,
+                            "text": "PROTEIN",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 106,
+                              "y": 807,
+                              "width": 128,
+                              "height": 38
+                            },
+                            "size": {
+                              "width": 128,
+                              "height": 38
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "121",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 106,
+                              "y": 856,
+                              "width": 146,
+                              "height": 151
+                            },
+                            "size": {
+                              "width": 146,
+                              "height": 151
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": " / 180 g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 252,
+                              "y": 936,
+                              "width": 143,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 143,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "59g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 888,
+                              "y": 856,
+                              "width": 86,
+                              "height": 62
+                            },
+                            "size": {
+                              "width": 86,
+                              "height": 62
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "to go",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 891,
+                              "y": 918,
+                              "width": 83,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 83,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "testTag": null,
+                        "text": "TODAY'S LOG",
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 53,
+                          "y": 1113,
+                          "width": 199,
+                          "height": 38
+                        },
+                        "size": {
+                          "width": 199,
+                          "height": 38
+                        },
+                        "designToken": null,
+                        "children": []
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 100,
+                          "y": 1246,
+                          "width": 880,
+                          "height": 333
+                        },
+                        "size": {
+                          "width": 880,
+                          "height": 333
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": null,
+                            "text": "Breakfast",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1246,
+                              "width": 192,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 192,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "535 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 849,
+                              "y": 1253,
+                              "width": 131,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 131,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Rolled oats & whey",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1338,
+                              "width": 368,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 368,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "80 g · 1 scoop",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1393,
+                              "width": 229,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 229,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "430 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 813,
+                              "y": 1341,
+                              "width": 167,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 167,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "38g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 892,
+                              "y": 1396,
+                              "width": 88,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 88,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Banana",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1477,
+                              "width": 142,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 142,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "1 medium",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1532,
+                              "width": 158,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 158,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "105 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 825,
+                              "y": 1480,
+                              "width": 155,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 155,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "1g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 921,
+                              "y": 1535,
+                              "width": 59,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 59,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 100,
+                          "y": 1716,
+                          "width": 880,
+                          "height": 333
+                        },
+                        "size": {
+                          "width": 880,
+                          "height": 333
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": null,
+                            "text": "Lunch",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1716,
+                              "width": 123,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 123,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "710 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 856,
+                              "y": 1723,
+                              "width": 124,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 124,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Chicken breast & rice",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1808,
+                              "width": 418,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 418,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "200 g · 150 g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1863,
+                              "width": 216,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 216,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "620 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 816,
+                              "y": 1811,
+                              "width": 164,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 164,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "58g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 891,
+                              "y": 1866,
+                              "width": 89,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 89,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Mixed greens",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 1947,
+                              "width": 258,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 258,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "1 bowl",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 100,
+                              "y": 2002,
+                              "width": 100,
+                              "height": 47
+                            },
+                            "size": {
+                              "width": 100,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "90 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 838,
+                              "y": 1950,
+                              "width": 142,
+                              "height": 55
+                            },
+                            "size": {
+                              "width": 142,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "3g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 913,
+                              "y": 2005,
+                              "width": 67,
+                              "height": 41
+                            },
+                            "size": {
+                              "width": 67,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "testTag": null,
+                        "text": null,
+                        "contentDescription": null,
+                        "role": null,
+                        "clickable": false,
+                        "disabled": false,
+                        "bounds": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 0,
+                          "height": 0
+                        },
+                        "size": {
+                          "width": 880,
+                          "height": 333
+                        },
+                        "designToken": null,
+                        "children": [
+                          {
+                            "testTag": null,
+                            "text": "Snack",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 122,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "216 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 123,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Greek yogurt 0%",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 325,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "170 g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 85,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "100 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 158,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "17g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 76,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "Almonds",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 170,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "20 g",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 76,
+                              "height": 47
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "116 kcal",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 139,
+                              "height": 55
+                            },
+                            "designToken": null,
+                            "children": []
+                          },
+                          {
+                            "testTag": null,
+                            "text": "4g P",
+                            "contentDescription": null,
+                            "role": null,
+                            "clickable": false,
+                            "disabled": false,
+                            "bounds": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 0,
+                              "height": 0
+                            },
+                            "size": {
+                              "width": 68,
+                              "height": 41
+                            },
+                            "designToken": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "testTag": null,
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 2145,
+                  "width": 1080,
+                  "height": 3
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 3
+                },
+                "designToken": null,
+                "children": []
+              },
+              {
+                "testTag": "app_bottom_nav",
+                "text": null,
+                "contentDescription": null,
+                "role": null,
+                "clickable": false,
+                "disabled": false,
+                "bounds": {
+                  "x": 0,
+                  "y": 2148,
+                  "width": 1080,
+                  "height": 189
+                },
+                "size": {
+                  "width": 1080,
+                  "height": 189
+                },
+                "designToken": {
+                  "tokens": [
+                    "BottomNavHeight"
+                  ],
+                  "resolved": {
+                    "height": "72dp"
+                  }
+                },
+                "children": [
+                  {
+                    "testTag": "nav_today",
+                    "text": "Today",
+                    "contentDescription": "Today",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 98,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_foods",
+                    "text": "Foods",
+                    "contentDescription": "Foods",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 323,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_supplements",
+                    "text": "Supplements",
+                    "contentDescription": "Supplements",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 547,
+                      "y": 2153,
+                      "width": 210,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 210,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  },
+                  {
+                    "testTag": "nav_profile",
+                    "text": "Profile",
+                    "contentDescription": "Profile",
+                    "role": null,
+                    "clickable": true,
+                    "disabled": false,
+                    "bounds": {
+                      "x": 856,
+                      "y": 2153,
+                      "width": 126,
+                      "height": 159
+                    },
+                    "size": {
+                      "width": 126,
+                      "height": 159
+                    },
+                    "designToken": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

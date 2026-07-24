@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "runA": {
+    "dir": "qa/evidence/walkthrough/2026-07-24T10-25-27",
+    "generatedAt": "2026-07-24T10:25:35.263Z"
+  },
+  "runB": {
+    "dir": "qa/evidence/walkthrough/2026-07-24T10-26-21",
+    "generatedAt": "2026-07-24T10:26:30.091Z"
+  },
+  "rows": [
+    {
+      "id": "today",
+      "inA": true,
+      "inB": true,
+      "pixelsChanged": false,
+      "nodesDelta": 0,
+      "a11yDelta": 0,
+      "tagsAdded": [],
+      "tagsRemoved": []
+    },
+    {
+      "id": "foods",
+      "inA": true,
+      "inB": true,
+      "pixelsChanged": false,
+      "nodesDelta": 0,
+      "a11yDelta": 0,
+      "tagsAdded": [],
+      "tagsRemoved": []
+    },
+    {
+      "id": "supplements",
+      "inA": true,
+      "inB": true,
+      "pixelsChanged": false,
+      "nodesDelta": 0,
+      "a11yDelta": 0,
+      "tagsAdded": [],
+      "tagsRemoved": []
+    },
+    {
+      "id": "profile",
+      "inA": true,
+      "inB": true,
+      "pixelsChanged": false,
+      "nodesDelta": 0,
+      "a11yDelta": 0,
+      "tagsAdded": [],
+      "tagsRemoved": []
+    }
+  ]
+}

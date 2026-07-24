@@ -18,4 +18,14 @@ object NavInspectionHook {
      * durable history).
      */
     var listener: ((currentRoute: String?, backStack: List<String>) -> Unit)? = null
+
+    /**
+     * The JUMP half of the seam: [AppNavHost] registers a function that navigates the real
+     * `NavController` to a route. Debug-only callers (the debug inspector's navigate endpoint) use it
+     * so a walkthrough can enumerate the nav graph mechanically — coverage by route-jump —
+     * instead of synthesizing taps with guessed settle times. Taps remain the tool for
+     * BEHAVIOUR proofs (a toggle, a search); this is for COVERAGE. `null` outside debug
+     * inspection, and must only ever be invoked on the main thread (NavController requirement).
+     */
+    var navigator: ((route: String) -> Unit)? = null
 }
