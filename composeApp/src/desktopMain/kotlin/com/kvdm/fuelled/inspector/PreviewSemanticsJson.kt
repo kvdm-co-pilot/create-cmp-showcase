@@ -19,7 +19,8 @@ import kotlin.math.roundToInt
  * inspector contract (schemaVersion 1, source "headless-jvm"). Every node carries pixel,
  * root-relative `bounds` and a (possibly empty) `children` array; testTag / text /
  * contentDescription / designToken are nullable; `role` / `clickable` / `disabled` are the
- * additive interaction fields.
+ * additive interaction fields, and `size` is the additive full-composed-size field (see
+ * [sizeJson]).
  *
  * This dumper reads THIS project's [DesignTokenKey], so the resolved design tokens the
  * component kit self-reports (Modifier.designToken) appear in the dump — which is what
@@ -54,8 +55,20 @@ object PreviewSemanticsJson {
         put("clickable", JsonPrimitive(node.config.contains(SemanticsActions.OnClick)))
         put("disabled", JsonPrimitive(node.config.contains(SemanticsProperties.Disabled)))
         put("bounds", node.boundsJson())
+        put("size", node.sizeJson())
         put("designToken", node.designTokenJson())
         put("children", buildJsonArray { node.children.forEach { add(nodeToJson(it)) } })
+    }
+
+    /**
+     * Full composed (UNCLIPPED) size. `bounds` is the visible slice after ancestor clipping —
+     * a scroll container's fold truncates it — while `size` is what the node actually
+     * measures. Additive contract field (consumers treat it as optional); the a11y audit
+     * judges touch targets on it so a fold-clipped list row is never a false violation.
+     */
+    private fun SemanticsNode.sizeJson(): JsonObject = buildJsonObject {
+        put("width", JsonPrimitive(size.width))
+        put("height", JsonPrimitive(size.height))
     }
 
     private fun SemanticsNode.boundsJson(): JsonObject {

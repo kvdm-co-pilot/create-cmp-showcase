@@ -5,7 +5,13 @@
 //   touch-target-too-small — a clickable node whose width or height is below the
 //                            minimum touch target (default 48px; the harness dumps
 //                            at density 1 so px == dp there — pass a different
-//                            minTouchTargetPx for device-density trees).
+//                            minTouchTargetPx for device-density trees). Judged on the
+//                            FULL composed size (the tree's additive `size` field) when
+//                            present: `bounds` is the visible slice after ancestor
+//                            clipping, so a list row bisected by a scroll fold reports
+//                            e.g. 371x36 while measuring 371x88 — a scroll-position
+//                            artifact, never an a11y defect. Trees without `size`
+//                            (older dumps) are judged on bounds, as before.
 //   missing-label          — a clickable node with no text, no contentDescription,
 //                            and no descendant text: nothing for a screen reader.
 // Rules (warnings):
@@ -61,17 +67,20 @@ export function auditA11y(tree, opts = {}) {
 
     let violated = false;
 
+    // Judge the FULL composed size when the dump carries it (`size` is unclipped; `bounds`
+    // is the visible slice after ancestor clipping — see the rule doc above). max() keeps
+    // the check honest either way: a genuinely small target is small in both.
     const b = node.bounds;
-    if (
-      b &&
-      typeof b.width === "number" &&
-      typeof b.height === "number" &&
-      (b.width < minTouchTargetPx || b.height < minTouchTargetPx)
-    ) {
+    const s = node.size;
+    const dim = (bv, sv) =>
+      Math.max(typeof bv === "number" ? bv : -1, typeof sv === "number" ? sv : -1);
+    const width = dim(b && b.width, s && s.width);
+    const height = dim(b && b.height, s && s.height);
+    if (width >= 0 && height >= 0 && (width < minTouchTargetPx || height < minTouchTargetPx)) {
       violations.push({
         ...entryBase,
         rule: "touch-target-too-small",
-        detail: `clickable node is ${b.width}x${b.height}px; minimum touch target is ${minTouchTargetPx}x${minTouchTargetPx}px`,
+        detail: `clickable node is ${width}x${height}px; minimum touch target is ${minTouchTargetPx}x${minTouchTargetPx}px`,
       });
       violated = true;
     }

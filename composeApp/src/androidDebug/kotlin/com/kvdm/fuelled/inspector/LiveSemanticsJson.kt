@@ -26,6 +26,9 @@ import kotlin.math.roundToInt
  *  - `role`      string|null — [SemanticsProperties.Role] (e.g. "Button").
  *  - `clickable` boolean     — presence of [SemanticsActions.OnClick].
  *  - `disabled`  boolean     — presence of [SemanticsProperties.Disabled].
+ *  - `size`      {width,height} — the FULL composed (unclipped) size; `bounds` is the visible
+ *                slice after ancestor clipping (a scroll fold truncates it). The a11y audit
+ *                judges touch targets on `size` so fold-clipped rows never false-flag.
  */
 object LiveSemanticsJson {
 
@@ -49,6 +52,7 @@ object LiveSemanticsJson {
         put("clickable", JsonPrimitive(node.isClickable()))
         put("disabled", JsonPrimitive(node.isDisabled()))
         put("bounds", node.boundsJson())
+        put("size", node.sizeJson())
         put("designToken", node.designTokenJson())
         put("children", buildJsonArray {
             node.children.forEach { add(nodeToJson(it)) }
@@ -85,6 +89,12 @@ object LiveSemanticsJson {
             put("width", JsonPrimitive(rect.width.roundToInt()))
             put("height", JsonPrimitive(rect.height.roundToInt()))
         }
+    }
+
+    /** Full composed (unclipped) size — see the class doc's `size` contract note. */
+    private fun SemanticsNode.sizeJson(): JsonObject = buildJsonObject {
+        put("width", JsonPrimitive(size.width))
+        put("height", JsonPrimitive(size.height))
     }
 
     private fun SemanticsNode.designTokenJson(): JsonElement {
