@@ -1,13 +1,20 @@
 package com.kvdm.fuelled.inspector
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Rect
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.MotionEvent
+import android.view.PixelCopy
+import android.view.View
+import android.view.Window
 import androidx.core.view.drawToBitmap
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
@@ -251,9 +258,18 @@ object InspectorHttpServer {
         }
 
     /**
-     * PNG of the current Compose root. The Bitmap is rendered on the MAIN thread (views are
-     * not thread-safe); PNG compression — tens of ms for a full screen — happens back on the
-     * server thread so the UI never pays for it.
+     * PNG of the current Compose root. Pixels are read with [PixelCopy] (API 26+) from the
+     * COMPOSITED window surface — the same source `adb screencap` reads — so a capture can
+     * never replay a stale Compose layer recording. The software fallback (`View.draw` into a
+     * bitmap canvas) replays recorded display lists, and a nav-transition `graphicsLayer`
+     * whose recording predates the current frame replays the PREVIOUS screen: byte-identical
+     * "screenshots" of two different screens, detectable only by hash-compare. PixelCopy is
+     * therefore the primary path; the draw fallback remains for pre-26, windowless roots, and
+     * dialog/popup roots (their content lives in a different window than the Activity's).
+     *
+     * The capture runs on the MAIN thread (views are not thread-safe; PixelCopy's listener is
+     * delivered there too); PNG compression — tens of ms for a full screen — happens back on
+     * the server thread so the UI never pays for it.
      */
     private fun screenshotResponse(client: Socket) {
         val root = ComposeRootRegistry.current()
@@ -267,22 +283,35 @@ object InspectorHttpServer {
         val bitmapRef = AtomicReference<Bitmap?>()
         val errorRef = AtomicReference<String?>()
         val latch = CountDownLatch(1)
-        Handler(Looper.getMainLooper()).post {
+        val main = Handler(Looper.getMainLooper())
+        main.post {
             try {
                 val view = root.view
-                bitmapRef.set(
-                    try {
-                        // androidx.core.view.drawToBitmap (core-ktx — already an androidMain dep).
-                        view.drawToBitmap()
-                    } catch (t: Throwable) {
-                        // Not laid out yet / hardware path refused — plain Canvas draw fallback.
-                        Bitmap.createBitmap(
-                            view.width.coerceAtLeast(1),
-                            view.height.coerceAtLeast(1),
-                            Bitmap.Config.ARGB_8888,
-                        ).also { view.draw(Canvas(it)) }
-                    }
-                )
+                // PixelCopy only when this root actually lives in the Activity's window —
+                // a dialog/popup root has its own window, and copying the Activity's would
+                // capture the screen BENEATH it. Those fall back to the software draw.
+                val window = windowOf(view)?.takeIf { it.decorView === view.rootView }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && window != null) {
+                    val loc = IntArray(2).also(view::getLocationInWindow)
+                    val bmp = Bitmap.createBitmap(
+                        view.width.coerceAtLeast(1),
+                        view.height.coerceAtLeast(1),
+                        Bitmap.Config.ARGB_8888,
+                    )
+                    val src = Rect(loc[0], loc[1], loc[0] + bmp.width, loc[1] + bmp.height)
+                    PixelCopy.request(window, src, bmp, { result ->
+                        try {
+                            // No composited frame to copy (mid-transition, surface torn down):
+                            // fall back rather than fail — a fallback frame beats no frame.
+                            bitmapRef.set(if (result == PixelCopy.SUCCESS) bmp else softwareDraw(view))
+                        } catch (t: Throwable) {
+                            errorRef.set("failed to render screenshot: ${t.message}")
+                        }
+                        latch.countDown()
+                    }, main)
+                    return@post // countDown happens in the PixelCopy listener above
+                }
+                bitmapRef.set(softwareDraw(view))
             } catch (t: Throwable) {
                 errorRef.set("failed to render screenshot: ${t.message}")
             }
@@ -308,6 +337,34 @@ object InspectorHttpServer {
         bitmap.recycle()
         writeResponse(client, 200, bytes, PNG_TYPE)
     }
+
+    /** The view's host [Window], unwrapped through the ContextWrapper chain. MAIN thread. */
+    private fun windowOf(view: View): Window? {
+        var ctx = view.context
+        while (ctx is ContextWrapper) {
+            if (ctx is Activity) return ctx.window
+            ctx = ctx.baseContext
+        }
+        return null
+    }
+
+    /**
+     * Software-canvas capture — re-issues the view's draw. Correct for laid-out static content,
+     * but can replay a stale `graphicsLayer` recording mid-transition (see [screenshotResponse]);
+     * used only where PixelCopy can't be (pre-API-26, windowless, or dialog roots). MAIN thread.
+     */
+    private fun softwareDraw(view: View): Bitmap =
+        try {
+            // androidx.core.view.drawToBitmap (core-ktx — already an androidMain dep).
+            view.drawToBitmap()
+        } catch (t: Throwable) {
+            // Not laid out yet / hardware path refused — plain Canvas draw fallback.
+            Bitmap.createBitmap(
+                view.width.coerceAtLeast(1),
+                view.height.coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888,
+            ).also { view.draw(Canvas(it)) }
+        }
 
     /**
      * Dispatch a synthetic tap (ACTION_DOWN, then ACTION_UP ~50ms later) to the topmost
