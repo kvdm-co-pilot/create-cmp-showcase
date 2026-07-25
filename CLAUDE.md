@@ -205,7 +205,10 @@ re-approval is one walk back.
 
 With the create-cmp plugin, the same decisions can be made from the preview console
 (`preview {projectDir}`'s URL) — it calls the same library, so the CLI and the console
-never disagree. An agent blocks on a pending decision with
+never disagree. The console's rail is the human's work queue (colour = something waits
+on them), and a drifted artifact shows, in its own section, exactly **what changed
+against the signed bytes and which files are still exactly as signed**, with re-approval
+in place. An agent blocks on a pending decision with
 `approval_status {waitForDecision:true}`.
 
 The verify lane's `approvals` gate (a step like any other, in every profile) resolves each
