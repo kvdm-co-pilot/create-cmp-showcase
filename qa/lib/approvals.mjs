@@ -947,6 +947,36 @@ export function getFeatureBoard(root) {
   const statuses = getApprovalStatuses(root);
   const byId = new Map(statuses.map((s) => [s.id, s]));
 
+  // The DERIVED next step (CHANGE-FLOW-DESIGN.md §4): computed from live
+  // state exactly like provenDone, never claimed. An approval HANDS OFF, it
+  // never commands — so each step names its owner: the agent drafts/builds/
+  // proves, the human signs/accepts. For a change to EXISTING features the
+  // contract step includes the declared amendments: every touched
+  // feature-spec:* that is still signed must be reopened and amended, and the
+  // step says so by name — that is what the human's signature set in motion.
+  const deriveNextStep = (d, phase) => {
+    const specArtifact = byId.get(`feature-spec:${d.name}`);
+    const declaredSpecAmendments = d.touches
+      .filter((id) => id.startsWith("feature-spec:") && byId.get(id)?.status === "approved")
+      .map((id) => id.slice("feature-spec:".length));
+    const amendNote =
+      declaredSpecAmendments.length > 0 ? ` + reopen & amend ${declaredSpecAmendments.map((n) => `specs/${n}.spec.md`).join(", ")} (declared)` : "";
+    if (phase === "accepted") return { key: "closed", owner: null, label: "closed — the brief is this feature's doc-of-record" };
+    if (phase === "changed-since-approval")
+      return { key: "re-approve", owner: "human", label: `re-approve the brief — it changed after signing (or revert the edit)` };
+    if (phase === "reopened") return { key: "re-approve", owner: "human", label: "finish the redesign, then re-approve the brief" };
+    if (phase === "proposed") return { key: "sign-brief", owner: "human", label: "sign the brief — decisions close before code" };
+    if (phase === "proven") return { key: "accept", owner: "human", label: "accept — the proven thing awaits your judgment" };
+    // phase === "approved": building — which part of the loop is open?
+    if (!d.specExists || d.total === 0)
+      return { key: "contract", owner: "agent drafts → human signs", label: `contract: write the clauses in ${d.specRel}${amendNote}` };
+    if (specArtifact && specArtifact.status !== "approved")
+      return { key: "sign-spec", owner: "human", label: `sign the contract (feature-spec:${d.name})${amendNote}` };
+    if (d.covered < d.total)
+      return { key: "build", owner: "agent", label: `build & cite: ${d.total - d.covered} clause(s) have no citing test yet` };
+    return { key: "prove", owner: "agent", label: "prove: run node qa/verify.mjs so the receipt attests this tree" };
+  };
+
   const features = deriveAllFeatures(root).map((d) => {
     const record = byId.get(`${FEATURE_BRIEF_PREFIX}${d.name}`) ?? null;
     // Drift outranks acceptance: a brief edited after sign-off reads as
@@ -966,6 +996,7 @@ export function getFeatureBoard(root) {
       ...d,
       record,
       phase,
+      nextStep: deriveNextStep(d, phase),
       touches: d.touches.map((id) => {
         const t = byId.get(id);
         return t ? { id, status: t.status, label: t.label } : { id, status: "unknown", label: `(no governed artifact "${id}")` };

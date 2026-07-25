@@ -71,6 +71,35 @@ export function listFeatureBriefs(root) {
 }
 
 /**
+ * The brief's prose, split on `## ` headings — the SUBSTANCE the human signs.
+ * The console renders these on the feature card (the decisions section inline,
+ * the rest collapsible): an approval moment must show what is being approved,
+ * never just a status shell. Fenced code blocks are kept verbatim inside
+ * their section (the cmp:feature block included — it is part of the signed
+ * bytes and the reader may want to see it).
+ * @param {string} markdown
+ * @returns {Array<{heading: string, body: string}>}
+ */
+export function briefSections(markdown) {
+  if (typeof markdown !== "string" || markdown.trim() === "") return [];
+  const out = [];
+  let current = null;
+  let inFence = false;
+  for (const line of markdown.split("\n")) {
+    if (/^```/.test(line.trim())) inFence = !inFence;
+    const m = !inFence && line.match(/^##\s+(.+)$/);
+    if (m) {
+      if (current) out.push({ heading: current.heading, body: current.lines.join("\n").trim() });
+      current = { heading: m[1].trim(), lines: [] };
+    } else if (current) {
+      current.lines.push(line);
+    }
+  }
+  if (current) out.push({ heading: current.heading, body: current.lines.join("\n").trim() });
+  return out;
+}
+
+/**
  * A brief's declared blast radius. A missing block, or one without `touches`,
  * declares nothing — legal and common. A block that IS present but malformed
  * is surfaced as `error`: a doc that tried to declare and failed should say
@@ -186,6 +215,8 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
     rel: brief.rel,
     touches: block.touches,
     blockError: block.error,
+    // The signed substance, for surfaces that show WHAT is being approved.
+    sections: readable ? briefSections(markdown) : [],
     specRel,
     specExists,
     clauses,

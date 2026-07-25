@@ -32,11 +32,11 @@ import {
   approveAllDefaults,
   approveArtifact,
   getApprovalStatuses,
+  getFeatureBoard,
   isPackageResolvable,
   listGovernedArtifacts,
   reopenArtifact,
 } from "./lib/approvals.mjs";
-import { deriveAllFeatures } from "./lib/feature-brief.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -80,15 +80,17 @@ function printStatus() {
     }
   }
 
-  // Per-feature DERIVED doneness — the same derivation the console renders
-  // (qa/lib/feature-brief.mjs), so --status and the console never tell
-  // different stories. doneReason is the honest one-liner either way.
-  const features = deriveAllFeatures(ROOT);
+  // Per-feature DERIVED doneness + next step — the same getFeatureBoard the
+  // console renders, so --status and the console never tell different
+  // stories. The next step names its owner: a signature HANDS OFF, it never
+  // commands — the agent drafts/builds/proves, the human signs/accepts.
+  const { features } = getFeatureBoard(ROOT);
   if (features.length > 0) {
     console.log("\nFeatures (doneness is derived, never claimed):");
     for (const f of features) {
       const mark = f.provenDone ? "✓" : "…";
       console.log(`  ${mark} ${f.name}: ${f.doneReason}${f.blockError ? ` — BLOCK ERROR: ${f.blockError}` : ""}`);
+      console.log(`      next → ${f.nextStep.label}${f.nextStep.owner ? ` · ${f.nextStep.owner}` : ""}`);
     }
   }
 }

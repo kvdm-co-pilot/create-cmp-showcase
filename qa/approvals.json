@@ -54,6 +54,13 @@
       "status": "approved",
       "hash": "85cab4bcf9cd9d3986d4617cc0e115250fccf72d8533c3269fc3c67280d89348",
       "approvedAt": "2026-07-24T11:44:36.874Z"
+    },
+    {
+      "artifact": "feature-brief:meal",
+      "status": "approved",
+      "hash": "202cc64b89ab6c69d0262a23122ab4d1fd87859fa3afc671d181a08952801186",
+      "approvedAt": "2026-07-25T16:43:06.403Z",
+      "via": "console"
     }
   ],
   "exemplarFeature": "foods"
