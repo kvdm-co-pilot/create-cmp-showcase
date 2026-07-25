@@ -10,12 +10,14 @@
 //
 // Three concerns, kept separable:
 //   1. The REGISTRY (`listGovernedArtifacts`) — artifact id -> resolved file list, in
-//      GENESIS-FLOW-DESIGN.md §1 order: intent(0), architecture(1), exemplar-spec(2),
-//      exemplar-feature(3), design-system(4), components(5), then one
-//      `feature-spec:<name>` (6+) per non-base, non-exemplar spec file present in
-//      specs/ right now. (Spec-first: the exemplar's clauses are confirmed before the
-//      slice is built. UI-first: design system + components are distilled from the
-//      real screens, so they lock after the exemplar.) The exemplar (2/3) is
+//      definition order (GENESIS-FLOW-DESIGN.md §1 + CHANGE-FLOW-DESIGN.md §6):
+//      intent(0), feature-brief:<name> per docs/features/*.md (the decide layer,
+//      directly after intent), architecture, exemplar-spec, exemplar-feature,
+//      design-system, components, then one `feature-spec:<name>` per non-base,
+//      non-exemplar spec file present in specs/ right now. (Decide-first: a brief
+//      speaks intent's vocabulary. Spec-first: the exemplar's clauses are confirmed
+//      before the slice is built. UI-first: design system + components are distilled
+//      from the real screens, so they lock after the exemplar.) The exemplar is
 //      CONFIGURABLE — see
 //      `getExemplarFeature`/`resolveExemplarNames` below — defaulting to `home` so
 //      every ledger written before this config key existed keeps meaning what it
@@ -247,9 +249,11 @@ function listComponentFiles(root) {
  *   VISUAL artifacts are UI-FIRST — the design system and component vocabulary
  *   are distilled FROM the real screens, so they lock AFTER the exemplar
  *   exists (a provisional palette carries the build until then).
- * Order: intent(0), architecture(1), exemplar-spec(2), exemplar-feature(3),
- * design-system(4), components(5), then one feature-spec:<name> (6+) per
- * non-base, non-CONFIGURED-exemplar spec present.
+ * Order: intent(0), then feature-brief:<name> per docs/features/*.md — the
+ * DECIDE layer sits directly after intent (a brief speaks intent's
+ * vocabulary; only the SPEC needs architecture's) — then architecture,
+ * exemplar-spec, exemplar-feature, design-system, components, and one
+ * feature-spec:<name> per non-base, non-CONFIGURED-exemplar spec present.
  *
  * `complete: false` marks an artifact whose kotlin-rooted files could NOT be
  * resolved (unresolvable package — raw template / pre-stamp tree). Such an
@@ -269,6 +273,24 @@ export function listGovernedArtifacts(root) {
     files: [INTENT_REL],
     complete: true,
   });
+
+  // Feature briefs (feature-brief.mjs): one `feature-brief:<name>` per doc
+  // under docs/features/ — LOCATION is the governance opt-in (CHANGE-FLOW-
+  // DESIGN.md §2); docs/proposals/ stays ungoverned harness-standards prose.
+  // They sit DIRECTLY after intent: the decide layer. At genesis the first
+  // feature's brief is drafted from the intent interview before architecture
+  // is even walked; post-genesis every decision-carrying change enters here.
+  // Approving one hashes the doc's bytes, so a signed brief cannot be quietly
+  // rewritten; acceptance is a LEDGER field on the same row (acceptFeature
+  // below), so the human's bookend never touches the signed bytes.
+  for (const brief of listFeatureBriefs(root)) {
+    artifacts.push({
+      id: `feature-brief:${brief.name}`,
+      label: `Feature brief (${brief.rel})`,
+      files: [brief.rel],
+      complete: true,
+    });
+  }
 
   artifacts.push({
     id: "architecture",
@@ -339,21 +361,6 @@ export function listGovernedArtifacts(root) {
         complete: true,
       });
     }
-  }
-
-  // Feature briefs (feature-brief.mjs): one `feature-brief:<name>` per doc
-  // under docs/features/ — LOCATION is the governance opt-in (CHANGE-FLOW-
-  // DESIGN.md §2); docs/proposals/ stays ungoverned harness-standards prose.
-  // Approving one hashes the doc's bytes, so a signed brief cannot be quietly
-  // rewritten; acceptance is a LEDGER field on the same row (acceptFeature
-  // below), so the human's bookend never touches the signed bytes.
-  for (const brief of listFeatureBriefs(root)) {
-    artifacts.push({
-      id: `feature-brief:${brief.name}`,
-      label: `Feature brief (${brief.rel})`,
-      files: [brief.rel],
-      complete: true,
-    });
   }
 
   return artifacts;

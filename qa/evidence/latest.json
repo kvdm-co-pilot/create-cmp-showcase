@@ -3,30 +3,21 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "c23ec1734f7016c2eb675b17bd29464c78a3b24c",
+    "sha": "7452d61ab8ac4010fb158d7f396a0bcd1f48ff2e",
     "dirty": [
-      ".claude/skills/add-feature/SKILL.md",
-      ".claude/skills/add-repository/SKILL.md",
-      ".claude/skills/add-screen/SKILL.md",
       "CLAUDE.md",
-      "docs/proposals/meal-logging-deep-dive.md -> docs/features/meal.md",
-      "qa/approve.mjs",
-      "qa/lib/approvals.mjs",
-      "qa/lib/feature-brief.mjs",
-      "qa/lib/intent-checks.mjs",
-      "qa/lib/spec-coverage.mjs",
-      "qa/verify.mjs"
+      "qa/lib/approvals.mjs"
     ]
   },
   "inputs": {
-    "hash": "9c5ab72c86399844b9d947a42db5ca63091af8461cca8738a69eef38500a69c7",
+    "hash": "2ca427ec78c9a549b0995fb2185469a3ff8f85f23dbdf5c1039aa738c88fcb5a",
     "fileCount": 232
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 23,
+      "durationMs": 65,
       "details": {
         "clauses": 46,
         "withdrawn": 0,
@@ -38,13 +29,18 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:meal] Feature brief (docs/features/meal.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:meal",
-      "durationMs": 18,
+      "durationMs": 32,
       "details": {
         "artifacts": [
           {
             "id": "intent",
             "status": "approved",
             "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
+          },
+          {
+            "id": "feature-brief:meal",
+            "status": "unreviewed",
+            "hash": "202cc64b89ab6c69d0262a23122ab4d1fd87859fa3afc671d181a08952801186"
           },
           {
             "id": "architecture",
@@ -85,11 +81,6 @@
             "id": "feature-spec:today",
             "status": "approved",
             "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294"
-          },
-          {
-            "id": "feature-brief:meal",
-            "status": "unreviewed",
-            "hash": "202cc64b89ab6c69d0262a23122ab4d1fd87859fa3afc671d181a08952801186"
           }
         ]
       }
@@ -97,7 +88,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "details": {
         "components": 20,
         "stories": 20,
@@ -108,7 +99,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 13,
+      "durationMs": 21,
       "details": {
         "sectionsChecked": 4
       }
@@ -116,12 +107,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 6859
+      "durationMs": 21271
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 9987,
+      "durationMs": 7590,
       "details": {
         "tests": 105,
         "failures": 0,
@@ -132,17 +123,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3694
+      "durationMs": 3001
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5122
+      "durationMs": 4418
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 7877,
+      "durationMs": 464,
       "details": {
         "checked": 1,
         "drifted": 0
@@ -151,12 +142,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 5554
+      "durationMs": 3707
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 50657
+      "durationMs": 119170
     }
   ],
   "strength": {
@@ -170,5 +161,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-25T13:51:38.848Z"
+  "generatedAt": "2026-07-25T14:13:51.000Z"
 }

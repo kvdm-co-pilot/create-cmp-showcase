@@ -111,6 +111,12 @@ a provisional palette carries the build until then).
    the `cmp-new` interview; the seed's placeholder prose is marked unfilled. Its
    `## Glossary` section is lifted verbatim into `docs/ARCHITECTURE.md` §8 — write it there
    in the exact form you want published.
+0.5. **First feature brief** — `docs/features/<exemplar>.md`, drafted from the interview's
+   "first screens" answer the moment intent is signed: the first feature's decisions and
+   their why, signed BEFORE its spec is written. Genesis runs the same decide → contract →
+   build loop as every later change; the app's first feature gets the same decide step
+   every later feature gets. (Express lane: skipped honestly, never fabricated;
+   placeholders earn a brief when they become real.)
 1. **Architecture + structure** — `specs/app-base.spec.md` **and**
    [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) (`cmp:generated` sections stripped
    before hashing, so a mechanical regeneration never invalidates the approval — only an
