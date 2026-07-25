@@ -19,6 +19,23 @@ description: >-
 > feature to its real shape. You are not done until `node qa/verify.mjs` PASSes and the receipt
 > is committed — see this project's `CLAUDE.md`.
 
+## Step 0 — name the lane, out loud, before anything else
+
+Every post-genesis change enters through one of two lanes (`CLAUDE.md` §"After genesis"),
+and **the human must be told which one this request is taking, in your first reply** — one
+or two plain sentences before any tool runs: what you understood the change to be, which
+lane, and why. Never route silently; the human can overrule the triage in a word.
+
+- **Brief lane** — the request carries decisions a future contributor could plausibly
+  "simplify" away, or blast radius into other governed artifacts. Say so, e.g.: *"This
+  carries real decisions (day-boundary rules, scheduling semantics) — I'll draft a feature
+  brief at `docs/features/<name>.md` with the open decisions for you to close and sign
+  BEFORE I stamp anything."* Only after the brief is signed does this skill's stamping
+  start.
+- **Direct lane** — an ordinary feature with no decisions worth recording. Say so, e.g.:
+  *"Straightforward slice, no decisions worth a brief — direct lane: spec clauses for your
+  confirmation, then I stamp and prove."* Then continue with Step 1 below.
+
 ## The clone source is configurable
 
 The stamper clones from the project's **configured exemplar** — `qa/approvals.json`'s

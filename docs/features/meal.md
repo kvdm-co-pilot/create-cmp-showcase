@@ -1,6 +1,8 @@
-# Meal logging, scheduling, and history — proposal
+# Meal logging, scheduling, and history — feature brief
 
-Status: **proposed, not approved** · Author: agent · Date: 2026-07-24
+Governed artifact: `feature-brief:meal` (this file's location, `docs/features/`, is the
+governance opt-in) · Author: agent · Date: 2026-07-24 · Signature state: see the console's
+Features card or `node qa/approve.mjs --status`
 
 Karel's ask, in his words: *"I need to be able to actually add meals … how do we determine
 breakfast etc. … add multiple items to a meal … schedule meals for tomorrow or today …
@@ -215,63 +217,21 @@ Both settled by Karel on 2026-07-24, in the console conversation that produced t
    though slice 1 only uses today — running that migration twice is worse than running it
    once.
 
-## 8. What this brief promises, mechanically
+## 8. Declared blast radius
 
-The block below is the machine-checkable half of this document (`qa/lib/intent-checks.mjs`).
-While the feature is building, these are **informational**. When the agent claims delivery
-(`node qa/approve.mjs --deliver meal-logging-deep-dive`) they **arm**: any unsatisfied check
-FAILs the verify lane, so "the meal feature is done" becomes an assertion the harness can
-refuse rather than a sentence in a summary.
+This document lives in `docs/features/`, which makes it the governed
+`feature-brief:meal` artifact — signed before code, hash-bound from the signature on.
+Doneness is **derived, never claimed**: the meal feature is provably done when every live
+clause in `specs/meal.spec.md` is cited by a test, the latest receipt is PASS, and that
+receipt attests the tree as it stands. There is nothing to arm and no delivery claim —
+the Features card and `node qa/approve.mjs --status` print the same derived one-liner.
 
 `touches` declares the blast radius — the governed artifacts this feature expects to
 invalidate. It does not enforce (the artifact hashes already do); it lets the console tell
 "re-approval, as planned" apart from "undeclared blast".
 
-```json cmp:intent-checks
-{
-  "touches": ["components", "design-system", "feature-spec:today"],
-  "checks": [
-    {
-      "id": "meal-clauses",
-      "kind": "spec-clauses",
-      "file": "specs/meal.spec.md",
-      "clauses": ["MEAL-01", "MEAL-02", "MEAL-03"]
-    },
-    {
-      "id": "day-boundary-configurable",
-      "kind": "pattern",
-      "file": "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/ProfileEntity.kt",
-      "pattern": "dayStartHour"
-    },
-    {
-      "id": "logical-day-derivation",
-      "kind": "file-exists",
-      "file": "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/time/LogicalDate.kt"
-    },
-    {
-      "id": "log-rows-carry-a-date-and-status",
-      "kind": "pattern",
-      "file": "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
-      "pattern": "logDate[\\s\\S]*status"
-    },
-    {
-      "id": "meal-slot-is-an-enum-not-a-free-string",
-      "kind": "file-exists",
-      "file": "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealSlot.kt"
-    },
-    {
-      "id": "write-path-exists",
-      "kind": "file-exists",
-      "file": "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCase.kt"
-    },
-    {
-      "id": "tray-screen-registered-for-preview",
-      "kind": "pattern",
-      "file": "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "pattern": "add-to-meal"
-    }
-  ]
-}
+```json cmp:feature
+{ "touches": ["components", "design-system", "feature-spec:today"] }
 ```
 
 ## Sources

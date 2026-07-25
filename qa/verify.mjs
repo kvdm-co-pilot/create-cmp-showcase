@@ -26,7 +26,8 @@ import { fileURLToPath } from "node:url";
 
 import { computeInputsHash } from "./lib/inputs-hash.mjs";
 import { compareTokenDrift } from "./lib/token-drift.mjs";
-import { evaluateApprovalsGate, evaluateIntentChecksGate } from "./lib/approvals.mjs";
+import { evaluateApprovalsGate } from "./lib/approvals.mjs";
+import { scanCitations, scanSpecClauses, walkFiles } from "./lib/spec-coverage.mjs";
 import { evaluateComponentStoryParity } from "./lib/component-stories.mjs";
 import { ARCH_DOC_REL_PATH, SECTION_IDS, regenerateArchDoc } from "./lib/arch-doc.mjs";
 
@@ -119,27 +120,14 @@ function deviceAttached() {
   return res.out.split("\n").slice(1).some((l) => /\tdevice$/.test(l.trim().replace(/\s+/g, "\t")));
 }
 
-// Recursive directory walker (no glob dependency) — returns files under `dir`
-// whose name ends with one of `exts`.
-function walkFiles(dir, exts) {
-  const out = [];
-  if (!fs.existsSync(dir)) return out;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkFiles(p, exts));
-    else if (exts.some((ext) => entry.name.endsWith(ext))) out.push(p);
-  }
-  return out;
-}
-
 // ── Steps ──────────────────────────────────────────────────────────────────
 // Each returns { name, verdict, reason?, durationMs, details? }. Failure
 // reasons are worded for an AI collaborator to act on.
 
-// Spec ↔ test drift gate — pure Node, no Gradle. Parses clause ids out of
-// specs/*.spec.md (live: `- **ID**`, withdrawn: `- ~~**ID**~~`, exempt from
-// coverage) and `// SPEC:` / `# SPEC:` citation tags out of composeApp/src and
-// qa/e2e, then fails on orphans in either direction.
+// Spec ↔ test drift gate — pure Node, no Gradle. The clause/citation scan
+// itself lives in qa/lib/spec-coverage.mjs — the SAME scan feature-brief.mjs
+// derives doneness from, so this gate and the Features view can never disagree
+// about a clause. This step owns only the orphan decision + bookkeeping.
 function stepSpecCoverage() {
   const started = Date.now();
   const specsDir = path.join(ROOT, "specs");
@@ -147,32 +135,10 @@ function stepSpecCoverage() {
     return { name: "specCoverage", verdict: "SKIP", reason: "no specs/ directory in this project", durationMs: Date.now() - started };
   }
 
-  const CLAUSE_LINE_RE = /^-\s+(~~)?\*\*([A-Z][A-Z0-9]*-\d{2,})\*\*/;
-  const clauses = new Map(); // id -> { file, withdrawn }
-  const specFiles = fs.readdirSync(specsDir).filter((f) => f.endsWith(".spec.md")).map((f) => path.join(specsDir, f));
-  for (const f of specFiles) {
-    for (const line of fs.readFileSync(f, "utf8").split("\n")) {
-      const m = line.match(CLAUSE_LINE_RE);
-      if (!m) continue;
-      clauses.set(m[2], { file: path.relative(ROOT, f), withdrawn: Boolean(m[1]) });
-    }
-  }
-
-  const TAG_LINE_RE = /^(?:\/\/|#)\s*SPEC:/;
-  const TAG_IDS_RE = /SPEC:\s*([A-Z0-9,\s-]+)/;
+  const clauses = scanSpecClauses(ROOT);
+  const tags = scanCitations(ROOT);
   const searchDirs = [path.join(ROOT, "composeApp/src"), path.join(ROOT, "qa/e2e")];
   const files = searchDirs.flatMap((d) => walkFiles(d, [".kt", ".kts", ".yaml", ".yml"]));
-  const tags = [];
-  for (const f of files) {
-    fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
-      const trimmed = line.trim();
-      if (!TAG_LINE_RE.test(trimmed)) return;
-      const m = trimmed.match(TAG_IDS_RE);
-      if (!m) return;
-      const ids = m[1].split(/[,\s]+/).map((s) => s.trim()).filter((s) => /^[A-Z][A-Z0-9]*-\d{2,}$/.test(s));
-      for (const id of ids) tags.push({ id, file: path.relative(ROOT, f), line: i + 1 });
-    });
-  }
 
   const citedIds = new Set(tags.map((t) => t.id));
   const orphanClauses = [...clauses.entries()].filter(([, c]) => !c.withdrawn).filter(([id]) => !citedIds.has(id));
@@ -235,25 +201,11 @@ function stepApprovals() {
   };
 }
 
-// Feature-brief delivery gate — pure Node, no Gradle. The decision lives in
-// qa/lib/intent-checks.mjs armed by the ledger's delivered-set
-// (evaluateIntentChecksGate in qa/lib/approvals.mjs); this step only adds the
-// name/duration bookkeeping every step in this file carries. In-progress
-// briefs SKIP (checks informational); a DELIVERED brief with unsatisfied
-// checks FAILs — the claim of done is the thing being verified.
-function stepIntentChecks() {
-  const started = Date.now();
-  const { verdict, reason, proposals } = evaluateIntentChecksGate(ROOT);
-  return {
-    name: "intentChecks",
-    verdict,
-    reason,
-    durationMs: Date.now() - started,
-    details: {
-      proposals: proposals.map((p) => ({ name: p.name, delivered: p.delivered, satisfied: p.satisfied, total: p.total })),
-    },
-  };
-}
+// There is deliberately NO feature-doneness step here (CHANGE-FLOW-DESIGN.md
+// §7): a feature's doneness is DERIVED from gates this lane already runs —
+// specCoverage fails an uncited clause, the test steps fail a broken promise,
+// and the receipt's inputs.hash attests the tree. A second mechanism would be
+// a second truth.
 
 // Component ↔ story parity gate (STUDIO-REDESIGN.md §3.3) — pure Node, no
 // Gradle, same grouping as specCoverage/approvals. The decision itself lives
@@ -551,11 +503,10 @@ function stepE2eSmoke() {
 const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
-  scaffold: [stepSpecCoverage, stepApprovals, stepIntentChecks, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
+  scaffold: [stepSpecCoverage, stepApprovals, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
   local: [
     stepSpecCoverage,
     stepApprovals,
-    stepIntentChecks,
     stepComponentStories,
     stepArchDoc,
     stepBuild,

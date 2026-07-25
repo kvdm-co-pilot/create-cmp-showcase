@@ -101,24 +101,94 @@ human decision. The ordered walk is a **definition order**, not just an approval
 each artifact is the vocabulary the next is written in, so on a fresh app each step is a
 conversation that ends in an approval — the genesis walk, six conversations:
 
+The order encodes two disciplines: **behavior is spec-first** (the exemplar's clauses are
+confirmed before the slice is built) and **visuals are UI-first** (the design system and
+component vocabulary are distilled from the real screens, so they lock after the exemplar —
+a provisional palette carries the build until then).
+
 0. **Intent** — `specs/intent.md`, the root brief everything else traces to (purpose,
    audience, platforms, brand feel, reference apps, first screens, **glossary**). Filled by
    the `cmp-new` interview; the seed's placeholder prose is marked unfilled. Its
    `## Glossary` section is lifted verbatim into `docs/ARCHITECTURE.md` §8 — write it there
    in the exact form you want published.
-1. **Design system** — `presentation/theme/Theme.kt`, `presentation/theme/Tokens.kt`.
-2. **Architecture + structure** — `specs/app-base.spec.md` **and**
+1. **Architecture + structure** — `specs/app-base.spec.md` **and**
    [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) (`cmp:generated` sections stripped
    before hashing, so a mechanical regeneration never invalidates the approval — only an
    authored-prose edit does).
-3. **Components** — every `presentation/components/*.kt` (a dynamic, sorted glob). Once
+2. **Exemplar spec** — `specs/<exemplar>.spec.md`. Confirmed BEFORE the slice is built:
+   propose the clauses, get the human's yes, then implement to satisfy them (the same
+   discipline `add-feature` already enforces post-genesis).
+3. **Exemplar feature** — the **configured** exemplar's file set the `add-feature`
+   stamper clones from (see "Configurable exemplar"), built to the confirmed spec.
+4. **Design system** — `presentation/theme/Theme.kt`, `presentation/theme/Tokens.kt`.
+   Locked on the REAL exemplar: candidates render on real screens, never stubs. If the
+   lock changes the exemplar's look, reopen → re-approve it — that loop is the design,
+   not a failure.
+5. **Components** — every `presentation/components/*.kt` (a dynamic, sorted glob),
+   distilled from the screens per the inclusion rubric (`docs/ARCHITECTURE.md` §7). Once
    approved, the registry is law: adding or changing a common component invalidates the
    approval until a human re-approves.
-4. **Exemplar feature** — the **configured** exemplar's 11-file set the `add-feature`
-   stamper clones from (see "Configurable exemplar").
-5. **Exemplar spec** — `specs/<exemplar>.spec.md`.
 6. **Per-feature spec** — `specs/<feature>.spec.md`, one governed artifact per feature,
    added as features land.
+
+### After genesis — every change is the same loop
+
+Genesis governs the app's birth. Everything after runs the SAME loop — decide →
+contract → build → prove → sign — over a subset (`docs/CHANGE-FLOW-DESIGN.md` in the
+create-cmp repo is the doc of record). Two lanes, one triage rule — and **the triage is
+always visible**: your FIRST reply to any change request (new feature, edit, bug fix, copy
+tweak, redesign — every entry point) states in one or two plain sentences what you
+understood the change to be, which lane it takes, and why, before any tool runs. The human
+can overrule the lane in a word; a silent route is a routing error even when the lane was
+right.
+
+**Brief lane** — when the change carries **decisions a future contributor could plausibly
+"simplify" away** ("the day boundary is configurable, default 04:00 — not midnight") OR
+**blast radius into other governed artifacts**. After naming the lane:
+
+| Step | What |
+|---|---|
+| 1 | **Feature brief** — `docs/features/<name>.md`: the decisions with their why, research, rejected options, an **Open decisions** section until the human closes each. Signed BEFORE code. |
+| 2 | **Contract** — reopen any signed spec the brief amends (`--reopen feature-spec:<surface>`); write the clauses where the behavior lives; the human signs |
+| 3 | Build the slice (`add-feature` / preview loop). Declared blast lands "as declared"; re-approve touched visual artifacts on rendered output |
+| 4 | Prove — nothing to do: the lane's gates + receipt ARE the proof |
+| 5 | The human's `--accept` — enabled only at provenDone |
+
+**Direct lane** — everything else (bug fix, copy edit, tweak): confirm in chat, reopen →
+amend clause → re-approve if a signed contract is touched, build, lane once at done.
+Legacy features never get retro-briefs; spikes are ungoverned until they become real.
+
+**A brief's LOCATION is the governance opt-in**: every `docs/features/*.md` is a governed
+`feature-brief:<name>` artifact (hash-bound at signing; `<name>` pairs with
+`specs/<name>.spec.md`). `docs/proposals/` stays ungoverned. The brief carries at most one
+machine-read block, and it **declares — it never gates**:
+
+```json cmp:feature
+{ "touches": ["components", "design-system"] }
+```
+
+`touches` is the declared blast radius — the artifact hashes already enforce; declaring
+lets the console show "components re-approval, as planned" instead of an unexplained
+failure, and surface **undeclared blast** when something drifted that no open brief
+accounted for.
+
+**Doneness is DERIVED, never claimed.** There is no `--deliver` and no checks block —
+deliberately (they existed and were removed as a weaker parallel truth). A feature is
+`provenDone` when, mechanically: its spec has live clauses **and** every one is cited by a
+test **and** the latest receipt is PASS **and** the receipt's `inputs.hash` attests the
+tree as it stands. `--status` and the console print the same one-line `doneReason` either
+way. What remains for humans is judgment: signing the brief (before code) and accepting
+the feature (after proof — "the proven thing is what I wanted"); `--accept` is refused
+until the derivation holds. Acceptance lives on the ledger row, never in the doc (the
+signed bytes must not move when the human accepts).
+
+| Command | What |
+|---|---|
+| `node qa/approve.mjs feature-brief:<name>` | the human signs the brief (before code) |
+| `node qa/approve.mjs --accept <name>` | the human's bookend; refused until provenDone |
+
+Editing a feature is the same brief **reopened** — that reopens the set it declared, and
+re-approval is one walk back.
 
 | Command | What |
 |---|---|
@@ -199,6 +269,7 @@ the honest error instead.
 
 ## UI feedback loop — see what you build, without a device
 
+<!-- >>> cmp:feature inspector -->
 While building or changing any screen, use the preview loop instead of an emulator. It
 renders this app's real screens (real DI, real theme, seeded data) headlessly in seconds
 and tells you what your edit changed.
@@ -219,6 +290,13 @@ and tells you what your edit changed.
 `composeApp/build/previews/<id>/{screen.png, tree.json}` (`-Pscreen=<id>` for one);
 `node qa/preview-gallery.mjs` builds a self-contained gallery page from the output.
 
+**Live tier — the human's live device view (standing step).** Whenever `connect_live`
+succeeds, OFFER the `remoteUrl` it returns (`http://127.0.0.1:9500/inspect/remote`) to the
+human — every time, not as a maybe. It is a self-contained browser page that mirrors the
+running app (~700ms refresh) with click-to-tap driving the real device: they watch and drive
+the actual app while you assert on the tree (`navigate_and_inspect` / `prove_change` /
+`db_query`). It is also the right way for a human to *watch* an e2e run.
+
 Screens come from `inspector/PreviewRegistry.kt` (desktopMain). The `add-feature` and
 `add-screen` stampers auto-register stamped screens at the `// cmp:anchor preview-registry`
 marker; when you add a screen by hand, register it there — a forced-state variant is just
@@ -226,8 +304,11 @@ another entry (`"home@empty"`). Every common component also carries a story entr
 (`"component.<kebab-name>"` in `inspector/ComponentStories.kt`); when you add a component,
 add its story — the lane's `componentStories` step fails naming the missing id otherwise.
 Assert on `tree.json` structure; never read PNG bytes. Pixels are for humans.
+<!-- <<< cmp:feature inspector -->
+<!-- >>> cmp:feature dev-client -->
 For one interactive window instead of stills of every screen:
 `./gradlew :composeApp:hotRunDesktop --auto` (Compose Hot Reload dev-client).
+<!-- <<< cmp:feature dev-client -->
 
 ## Docs
 

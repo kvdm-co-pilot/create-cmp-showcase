@@ -3,25 +3,30 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "9e17709b2d15443057711e9917ad6d08f68e68f8",
+    "sha": "c23ec1734f7016c2eb675b17bd29464c78a3b24c",
     "dirty": [
-      "docs/proposals/",
+      ".claude/skills/add-feature/SKILL.md",
+      ".claude/skills/add-repository/SKILL.md",
+      ".claude/skills/add-screen/SKILL.md",
+      "CLAUDE.md",
+      "docs/proposals/meal-logging-deep-dive.md -> docs/features/meal.md",
       "qa/approve.mjs",
-      "qa/evidence/latest.json",
       "qa/lib/approvals.mjs",
+      "qa/lib/feature-brief.mjs",
       "qa/lib/intent-checks.mjs",
+      "qa/lib/spec-coverage.mjs",
       "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "146f5b85822718f808dad227d429ad0e3ebbc8696b34d0521d9c582689c94a61",
-    "fileCount": 231
+    "hash": "9c5ab72c86399844b9d947a42db5ca63091af8461cca8738a69eef38500a69c7",
+    "fileCount": 232
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 58,
+      "durationMs": 23,
       "details": {
         "clauses": 46,
         "withdrawn": 0,
@@ -32,8 +37,8 @@
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-intent:meal-logging-deep-dive] Feature brief (docs/proposals/meal-logging-deep-dive.md) — unreviewed. Approve: node qa/approve.mjs feature-intent:meal-logging-deep-dive",
-      "durationMs": 21,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:meal] Feature brief (docs/features/meal.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:meal",
+      "durationMs": 18,
       "details": {
         "artifacts": [
           {
@@ -82,25 +87,9 @@
             "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294"
           },
           {
-            "id": "feature-intent:meal-logging-deep-dive",
+            "id": "feature-brief:meal",
             "status": "unreviewed",
-            "hash": "cd9ed2eb4d775376c4fd12a407c9072507c7b174e6c80486bf57abea0f2efbe9"
-          }
-        ]
-      }
-    },
-    {
-      "name": "intentChecks",
-      "verdict": "SKIP",
-      "reason": "1 feature brief(s) in progress — checks are informational until delivery is claimed:\n  [meal-logging-deep-dive] 0/7 checks satisfied. Claim delivery when done: node qa/approve.mjs --deliver meal-logging-deep-dive",
-      "durationMs": 1,
-      "details": {
-        "proposals": [
-          {
-            "name": "meal-logging-deep-dive",
-            "delivered": false,
-            "satisfied": 0,
-            "total": 7
+            "hash": "202cc64b89ab6c69d0262a23122ab4d1fd87859fa3afc671d181a08952801186"
           }
         ]
       }
@@ -108,7 +97,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -119,7 +108,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 14,
+      "durationMs": 13,
       "details": {
         "sectionsChecked": 4
       }
@@ -127,12 +116,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3421
+      "durationMs": 6859
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 9377,
+      "durationMs": 9987,
       "details": {
         "tests": 105,
         "failures": 0,
@@ -143,31 +132,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 4005
+      "durationMs": 3694
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5578
+      "durationMs": 5122
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 136,
+      "durationMs": 7877,
       "details": {
-        "checked": 2,
+        "checked": 1,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4782
+      "durationMs": 5554
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 60199
+      "durationMs": 50657
     }
   ],
   "strength": {
@@ -181,5 +170,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-24T21:38:25.603Z"
+  "generatedAt": "2026-07-25T13:51:38.848Z"
 }

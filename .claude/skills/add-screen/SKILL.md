@@ -25,6 +25,12 @@ the 6 presentation+tests+spec files, **composed on top of an entity that already
 `add-repository` or a prior `add-feature` run). If the entity doesn't exist yet, this will refuse
 to stamp anything — see step 2.
 
+**Name the lane first, out loud.** Before any tool runs, tell the human in a sentence which
+lane this request takes (`CLAUDE.md` §"After genesis"): a screen carrying decisions worth
+recording or blast into signed artifacts goes through a feature brief
+(`docs/features/<name>.md`, signed before code); an ordinary screen is direct lane — say
+so, then continue here. Never route silently.
+
 ## Why a stamper and not hand-written files
 
 Every hand-written file is a drift chance in this project's architecture. `qa/scaffold-feature.mjs

@@ -24,6 +24,12 @@ to just the 5 data/domain files. Use it when you want the data layer to exist be
 consumes it (e.g. you're modeling several entities up front, or a screen for this entity will
 come later via `add-screen`).
 
+**Name the lane first, out loud.** Before any tool runs, tell the human in a sentence which
+lane this request takes (`CLAUDE.md` §"After genesis"): an entity carrying decisions worth
+recording (data-model semantics, boundary rules) goes through a feature brief
+(`docs/features/<name>.md`, signed before code); an ordinary entity is direct lane — say so,
+then continue here. Never route silently.
+
 ## Why a stamper and not hand-written files
 
 Every hand-written file is a drift chance in this project's architecture. `qa/scaffold-feature.mjs
