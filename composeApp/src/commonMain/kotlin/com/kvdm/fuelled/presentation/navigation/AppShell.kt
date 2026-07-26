@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.kvdm.fuelled.presentation.components.AppBottomBar
 import com.kvdm.fuelled.presentation.components.BaseScreen
-import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 
 /**
  * Generic bottom-nav shell. Parameterized by a [tabs] list — NOT role-hardcoded.
@@ -27,10 +26,9 @@ fun AppShell(tabs: List<AppTab>) {
     var selected by rememberSaveable { mutableIntStateOf(0) }
 
     BaseScreen(
-        // Expose Compose testTags to the platform automation layer (Android resource-ids /
-        // iOS accessibilityIdentifiers) so Appium/uiautomator id-selectors and the
-        // cmp-test-generated suites find them; covers the whole subtree. Desktop: no-op.
-        modifier = Modifier.exposeTestTagsForAutomation(),
+        // testTag exposure for automation is applied once on the NavHost in AppNavHost.kt —
+        // the graph root, so every destination inherits it, not just these tabs. It used to
+        // live here, which is why non-tab destinations had no automation-visible ids.
         // The bottom bar owns the navigation-bar inset; the body must not also pad it.
         applyNavBarPadding = false,
         bottomBar = {

@@ -101,6 +101,17 @@ data class MealTrayTarget(
         )
 }
 
+/**
+ * The target a caller AIMS the tray at when it opens (TODAY-07/TODAY-08): the logical date and
+ * the slot, carried from the tap that opened it.
+ *
+ * Deliberately not a whole [MealTrayTarget]: `currentDay` is not the caller's to state. It is
+ * the logical day the tray itself opened on — the anchor the offered dates and their relative
+ * labels are derived from — so [MealTrayViewModel] always derives it from its own clock, even
+ * when the date and slot arrive from outside.
+ */
+data class MealTrayInitialTarget(val date: LocalDate, val slot: MealSlot)
+
 /** The confirm's own lifecycle — separate from the food list's [ContentUiState]. */
 sealed interface TrayConfirmState {
     data object Idle : TrayConfirmState
@@ -121,11 +132,17 @@ sealed interface TrayConfirmState {
  * the tray at a chosen instant instead of racing the wall clock. The opening target is derived
  * once, on construction: the logical day from [logicalDate] (MEAL-01/02) and the slot from
  * [slotForLocalTime] (MEAL-04) — both ML-1 functions, called, never re-derived here.
+ *
+ * [initialTarget] is how a caller AIMS the tray (TODAY-07/TODAY-08). It is a CONSTRUCTOR input,
+ * not a retarget after the fact: "add to Dinner" must open on Dinner, never open on the
+ * clock's slot and then correct itself — a first frame on the wrong target is exactly the
+ * defaulting the clause forbids. Absent (`null`), the clock-derived opening target stands.
  */
 class MealTrayViewModel(
     private val getFoods: GetFoodsUseCase,
     private val searchFoods: SearchFoodsUseCase,
     private val addLogEntries: AddLogEntriesUseCase,
+    initialTarget: MealTrayInitialTarget? = null,
     clock: Clock = Clock.System,
     zone: TimeZone = TimeZone.currentSystemDefault(),
     dayStartHour: Int = DEFAULT_DAY_START_HOUR,
@@ -141,8 +158,8 @@ class MealTrayViewModel(
         clock.now().toLocalDateTime(zone).let { openedAt ->
             val currentDay = logicalDate(clock.now(), dayStartHour, zone)
             MealTrayTarget(
-                date = currentDay,
-                slot = slotForLocalTime(openedAt.time),
+                date = initialTarget?.date ?: currentDay,
+                slot = initialTarget?.slot ?: slotForLocalTime(openedAt.time),
                 currentDay = currentDay,
             )
         },

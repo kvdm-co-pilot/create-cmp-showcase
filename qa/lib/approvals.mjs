@@ -59,7 +59,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { ARCH_DOC_REL_PATH, stripGeneratedSections } from "./arch-doc.mjs";
-import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs, parseFeatureBlock } from "./feature-brief.mjs";
+import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs, parseFeatureBlock, stripFeatureBlock } from "./feature-brief.mjs";
 
 export const APPROVALS_REL_PATH = "qa/approvals.json";
 export const APPROVALS_SCHEMA = "cmp-approvals/1";
@@ -539,7 +539,49 @@ export function hashArchitectureArtifact(root) {
  * @returns {{ hash: string, fileCount: number, missing: string[] }}
  */
 function computeArtifactHash(root, artifact) {
-  return artifact.id === "architecture" ? hashArchitectureArtifact(root) : hashArtifactFiles(root, artifact.files);
+  if (artifact.id === "architecture") return hashArchitectureArtifact(root);
+  if (artifact.id.startsWith(FEATURE_BRIEF_PREFIX)) return hashFeatureBriefArtifact(root, artifact);
+  return hashArtifactFiles(root, artifact.files);
+}
+
+/**
+ * A feature brief's hash basis: the doc's content, EOL-normalized, with the
+ * cmp:feature declaration block stripped (`stripFeatureBlock` — the ONE
+ * definition of the block grammar, shared with parseFeatureBlock so the
+ * stripper and the parser can never disagree about what a block is).
+ *
+ * Same rationale as `hashArchitectureArtifact`'s cmp:generated stripping: the
+ * human signs the brief's reasoning; `touches`/`screens` are declarations the
+ * harness independently enforces (artifact hashes enforce blast radius; disk
+ * presence enforces the design gate) and can authorise nothing — so adding
+ * mandatory machine-read metadata to a signed brief must never manufacture a
+ * human re-approval. Normalized `\r\n` -> `\n` first, because the fence
+ * grammar matches a literal `\n` and a checkout-induced EOL flip in prose must
+ * never read as authored drift.
+ * @param {string} root
+ * @param {{id: string, files: string[]}} artifact
+ * @returns {{ hash: string, fileCount: number, missing: string[] }}
+ */
+function hashFeatureBriefArtifact(root, artifact) {
+  const files = [...new Set(artifact.files)].sort();
+  const rows = [];
+  const missing = [];
+  for (const relPath of files) {
+    let raw;
+    try {
+      raw = fs.readFileSync(path.join(root, relPath), "utf8");
+    } catch {
+      missing.push(relPath);
+      continue;
+    }
+    const stripped = stripFeatureBlock(raw.replace(/\r\n/g, "\n"));
+    rows.push([relPath, createHash("sha256").update(stripped, "utf8").digest("hex")]);
+  }
+  const overall = createHash("sha256");
+  for (const [relPath, fileSha] of rows) {
+    overall.update(`${relPath}\0${fileSha}\n`);
+  }
+  return { hash: overall.digest("hex"), fileCount: rows.length, missing };
 }
 
 // ── State (qa/approvals.json) ─────────────────────────────────────────────────
@@ -691,7 +733,20 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
       resolvable,
     };
   }
-  const changed = !resolvable || storedRecord.hash !== recomputed.hash;
+  let changed = !resolvable || storedRecord.hash !== recomputed.hash;
+  // Legacy feature-brief approvals (pre block-stripping) stored the RAW-bytes
+  // hash. If the stored hash still matches the raw bytes on disk, the file is
+  // byte-identical to what the human signed — strictly stronger than a
+  // stripped-basis match — so the signature stands. Permanent and safe: this
+  // path can only accept content that has not changed at all since signing.
+  if (
+    changed &&
+    resolvable &&
+    artifact.id.startsWith(FEATURE_BRIEF_PREFIX) &&
+    storedRecord.hash === hashArtifactFiles(root, artifact.files).hash
+  ) {
+    changed = false;
+  }
   return {
     id: artifact.id,
     label: artifact.label,

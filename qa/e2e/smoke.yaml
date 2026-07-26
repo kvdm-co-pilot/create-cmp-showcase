@@ -80,3 +80,22 @@ appId: com.kvdm.fuelled
     id: "nav_today"
 - assertVisible:
     id: "today_title"
+
+# SPEC: TODAY-07 — a meal card's add control opens the tray ALREADY TARGETED at that card's
+# slot, proven on-device. This is also the standing proof that a destination registered
+# directly on the NavHost (outside AppShell) exposes its testTags to the automation layer at
+# all: `exposeTestTagsForAutomation` sits on the NavHost in AppNavHost.kt, and while it sat
+# inside AppShell instead, `meal_tray_screen` did not exist as a resource-id and no id-selector
+# could see this screen. If that modifier ever moves back down, this step fails.
+- tapOn:
+    id: "today_add_breakfast"
+- extendedWaitUntil:
+    visible:
+      id: "meal_tray_screen"
+    timeout: 30000
+# The tray is AIMED, not defaulted — the header states the slot the tap carried. Selection is
+# still by id; the text is an assertion ON that element, never a way of finding it. The date
+# half is the run's own logical day, so it stays a wildcard.
+- assertVisible:
+    id: "meal_tray_target"
+    text: "Breakfast · .*"

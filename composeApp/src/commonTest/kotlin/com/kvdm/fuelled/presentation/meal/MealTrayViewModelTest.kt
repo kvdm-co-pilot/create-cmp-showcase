@@ -71,12 +71,13 @@ class MealTrayViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(): MealTrayViewModel {
+    private fun viewModel(initialTarget: MealTrayInitialTarget? = null): MealTrayViewModel {
         val clock = FixedClock(openedAt.toInstant(zone))
         return MealTrayViewModel(
             getFoods = GetFoodsUseCase(foodRepository),
             searchFoods = SearchFoodsUseCase(foodRepository),
             addLogEntries = AddLogEntriesUseCase(todayRepository, clock, zone, DEFAULT_DAY_START_HOUR),
+            initialTarget = initialTarget,
             clock = clock,
             zone = zone,
             dayStartHour = DEFAULT_DAY_START_HOUR,
@@ -99,6 +100,25 @@ class MealTrayViewModelTest {
         assertEquals(MealSlot.LUNCH, target.slot, "12:30 sits in the Lunch window")
         assertEquals(listOf(LocalDate(2026, 7, 21), logicalToday, tomorrow), target.dateOptions)
     }
+
+    // SPEC: TODAY-07
+    @Test
+    fun `opens on the target it was given, with no retarget and no clock-derived default`() =
+        runTest(dispatcher) {
+            // The tap said Dinner tomorrow; the clock says Lunch today. The caller wins.
+            val viewModel = viewModel(MealTrayInitialTarget(date = tomorrow, slot = MealSlot.DINNER))
+
+            val target = viewModel.target.value
+
+            assertEquals(tomorrow, target.date)
+            assertEquals(MealSlot.DINNER, target.slot)
+            assertEquals(
+                logicalToday,
+                target.currentDay,
+                "the anchor day stays the clock's — the caller aims the tray, it does not move 'today'",
+            )
+            assertEquals(listOf(LocalDate(2026, 7, 21), logicalToday, tomorrow), target.dateOptions)
+        }
 
     // SPEC: MEAL-09
     @Test

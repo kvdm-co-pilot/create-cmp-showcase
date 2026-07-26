@@ -24,3 +24,11 @@
 - **TODAY-06** — Given the Today screen renders, When its structure is inspected, Then it
   matches its committed golden tree (`qa/golden/today.json`) — structural change must be
   intentional and declared.
+- **TODAY-07** — Given a meal slot is shown on the Today screen, Then it carries an add
+  control (`today_add_<slot>`), and tapping it opens the add-to-meal tray already targeted at
+  **that logical day and that slot** — the target is carried from the tap, never defaulted at
+  the tray (MEAL-10), so "add to Dinner" from Dinner's card needs no retargeting.
+- **TODAY-08** — Given the day has no logged entries, Then the empty state also offers an add
+  control (`today_empty_add`) — a day with nothing in it is exactly the day food must be
+  addable to — and tapping it opens the tray targeted at the current logical day with the
+  slot preselected for the current time (MEAL-04).

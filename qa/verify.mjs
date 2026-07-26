@@ -29,13 +29,61 @@ import { compareTokenDrift } from "./lib/token-drift.mjs";
 import { evaluateApprovalsGate } from "./lib/approvals.mjs";
 import { scanCitations, scanSpecClauses, walkFiles } from "./lib/spec-coverage.mjs";
 import { evaluateComponentStoryParity } from "./lib/component-stories.mjs";
+import { evaluateReachability } from "./lib/reachability.mjs";
 import { ARCH_DOC_REL_PATH, SECTION_IDS, regenerateArchDoc } from "./lib/arch-doc.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE_DIR = path.join(ROOT, "qa", "evidence");
 const ARTIFACTS_DIR = path.join(ROOT, "qa-artifacts");
 
-const args = process.argv.slice(2);
+// ── Argument parsing — strict, and first thing this file does ──────────────
+// An unrecognized flag used to fall through silently and start the full
+// multi-minute lane (`--help` ran the whole lane for ~2 minutes before being
+// killed). Same refusal-over-fabrication stance as qa/approve.mjs, which
+// refuses an unknown artifact by name rather than guessing: an unknown
+// argument here is refused by name, not swallowed into "run everything".
+const USAGE = `node qa/verify.mjs [--profile scaffold|local|ci] [--json] [--help]
+
+The verify lane — this project's single verification gate. Runs every
+verification step this project carries, aggregates a typed PASS/FAIL
+verdict, and writes the evidence receipt to qa/evidence/latest.json (commit
+it with your change — see CLAUDE.md). Exit code: 0 = PASS, 1 = FAIL.
+
+Flags:
+  --profile <scaffold|local|ci>  which step set to run (default: local)
+  --json                         print the receipt as JSON instead of the
+                                  human-readable step-by-step log
+  --help, -h                     print this usage and exit 0 without
+                                  running anything
+
+Profiles:
+  scaffold  spec coverage + build + unit tests (what \`create-cmp --verify\`
+            proves at stamp time)
+  local     everything; device-dependent steps SKIP when no device is
+            attached
+  ci        everything; SKIPs are recorded so the pipeline stays honest
+`;
+
+const rawArgs = process.argv.slice(2);
+
+if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
+  console.log(USAGE);
+  process.exit(0);
+}
+
+const RECOGNIZED_FLAGS = new Set(["--profile", "--json"]);
+for (let i = 0; i < rawArgs.length; i += 1) {
+  const arg = rawArgs[i];
+  if (arg === "--profile") {
+    i += 1; // consume its value (missing/invalid value keeps the existing exit-2 behavior below)
+    continue;
+  }
+  if (RECOGNIZED_FLAGS.has(arg)) continue;
+  console.error(`unknown argument "${arg}" — run node qa/verify.mjs --help`);
+  process.exit(2);
+}
+
+const args = rawArgs;
 const profile = args.includes("--profile") ? args[args.indexOf("--profile") + 1] : "local";
 const asJson = args.includes("--json");
 
@@ -54,16 +102,52 @@ function sh(cmd, opts = {}) {
 // The preview daemon (the eyes) and this lane both spawn Gradle against this
 // project and share composeApp/build/kspCaches, whose KSP incremental storage
 // is single-owner — two concurrent builds throw "Storage for [...] is already
-// registered" and one side dies. Two defenses, both automatic:
-//   1. COORDINATE: this lane stamps a marker file for its duration; the preview
-//      service defers renders while it exists (mtime-bounded, so a crashed lane
-//      never wedges the eyes for long).
-//   2. SELF-HEAL: a Gradle step that still hits the collision clears kspCaches
+// registered" and one side dies. Three defenses, all automatic:
+//   1. COORDINATE (this lane -> the daemon): this lane stamps a marker file
+//      for its duration; the preview service defers renders while it exists
+//      (mtime-bounded, so a crashed lane never wedges the eyes for long).
+//   2. COORDINATE (the daemon -> this lane), the symmetric half: the daemon
+//      stamps its OWN marker for the duration of a render's Gradle build;
+//      shGradle waits for it to clear (or go stale) before launching this
+//      lane's own Gradle command — same mtime-bounded shape, so a crashed
+//      daemon never wedges the lane for long either.
+//   3. SELF-HEAL: a Gradle step that still hits the collision clears kspCaches
 //      and retries once — the manual recovery that always worked, automated.
 const LANE_MARKER = path.join(ROOT, "composeApp", "build", ".cmp-lane-in-progress");
 const KSP_COLLISION_RE = /Storage for \[[^\]]*\] is already registered/;
 
+// The daemon's half of defense 2 above — pid + ISO timestamp, mirroring
+// LANE_MARKER's own content shape (see where LANE_MARKER is stamped, below).
+const RENDER_MARKER = path.join(ROOT, "composeApp", "build", ".cmp-render-in-progress");
+const RENDER_MARKER_FRESH_MS = 5 * 60 * 1000; // older than this = a crashed daemon's stale marker, ignore it
+const RENDER_WAIT_TIMEOUT_MS = 3 * 60 * 1000; // give up waiting after this long regardless
+const RENDER_WAIT_POLL_MS = 2000;
+
+/**
+ * Defer this lane's next Gradle command while the preview daemon's render
+ * marker is present AND fresh (mtime younger than RENDER_MARKER_FRESH_MS).
+ * Polls every RENDER_WAIT_POLL_MS; gives up and proceeds anyway after
+ * RENDER_WAIT_TIMEOUT_MS, or the moment the marker disappears or goes stale —
+ * whichever comes first. A missing/unreadable marker returns immediately:
+ * this is a coexistence courtesy, never a hard dependency on the daemon.
+ */
+function waitForRenderMarker() {
+  const deadline = Date.now() + RENDER_WAIT_TIMEOUT_MS;
+  for (;;) {
+    let stat;
+    try {
+      stat = fs.statSync(RENDER_MARKER);
+    } catch {
+      return; // no render in flight
+    }
+    if (Date.now() - stat.mtimeMs >= RENDER_MARKER_FRESH_MS) return; // gone stale
+    if (Date.now() >= deadline) return; // waited long enough — proceed regardless
+    sh(`sleep ${RENDER_WAIT_POLL_MS / 1000}`);
+  }
+}
+
 function shGradle(cmd, opts = {}) {
+  waitForRenderMarker();
   const first = sh(cmd, opts);
   if (first.ok || !KSP_COLLISION_RE.test(first.out)) return first;
   console.error("· KSP cache collision (concurrent Gradle — the preview daemon?) — clearing kspCaches, retrying once");
@@ -215,6 +299,18 @@ function stepComponentStories() {
   const started = Date.now();
   const { verdict, reason, details } = evaluateComponentStoryParity(ROOT);
   return { name: "componentStories", verdict, reason, durationMs: Date.now() - started, details };
+}
+
+// Navigation-reachability gate (task FI-7, docs/AUTONOMY-GAPS.md §3) — pure
+// Node, no Gradle, same grouping as specCoverage/approvals/componentStories.
+// The decision itself lives in qa/lib/reachability.mjs (evaluateReachability);
+// this step only adds the name/duration bookkeeping every step in this file
+// carries. Closes the exact hole a real feature slipped through: every other
+// gate PASSed while its screen was wired into nothing.
+function stepReachability() {
+  const started = Date.now();
+  const { verdict, reason, details } = evaluateReachability(ROOT);
+  return { name: "reachability", verdict, reason, durationMs: Date.now() - started, details };
 }
 
 // Architecture-doc freshness gate (Wave B, docs/proposals/architecture-document-
@@ -503,11 +599,12 @@ function stepE2eSmoke() {
 const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
-  scaffold: [stepSpecCoverage, stepApprovals, stepComponentStories, stepArchDoc, stepBuild, stepUnitTests],
+  scaffold: [stepSpecCoverage, stepApprovals, stepComponentStories, stepReachability, stepArchDoc, stepBuild, stepUnitTests],
   local: [
     stepSpecCoverage,
     stepApprovals,
     stepComponentStories,
+    stepReachability,
     stepArchDoc,
     stepBuild,
     stepUnitTests,

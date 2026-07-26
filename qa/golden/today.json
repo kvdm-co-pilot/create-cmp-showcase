@@ -24,6 +24,9 @@
     {"children": [
       {"text": "Breakfast"},
       {"text": "430 kcal"},
+      {"tag": "today_add_breakfast", "role": "Button", "children": [
+        {"role": "Image", "contentDescription": "Add food to Breakfast"}
+      ]},
       {"text": "Golden oats"},
       {"text": "80 g"},
       {"text": "430 kcal"},
@@ -32,6 +35,9 @@
     {"children": [
       {"text": "Snack"},
       {"text": "105 kcal"},
+      {"tag": "today_add_snack", "role": "Button", "children": [
+        {"role": "Image", "contentDescription": "Add food to Snack"}
+      ]},
       {"text": "Golden banana"},
       {"text": "1 medium"},
       {"text": "105 kcal"},

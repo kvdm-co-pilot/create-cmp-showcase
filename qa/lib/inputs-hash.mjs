@@ -29,11 +29,43 @@ export const VERIFIED_SURFACE = [
   "gradle.properties",
 ];
 
-// Paths EXCLUDED even though they fall under an included surface dir above —
-// these are lane OUTPUTS, not inputs. Including them would make the hash
-// depend on the lane's own prior output (or, for qa-artifacts, on binary
-// scratch that is deliberately never committed).
-const EXCLUDED_PREFIXES = ["qa/evidence", "qa-artifacts"];
+// Paths EXCLUDED even though they fall under an included surface dir above.
+// qa/evidence and qa-artifacts are lane OUTPUTS — including them would make
+// the hash depend on the lane's own prior output. qa/comments.json is excluded
+// by this file's own stated principle: comments are explicitly advisory and no
+// lane step reads them, so their content cannot change the verdict — hashing
+// them made resolving a review note invalidate a receipt for a tree whose
+// code had not changed.
+const EXCLUDED_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/comments.json"];
+
+// qa/approvals.json is hashed by PROJECTION, not raw bytes. The approvals gate's
+// verdict depends on exactly three row fields (artifact, status, hash) plus the
+// top-level exemplarFeature (it selects the exemplar artifact's file set).
+// Everything else on a row — approvedAt, mode, via, reopenedAt, accepted,
+// acceptedAt — is ledger bookkeeping that records a decision without gating one.
+// Hashing those bytes meant the human clicking Accept on a provenDone feature
+// instantly invalidated the receipt whose PASS permitted the acceptance.
+// Acceptance is a bookend recorded after proof; it must not destroy it.
+// An unparsable ledger falls back to raw bytes — refusal over fabrication.
+const APPROVALS_PROJECTED_PATH = "qa/approvals.json";
+
+function projectApprovalsBytes(raw) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw.toString("utf8"));
+  } catch {
+    return raw;
+  }
+  if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.artifacts)) return raw;
+  const rows = parsed.artifacts
+    .filter((a) => a && typeof a === "object")
+    .map((a) => ({ artifact: a.artifact ?? null, status: a.status ?? null, hash: a.hash ?? null }))
+    .sort((a, b) => (String(a.artifact) < String(b.artifact) ? -1 : String(a.artifact) > String(b.artifact) ? 1 : 0));
+  const projection = {};
+  if (typeof parsed.exemplarFeature === "string") projection.exemplarFeature = parsed.exemplarFeature;
+  projection.artifacts = rows;
+  return Buffer.from(`${JSON.stringify(projection)}\n`, "utf8");
+}
 
 function isExcluded(relPath) {
   return EXCLUDED_PREFIXES.some((prefix) => relPath === prefix || relPath.startsWith(`${prefix}/`));
@@ -133,7 +165,8 @@ export function computeInputsHash(root) {
 
   const overall = createHash("sha256");
   for (const relPath of files) {
-    const bytes = fs.readFileSync(path.join(root, relPath));
+    const raw = fs.readFileSync(path.join(root, relPath));
+    const bytes = relPath === APPROVALS_PROJECTED_PATH ? projectApprovalsBytes(raw) : raw;
     const fileSha = createHash("sha256").update(bytes).digest("hex");
     overall.update(`${relPath}\0${fileSha}\n`);
   }

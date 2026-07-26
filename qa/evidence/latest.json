@@ -3,31 +3,49 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "42e1aa883b9ef533c3088d11456b1773b9230ef8",
+    "sha": "b55dfa99a65d1850c6154b6d76700561dc51ea7e",
     "dirty": [
-      "qa/approvals.json"
+      "CHANGELOG.md",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppShell.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/navigation/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
+      "qa/approvals.json",
+      "qa/e2e/smoke.yaml",
+      "qa/golden/today.json",
+      "qa/lib/approvals.mjs",
+      "qa/lib/feature-brief.mjs",
+      "qa/lib/inputs-hash.mjs",
+      "qa/lib/reachability.mjs",
+      "qa/verify.mjs",
+      "specs/today.spec.md"
     ]
   },
   "inputs": {
-    "hash": "6fc2434491326b702c330ef67a19957da237c69013d076bd6be4f1ecd1b8afd3",
-    "fileCount": 253
+    "hash": "03c9f90a84a685217d984de82f5ffe7893f8f48dae94b7a9b32b6954f4ec8c9b",
+    "fileCount": 254
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 24,
+      "durationMs": 157,
       "details": {
-        "clauses": 58,
+        "clauses": 60,
         "withdrawn": 0,
-        "tags": 141,
-        "files": 164
+        "tags": 149,
+        "files": 165
       }
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 21,
+      "durationMs": 39,
       "details": {
         "artifacts": [
           {
@@ -38,7 +56,7 @@
           {
             "id": "feature-brief:meal",
             "status": "approved",
-            "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767"
+            "hash": "e6dfb40b8b5ae0c466532219ab8878e997ea2b9ff7b57997b99d6cc919628b5c"
           },
           {
             "id": "architecture",
@@ -88,7 +106,7 @@
           {
             "id": "feature-spec:today",
             "status": "approved",
-            "hash": "d47f0f1a699dc7c6a1cb24eec428fb4f2bf76cbb4ab30280702d0c442851289e"
+            "hash": "be190eb709c6182c799a1dc4b358c1ca4b3790d23b07e73fd9df8107b7755584"
           }
         ]
       }
@@ -96,7 +114,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "details": {
         "components": 20,
         "stories": 20,
@@ -105,9 +123,65 @@
       }
     },
     {
+      "name": "reachability",
+      "verdict": "PASS",
+      "durationMs": 12,
+      "details": {
+        "features": [
+          {
+            "name": "foods",
+            "reachable": true,
+            "entryComposables": [
+              "FoodDetailRoute",
+              "FoodDetailScreen",
+              "FoodsRoute",
+              "FoodsScreen"
+            ]
+          },
+          {
+            "name": "meal",
+            "reachable": true,
+            "entryComposables": [
+              "MealTrayRoute",
+              "MealTrayScreen"
+            ]
+          },
+          {
+            "name": "navigation",
+            "reachable": true,
+            "entryComposables": []
+          },
+          {
+            "name": "profile",
+            "reachable": true,
+            "entryComposables": [
+              "ProfileRoute",
+              "ProfileScreen"
+            ]
+          },
+          {
+            "name": "supplements",
+            "reachable": true,
+            "entryComposables": [
+              "SupplementsRoute",
+              "SupplementsScreen"
+            ]
+          },
+          {
+            "name": "today",
+            "reachable": true,
+            "entryComposables": [
+              "TodayRoute",
+              "TodayScreen"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 21,
       "details": {
         "sectionsChecked": 4
       }
@@ -115,14 +189,14 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2733
+      "durationMs": 3727
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 9912,
+      "durationMs": 37086,
       "details": {
-        "tests": 147,
+        "tests": 154,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -131,31 +205,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2898
+      "durationMs": 6133
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4952
+      "durationMs": 5158
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 265,
+      "durationMs": 423,
       "details": {
-        "checked": 1,
+        "checked": 26,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4443
+      "durationMs": 4880
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 58301
+      "durationMs": 61981
     }
   ],
   "strength": {
@@ -169,5 +243,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-26T11:51:22.361Z"
+  "generatedAt": "2026-07-26T15:00:09.683Z"
 }

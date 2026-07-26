@@ -56,6 +56,27 @@ export const FEATURES_DIR_REL = "docs/features";
 const FEATURE_FENCE_RE = /```json\s+cmp:feature\s*\n([\s\S]*?)\n```/;
 
 /**
+ * The brief with its cmp:feature declaration block removed — the basis the
+ * feature-brief approval hash is computed over (approvals.mjs). The human signs
+ * the brief's REASONING; the block is machine-read declaration whose claims the
+ * harness independently enforces (artifact hashes enforce `touches`; disk
+ * presence enforces the design gate), so editing it must never invalidate a
+ * signature — the same stance as `architecture`'s cmp:generated stripping.
+ * @param {string} markdown
+ * @returns {string}
+ */
+export function stripFeatureBlock(markdown) {
+  if (typeof markdown !== "string") return "";
+  // Consume the blank space around the block and leave one paragraph break, and
+  // normalize the trailing edge — so adding, editing, or removing the block
+  // (typically the doc's last element) yields the same basis as never having
+  // one. The fence grammar itself stays FEATURE_FENCE_RE — one definition,
+  // shared with parseFeatureBlock.
+  const stripped = markdown.replace(new RegExp(String.raw`\s*` + FEATURE_FENCE_RE.source + String.raw`\s*`), "\n\n");
+  return stripped.trim() === "" ? "" : stripped.replace(/\s+$/, "\n");
+}
+
+/**
  * Every feature brief — docs/features/*.md, sorted (code-unit sort: artifact
  * ids derive from this list and must read identically on every machine).
  * @param {string} root
@@ -105,30 +126,31 @@ export function briefSections(markdown) {
 }
 
 /**
- * A brief's declarations: blast radius (`touches`) and UI surface (`screens`).
- * A missing block, or one without a field, declares nothing — legal and
- * common. A block that IS present but malformed is surfaced as `error`: a doc
- * that tried to declare and failed should say so, not read as "declares
- * nothing".
+ * A brief's declarations: blast radius (`touches`), UI surface (`screens`),
+ * and the reachability exemption (`unrouted` — FI-7's escape hatch: a screen
+ * intentionally not wired into the navigation graph yet). A missing block, or
+ * one without a field, declares nothing — legal and common. A block that IS
+ * present but malformed is surfaced as `error`: a doc that tried to declare
+ * and failed should say so, not read as "declares nothing".
  * @param {string} markdown
- * @returns {{touches: string[], screens: boolean, error: (string|null)}}
+ * @returns {{touches: string[], screens: boolean, unrouted: boolean, error: (string|null)}}
  */
 export function parseFeatureBlock(markdown) {
   const m = typeof markdown === "string" ? markdown.match(FEATURE_FENCE_RE) : null;
-  if (!m) return { touches: [], screens: false, error: null };
+  if (!m) return { touches: [], screens: false, unrouted: false, error: null };
   let parsed;
   try {
     parsed = JSON.parse(m[1]);
   } catch (err) {
-    return { touches: [], screens: false, error: `cmp:feature block is not valid JSON — ${err.message}` };
+    return { touches: [], screens: false, unrouted: false, error: `cmp:feature block is not valid JSON — ${err.message}` };
   }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return { touches: [], screens: false, error: "cmp:feature must be a JSON object" };
+    return { touches: [], screens: false, unrouted: false, error: "cmp:feature must be a JSON object" };
   }
   const touches = Array.isArray(parsed.touches)
     ? parsed.touches.filter((t) => typeof t === "string" && t.trim() !== "")
     : [];
-  return { touches, screens: parsed.screens === true, error: null };
+  return { touches, screens: parsed.screens === true, unrouted: parsed.unrouted === true, error: null };
 }
 
 /**

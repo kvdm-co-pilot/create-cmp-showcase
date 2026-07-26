@@ -21,6 +21,7 @@ import com.kvdm.fuelled.domain.usecase.SearchFoodsUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.presentation.foods.FoodDetailViewModel
 import com.kvdm.fuelled.presentation.foods.FoodsViewModel
+import com.kvdm.fuelled.presentation.meal.MealTrayInitialTarget
 import com.kvdm.fuelled.presentation.meal.MealTrayViewModel
 import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
@@ -67,7 +68,14 @@ val viewModelModule = module {
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
     // graph. Tests construct it directly with a FixedClock (MEAL-04/MEAL-10).
-    viewModel { MealTrayViewModel(get(), get(), get()) }
+    //
+    // The opening target comes from the CALL SITE, not the graph: the nav destination passes
+    // the tap's target as a Koin parameter (TODAY-07/TODAY-08), so it is set before the first
+    // frame. No parameter — or an unparseable route argument — resolves to null, which is the
+    // ViewModel's own clock-derived default.
+    viewModel { params ->
+        MealTrayViewModel(get(), get(), get(), initialTarget = params.getOrNull<MealTrayInitialTarget>())
+    }
     // cmp:anchor di-viewmodels
 }
 

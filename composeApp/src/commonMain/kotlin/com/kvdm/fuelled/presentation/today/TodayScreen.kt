@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,12 +34,18 @@ import com.kvdm.fuelled.domain.model.MealGroup
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
+import com.kvdm.fuelled.domain.model.slotForLocalTime
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
+import com.kvdm.fuelled.presentation.components.AppIconButton
+import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Today: the daily macro dashboard (the hero screen) ───────────────────────────────
@@ -98,19 +106,37 @@ internal val MealSlot.label: String
     }
 
 /**
+ * The slot the tray should open on when an add control is tapped RIGHT NOW (MEAL-04, used by
+ * TODAY-08). Called at tap time, never during composition, so the rendered tree stays a pure
+ * function of the model — a clock read inside the layout would make every golden and preview
+ * render time-of-day dependent.
+ */
+internal fun currentMealSlot(
+    clock: Clock = Clock.System,
+    zone: TimeZone = TimeZone.currentSystemDefault(),
+): MealSlot = slotForLocalTime(clock.now().toLocalDateTime(zone).time)
+
+/**
  * The VM-backed Today tab the nav graph hosts. The Loading/Content/Error state machine lives in
  * [TodayViewModel]; this wrapper only renders it through [ContentStateContainer] (which owns the
  * `today_loading`/`today_error`/`today_retry` arms). A day with no entries is still Content — the
  * stateless [TodayScreen] shows its own `today_empty` affordance while the ring stays visible.
  * A tab: it inherits BaseScreen (insets) from AppShell, so it does not re-wrap it (SHELL-05).
+ *
+ * @param onAddToMeal Where an add control goes: the tray, already targeted at the logical date
+ *   and slot the TAP carried (TODAY-07/TODAY-08). The nav graph turns it into a route.
+ * @param slotForNow The slot an untargeted add resolves to — the empty state's control, which
+ *   has no meal card to take a slot from (TODAY-08). Injectable so a test can fix the hour.
  */
 @Composable
 fun TodayRoute(
     viewModel: TodayViewModel = koinViewModel(),
+    onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
+    slotForNow: () -> MealSlot = { currentMealSlot() },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "today", onRetry = viewModel::load) { model ->
-        TodayScreen(model = model)
+        TodayScreen(model = model, onAddToMeal = onAddToMeal, slotForNow = slotForNow)
     }
 }
 
@@ -119,9 +145,17 @@ fun TodayRoute(
  * sample so the preview registry can render it without a VM or Koin. When the day has no logged
  * entries the log area shows the `today_empty` affordance and the ring reads the full target as
  * remaining (TODAY-04). The production path is [TodayRoute] + [TodayViewModel].
+ *
+ * Every meal card carries its own add control and the empty state carries one too
+ * (TODAY-07/TODAY-08) — each hands [onAddToMeal] the target it stands for, so the tray opens
+ * aimed rather than defaulting and asking to be corrected.
  */
 @Composable
-fun TodayScreen(model: TodayModel = sampleToday) {
+fun TodayScreen(
+    model: TodayModel = sampleToday,
+    onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
+    slotForNow: () -> MealSlot = { currentMealSlot() },
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -151,9 +185,11 @@ fun TodayScreen(model: TodayModel = sampleToday) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (model.meals.isEmpty()) {
-            TodayEmptyLog()
+            TodayEmptyLog(onAdd = { onAddToMeal(model.date, slotForNow()) })
         } else {
-            model.meals.forEach { MealCard(it) }
+            model.meals.forEach { meal ->
+                MealCard(meal = meal, onAdd = { onAddToMeal(model.date, meal.slot) })
+            }
         }
         Spacer(Modifier.height(8.dp))
     }
@@ -251,8 +287,14 @@ private fun ProteinFocus(protein: MacroProgress) {
     }
 }
 
+/**
+ * One meal's card. Its header carries the slot's add control (TODAY-07) — `today_add_<slot>`,
+ * the registry's [AppIconButton] on the app's 48 dp touch floor, sitting where the eye already
+ * is when reading that meal. The card itself is unchanged: this is an affordance, not a
+ * redesign, and the target it carries ([onAdd]) is the card's own slot, never a default.
+ */
 @Composable
-private fun MealCard(meal: MealGroup) {
+private fun MealCard(meal: MealGroup, onAdd: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -268,6 +310,13 @@ private fun MealCard(meal: MealGroup) {
                 text = "${meal.kcal} kcal",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AppIconButton(
+                icon = Icons.Filled.Add,
+                contentDescription = "Add food to ${meal.slot.label}",
+                onClick = onAdd,
+                tint = FuelledColors.Primary,
+                modifier = Modifier.semantics { testTag = "today_add_${meal.slot.name.lowercase()}" },
             )
         }
         meal.entries.forEach { EntryRow(it) }
@@ -292,9 +341,14 @@ private fun EntryRow(entry: LogEntry) {
  * The empty log affordance (TODAY-04): shown in place of the meal cards when the day has no
  * logged entries. The hero ring above still renders — reading the full target as remaining —
  * so the empty state lives inside the content, not the dataless container Empty arm.
+ *
+ * It carries its own add control (TODAY-08): a day with nothing in it is exactly the day food
+ * must be addable to, and with no meal card on screen there is otherwise no way in. Having no
+ * slot of its own, it takes the one the current time suggests (MEAL-04) — a preselect the tray
+ * still lets the user change in one tap.
  */
 @Composable
-private fun TodayEmptyLog() {
+private fun TodayEmptyLog(onAdd: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -304,10 +358,17 @@ private fun TodayEmptyLog() {
             .semantics { testTag = "today_empty" },
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = "No meals logged yet",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "No meals logged yet",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AppTextButton(
+                text = "Add food",
+                onClick = onAdd,
+                modifier = Modifier.semantics { testTag = "today_empty_add" },
+            )
+        }
     }
 }

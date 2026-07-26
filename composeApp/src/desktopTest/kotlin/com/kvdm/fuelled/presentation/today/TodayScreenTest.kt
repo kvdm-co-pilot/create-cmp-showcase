@@ -18,12 +18,18 @@ import com.kvdm.fuelled.domain.model.MealGroup
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.presentation.navigation.Routes
 import com.kvdm.fuelled.testing.StructuralTree
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
+import com.kvdm.fuelled.testing.fakes.FixedClock
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 
 /**
  * Durable screen tests — first-party Compose UI Test, spec-cited, testTag selectors. Each test
@@ -161,6 +167,85 @@ class TodayScreenTest {
         onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(1)
         onNodeWithTag("today_retry", useUnmergedTree = true).assertExists()
     }
+
+    // SPEC: TODAY-07
+    @Test
+    fun `every meal slot on the day carries its own add control`() = runComposeUiTest {
+        repository.summary = FakeTodayRepository.populatedDay // Breakfast + Snack
+
+        setContent {
+            MaterialTheme { TodayRoute(viewModel = viewModel()) }
+        }
+
+        awaitNode(hasTestTag("today_screen"))
+        onNodeWithTag("today_add_breakfast", useUnmergedTree = true).assertExists()
+        onNodeWithTag("today_add_snack", useUnmergedTree = true).assertExists()
+        // A slot the day has no card for offers no control — the affordance belongs to the card.
+        onNodeWithTag("today_add_lunch").assertDoesNotExist()
+    }
+
+    // SPEC: TODAY-07
+    @Test
+    fun `a meal's add control opens the tray targeted at that logical day and that slot`() = runComposeUiTest {
+        repository.summary = FakeTodayRepository.populatedDay.copy(
+            date = LocalDate(2026, 7, 22),
+            meals = listOf(
+                MealGroup(MealSlot.BREAKFAST, listOf(LogEntry("b1", "Rolled oats", "80 g", 430, 38))),
+                MealGroup(MealSlot.DINNER, listOf(LogEntry("d1", "Salmon fillet", "180 g", 360, 40))),
+            ),
+        )
+        // What the tap ASKS FOR: the navigation request the shell would issue, built by the
+        // same Routes function the nav graph uses — not just the callback's arguments.
+        var requested: String? = null
+
+        setContent {
+            MaterialTheme {
+                TodayRoute(
+                    viewModel = viewModel(),
+                    onAddToMeal = { date, slot -> requested = Routes.mealTray(date, slot) },
+                )
+            }
+        }
+
+        awaitNode(hasTestTag("today_add_dinner"))
+        onNodeWithTag("today_add_dinner").performClick()
+        assertEquals("meal/2026-07-22/DINNER", requested)
+
+        // The second tap is the actual proof of TODAY-07: a control that defaulted (to the
+        // day's first slot, or to a clock-derived one) would answer both taps identically.
+        onNodeWithTag("today_add_breakfast").performClick()
+        assertEquals("meal/2026-07-22/BREAKFAST", requested)
+    }
+
+    // SPEC: TODAY-08
+    @Test
+    fun `the empty state's add control opens the tray on the current day at the slot for the time`() =
+        runComposeUiTest {
+            repository.summary = FakeTodayRepository.emptyDay.copy(date = LocalDate(2026, 7, 22))
+            var requested: String? = null
+
+            setContent {
+                MaterialTheme {
+                    TodayRoute(
+                        viewModel = viewModel(),
+                        onAddToMeal = { date, slot -> requested = Routes.mealTray(date, slot) },
+                        // 19:00 sits in the Dinner window (MEAL-04). Fixed here because the
+                        // production seam reads the wall clock, and a test that did too would
+                        // assert a different slot depending on the hour it ran.
+                        slotForNow = {
+                            currentMealSlot(
+                                clock = FixedClock(LocalDateTime(2026, 7, 22, 19, 0).toInstant(TimeZone.UTC)),
+                                zone = TimeZone.UTC,
+                            )
+                        },
+                    )
+                }
+            }
+
+            awaitNode(hasTestTag("today_empty_add"))
+            onNodeWithTag("today_empty_add").performClick()
+            assertEquals("meal/2026-07-22/DINNER", requested)
+        }
 
     // SPEC: TODAY-05
     @Test

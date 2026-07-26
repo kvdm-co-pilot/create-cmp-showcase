@@ -5,7 +5,30 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **Screens outside the shell are now visible to on-device automation.**
+  `Modifier.exposeTestTagsForAutomation()` — the modifier that surfaces Compose testTags as
+  Android resource-ids / iOS accessibilityIdentifiers — was applied inside `AppShell`. The
+  property is inherited by descendants, so it covered the tabs and **nothing else**: every
+  destination registered directly on the NavHost (`food/{foodId}`, and now
+  `meal/{date}/{slot}`) had testTags that no id-selector could see, which made those screens
+  untestable end-to-end — `meal_tray_screen` simply did not exist as a resource-id. Moved to
+  the NavHost itself in `AppNavHost.kt`, the actual graph root, so every destination inherits
+  it and one added later does so without anyone remembering to. The smoke flow now taps
+  `today_add_breakfast` and asserts arrival on `meal_tray_screen` with the header aimed at
+  Breakfast (TODAY-07), which is also the standing guard against this regressing.
+
 ### Added
+- **The add-to-meal tray is reachable from Today** (`specs/today.spec.md` TODAY-07, TODAY-08).
+  Every meal card carries an add control (`today_add_<slot>`) and the empty state carries one
+  too (`today_empty_add`) — a day with nothing logged is exactly the day food must be addable
+  to. The tap's target travels in the route (`meal/{date}/{slot}`, ISO logical date + the
+  `MealSlot` enum name) and reaches `MealTrayViewModel` as a **constructor** input
+  (`MealTrayInitialTarget`), so the tray's first frame is already aimed at that day and slot —
+  never defaulted and then corrected (MEAL-10). The empty state, having no slot of its own,
+  takes the one the current time suggests (`slotForLocalTime`, MEAL-04). An absent or malformed
+  route argument falls back to the tray's existing clock-derived target instead of throwing.
+  New golden baseline for `qa/golden/today.json` (TODAY-06): two add-control nodes, declared.
 - **Add-to-meal tray, wired to the real path** (`specs/meal.spec.md` MEAL-09…12).
   `MealTrayViewModel` holds the target (logical date + slot), the Room-backed catalog and its
   search (through the existing `GetFoodsUseCase`/`SearchFoodsUseCase`), the tray's lines with
