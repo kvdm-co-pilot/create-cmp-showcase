@@ -228,10 +228,13 @@ the Features card and `node qa/approve.mjs --status` print the same derived one-
 
 `touches` declares the blast radius — the governed artifacts this feature expects to
 invalidate. It does not enforce (the artifact hashes already do); it lets the console tell
-"re-approval, as planned" apart from "undeclared blast".
+"re-approval, as planned" apart from "undeclared blast". `screens` declares the UI
+surface: this feature adds its own screens (the add-to-meal tray), so the walk holds a
+design gate — `feature-design:meal`, signed on rendered output — between this brief and
+the build.
 
 ```json cmp:feature
-{ "touches": ["components", "design-system", "feature-spec:today"] }
+{ "touches": ["components", "design-system", "feature-spec:today"], "screens": true }
 ```
 
 ## Sources

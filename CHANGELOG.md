@@ -5,6 +5,41 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Add-to-meal tray, wired to the real path** (`specs/meal.spec.md` MEAL-09…12).
+  `MealTrayViewModel` holds the target (logical date + slot), the Room-backed catalog and its
+  search (through the existing `GetFoodsUseCase`/`SearchFoodsUseCase`), the tray's lines with
+  their servings, and the derived running total; `MealTrayRoute` renders it and confirms
+  through `AddLogEntriesUseCase`. The total now carries **protein, carbs and fat alongside
+  calories**, recomputed on every add/remove/serving change (MEAL-09); the header states the
+  target **date and slot**, and either can be retargeted without emptying the tray — "add to
+  Dinner tomorrow" is the same flow as "add to Lunch today" (MEAL-10). An empty tray disables
+  the confirm control *and* is refused inside the ViewModel, so no write is attempted from any
+  caller (MEAL-11). New golden baseline `qa/golden/meal.json` (MEAL-12).
+- Meal-log **write path** (`specs/meal.spec.md` MEAL-05…08): `AddLogEntriesUseCase`,
+  `DeleteLogEntryUseCase`, `MarkEntryLoggedUseCase`, and the matching `TodayRepository`
+  writes. A tray confirm writes every item to one `(logical date, slot)` in a single
+  transaction; the same write is a *log* on the current logical day and a *plan* on a future
+  one (MEAL-08).
+
+### Changed
+- **Today is now a dated, status-aware ledger** (amended TODAY-01/TODAY-03). `TodayModel`
+  carries the logical day's `LocalDate` instead of a stored `dateLabel`, `MealGroup` carries
+  the closed `MealSlot` enum instead of a free-text meal name, and the day's consumed total
+  and macro progress sum `LOGGED` entries only — a `PLANNED` entry shows in its meal group but
+  is never counted as consumed. Presentation formats the date and the slot label.
+- Room schema **v6**: `today_log` gains `logicalDate`/`slot`/`status` and drops `mealOrder`
+  (slot order derives from `MealSlot.ordinal`); `today_goal` drops `dateLabel`. Destructive
+  fallback re-seeds the sample day, dated with the logical day the seed runs on.
+- `qa/golden/today.json` regenerated: the header renders the formatted logical date
+  ("WEDNESDAY, JUL 22") in place of the old fixture's `"GOLDEN DAY"` label — one line.
+- The meal tray's signed design draft (`feature-design:meal`) drifts **as declared**: the total
+  bar gained the P/C/F macro row MEAL-09 requires, and the header gained the target-date line
+  plus a Yesterday/Today/Tomorrow pill row MEAL-10 requires — both built from the draft's own
+  vocabulary (macro `Tag`s, the existing slot pill). Nothing else was restyled; a human
+  re-approves on the re-rendered screens. The draft's private `MealSlot` enum is gone: the
+  screen now uses `domain.model.MealSlot`, so the app has exactly one.
+
 ## [0.1.0] — scaffold
 
 ### Added

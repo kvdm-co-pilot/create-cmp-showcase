@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
+import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
@@ -36,6 +37,7 @@ import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Today: the daily macro dashboard (the hero screen) ───────────────────────────────
@@ -44,32 +46,56 @@ import org.koin.compose.viewmodel.koinViewModel
 //   • TodayRoute  — the VM-backed tab the nav graph hosts: Loading/Content/Error are driven
 //     by TodayViewModel through ContentStateContainer.
 // Macro colours are a PRESENTATION concern assigned here per-macro; the domain MacroProgress
-// carries none (ARCH-02 keeps domain free of Compose types).
+// carries none (ARCH-02 keeps domain free of Compose types). So are the two strings this
+// screen derives from domain VALUES: the logical day's date (TODAY-01) and each meal slot's
+// user-facing label (MEAL-03) are formatted HERE — the model carries a LocalDate and a
+// MealSlot, never their rendering.
 
 // PREVIEW/DEMO fixture — the screen's preview seam. Not production data: the Room-backed
-// TodayRepositoryImpl seeds its own realistic day for the VM-backed TodayRoute.
+// TodayRepositoryImpl seeds its own realistic day for the VM-backed TodayRoute. Its date is
+// FIXED, not "today", so gallery renders and golden diffs stay deterministic.
 val sampleToday = TodayModel(
-    dateLabel = "Wednesday, Jul 23",
+    date = LocalDate(2026, 7, 22),
     consumedKcal = 1461,
     targetKcal = 2400,
     protein = MacroProgress("Protein", 121, 180, "g"),
     carbs = MacroProgress("Carbs", 168, 260, "g"),
     fat = MacroProgress("Fat", 31, 70, "g"),
     meals = listOf(
-        MealGroup("Breakfast", listOf(
-            LogEntry("Rolled oats & whey", "80 g · 1 scoop", 430, 38),
-            LogEntry("Banana", "1 medium", 105, 1),
+        MealGroup(MealSlot.BREAKFAST, listOf(
+            LogEntry("s-b1", "Rolled oats & whey", "80 g · 1 scoop", 430, 38),
+            LogEntry("s-b2", "Banana", "1 medium", 105, 1),
         )),
-        MealGroup("Lunch", listOf(
-            LogEntry("Chicken breast & rice", "200 g · 150 g", 620, 58),
-            LogEntry("Mixed greens", "1 bowl", 90, 3),
+        MealGroup(MealSlot.LUNCH, listOf(
+            LogEntry("s-l1", "Chicken breast & rice", "200 g · 150 g", 620, 58),
+            LogEntry("s-l2", "Mixed greens", "1 bowl", 90, 3),
         )),
-        MealGroup("Snack", listOf(
-            LogEntry("Greek yogurt 0%", "170 g", 100, 17),
-            LogEntry("Almonds", "20 g", 116, 4),
+        MealGroup(MealSlot.SNACK, listOf(
+            LogEntry("s-s1", "Greek yogurt 0%", "170 g", 100, 17),
+            LogEntry("s-s2", "Almonds", "20 g", 116, 4),
         )),
     ),
 )
+
+/**
+ * The logical day's date as the header shows it: "Wednesday, Jul 22" (TODAY-01). Presentation
+ * formatting of a domain value — deliberately not a stored label, which is what this screen
+ * used to render and what nothing could ever query by.
+ */
+internal fun LocalDate.dayHeaderLabel(): String {
+    val weekday = dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }
+    val month = month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+    return "$weekday, $month $day"
+}
+
+/** The slot's user-facing label (MEAL-03) — the domain enum carries the value, never the copy. */
+internal val MealSlot.label: String
+    get() = when (this) {
+        MealSlot.BREAKFAST -> "Breakfast"
+        MealSlot.LUNCH -> "Lunch"
+        MealSlot.DINNER -> "Dinner"
+        MealSlot.SNACK -> "Snack"
+    }
 
 /**
  * The VM-backed Today tab the nav graph hosts. The Loading/Content/Error state machine lives in
@@ -109,7 +135,7 @@ fun TodayScreen(model: TodayModel = sampleToday) {
             FuelledWordmark(markSize = 26.dp)
             Spacer(Modifier.weight(1f))
             Text(
-                text = model.dateLabel.uppercase(),
+                text = model.date.dayHeaderLabel().uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.semantics { testTag = "today_title" },
@@ -236,7 +262,7 @@ private fun MealCard(meal: MealGroup) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(meal.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(meal.slot.label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.weight(1f))
             Text(
                 text = "${meal.kcal} kcal",

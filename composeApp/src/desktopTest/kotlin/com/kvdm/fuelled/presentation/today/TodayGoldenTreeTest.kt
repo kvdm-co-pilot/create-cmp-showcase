@@ -8,6 +8,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
+import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
 import com.kvdm.fuelled.testing.StructuralTree
@@ -16,6 +17,7 @@ import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
+import kotlinx.datetime.LocalDate
 
 /**
  * Golden-tree structural baseline — SPEC: TODAY-06.
@@ -35,16 +37,18 @@ class TodayGoldenTreeTest {
     private val baseline = File("../qa/golden/today.json")
 
     // Fixed dataset — golden renders must be deterministic; never use live/random data here.
+    // The date is a FIXED LocalDate for the same reason: the model now carries the logical day
+    // (TODAY-01), and "whatever day the run happened on" would make this baseline unstable.
     private val goldenDay = TodayModel(
-        dateLabel = "Golden Day",
+        date = LocalDate(2026, 7, 22),
         consumedKcal = 535,
         targetKcal = 2400,
         protein = MacroProgress("Protein", 39, 180, "g"),
         carbs = MacroProgress("Carbs", 79, 260, "g"),
         fat = MacroProgress("Fat", 9, 70, "g"),
         meals = listOf(
-            MealGroup("Breakfast", listOf(LogEntry("Golden oats", "80 g", 430, 38))),
-            MealGroup("Snack", listOf(LogEntry("Golden banana", "1 medium", 105, 1))),
+            MealGroup(MealSlot.BREAKFAST, listOf(LogEntry("g1", "Golden oats", "80 g", 430, 38))),
+            MealGroup(MealSlot.SNACK, listOf(LogEntry("g2", "Golden banana", "1 medium", 105, 1))),
         ),
     )
 

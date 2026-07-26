@@ -10,6 +10,8 @@ import com.kvdm.fuelled.presentation.navigation.AppShell
 import com.kvdm.fuelled.presentation.navigation.appTabs
 import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
 import com.kvdm.fuelled.presentation.foods.FoodsScreen
+import com.kvdm.fuelled.presentation.meal.MealTrayScreen
+import com.kvdm.fuelled.presentation.meal.TrayContents
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
@@ -61,6 +63,10 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
     ScreenPreview("profile", "Profile tab") { TabHost { ProfileScreen() } },
+    ScreenPreview("meal-tray", "Meal tray — add to Lunch (3 ticked)") { TabHost { MealTrayScreen() } },
+    ScreenPreview("meal-tray@empty", "Meal tray — empty selection") {
+        TabHost { MealTrayScreen(tray = TrayContents()) }
+    },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()
 

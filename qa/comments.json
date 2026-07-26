@@ -14,6 +14,29 @@
       "resolvedAt": "2026-07-24T09:24:09.399Z",
       "resolvedBy": "agent-cli",
       "resolutionNote": "Not a rendering failure — the components were drawing correctly, in black, on a near-black background. StoryHost wrapped stories in a Box, which paints a background but provides no LocalContentColor; that comes from Surface (real screens get it via BaseScreen's Scaffold). So components inheriting content colour — AppIconButton's default tint, ScreenColumn's bare Text — fell back to black. StoryHost is now a Surface(color = Background, contentColor = OnSurface); fixed in the template and mirrored here. Re-rendered: AppIconButton enabled arrow white + disabled dimmed, ScreenColumn text legible, AppHeader title white. Story canvas sizing (small component on a full-height frame) is a separate open item."
+    },
+    {
+      "id": "c2",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with meal: build & cite: 12 clause(s) have no citing test yet",
+      "author": "human-console",
+      "createdAt": "2026-07-25T22:04:12.477Z",
+      "status": "resolved",
+      "resolvedAt": "2026-07-25T22:19:38.024Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "ML-1 landed: the logical day and the meal slots. New: core/time/LogicalDay.kt (logicalDate + DEFAULT_DAY_START_HOUR, wall-clock arithmetic so DST cannot drift the boundary) and domain/model/Meal.kt (MealSlot closed enum in slot order, LogStatus declared for ML-2, slotForLocalTime windows). Cited by LogicalDayTest (MEAL-01 x4, MEAL-02) and MealTest (MEAL-03, MEAL-04 x4). Coverage 0/12 -> 4/12. desktopTest 116/116 green on a FORCED rerun (--rerun, not a cache replay), conformance suite included; iOS framework link and Android assembleDebug also green. presentation/meal/ deliberately untouched — feature-design:meal stays signed at 08beff5c; wiring the tray to the domain enum is ML-3 and takes a re-approval. Remaining: MEAL-05..12, 8 clauses, ML-2 (write path) then ML-3 (tray)."
+    },
+    {
+      "id": "c3",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with meal: prove: run node qa/verify.mjs so the receipt attests this tree",
+      "author": "human-console",
+      "createdAt": "2026-07-26T11:39:53.752Z",
+      "status": "open"
     }
   ]
 }

@@ -3,33 +3,75 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "7452d61ab8ac4010fb158d7f396a0bcd1f48ff2e",
+    "sha": "b0775c6d1851db1298068d23630eb65c9494e16e",
     "dirty": [
-      "CLAUDE.md",
-      "qa/lib/approvals.mjs"
+      "CHANGELOG.md",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/6.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/6.json",
+      "composeApp/schemas/iosSimulatorArm64/com.kvdm.fuelled.data.local.AppDatabase/6.json",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/time/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayDao.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Meal.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Today.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/TodayRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/DeleteLogEntryUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/MarkEntryLoggedUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/core/time/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImplTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/DeleteLogEntryUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetTodaySummaryUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/MarkEntryLoggedUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/meal/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayDao.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FixedClock.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/meal/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
+      "docs/ARCHITECTURE.md",
+      "docs/features/meal.md",
+      "qa/approvals.json",
+      "qa/comments.json",
+      "qa/evidence/latest.json",
+      "qa/golden/meal.json",
+      "qa/golden/today.json",
+      "qa/lib/approvals.mjs",
+      "qa/lib/feature-brief.mjs",
+      "specs/meal.spec.md",
+      "specs/today.spec.md"
     ]
   },
   "inputs": {
-    "hash": "2ca427ec78c9a549b0995fb2185469a3ff8f85f23dbdf5c1039aa738c88fcb5a",
-    "fileCount": 232
+    "hash": "f1fd0723f7756b1aaca6225ce5eb12b1c44baada0160194a064cd06b504ad135",
+    "fileCount": 253
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 65,
+      "durationMs": 24,
       "details": {
-        "clauses": 46,
+        "clauses": 58,
         "withdrawn": 0,
-        "tags": 103,
-        "files": 148
+        "tags": 141,
+        "files": 164
       }
     },
     {
       "name": "approvals",
-      "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:meal] Feature brief (docs/features/meal.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:meal",
-      "durationMs": 32,
+      "verdict": "PASS",
+      "durationMs": 17,
       "details": {
         "artifacts": [
           {
@@ -39,8 +81,8 @@
           },
           {
             "id": "feature-brief:meal",
-            "status": "unreviewed",
-            "hash": "202cc64b89ab6c69d0262a23122ab4d1fd87859fa3afc671d181a08952801186"
+            "status": "approved",
+            "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767"
           },
           {
             "id": "architecture",
@@ -68,6 +110,16 @@
             "hash": "85cab4bcf9cd9d3986d4617cc0e115250fccf72d8533c3269fc3c67280d89348"
           },
           {
+            "id": "feature-design:meal",
+            "status": "approved",
+            "hash": "6716fc54895c1fcd13f74c8805b6fe457f57f7d81fb5254099e6f59f219241df"
+          },
+          {
+            "id": "feature-spec:meal",
+            "status": "approved",
+            "hash": "0cb2918686c4cb55a59caac34cc78b88d0a2a24bd61deabf4ae5a90b1a2cb3f6"
+          },
+          {
             "id": "feature-spec:profile",
             "status": "approved",
             "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8"
@@ -80,7 +132,7 @@
           {
             "id": "feature-spec:today",
             "status": "approved",
-            "hash": "d636e0e8862ecb7587d8b07318f2cf88b672a2e6a9fc5a533e764baec1707294"
+            "hash": "d47f0f1a699dc7c6a1cb24eec428fb4f2bf76cbb4ab30280702d0c442851289e"
           }
         ]
       }
@@ -88,7 +140,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 5,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -99,7 +151,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 21,
+      "durationMs": 13,
       "details": {
         "sectionsChecked": 4
       }
@@ -107,14 +159,14 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 21271
+      "durationMs": 2922
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 7590,
+      "durationMs": 9745,
       "details": {
-        "tests": 105,
+        "tests": 147,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -123,17 +175,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3001
+      "durationMs": 3240
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4418
+      "durationMs": 5808
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 464,
+      "durationMs": 330,
       "details": {
         "checked": 1,
         "drifted": 0
@@ -142,12 +194,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3707
+      "durationMs": 5095
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 119170
+      "durationMs": 54718
     }
   ],
   "strength": {
@@ -161,5 +213,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-25T14:13:51.000Z"
+  "generatedAt": "2026-07-26T11:41:54.797Z"
 }

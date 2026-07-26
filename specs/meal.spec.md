@@ -1,0 +1,63 @@
+# Spec: meal (logging, slots, and the add-to-meal tray)
+
+> Meal logging turns Fuelled from a read-only daily snapshot into a food ledger: every entry
+> carries a logical date, a meal slot, and a status, and food reaches the ledger through a
+> multi-select tray with a live running total. The decisions behind these clauses — and the
+> reasoning rejected along the way — are the signed brief, `docs/features/meal.md`.
+> Every clause id is cited by the durable test(s) that verify it (`// SPEC: MEAL-NN`).
+
+**Scope of this contract.** These clauses promise slices M1–M3 of the brief's plan: the data
+model (logical day, slot enum, status), the write path, and the add-to-meal tray. Day
+navigation, history browsing, and motion tokens (M4–M6) are deliberately **not promised
+here** — they get their own clauses when those slices are specified, so the contract never
+claims behavior nobody is building yet.
+
+## The logical day (M1)
+
+- **MEAL-01** — Given the profile's `dayStartHour` (default 4), When an instant is mapped to
+  a logical date, Then every instant from `dayStartHour`:00 through 03:59 of the following
+  calendar day maps to the same logical date; and with `dayStartHour = 0` the logical date
+  equals the calendar date — midnight is the special case of the setting, not a separate rule.
+- **MEAL-02** — Given the logical day has rolled over while the app was backgrounded, When
+  the app returns to the foreground, Then the day in view is re-derived from the current
+  instant, and no stored entry is mutated by the rollover — the boundary is computed on read,
+  never a scheduled job that rewrites rows.
+
+## Meal slots (M1, M3)
+
+- **MEAL-03** — Given any log entry, Then its meal slot is one of `BREAKFAST`, `LUNCH`,
+  `DINNER`, `SNACK` — a closed enum, never a free-text meal name — and a day's entries are
+  grouped and ordered by that slot.
+- **MEAL-04** — Given the add-to-meal tray opens at a local time, Then the slot preselected is
+  Breakfast for 04:00–10:30, Lunch for 10:30–15:00, Dinner for 15:00–21:00, and Snack
+  otherwise; and the preselection is changeable to any other slot in one tap before the tray
+  is confirmed — a preselect is never a lock.
+
+## The write path (M2)
+
+- **MEAL-05** — Given a tray holding one or more items with their servings and a target
+  (logical date, slot), When the tray is confirmed, Then every item is written to that date
+  and slot in a single transaction; and when the write fails, no entry is persisted and a
+  mapped `DomainError` is surfaced, never a raw exception message.
+- **MEAL-06** — Given a logged entry, When it is deleted, Then it is removed from its day and
+  that day's consumed total and macro progress recompute without it.
+- **MEAL-07** — Given a `PLANNED` entry, When it is marked logged, Then its status becomes
+  `LOGGED`, it begins counting toward that day's consumed total, and no other entry changes.
+- **MEAL-08** — Given the tray is confirmed, When its target date is the current logical day,
+  Then the entries are written `LOGGED`; and when the target date is a future logical day,
+  Then they are written `PLANNED` — scheduling and logging are the same write with a
+  different target.
+
+## The add-to-meal tray (M3)
+
+- **MEAL-09** — Given items are added to or removed from the tray, or a serving is adjusted,
+  Then the tray shows the running total of its contents — calories plus protein, carbs, and
+  fat — recomputed on every change.
+- **MEAL-10** — Given the tray is open, Then its header states the target logical date and
+  slot, and changing either retargets the same tray — "add to Dinner tomorrow" is the
+  identical flow to "add to Lunch today".
+- **MEAL-11** — Given the tray holds no items, Then the confirm control is disabled and no
+  write can be attempted.
+- **MEAL-12** — Given the add-to-meal screen renders, When its structure is inspected, Then it
+  matches its committed golden tree (`qa/golden/meal.json`) — structural change must be
+  intentional and declared.

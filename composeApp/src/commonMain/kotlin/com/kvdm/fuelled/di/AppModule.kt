@@ -9,19 +9,24 @@ import com.kvdm.fuelled.domain.repository.FoodRepository
 import com.kvdm.fuelled.domain.repository.ProfileRepository
 import com.kvdm.fuelled.domain.repository.SupplementRepository
 import com.kvdm.fuelled.domain.repository.TodayRepository
+import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.domain.usecase.MarkEntryLoggedUseCase
 import com.kvdm.fuelled.domain.usecase.SearchFoodsUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.presentation.foods.FoodDetailViewModel
 import com.kvdm.fuelled.presentation.foods.FoodsViewModel
+import com.kvdm.fuelled.presentation.meal.MealTrayViewModel
 import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 // cmp:anchor di-imports
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -42,6 +47,11 @@ val useCaseModule = module {
     factory { SearchFoodsUseCase(get()) }
     factory { GetFoodUseCase(get()) }
     factory { GetTodaySummaryUseCase(get()) }
+    // The meal-log write path. AddLogEntriesUseCase takes its clock/zone/dayStartHour from its
+    // production defaults; tests construct it directly with a fixed clock (MEAL-08).
+    factory { AddLogEntriesUseCase(get()) }
+    factory { DeleteLogEntryUseCase(get()) }
+    factory { MarkEntryLoggedUseCase(get()) }
     factory { GetSupplementStackUseCase(get()) }
     factory { SetSupplementTakenUseCase(get()) }
     factory { GetProfileUseCase(get()) }
@@ -54,6 +64,10 @@ val viewModelModule = module {
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::ProfileViewModel)
+    // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
+    // by hand rather than with viewModelOf — which would try to resolve those three from the
+    // graph. Tests construct it directly with a FixedClock (MEAL-04/MEAL-10).
+    viewModel { MealTrayViewModel(get(), get(), get()) }
     // cmp:anchor di-viewmodels
 }
 

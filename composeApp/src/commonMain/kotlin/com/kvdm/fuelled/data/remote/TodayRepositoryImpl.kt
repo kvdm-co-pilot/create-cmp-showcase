@@ -1,22 +1,43 @@
 package com.kvdm.fuelled.data.remote
 
+import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.data.local.LogEntryEntity
 import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.TodayGoalEntity
+import com.kvdm.fuelled.data.local.logStatus
+import com.kvdm.fuelled.data.local.mealSlot
 import com.kvdm.fuelled.data.local.toDomain
+import com.kvdm.fuelled.data.local.toEntity
 import com.kvdm.fuelled.data.suspendRunCatching
+import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
+import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.domain.model.NewLogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 
 /**
- * The Room-backed Today dashboard — the fully-wired data source. Reads the flat [TodayDao]
- * rows (one goal + many log entries) and AGGREGATES them into the domain [TodayModel]:
- * groups entries by meal in order, totals each meal and the day, and computes each macro's
- * current against the goal's target. Seeds a realistic sample day on first run so the app
- * has content offline from install (idempotent).
+ * The Room-backed Today dashboard and meal-log write path — the fully-wired data source.
+ * Reads the flat [TodayDao] rows (one goal + many log entries) and AGGREGATES them into the
+ * domain [TodayModel]: groups the day's entries by slot IN SLOT ORDER, totals each meal and
+ * the day, and computes each macro's current against the goal's target. Seeds a realistic
+ * sample day on first run so the app has content offline from install (idempotent).
+ *
+ * **The day in view is derived, never stored (MEAL-02/TODAY-01).** Every read computes
+ * `logicalDate(clock.now(), dayStartHour, zone)` afresh, so the day rolls over by
+ * re-derivation when the app returns to the foreground — there is no boundary row and no
+ * scheduled job that rewrites entries. The clock, zone, and `dayStartHour` are constructor
+ * parameters with production defaults so tests can drive the boundary.
+ *
+ * **Consumed is `LOGGED`-only (TODAY-03).** A `PLANNED` entry is still returned in its meal
+ * group — it is scheduled and the tray wrote it — but it contributes to neither the calorie
+ * ring nor any macro's current until it is marked logged (MEAL-07).
  *
  * The repository is the ONLY exception-translation point: every DAO call runs inside
  * suspendRunCatching (data/AppResultCatching.kt), which maps infrastructure exceptions to
@@ -25,40 +46,87 @@ import com.kvdm.fuelled.domain.result.AppResult
  */
 class TodayRepositoryImpl(
     private val dao: TodayDao,
+    private val clock: Clock = Clock.System,
+    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : TodayRepository {
 
     override suspend fun getTodaySummary(): AppResult<TodayModel> = suspendRunCatching {
-        ensureSeeded()
+        val dayInView = currentLogicalDay()
+        ensureSeeded(dayInView)
         val goal = dao.goal() ?: error("today goal row missing after seeding")
-        aggregate(goal, dao.entries())
+        aggregate(dayInView, goal, dao.entries(dayInView.toString()))
     }
 
     /**
-     * Fold the flat rows into the aggregate. Entries arrive meal-grouped and ordered from the
-     * DAO, so `groupBy` preserves meal order (first-seen key order). The day's consumed total
-     * is the sum of every entry's calories (TODAY-03); each macro's current is the sum of that
-     * macro across every entry, against the goal's target (TODAY-02).
+     * MEAL-05: one transaction, all-or-nothing. The rows are built first and handed to the
+     * DAO's single atomic call — never inserted one by one from here, which would leave a
+     * half-written meal behind on the failing item.
      */
-    private fun aggregate(goal: TodayGoalEntity, rows: List<LogEntryEntity>): TodayModel {
-        val meals = rows
-            .groupBy { it.meal }
-            .map { (meal, entries) -> MealGroup(name = meal, entries = entries.map { it.toDomain() }) }
+    override suspend fun addEntries(
+        entries: List<NewLogEntry>,
+        date: LocalDate,
+        slot: MealSlot,
+        status: LogStatus,
+    ): AppResult<Unit> = suspendRunCatching {
+        // Append after whatever is already in this (day, slot) so the tray's items keep their
+        // order behind the existing ones. Single-user local storage: no contending writer.
+        val firstOrder = dao.maxEntryOrder(date.toString(), slot.name) + 1
+        dao.insertEntriesAtomically(
+            entries.mapIndexed { index, entry ->
+                entry.toEntity(date, slot, status, firstOrder + index)
+            },
+        )
+    }
+
+    override suspend fun deleteEntry(id: String): AppResult<Unit> = suspendRunCatching {
+        dao.deleteEntry(id)
+    }
+
+    override suspend fun markEntryLogged(id: String): AppResult<Unit> = suspendRunCatching {
+        dao.setStatus(id, LogStatus.LOGGED.name)
+    }
+
+    /** The logical day the app is showing right now — recomputed on every call (MEAL-02). */
+    private fun currentLogicalDay(): LocalDate = logicalDate(clock.now(), dayStartHour, zone)
+
+    /**
+     * Fold the flat rows into the aggregate.
+     *
+     * Groups come out in `MealSlot` declaration order (MEAL-03/TODAY-03) by walking the enum
+     * rather than the rows: the ordinal is the ONE source of slot order, so reordering the
+     * enum reorders the screen and nothing has to be kept in sync. Entries inside a group keep
+     * the DAO's `entryOrder`.
+     *
+     * The day's consumed total and every macro's current sum the `LOGGED` rows only — a
+     * `PLANNED` entry appears in its group but is not eaten (TODAY-02/TODAY-03/MEAL-08).
+     */
+    private fun aggregate(date: LocalDate, goal: TodayGoalEntity, rows: List<LogEntryEntity>): TodayModel {
+        val bySlot = rows.groupBy { it.mealSlot }
+        val meals = MealSlot.entries.mapNotNull { slot ->
+            bySlot[slot]?.let { slotRows -> MealGroup(slot = slot, entries = slotRows.map { it.toDomain() }) }
+        }
+        val consumed = rows.filter { it.logStatus == LogStatus.LOGGED }
         return TodayModel(
-            dateLabel = goal.dateLabel,
-            consumedKcal = rows.sumOf { it.kcal },
+            date = date,
+            consumedKcal = consumed.sumOf { it.kcal },
             targetKcal = goal.targetKcal,
-            protein = MacroProgress("Protein", rows.sumOf { it.proteinG }, goal.proteinTargetG, "g"),
-            carbs = MacroProgress("Carbs", rows.sumOf { it.carbsG }, goal.carbsTargetG, "g"),
-            fat = MacroProgress("Fat", rows.sumOf { it.fatG }, goal.fatTargetG, "g"),
+            protein = MacroProgress("Protein", consumed.sumOf { it.proteinG }, goal.proteinTargetG, "g"),
+            carbs = MacroProgress("Carbs", consumed.sumOf { it.carbsG }, goal.carbsTargetG, "g"),
+            fat = MacroProgress("Fat", consumed.sumOf { it.fatG }, goal.fatTargetG, "g"),
             meals = meals,
         )
     }
 
-    /** Seed a realistic day on first run so the dashboard ships with content offline (idempotent). */
-    private suspend fun ensureSeeded() {
+    /**
+     * Seed a realistic day on first run so the dashboard ships with content offline
+     * (idempotent). The rows are stamped with the logical day the seed RAN on, so the starter
+     * day is the day the user first opens the app — not a date frozen into the source.
+     */
+    private suspend fun ensureSeeded(dayInView: LocalDate) {
         if (dao.goalCount() == 0) {
             dao.upsertGoal(SEED_GOAL)
-            dao.upsertEntries(SEED_ENTRIES)
+            dao.upsertEntries(seedEntries(dayInView))
         }
     }
 
@@ -67,19 +135,24 @@ class TodayRepositoryImpl(
         // seed data, ARCH-09); the presentation layer keeps its own preview fixture separately.
         val SEED_GOAL = TodayGoalEntity(
             id = "current",
-            dateLabel = "Wednesday, Jul 23",
             targetKcal = 2400,
             proteinTargetG = 180,
             carbsTargetG = 260,
             fatTargetG = 70,
         )
-        val SEED_ENTRIES = listOf(
-            LogEntryEntity("b1", "Breakfast", 0, 0, "Rolled oats & whey", "80 g · 1 scoop", 430, 38, 52, 9),
-            LogEntryEntity("b2", "Breakfast", 0, 1, "Banana", "1 medium", 105, 1, 27, 0),
-            LogEntryEntity("l1", "Lunch", 1, 0, "Chicken breast & rice", "200 g · 150 g", 620, 58, 68, 8),
-            LogEntryEntity("l2", "Lunch", 1, 1, "Mixed greens", "1 bowl", 90, 3, 11, 4),
-            LogEntryEntity("s1", "Snack", 2, 0, "Greek yogurt 0%", "170 g", 100, 17, 6, 0),
-            LogEntryEntity("s2", "Snack", 2, 1, "Almonds", "20 g", 116, 4, 4, 10),
-        )
+
+        /** The seeded log — the same foods the dashboard has always shown, now dated and slotted. */
+        fun seedEntries(date: LocalDate): List<LogEntryEntity> {
+            val day = date.toString()
+            val logged = LogStatus.LOGGED.name
+            return listOf(
+                LogEntryEntity("b1", day, MealSlot.BREAKFAST.name, logged, 0, "Rolled oats & whey", "80 g · 1 scoop", 430, 38, 52, 9),
+                LogEntryEntity("b2", day, MealSlot.BREAKFAST.name, logged, 1, "Banana", "1 medium", 105, 1, 27, 0),
+                LogEntryEntity("l1", day, MealSlot.LUNCH.name, logged, 2, "Chicken breast & rice", "200 g · 150 g", 620, 58, 68, 8),
+                LogEntryEntity("l2", day, MealSlot.LUNCH.name, logged, 3, "Mixed greens", "1 bowl", 90, 3, 11, 4),
+                LogEntryEntity("s1", day, MealSlot.SNACK.name, logged, 4, "Greek yogurt 0%", "170 g", 100, 17, 6, 0),
+                LogEntryEntity("s2", day, MealSlot.SNACK.name, logged, 5, "Almonds", "20 g", 116, 4, 4, 10),
+            )
+        }
     }
 }

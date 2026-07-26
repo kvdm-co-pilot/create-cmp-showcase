@@ -2,7 +2,7 @@
   {"tag": "today_screen", "children": [
     {"tag": "brand_mark", "contentDescription": "Fuelled"},
     {"text": "Fuelled"},
-    {"tag": "today_title", "text": "GOLDEN DAY"},
+    {"tag": "today_title", "text": "WEDNESDAY, JUL 22"},
     {"children": [
       {"text": "1865"},
       {"text": "kcal left"},

@@ -7,17 +7,23 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.LogEntry
+import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
+import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.testing.StructuralTree
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDate
 
 /**
  * Durable screen tests — first-party Compose UI Test, spec-cited, testTag selectors. Each test
@@ -33,9 +39,10 @@ class TodayScreenTest {
 
     // SPEC: TODAY-01
     @Test
-    fun `renders the date, the calorie ring's remaining, and no error`() = runComposeUiTest {
-        // consumed 535 of 2400 → 1865 remaining.
-        repository.summary = FakeTodayRepository.populatedDay
+    fun `renders the logical day's date, the calorie ring's remaining, and no error`() = runComposeUiTest {
+        // consumed 535 of 2400 → 1865 remaining. The model carries a LocalDate (the logical
+        // day, MEAL-01) and the screen formats it — there is no stored label to render.
+        repository.summary = FakeTodayRepository.populatedDay.copy(date = LocalDate(2026, 7, 22))
 
         setContent {
             MaterialTheme { TodayRoute(viewModel = viewModel()) }
@@ -43,7 +50,7 @@ class TodayScreenTest {
 
         awaitNode(hasTestTag("today_screen"))
         onNodeWithTag("today_title", useUnmergedTree = true).assertExists()
-        onAllNodesWithText("WEDNESDAY, JUL 23").assertCountEquals(1)
+        onAllNodesWithText("WEDNESDAY, JUL 22").assertCountEquals(1)
         onAllNodesWithText("1865").assertCountEquals(1) // kcal remaining
         onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(0)
     }
@@ -79,9 +86,10 @@ class TodayScreenTest {
 
     // SPEC: TODAY-03
     @Test
-    fun `groups the log by meal with each meal's total calories`() = runComposeUiTest {
+    fun `groups the log by meal slot in slot order with each meal's total calories`() = runComposeUiTest {
         repository.summary = TodayModel(
-            dateLabel = "Wednesday, Jul 23",
+            date = LocalDate(2026, 7, 22),
+            // 535 LOGGED (430 + 105); the planned 116 kcal snack is NOT part of it.
             consumedKcal = 535,
             targetKcal = 2400,
             protein = MacroProgress("Protein", 39, 180, "g"),
@@ -89,11 +97,14 @@ class TodayScreenTest {
             fat = MacroProgress("Fat", 9, 70, "g"),
             meals = listOf(
                 // Two entries → the meal total (535) is distinct from any single entry's kcal.
-                MealGroup("Breakfast", listOf(
-                    LogEntry("Rolled oats & whey", "80 g · 1 scoop", 430, 38),
-                    LogEntry("Banana", "1 medium", 105, 1),
+                MealGroup(MealSlot.BREAKFAST, listOf(
+                    LogEntry("b1", "Rolled oats & whey", "80 g · 1 scoop", 430, 38),
+                    LogEntry("b2", "Banana", "1 medium", 105, 1),
                 )),
-                MealGroup("Snack", listOf(LogEntry("Almonds", "20 g", 116, 4))),
+                MealGroup(MealSlot.DINNER, listOf(LogEntry("d1", "Salmon fillet", "180 g", 360, 40))),
+                MealGroup(MealSlot.SNACK, listOf(
+                    LogEntry("s1", "Almonds", "20 g", 116, 4, status = LogStatus.PLANNED),
+                )),
             ),
         )
 
@@ -102,9 +113,25 @@ class TodayScreenTest {
         }
 
         awaitNode(hasText("Breakfast"))
+        // The slot's LABEL is rendered from the closed enum (MEAL-03) — no free-text meal name.
+        onAllNodesWithText("Dinner").assertCountEquals(1)
         onAllNodesWithText("Snack").assertCountEquals(1)
         onAllNodesWithText("Rolled oats & whey").assertCountEquals(1)
         onAllNodesWithText("535 kcal").assertCountEquals(1) // Breakfast meal total = 430 + 105
+
+        // The PLANNED entry is still rendered in its meal group — it is scheduled, not hidden.
+        onAllNodesWithText("Almonds").assertCountEquals(1)
+        // …but it is not eaten: the ring reads 2400 - 535, with the planned 116 kcal excluded.
+        onAllNodesWithText("1865").assertCountEquals(1)
+
+        // Slot ORDER, asserted structurally: Breakfast before Dinner before Snack, top to
+        // bottom in the rendered tree — not the order they were handed to the screen by name.
+        val tree = StructuralTree.serialize(onRoot(useUnmergedTree = true).fetchSemanticsNode())
+        val breakfastAt = tree.indexOf(""""text": "Breakfast"""")
+        val dinnerAt = tree.indexOf(""""text": "Dinner"""")
+        val snackAt = tree.indexOf(""""text": "Snack"""")
+        assertTrue(breakfastAt in 0 until dinnerAt, "Breakfast renders before Dinner")
+        assertTrue(dinnerAt < snackAt, "Dinner renders before Snack")
     }
 
     // SPEC: TODAY-04

@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.LocalDate
 
 /**
  * The Today ViewModel test — mirrors FoodsViewModelTest: Turbine over the [ContentUiState]
@@ -44,13 +45,17 @@ class TodayViewModelTest {
 
     // SPEC: TODAY-01
     @Test
-    fun `emits Loading then Content when the summary loads`() = runTest(dispatcher) {
+    fun `emits Loading then Content carrying the logical day's date`() = runTest(dispatcher) {
         val day = FakeTodayRepository.populatedDay
         repository.summary = day
 
         viewModel().state.test {
             assertEquals(ContentUiState.Loading, awaitItem(), "initial state should be Loading")
-            assertEquals(ContentUiState.Content(day), awaitItem())
+            val content = assertIs<ContentUiState.Content<TodayModel>>(awaitItem())
+            assertEquals(ContentUiState.Content(day), content)
+            // The VM hands the screen a real LocalDate; formatting it is the screen's job, and
+            // the VM never invents a label of its own (TODAY-01).
+            assertEquals(LocalDate(2026, 7, 22), content.data.date)
         }
     }
 
@@ -97,7 +102,7 @@ class TodayViewModelTest {
 
             assertEquals(ContentUiState.Loading, awaitItem(), "reload should show loading again")
             val recovered = assertIs<ContentUiState.Content<TodayModel>>(awaitItem())
-            assertEquals("Wednesday, Jul 23", recovered.data.dateLabel)
+            assertEquals(LocalDate(2026, 7, 22), recovered.data.date)
         }
     }
 }

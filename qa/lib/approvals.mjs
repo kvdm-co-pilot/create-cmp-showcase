@@ -59,7 +59,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { ARCH_DOC_REL_PATH, stripGeneratedSections } from "./arch-doc.mjs";
-import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs } from "./feature-brief.mjs";
+import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs, parseFeatureBlock } from "./feature-brief.mjs";
 
 export const APPROVALS_REL_PATH = "qa/approvals.json";
 export const APPROVALS_SCHEMA = "cmp-approvals/1";
@@ -167,10 +167,10 @@ export const INTENT_REL = "specs/intent.md";
 // never PASS.
 //
 // IMPORTANT: detect "unresolved" by TOKEN SHAPE (`/^__[A-Z_]+__$/`), never by
-// comparing against the literal string "com.kvdm.fuelled". This file ships through
+// comparing against the literal string "__PACKAGE__". This file ships through
 // the SAME scaffold pipeline that resolves that token — a literal comparison
 // string is itself blindly text-substituted at stamp time (`replaceContents`
-// does a global `"com.kvdm.fuelled" -> config.package` replace over every template
+// does a global `"__PACKAGE__" -> config.package` replace over every template
 // file's content, this one included), which would silently rewrite the
 // sentinel into the real package and make the check always fail. A shape
 // regex never spells the token out, so the pipeline has nothing to match.
@@ -235,6 +235,41 @@ function listComponentFiles(root) {
     .filter((e) => e.isFile() && e.name.endsWith(".kt"))
     .map((e) => path.posix.join(dirRel, e.name))
     .sort((a, b) => a.localeCompare(b));
+}
+
+// ── Feature screens glob ────────────────────────────────────────────────────
+
+/** The `feature-design:` id prefix — one place, so the CLI/console/gate never drift on it. */
+export const FEATURE_DESIGN_PREFIX = "feature-design:";
+
+/**
+ * The screen files of one feature — `presentation/<name>/**\/*Screen.kt`,
+ * recursive, sorted. DELIBERATELY only `*Screen.kt`: the design signature
+ * covers the FORM (what renders), so binding the whole presentation dir would
+ * make every ViewModel edit during a legitimate build read as design drift.
+ * @param {string} root
+ * @param {string} name the feature name (presentation/<name>/)
+ * @returns {string[]} repo-relative posix paths
+ */
+function listFeatureScreenFiles(root, name) {
+  const dirRel = kotlinFile(root, "commonMain", `presentation/${name}`);
+  if (!dirRel) return [];
+  const out = [];
+  const walk = (rel) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(path.join(root, rel), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const childRel = path.posix.join(rel, e.name);
+      if (e.isDirectory()) walk(childRel);
+      else if (e.isFile() && e.name.endsWith("Screen.kt")) out.push(childRel);
+    }
+  };
+  walk(dirRel);
+  return out.sort((a, b) => a.localeCompare(b));
 }
 
 // ── Registry ─────────────────────────────────────────────────────────────────
@@ -345,6 +380,32 @@ export function listGovernedArtifacts(root) {
     files: listComponentFiles(root),
     complete: packageResolved,
   });
+
+  // Feature designs (brief → design → spec → build, decided 2026-07-25): one
+  // `feature-design:<name>` per BRIEF with a UI surface — declared
+  // (`"screens": true` in the cmp:feature block, so the gate exists before any
+  // file does) or evident (presentation/<name>/*Screen.kt on disk). Signed on
+  // RENDERED output, never descriptions, BEFORE the behavior contract pins the
+  // form down. Briefs only, deliberately: legacy features (governed by
+  // exemplar-feature or nothing) never sprout retro-governance. With no screen
+  // files yet, `complete: false` — approveArtifact refuses, exactly right: you
+  // cannot sign a design that has nothing rendered.
+  for (const brief of listFeatureBriefs(root)) {
+    let declaresScreens = false;
+    try {
+      declaresScreens = parseFeatureBlock(fs.readFileSync(path.join(root, brief.rel), "utf8")).screens;
+    } catch {
+      /* an unreadable brief declares nothing */
+    }
+    const screenFiles = listFeatureScreenFiles(root, brief.name);
+    if (!declaresScreens && screenFiles.length === 0) continue;
+    artifacts.push({
+      id: `${FEATURE_DESIGN_PREFIX}${brief.name}`,
+      label: `Feature design (${brief.name} — presentation/${brief.name}/*Screen.kt, signed on rendered output)`,
+      files: screenFiles,
+      complete: packageResolved && screenFiles.length > 0,
+    });
+  }
 
   const specsDir = path.join(root, "specs");
   if (fs.existsSync(specsDir)) {
@@ -905,6 +966,22 @@ export function acceptFeature(root, name) {
           : "The walk is: sign the brief, build, then accept the proven result."),
     };
   }
+  // The design signature is part of the contract (brief → design → spec →
+  // build): a feature with a UI surface cannot be accepted past an unsigned
+  // or drifted design — "the proven thing is what I wanted" includes its form.
+  const designArtifact = registry.find((a) => a.id === `${FEATURE_DESIGN_PREFIX}${name}`);
+  if (designArtifact) {
+    const designStored = state.artifacts.find((a) => a.artifact === designArtifact.id);
+    const designLive = resolveArtifactStatus(root, designArtifact, designStored);
+    if (designLive.status !== "approved") {
+      return {
+        ok: false,
+        reason:
+          `cannot accept "${name}" — feature-design:${name} is "${designLive.status}", not "approved". ` +
+          `The feature's screens are signed on rendered output before acceptance (node qa/approve.mjs feature-design:${name}).`,
+      };
+    }
+  }
   const derived = deriveFeatureStatus(root, { name, rel: artifact.files[0] });
   if (!derived.provenDone) {
     return { ok: false, reason: `cannot accept "${name}" — not provenDone: ${derived.doneReason}` };
@@ -956,6 +1033,7 @@ export function getFeatureBoard(root) {
   // step says so by name — that is what the human's signature set in motion.
   const deriveNextStep = (d, phase) => {
     const specArtifact = byId.get(`feature-spec:${d.name}`);
+    const designArtifact = byId.get(`${FEATURE_DESIGN_PREFIX}${d.name}`) ?? null;
     const declaredSpecAmendments = d.touches
       .filter((id) => id.startsWith("feature-spec:") && byId.get(id)?.status === "approved")
       .map((id) => id.slice("feature-spec:".length));
@@ -966,6 +1044,27 @@ export function getFeatureBoard(root) {
       return { key: "re-approve", owner: "human", label: `re-approve the brief — it changed after signing (or revert the edit)` };
     if (phase === "reopened") return { key: "re-approve", owner: "human", label: "finish the redesign, then re-approve the brief" };
     if (phase === "proposed") return { key: "sign-brief", owner: "human", label: "sign the brief — decisions close before code" };
+    // Design before contract (brief → design → spec → build): the form is
+    // signed on RENDERED output before behavior clauses pin it down — and
+    // before acceptance, so these rungs outrank `proven`.
+    if (designArtifact && designArtifact.status !== "approved") {
+      if (designArtifact.status === "reopened")
+        return { key: "design", owner: "agent", label: `redesign in progress: finish the ${d.name} screens, then re-approve the design` };
+      if (!designArtifact.resolvable)
+        return {
+          key: "design",
+          owner: "agent drafts → human signs",
+          label: `design: draft the ${d.name} screens on stub data and render them — you sign what renders, never a description`,
+        };
+      return {
+        key: "sign-design",
+        owner: "human",
+        label:
+          designArtifact.status === "changed-since-approval"
+            ? `re-approve the design (feature-design:${d.name}) — the screens changed after signing (or revert)`
+            : `sign the design (feature-design:${d.name}) — judged on the rendered screens`,
+      };
+    }
     if (phase === "proven") return { key: "accept", owner: "human", label: "accept — the proven thing awaits your judgment" };
     // phase === "approved": building — which part of the loop is open?
     if (!d.specExists || d.total === 0)
@@ -992,10 +1091,16 @@ export function getFeatureBoard(root) {
             : d.provenDone
               ? "proven"
               : "approved";
+    const designStatus = byId.get(`${FEATURE_DESIGN_PREFIX}${d.name}`) ?? null;
     return {
       ...d,
       record,
       phase,
+      // The design gate's live state, for the card: null = no UI surface
+      // (a pure-logic feature honestly has no design rung to show).
+      design: designStatus
+        ? { id: designStatus.id, status: designStatus.status, resolvable: designStatus.resolvable, fileCount: designStatus.fileCount }
+        : null,
       nextStep: deriveNextStep(d, phase),
       touches: d.touches.map((id) => {
         const t = byId.get(id);

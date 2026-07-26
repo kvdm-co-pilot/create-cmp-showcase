@@ -14,12 +14,17 @@
 // gates:
 //
 //   ```json cmp:feature
-//   { "touches": ["components", "design-system"] }
+//   { "touches": ["components", "design-system"], "screens": true }
 //   ```
 //
 // `touches` is the declared blast radius: the governed artifacts this feature
 // expects to invalidate. The artifact hashes already enforce; declaring lets
 // the console tell "re-approval, as planned" apart from undeclared blast.
+// `screens` declares a UI surface: this feature will have its own screens, so
+// the walk holds a design gate (feature-design:<name> — signed on RENDERED
+// output) between the brief and the behavior contract, BEFORE any screen file
+// exists. Like touches it declares, never gates: once presentation/<name>/
+// screen files exist on disk, the gate derives from them regardless.
 //
 // DONENESS IS DERIVED, NEVER CLAIMED. This file's earlier incarnation
 // (intent-checks.mjs) let the agent assert delivery over its own grep checks —
@@ -100,29 +105,30 @@ export function briefSections(markdown) {
 }
 
 /**
- * A brief's declared blast radius. A missing block, or one without `touches`,
- * declares nothing — legal and common. A block that IS present but malformed
- * is surfaced as `error`: a doc that tried to declare and failed should say
- * so, not read as "declares nothing".
+ * A brief's declarations: blast radius (`touches`) and UI surface (`screens`).
+ * A missing block, or one without a field, declares nothing — legal and
+ * common. A block that IS present but malformed is surfaced as `error`: a doc
+ * that tried to declare and failed should say so, not read as "declares
+ * nothing".
  * @param {string} markdown
- * @returns {{touches: string[], error: (string|null)}}
+ * @returns {{touches: string[], screens: boolean, error: (string|null)}}
  */
 export function parseFeatureBlock(markdown) {
   const m = typeof markdown === "string" ? markdown.match(FEATURE_FENCE_RE) : null;
-  if (!m) return { touches: [], error: null };
+  if (!m) return { touches: [], screens: false, error: null };
   let parsed;
   try {
     parsed = JSON.parse(m[1]);
   } catch (err) {
-    return { touches: [], error: `cmp:feature block is not valid JSON — ${err.message}` };
+    return { touches: [], screens: false, error: `cmp:feature block is not valid JSON — ${err.message}` };
   }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return { touches: [], error: "cmp:feature must be a JSON object" };
+    return { touches: [], screens: false, error: "cmp:feature must be a JSON object" };
   }
   const touches = Array.isArray(parsed.touches)
     ? parsed.touches.filter((t) => typeof t === "string" && t.trim() !== "")
     : [];
-  return { touches, error: null };
+  return { touches, screens: parsed.screens === true, error: null };
 }
 
 /**
@@ -198,7 +204,7 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
   } catch {
     readable = false;
   }
-  const block = readable ? parseFeatureBlock(markdown) : { touches: [], error: `${brief.rel} could not be read` };
+  const block = readable ? parseFeatureBlock(markdown) : { touches: [], screens: false, error: `${brief.rel} could not be read` };
 
   const specRel = `specs/${brief.name}.spec.md`;
   const specExists = fs.existsSync(path.join(root, specRel));
@@ -214,6 +220,7 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
     name: brief.name,
     rel: brief.rel,
     touches: block.touches,
+    screens: block.screens,
     blockError: block.error,
     // The signed substance, for surfaces that show WHAT is being approved.
     sections: readable ? briefSections(markdown) : [],
