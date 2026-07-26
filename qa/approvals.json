@@ -68,7 +68,9 @@
       "status": "approved",
       "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767",
       "approvedAt": "2026-07-25T22:03:24.728Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-07-26T11:49:13.080Z"
     },
     {
       "artifact": "feature-design:meal",

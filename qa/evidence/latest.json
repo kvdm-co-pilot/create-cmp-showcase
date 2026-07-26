@@ -3,20 +3,20 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "4712014f26e11f10b7a791c8cbd683bff9f487bf",
+    "sha": "42e1aa883b9ef533c3088d11456b1773b9230ef8",
     "dirty": [
-      "qa/comments.json"
+      "qa/approvals.json"
     ]
   },
   "inputs": {
-    "hash": "0ec26ea2adf336d5c8c9e9719d9ecf2e5ebff11364e062f48c263b4c5a62ded7",
+    "hash": "6fc2434491326b702c330ef67a19957da237c69013d076bd6be4f1ecd1b8afd3",
     "fileCount": 253
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 22,
+      "durationMs": 24,
       "details": {
         "clauses": 58,
         "withdrawn": 0,
@@ -27,7 +27,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 21,
       "details": {
         "artifacts": [
           {
@@ -96,7 +96,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -107,7 +107,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 13,
+      "durationMs": 16,
       "details": {
         "sectionsChecked": 4
       }
@@ -115,12 +115,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2406
+      "durationMs": 2733
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 7956,
+      "durationMs": 9912,
       "details": {
         "tests": 147,
         "failures": 0,
@@ -131,17 +131,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2598
+      "durationMs": 2898
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4534
+      "durationMs": 4952
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 232,
+      "durationMs": 265,
       "details": {
         "checked": 1,
         "drifted": 0
@@ -150,12 +150,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4081
+      "durationMs": 4443
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 52305
+      "durationMs": 58301
     }
   ],
   "strength": {
@@ -169,5 +169,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-26T11:44:18.697Z"
+  "generatedAt": "2026-07-26T11:51:22.361Z"
 }
