@@ -36,7 +36,10 @@
       "text": "Proceed with meal: prove: run node qa/verify.mjs so the receipt attests this tree",
       "author": "human-console",
       "createdAt": "2026-07-26T11:39:53.752Z",
-      "status": "open"
+      "status": "resolved",
+      "resolvedAt": "2026-07-26T11:42:40.329Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Lane PASS — all 11 steps green (specCoverage, approvals, componentStories, archDoc, build, unitTests, conformance, goldenTrees, tokenDrift, a11y, e2eSmoke), on-device tier included. Receipt attests this tree (f1fd0723). 12/12 meal clauses cited, 147/147 tests. Committed as 4712014 with the receipt; working tree clean. The design re-approval (6716fc54) is what unblocked the approvals gate. Feature is now provenDone — the remaining act is yours: --accept meal."
     }
   ]
 }
