@@ -53,7 +53,7 @@ class TodayRepositoryImpl(
 
     override suspend fun getTodaySummary(): AppResult<TodayModel> = suspendRunCatching {
         val dayInView = currentLogicalDay()
-        ensureSeeded(dayInView)
+        ensureSeeded()
         val goal = dao.goal() ?: error("today goal row missing after seeding")
         aggregate(dayInView, goal, dao.entries(dayInView.toString()))
     }
@@ -119,14 +119,14 @@ class TodayRepositoryImpl(
     }
 
     /**
-     * Seed a realistic day on first run so the dashboard ships with content offline
-     * (idempotent). The rows are stamped with the logical day the seed RAN on, so the starter
-     * day is the day the user first opens the app — not a date frozen into the source.
+     * Seed the day's GOAL on first run so the ring has a target offline (idempotent). No log
+     * entries are seeded: every day starts empty and is planned by its owner (PLAN-03). The
+     * goal is a setting, not a pretence of having eaten — which is why it stayed when the
+     * starter entries went.
      */
-    private suspend fun ensureSeeded(dayInView: LocalDate) {
+    private suspend fun ensureSeeded() {
         if (dao.goalCount() == 0) {
             dao.upsertGoal(SEED_GOAL)
-            dao.upsertEntries(seedEntries(dayInView))
         }
     }
 
@@ -141,18 +141,9 @@ class TodayRepositoryImpl(
             fatTargetG = 70,
         )
 
-        /** The seeded log — the same foods the dashboard has always shown, now dated and slotted. */
-        fun seedEntries(date: LocalDate): List<LogEntryEntity> {
-            val day = date.toString()
-            val logged = LogStatus.LOGGED.name
-            return listOf(
-                LogEntryEntity("b1", day, MealSlot.BREAKFAST.name, logged, 0, "Rolled oats & whey", "80 g · 1 scoop", 430, 38, 52, 9),
-                LogEntryEntity("b2", day, MealSlot.BREAKFAST.name, logged, 1, "Banana", "1 medium", 105, 1, 27, 0),
-                LogEntryEntity("l1", day, MealSlot.LUNCH.name, logged, 2, "Chicken breast & rice", "200 g · 150 g", 620, 58, 68, 8),
-                LogEntryEntity("l2", day, MealSlot.LUNCH.name, logged, 3, "Mixed greens", "1 bowl", 90, 3, 11, 4),
-                LogEntryEntity("s1", day, MealSlot.SNACK.name, logged, 4, "Greek yogurt 0%", "170 g", 100, 17, 6, 0),
-                LogEntryEntity("s2", day, MealSlot.SNACK.name, logged, 5, "Almonds", "20 g", 116, 4, 4, 10),
-            )
-        }
+        // `seedEntries` lived here: a starter day of six logged foods, written on first run.
+        // PLAN-03 removes it — every day now begins empty, with its six containers waiting to
+        // be planned. The FOODS catalog seed stays (the tray needs foods to pick from); what
+        // went is the pretence that the user had already eaten.
     }
 }

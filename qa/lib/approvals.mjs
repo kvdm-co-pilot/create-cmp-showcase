@@ -1075,6 +1075,13 @@ export function acceptFeature(root, name) {
  * @param {string} root
  * @returns {{features: Array<object>, undeclared: Array<{id: string, label: string}>}}
  */
+// How many recorded edge cases satisfy the `audit` rung. A count cannot judge an
+// audit's QUALITY — it can only insist the pass happened and left written output,
+// which is the whole point: findings then land in the same signing round rather
+// than reopening a signed artifact. One is too easy to satisfy accidentally;
+// three is the smallest number that requires actually looking.
+const MIN_AUDITED_EDGE_CASES = 3;
+
 export function getFeatureBoard(root) {
   const statuses = getApprovalStatuses(root);
   const byId = new Map(statuses.map((s) => [s.id, s]));
@@ -1094,30 +1101,51 @@ export function getFeatureBoard(root) {
       .map((id) => id.slice("feature-spec:".length));
     const amendNote =
       declaredSpecAmendments.length > 0 ? ` + reopen & amend ${declaredSpecAmendments.map((n) => `specs/${n}.spec.md`).join(", ")} (declared)` : "";
+    // PRE-SIGNATURE AGENT WORK (the anti-churn ordering). A feature with a UI
+    // surface gets its design drafted AND adversarially audited before the human
+    // is asked for a single signature. The old ladder asked for the brief first,
+    // so the design — and the audit that attacks it — happened against an already
+    // signed artifact, and every finding reopened it. Measured on meal-plan
+    // (2026-07-27): three signing rounds, the third triggered by an audit that
+    // found nine gaps including three defects in signed clauses. The work did not
+    // change; only when it happens relative to the gate.
+    const designPending = designArtifact !== null && designArtifact.status !== "approved";
+    const designUndrafted = designPending && !designArtifact.resolvable;
+    const auditMissing = designPending && d.edgeCases < MIN_AUDITED_EDGE_CASES;
+
     if (phase === "accepted") return { key: "closed", owner: null, label: "closed — the brief is this feature's doc-of-record" };
     if (phase === "changed-since-approval")
       return { key: "re-approve", owner: "human", label: `re-approve the brief — it changed after signing (or revert the edit)` };
     if (phase === "reopened") return { key: "re-approve", owner: "human", label: "finish the redesign, then re-approve the brief" };
-    if (phase === "proposed") return { key: "sign-brief", owner: "human", label: "sign the brief — decisions close before code" };
+    if (designUndrafted)
+      return {
+        key: "design",
+        owner: "agent drafts → human signs",
+        label: `design: draft the ${d.name} screens on stub data and render them — you sign what renders, never a description`,
+      };
+    if (auditMissing)
+      return {
+        key: "audit",
+        owner: "agent",
+        label:
+          `audit the ${d.name} design for edge cases — record each case and how it resolves under ` +
+          `"## Edge cases" in ${d.rel}. Findings land BEFORE the signature, not after it`,
+      };
+    if (phase === "proposed")
+      return { key: "sign-brief", owner: "human", label: "sign the brief — decisions close before code, and the design below is audited" };
     // Design before contract (brief → design → spec → build): the form is
     // signed on RENDERED output before behavior clauses pin it down — and
     // before acceptance, so these rungs outrank `proven`.
-    if (designArtifact && designArtifact.status !== "approved") {
+    if (designPending) {
       if (designArtifact.status === "reopened")
         return { key: "design", owner: "agent", label: `redesign in progress: finish the ${d.name} screens, then re-approve the design` };
-      if (!designArtifact.resolvable)
-        return {
-          key: "design",
-          owner: "agent drafts → human signs",
-          label: `design: draft the ${d.name} screens on stub data and render them — you sign what renders, never a description`,
-        };
       return {
         key: "sign-design",
         owner: "human",
         label:
           designArtifact.status === "changed-since-approval"
             ? `re-approve the design (feature-design:${d.name}) — the screens changed after signing (or revert)`
-            : `sign the design (feature-design:${d.name}) — judged on the rendered screens`,
+            : `sign the design (feature-design:${d.name}) — audited, judged on the rendered screens`,
       };
     }
     if (phase === "proven") return { key: "accept", owner: "human", label: "accept — the proven thing awaits your judgment" };

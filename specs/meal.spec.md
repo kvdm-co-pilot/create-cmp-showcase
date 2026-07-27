@@ -7,10 +7,16 @@
 > Every clause id is cited by the durable test(s) that verify it (`// SPEC: MEAL-NN`).
 
 **Scope of this contract.** These clauses promise slices M1–M3 of the brief's plan: the data
-model (logical day, slot enum, status), the write path, and the add-to-meal tray. Day
-navigation, history browsing, and motion tokens (M4–M6) are deliberately **not promised
-here** — they get their own clauses when those slices are specified, so the contract never
-claims behavior nobody is building yet.
+model (logical day, slot enum, status), the write path, and the add-to-meal tray. History
+browsing and motion tokens (M5–M6) are deliberately **not promised here** — they get their
+own clauses when those slices are specified, so the contract never claims behavior nobody is
+building yet.
+
+**What moved out.** Day navigation (M4) is now the meal-plan feature's day strip (PLAN-11),
+and the structure this ledger records into — the six containers, their times, water, focus
+and lateness, done-ticks — is `specs/meal-plan.spec.md` (PLAN-*). This spec stayed the
+**ledger**: what an entry is, how it is written, and how food gets picked. The plan aims;
+the tray fills; these clauses store.
 
 ## The logical day (M1)
 
@@ -25,13 +31,15 @@ claims behavior nobody is building yet.
 
 ## Meal slots (M1, M3)
 
-- **MEAL-03** — Given any log entry, Then its meal slot is one of `BREAKFAST`, `LUNCH`,
-  `DINNER`, `SNACK` — a closed enum, never a free-text meal name — and a day's entries are
-  grouped and ordered by that slot.
-- **MEAL-04** — Given the add-to-meal tray opens at a local time, Then the slot preselected is
-  Breakfast for 04:00–10:30, Lunch for 10:30–15:00, Dinner for 15:00–21:00, and Snack
-  otherwise; and the preselection is changeable to any other slot in one tap before the tray
-  is confirmed — a preselect is never a lock.
+- **MEAL-03** — Given any log entry, Then its meal slot is one of `BREAKFAST`,
+  `MORNING_SNACK`, `LUNCH`, `AFTERNOON_SNACK`, `DINNER`, `EVENING_SNACK` (PLAN-01) — a closed
+  enum, never a free-text meal name — and a day's entries are grouped and ordered by that
+  slot's declaration order.
+- ~~**MEAL-04**~~ — *withdrawn (meal-plan brief, decisions 2 and 13).* Promised a
+  time-of-day slot preselect for a tray opened with no target. Every way into the tray now
+  starts from a specific container, so the tray is always opened already aimed (MEAL-10,
+  PLAN-04) — there is no untargeted open left to guess a slot for, and guessing from the
+  clock was only ever a fallback for one.
 
 ## The write path (M2)
 
@@ -53,9 +61,11 @@ claims behavior nobody is building yet.
 - **MEAL-09** — Given items are added to or removed from the tray, or a serving is adjusted,
   Then the tray shows the running total of its contents — calories plus protein, carbs, and
   fat — recomputed on every change.
-- **MEAL-10** — Given the tray is open, Then its header states the target logical date and
-  slot, and changing either retargets the same tray — "add to Dinner tomorrow" is the
-  identical flow to "add to Lunch today".
+- **MEAL-10** — Given the tray is open, Then its header **states** the target logical date and
+  slot it was opened with (`meal_tray_target`), and the tray offers no control to change
+  either — the target is carried from the tap that opened it (TODAY-07, PLAN-04), so
+  retargeting is done by going back and tapping the right container. "Add to Dinner tomorrow"
+  is the identical flow to "add to Lunch today": aim, then fill.
 - **MEAL-11** — Given the tray holds no items, Then the confirm control is disabled and no
   write can be attempted.
 - **MEAL-12** — Given the add-to-meal screen renders, When its structure is inspected, Then it

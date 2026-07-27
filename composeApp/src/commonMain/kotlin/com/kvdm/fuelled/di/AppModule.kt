@@ -67,14 +67,14 @@ val viewModelModule = module {
     viewModelOf(::ProfileViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
-    // graph. Tests construct it directly with a FixedClock (MEAL-04/MEAL-10).
+    // graph. Tests construct it directly with a FixedClock (MEAL-10).
     //
     // The opening target comes from the CALL SITE, not the graph: the nav destination passes
-    // the tap's target as a Koin parameter (TODAY-07/TODAY-08), so it is set before the first
-    // frame. No parameter — or an unparseable route argument — resolves to null, which is the
-    // ViewModel's own clock-derived default.
+    // the tap's target as a Koin parameter (TODAY-07, PLAN-04), so it is set before the first
+    // frame. It is REQUIRED (MEAL-10): the nav layer never composes the tray without one, so a
+    // missing parameter here is a wiring bug and fails loudly rather than guessing a meal.
     viewModel { params ->
-        MealTrayViewModel(get(), get(), get(), initialTarget = params.getOrNull<MealTrayInitialTarget>())
+        MealTrayViewModel(get(), get(), get(), initialTarget = params.get<MealTrayInitialTarget>())
     }
     // cmp:anchor di-viewmodels
 }

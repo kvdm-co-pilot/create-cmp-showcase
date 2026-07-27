@@ -35,7 +35,7 @@
     {"children": [
       {"text": "Snack"},
       {"text": "105 kcal"},
-      {"tag": "today_add_snack", "role": "Button", "children": [
+      {"tag": "today_add_morning_snack", "role": "Button", "children": [
         {"role": "Image", "contentDescription": "Add food to Snack"}
       ]},
       {"text": "Golden banana"},

@@ -10,16 +10,19 @@ import kotlinx.datetime.LocalTime
  */
 
 /**
- * Which meal of the logical day an entry belongs to (MEAL-03) — a closed enum, deliberately
- * not the free `meal: String` the read-only Today model carried. A free-text meal name makes
- * "Brekkie" and "breakfast" two different groups and makes grouping unqueryable.
+ * Which meal of the logical day an entry belongs to (MEAL-03, PLAN-01) — a closed enum,
+ * deliberately not the free `meal: String` the read-only Today model carried. A free-text meal
+ * name makes "Brekkie" and "breakfast" two different groups and makes grouping unqueryable.
  *
  * **Declaration order IS slot order.** A day's entries group and order by this enum's natural
- * order — `entries` / `compareTo` — so BREAKFAST, LUNCH, DINNER, SNACK is the order the Today
- * screen's meal cards appear in. Reordering these constants silently reorders the app; add
- * new slots at the end, or the ordering the day relies on changes with them.
+ * order — `entries` / `compareTo` — so this is the order the day's containers appear in.
+ * Reordering these constants silently reorders the app.
+ *
+ * The three snacks are distinct constants, not one generic `SNACK`: with three snack containers
+ * on screen every day (PLAN-02), "a snack" is not an identity — you cannot say which container
+ * a row belongs to, which is the whole job of this enum.
  */
-enum class MealSlot { BREAKFAST, LUNCH, DINNER, SNACK }
+enum class MealSlot { BREAKFAST, MORNING_SNACK, LUNCH, AFTERNOON_SNACK, DINNER, EVENING_SNACK }
 
 /**
  * Whether an entry has been eaten or is planned ahead — the one flag that makes scheduling
@@ -53,27 +56,7 @@ data class NewLogEntry(
     val fatG: Int,
 )
 
-private val BREAKFAST_START = LocalTime(4, 0)
-private val LUNCH_START = LocalTime(10, 30)
-private val DINNER_START = LocalTime(15, 0)
-private val DINNER_END = LocalTime(21, 0)
-
-/**
- * The slot the add-to-meal tray preselects when it opens at [time] (MEAL-04): Breakfast for
- * 04:00–10:30, Lunch for 10:30–15:00, Dinner for 15:00–21:00, and Snack for everything else —
- * the small hours before 04:00 and the late evening from 21:00.
- *
- * Every window is half-open, `[start, end)`, so each instant has exactly one slot and the
- * boundaries never overlap: 10:30 sharp is LUNCH, 21:00 sharp is SNACK.
- *
- * This is a *preselection*, not a classification. The tray shows it pre-set and one tap
- * changes it — the failure mode this whole function exists to avoid is an auto-assignment
- * that is hard to override, which is what lands a 2pm meal in Breakfast.
- */
-fun slotForLocalTime(time: LocalTime): MealSlot = when {
-    time < BREAKFAST_START -> MealSlot.SNACK
-    time < LUNCH_START -> MealSlot.BREAKFAST
-    time < DINNER_START -> MealSlot.LUNCH
-    time < DINNER_END -> MealSlot.DINNER
-    else -> MealSlot.SNACK
-}
+// `slotForLocalTime` lived here: the tray's time-of-day slot preselect (MEAL-04, withdrawn).
+// Every way into the tray now opens it already aimed at a specific container (MEAL-10,
+// PLAN-04), so there is no untargeted open left to guess a slot for. Deleted rather than kept
+// "just in case" — an unused classifier is exactly what later gets wired back in by accident.

@@ -111,8 +111,6 @@ fun MealTrayRoute(
         tray = tray,
         confirmState = confirmState,
         onQueryChange = viewModel::onQueryChange,
-        onSlotSelected = viewModel::onSlotSelected,
-        onDateSelected = viewModel::onDateSelected,
         onFoodToggled = viewModel::onFoodToggled,
         onConfirm = viewModel::confirm,
         onRetry = viewModel::load,
@@ -126,8 +124,8 @@ fun MealTrayRoute(
  *
  * @param tray What the tray holds. Its [TrayContents.total] is the running total the bar shows
  *   (MEAL-09) and the empty check the Add control is disabled by (MEAL-11).
- * @param target The logical date and slot this tray is aimed at (MEAL-10); [onDateSelected] and
- *   [onSlotSelected] retarget it without disturbing [tray].
+ * @param target The logical date and slot this tray is aimed at (MEAL-10) — carried by the
+ *   tap that opened it; the tray states it and never changes it.
  */
 @Composable
 fun MealTrayScreen(
@@ -137,21 +135,18 @@ fun MealTrayScreen(
     tray: TrayContents = sampleTrayContents,
     confirmState: TrayConfirmState = TrayConfirmState.Idle,
     onQueryChange: (String) -> Unit = {},
-    onSlotSelected: (MealSlot) -> Unit = {},
-    onDateSelected: (LocalDate) -> Unit = {},
     onFoodToggled: (Food) -> Unit = {},
     onConfirm: () -> Unit = {},
     onRetry: () -> Unit = {},
 ) {
     ScreenColumn(screenTag = "meal_tray") {
         AppHeader(title = "Add to meal", screenTag = "meal_tray")
+        // The target is a STATEMENT now, not a control (meal-plan brief, usability audit):
+        // the tap on a plan container is what aims the tray, so the in-tray slot pills and
+        // date row are gone — retargeting mid-tray was how food landed in the wrong meal,
+        // and four generic pills could not even name which snack. To retarget: go back and
+        // tap the right container.
         TrayTargetLine(target)
-        Spacer(Modifier.height(FuelledTokens.GapCard))
-
-        TrayDateControl(target = target, onSelect = onDateSelected)
-        Spacer(Modifier.height(FuelledTokens.GapCard))
-
-        MealSlotControl(selected = target.slot, onSelect = onSlotSelected)
         Spacer(Modifier.height(FuelledTokens.GapCard))
 
         TraySearchField(query = query, onQueryChange = onQueryChange)
@@ -209,102 +204,6 @@ private fun TrayTargetLine(target: MealTrayTarget) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.semantics { testTag = "meal_tray_target" },
     )
-}
-
-/**
- * The target-date control (MEAL-10): yesterday (back-fill), today, tomorrow (plan) — the same
- * pill row as the slots, one tap to retarget. Scheduling needs no separate surface; a future
- * date is what makes the confirm write PLANNED (MEAL-08, decided in the use case).
- */
-@Composable
-private fun TrayDateControl(target: MealTrayTarget, onSelect: (LocalDate) -> Unit) {
-    TrayPillRow(tag = "meal_tray_dates") {
-        target.dateOptions.forEach { date ->
-            val label = date.trayDateLabel(target.currentDay)
-            TrayPill(
-                label = label,
-                selected = date == target.date,
-                tag = "meal_tray_date_${label.lowercase()}",
-                onClick = { onSelect(date) },
-            )
-        }
-    }
-}
-
-/**
- * The slot segmented control (§1 of the brief): all four slots visible, one selected, one tap
- * to override — never locked. The slots come from the DOMAIN enum ([MealSlot]); the draft's
- * private copy of it is gone, so there is exactly one `MealSlot` in the app.
- */
-@Composable
-private fun MealSlotControl(selected: MealSlot, onSelect: (MealSlot) -> Unit) {
-    TrayPillRow(tag = "meal_tray_slots") {
-        MealSlot.entries.forEach { entry ->
-            TrayPill(
-                label = entry.label,
-                selected = entry == selected,
-                tag = "meal_tray_slot_${entry.name.lowercase()}",
-                onClick = { onSelect(entry) },
-            )
-        }
-    }
-}
-
-/**
- * The relative name for a target date, anchored on the logical day the tray opened
- * ([currentDay]) — never on a calendar "today", which is a different day between midnight and
- * the day-start hour. Only the three offered dates reach this, so the fallback is defensive.
- */
-private fun LocalDate.trayDateLabel(currentDay: LocalDate): String = when (this) {
-    currentDay -> "Today"
-    currentDay.plus(1, DateTimeUnit.DAY) -> "Tomorrow"
-    currentDay.minus(1, DateTimeUnit.DAY) -> "Yesterday"
-    else -> dayHeaderLabel()
-}
-
-/** The pill row both target controls are built from: RadiusPill segments on the GapCard grid. */
-@Composable
-private fun TrayPillRow(tag: String, content: @Composable RowScope.() -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { testTag = tag }
-            .designToken(
-                tokens = listOf("RadiusPill", "GapCard"),
-                resolved = mapOf(
-                    "radius" to "${FuelledTokens.RadiusPill.value.toInt()}dp",
-                    "gap" to "${FuelledTokens.GapCard.value.toInt()}dp",
-                ),
-            ),
-        horizontalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
-        content = content,
-    )
-}
-
-/** One segment: Primary fill when selected, Secondary when not, on the shared 48 dp floor. */
-@Composable
-private fun RowScope.TrayPill(label: String, selected: Boolean, tag: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .height(AppButtonDefaults.MinTouchTarget)
-            .clip(RoundedCornerShape(FuelledTokens.RadiusPill))
-            .background(
-                if (selected) FuelledColors.Primary
-                else MaterialTheme.colorScheme.secondary,
-            )
-            .selectable(selected = selected, onClick = onClick)
-            .semantics { testTag = tag },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) FuelledColors.OnPrimary
-            else MaterialTheme.colorScheme.onSecondary,
-        )
-    }
 }
 
 /** The tray's search box, in the Foods search idiom, radius from RadiusInput. */

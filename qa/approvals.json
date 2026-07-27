@@ -50,13 +50,6 @@
       "approvedAt": "2026-07-24T11:44:36.874Z"
     },
     {
-      "artifact": "feature-spec:meal",
-      "status": "approved",
-      "hash": "0cb2918686c4cb55a59caac34cc78b88d0a2a24bd61deabf4ae5a90b1a2cb3f6",
-      "approvedAt": "2026-07-25T18:39:21.098Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:meal",
       "status": "approved",
       "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767",
@@ -67,16 +60,44 @@
     },
     {
       "artifact": "feature-design:meal",
-      "status": "approved",
+      "status": "reopened",
       "hash": "6716fc54895c1fcd13f74c8805b6fe457f57f7d81fb5254099e6f59f219241df",
       "approvedAt": "2026-07-26T11:39:47.794Z",
+      "reopenedAt": "2026-07-26T18:56:09.847Z"
+    },
+    {
+      "artifact": "feature-brief:meal-plan",
+      "status": "reopened",
+      "hash": "fd9894088d5feb2a5ec955b214819e301d37564224dec08fac2f597c51b0ed5c",
+      "approvedAt": "2026-07-27T06:12:38.016Z",
+      "reopenedAt": "2026-07-27T16:03:48.381Z"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "c9ef49fcfe13b79a74440c3a89c798c665f1863aa1f9535eddddf75e29ca25aa",
+      "approvedAt": "2026-07-27T16:53:04.143Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:meal-plan",
+      "status": "approved",
+      "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
+      "approvedAt": "2026-07-27T16:53:29.902Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:meal",
+      "status": "approved",
+      "hash": "9228139522dc431a42c85d2f7b64a4df09c085b5403248e8dfbe1ec83615d375",
+      "approvedAt": "2026-07-27T16:53:37.837Z",
       "via": "console"
     },
     {
       "artifact": "feature-spec:today",
       "status": "approved",
-      "hash": "be190eb709c6182c799a1dc4b358c1ca4b3790d23b07e73fd9df8107b7755584",
-      "approvedAt": "2026-07-26T12:15:48.417Z",
+      "hash": "37bb4d12c5ebfd718b030fd2f1e8a68bc69623239bab6b789b6f72a2af4d6bd5",
+      "approvedAt": "2026-07-27T16:53:44.419Z",
       "via": "console"
     }
   ],

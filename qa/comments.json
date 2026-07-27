@@ -40,6 +40,19 @@
       "resolvedAt": "2026-07-26T11:42:40.329Z",
       "resolvedBy": "agent-cli",
       "resolutionNote": "Lane PASS — all 11 steps green (specCoverage, approvals, componentStories, archDoc, build, unitTests, conformance, goldenTrees, tokenDrift, a11y, e2eSmoke), on-device tier included. Receipt attests this tree (f1fd0723). 12/12 meal clauses cited, 147/147 tests. Committed as 4712014 with the receipt; working tree clean. The design re-approval (6716fc54) is what unblocked the approvals gate. Feature is now provenDone — the remaining act is yours: --accept meal."
+    },
+    {
+      "id": "c4",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with meal-plan: design: draft the meal-plan screens on stub data and render them — you sign what renders, never a description",
+      "author": "human-console",
+      "createdAt": "2026-07-26T18:55:25.126Z",
+      "status": "resolved",
+      "resolvedAt": "2026-07-26T19:06:17.140Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Design pass rendered: meal-plan (+@empty, @planned), meal-times, and the simplified tray are in the gallery for signature."
     }
   ]
 }

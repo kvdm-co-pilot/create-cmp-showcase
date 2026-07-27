@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -85,8 +86,8 @@ fun AppNavHost() {
         // The add-to-meal tray, ALREADY TARGETED (TODAY-07/TODAY-08). The target rides the
         // route as an ISO logical date + the slot's enum name; it is handed to the ViewModel as
         // a Koin parameter, so the tray's first frame is already aimed. Absent or malformed
-        // arguments resolve to null — the ViewModel's own clock-derived opening target — rather
-        // than throwing at the nav layer. BaseScreen wraps it because a destination registered
+        // arguments resolve to null, and the destination goes back rather than opening a
+        // mis-aimed tray or throwing at the nav layer. BaseScreen wraps it because a destination registered
         // directly on the NavHost owns its insets (SHELL-05); the tabs get theirs from AppShell.
         composable(
             route = Screen.MealTray.route,
@@ -100,8 +101,15 @@ fun AppNavHost() {
                 date = args?.read { getStringOrNull("date") },
                 slot = args?.read { getStringOrNull("slot") },
             )
-            BaseScreen {
-                MealTrayRoute(viewModel = koinViewModel { parametersOf(initialTarget) })
+            if (initialTarget == null) {
+                // A malformed route carries no target, and MEAL-10 left nothing to fall back
+                // to — the tray can no longer guess a slot from the clock. Going back beats
+                // opening a tray aimed at a meal the user never picked.
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                BaseScreen {
+                    MealTrayRoute(viewModel = koinViewModel { parametersOf(initialTarget) })
+                }
             }
         }
         // cmp:anchor nav-destinations

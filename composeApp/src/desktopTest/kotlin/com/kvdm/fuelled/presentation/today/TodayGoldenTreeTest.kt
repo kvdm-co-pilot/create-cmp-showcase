@@ -48,7 +48,7 @@ class TodayGoldenTreeTest {
         fat = MacroProgress("Fat", 9, 70, "g"),
         meals = listOf(
             MealGroup(MealSlot.BREAKFAST, listOf(LogEntry("g1", "Golden oats", "80 g", 430, 38))),
-            MealGroup(MealSlot.SNACK, listOf(LogEntry("g2", "Golden banana", "1 medium", 105, 1))),
+            MealGroup(MealSlot.MORNING_SNACK, listOf(LogEntry("g2", "Golden banana", "1 medium", 105, 1))),
         ),
     )
 

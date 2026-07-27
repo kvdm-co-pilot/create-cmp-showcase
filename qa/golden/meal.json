@@ -2,31 +2,6 @@
   {"tag": "meal_tray_screen", "children": [
     {"tag": "meal_tray_title", "text": "Add to meal"},
     {"tag": "meal_tray_target", "text": "Lunch · Wednesday, Jul 22"},
-    {"tag": "meal_tray_dates", "children": [
-      {"tag": "meal_tray_date_yesterday", "children": [
-        {"text": "Yesterday"}
-      ]},
-      {"tag": "meal_tray_date_today", "children": [
-        {"text": "Today"}
-      ]},
-      {"tag": "meal_tray_date_tomorrow", "children": [
-        {"text": "Tomorrow"}
-      ]}
-    ]},
-    {"tag": "meal_tray_slots", "children": [
-      {"tag": "meal_tray_slot_breakfast", "children": [
-        {"text": "Breakfast"}
-      ]},
-      {"tag": "meal_tray_slot_lunch", "children": [
-        {"text": "Lunch"}
-      ]},
-      {"tag": "meal_tray_slot_dinner", "children": [
-        {"text": "Dinner"}
-      ]},
-      {"tag": "meal_tray_slot_snack", "children": [
-        {"text": "Snack"}
-      ]}
-    ]},
     {"tag": "meal_tray_search", "children": [
       {"children": [
         {"text": "Search foods"}

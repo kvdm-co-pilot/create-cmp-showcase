@@ -80,7 +80,7 @@ class AddLogEntriesUseCaseTest {
             // so a 1am snack filed under the 22nd is something being eaten, not a plan.
             val lateSnack = useCase(at = LocalDateTime(2026, 7, 23, 3, 59))
 
-            lateSnack(tray, logicalToday, MealSlot.SNACK)
+            lateSnack(tray, logicalToday, MealSlot.EVENING_SNACK)
 
             assertEquals(LogStatus.LOGGED, repository.addCalls.single().status)
         }

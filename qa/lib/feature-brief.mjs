@@ -55,6 +55,42 @@ export const FEATURES_DIR_REL = "docs/features";
 /** The declaration block's info string — ```json cmp:feature */
 const FEATURE_FENCE_RE = /```json\s+cmp:feature\s*\n([\s\S]*?)\n```/;
 
+// The EDGE-CASE AUDIT (CHANGE-FLOW-DESIGN.md §1): the adversarial pass a brief
+// must survive before anyone is asked to sign the design. It exists because of a
+// measured failure — on 2026-07-27 the meal-plan brief was signed, designed,
+// signed again, and only THEN audited; the audit found nine gaps (three of them
+// defects in already-signed clauses), which cost three signing rounds on one
+// feature. The audit was never optional; it was simply unplaced, so it happened
+// last. This gives it a place: BEFORE the gate, not after it.
+//
+// The section is a plain `## Edge cases` heading followed by list items — one
+// case per line, each ending in how it was resolved (a decision, a clause, or an
+// explicit "out of scope"). The gate can only count entries; it cannot judge
+// them. That is deliberate and enough: what it buys is that the adversarial pass
+// HAPPENS while the artifacts are still unsigned, so whatever it finds lands in
+// the same signing round instead of reopening one.
+const EDGE_CASES_HEADING_RE = /^##\s+Edge cases\b[^\n]*\n([\s\S]*)$/im;
+const LIST_ITEM_RE = /^\s*(?:[-*]|\d+\.)\s+\S/gm;
+
+/**
+ * How many edge cases a brief records — 0 when the section is absent or empty.
+ *
+ * The body is taken to the NEXT `## ` heading by splitting, not by a lookahead:
+ * with the /m flag `$` means end-of-LINE, so a lazy `[\s\S]*?(?=\n##\s|$)`
+ * terminates on the first newline and silently captures nothing. Splitting says
+ * what it means and cannot regress that way.
+ *
+ * @param {string} markdown
+ * @returns {number}
+ */
+export function countEdgeCases(markdown) {
+  if (typeof markdown !== "string") return 0;
+  const m = markdown.match(EDGE_CASES_HEADING_RE);
+  if (!m) return 0;
+  const body = m[1].split(/\n##\s/)[0];
+  return (body.match(LIST_ITEM_RE) || []).length;
+}
+
 /**
  * The brief with its cmp:feature declaration block removed — the basis the
  * feature-brief approval hash is computed over (approvals.mjs). The human signs
@@ -246,6 +282,9 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
     blockError: block.error,
     // The signed substance, for surfaces that show WHAT is being approved.
     sections: readable ? briefSections(markdown) : [],
+    // How many edge cases the brief's adversarial pass recorded — the `audit`
+    // rung's only mechanical signal (see countEdgeCases).
+    edgeCases: readable ? countEdgeCases(markdown) : 0,
     specRel,
     specExists,
     clauses,

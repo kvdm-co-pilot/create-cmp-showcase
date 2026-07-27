@@ -11,6 +11,12 @@ import com.kvdm.fuelled.presentation.navigation.appTabs
 import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
 import com.kvdm.fuelled.presentation.foods.FoodsScreen
 import com.kvdm.fuelled.presentation.meal.MealTrayScreen
+import com.kvdm.fuelled.presentation.mealplan.MealPlanDayScreen
+import com.kvdm.fuelled.presentation.mealplan.MealTimesScreen
+import com.kvdm.fuelled.presentation.mealplan.TodayHighlightsScreen
+import com.kvdm.fuelled.presentation.mealplan.sampleHighlightsEmpty
+import com.kvdm.fuelled.presentation.mealplan.samplePlanEmpty
+import com.kvdm.fuelled.presentation.mealplan.samplePlanTomorrow
 import com.kvdm.fuelled.presentation.meal.TrayContents
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
@@ -66,6 +72,18 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("meal-tray", "Meal tray — add to Lunch (3 ticked)") { TabHost { MealTrayScreen() } },
     ScreenPreview("meal-tray@empty", "Meal tray — empty selection") {
         TabHost { MealTrayScreen(tray = TrayContents()) }
+    },
+    // DESIGN DRAFTS (feature-design:meal-plan) — the structured day + set-once times,
+    // stub-driven; signed on these renders before the behavior contract is written.
+    ScreenPreview("meal-plan", "Meal plan — mid-day (lunch focused, late)") { TabHost { MealPlanDayScreen() } },
+    ScreenPreview("meal-plan@empty", "Meal plan — fresh day (containers always render)") { TabHost { MealPlanDayScreen(samplePlanEmpty) } },
+    ScreenPreview("meal-plan@planned", "Meal plan — tomorrow, planned ahead") { TabHost { MealPlanDayScreen(samplePlanTomorrow) } },
+    ScreenPreview("meal-times", "Meal times — set-once alarms") { TabHost { MealTimesScreen() } },
+    ScreenPreview("today-highlights", "Today as highlights — lunch focused, late (decision 13)") {
+        TabHost { TodayHighlightsScreen() }
+    },
+    ScreenPreview("today-highlights@empty", "Today as highlights — fresh day (breakfast focus, add-in-card)") {
+        TabHost { TodayHighlightsScreen(sampleHighlightsEmpty) }
     },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()

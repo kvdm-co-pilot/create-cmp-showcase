@@ -38,8 +38,9 @@ import kotlinx.datetime.toInstant
  *
  * Follows the exemplar [com.kvdm.fuelled.presentation.foods.FoodsViewModelTest]: a
  * [StandardTestDispatcher] as Main, Turbine for StateFlow assertions, hand-written fakes,
- * one behaviour per test. The clock is FIXED at 12:30 on a known day so the opening target is
- * deterministic — a test that read the wall clock would preselect a different slot after 15:00.
+ * one behaviour per test. The clock is FIXED at 12:30 on a known day so `currentDay` and the
+ * LOGGED/PLANNED decision (MEAL-08) are deterministic — a test that read the wall clock would
+ * be asserting against whatever day and hour the CI machine happened to be having.
  *
  * MEAL-05's transaction/rollback semantics are NOT re-tested here; they are proven at
  * [AddLogEntriesUseCase], which this ViewModel calls rather than reimplements.
@@ -71,7 +72,10 @@ class MealTrayViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(initialTarget: MealTrayInitialTarget? = null): MealTrayViewModel {
+    /** LUNCH today — a real target, standing in for whichever container's add control opened the tray (MEAL-10, PLAN-04). */
+    private fun viewModel(
+        initialTarget: MealTrayInitialTarget = MealTrayInitialTarget(date = logicalToday, slot = MealSlot.LUNCH),
+    ): MealTrayViewModel {
         val clock = FixedClock(openedAt.toInstant(zone))
         return MealTrayViewModel(
             getFoods = GetFoodsUseCase(foodRepository),
@@ -90,15 +94,6 @@ class MealTrayViewModelTest {
             assertEquals(ContentUiState.Loading, awaitItem(), "initial state should be Loading")
             assertEquals(ContentUiState.Content(listOf(chicken, oats)), awaitItem())
         }
-    }
-
-    @Test
-    fun `opens aimed at the current logical day and the slot for the hour`() = runTest(dispatcher) {
-        val target = viewModel().target.value
-
-        assertEquals(logicalToday, target.date)
-        assertEquals(MealSlot.LUNCH, target.slot, "12:30 sits in the Lunch window")
-        assertEquals(listOf(LocalDate(2026, 7, 21), logicalToday, tomorrow), target.dateOptions)
     }
 
     // SPEC: TODAY-07

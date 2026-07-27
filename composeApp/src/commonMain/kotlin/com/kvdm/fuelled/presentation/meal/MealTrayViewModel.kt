@@ -7,7 +7,6 @@ import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.NewLogEntry
-import com.kvdm.fuelled.domain.model.slotForLocalTime
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
@@ -25,7 +24,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * One line on its way into the log: a catalog [food] at a serving multiple. The line, not the
@@ -129,20 +127,21 @@ sealed interface TrayConfirmState {
  * [SearchFoodsUseCase] (the repository/DAO), never in the composable.
  *
  * The clock, zone, and `dayStartHour` are injected with production defaults so a test can sit
- * the tray at a chosen instant instead of racing the wall clock. The opening target is derived
- * once, on construction: the logical day from [logicalDate] (MEAL-01/02) and the slot from
- * [slotForLocalTime] (MEAL-04) — both ML-1 functions, called, never re-derived here.
+ * the tray at a chosen instant instead of racing the wall clock — they resolve the CURRENT
+ * logical day (MEAL-01/02), which is what decides whether a write is `LOGGED` or `PLANNED`
+ * (MEAL-08), not what the tray is aimed at.
  *
- * [initialTarget] is how a caller AIMS the tray (TODAY-07/TODAY-08). It is a CONSTRUCTOR input,
- * not a retarget after the fact: "add to Dinner" must open on Dinner, never open on the
- * clock's slot and then correct itself — a first frame on the wrong target is exactly the
- * defaulting the clause forbids. Absent (`null`), the clock-derived opening target stands.
+ * [initialTarget] is how a caller AIMS the tray, and it is now REQUIRED (MEAL-10, PLAN-04).
+ * Every way in — a container's add control on Today (TODAY-07) or on the plan screen — starts
+ * from a specific container and carries that container's date and slot. There is no untargeted
+ * open left, so there is no clock-guessed slot to fall back to: the tray states its target and
+ * offers no way to change it, because the tap already aimed it.
  */
 class MealTrayViewModel(
     private val getFoods: GetFoodsUseCase,
     private val searchFoods: SearchFoodsUseCase,
     private val addLogEntries: AddLogEntriesUseCase,
-    initialTarget: MealTrayInitialTarget? = null,
+    initialTarget: MealTrayInitialTarget,
     clock: Clock = Clock.System,
     zone: TimeZone = TimeZone.currentSystemDefault(),
     dayStartHour: Int = DEFAULT_DAY_START_HOUR,
@@ -155,14 +154,11 @@ class MealTrayViewModel(
     val query: StateFlow<String> = _query.asStateFlow()
 
     private val _target = MutableStateFlow(
-        clock.now().toLocalDateTime(zone).let { openedAt ->
-            val currentDay = logicalDate(clock.now(), dayStartHour, zone)
-            MealTrayTarget(
-                date = initialTarget?.date ?: currentDay,
-                slot = initialTarget?.slot ?: slotForLocalTime(openedAt.time),
-                currentDay = currentDay,
-            )
-        },
+        MealTrayTarget(
+            date = initialTarget.date,
+            slot = initialTarget.slot,
+            currentDay = logicalDate(clock.now(), dayStartHour, zone),
+        ),
     )
     val target: StateFlow<MealTrayTarget> = _target.asStateFlow()
 

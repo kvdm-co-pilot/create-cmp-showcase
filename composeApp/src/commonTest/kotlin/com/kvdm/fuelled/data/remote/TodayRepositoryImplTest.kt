@@ -60,22 +60,23 @@ class TodayRepositoryImplTest {
         NewLogEntry(id, "Food $id", "1 serving", kcal = 100, proteinG = 10, carbsG = 5, fatG = 2)
     }
 
-    // SPEC: TODAY-01
+    // SPEC: PLAN-03
     @Test
-    fun `seeds a realistic day on first read and dates it with the current logical day`() = runTest {
+    fun `a fresh source yields a goal and an empty day - no entries are seeded`() = runTest {
         val model = repository().summary()
 
         // The date is a real LocalDate derived from the clock — not a stored display label.
         assertEquals(dayInView, model.date)
-        assertTrue(model.targetKcal > 0, "the seeded day needs a calorie target")
-        assertTrue(model.meals.isNotEmpty(), "the source should seed a sample day's log on first run")
+        assertTrue(model.targetKcal > 0, "the goal row is still seeded on first run")
+        assertTrue(model.meals.isEmpty(), "every day starts empty — it is planned by its owner, not pre-filled")
     }
 
     // SPEC: TODAY-01
     @Test
     fun `dates the day in view by the logical day, not the calendar date, in the small hours`() = runTest {
         val dao = FakeTodayDao()
-        repository(dao, at = noon).summary() // seeds the day
+        // Written during the evening, at `noon`'s repository instance.
+        repository(dao, at = noon).addEntries(tray("e1"), dayInView, MealSlot.DINNER, LogStatus.LOGGED)
 
         // 03:59 the NEXT calendar day: the clock says the 23rd, the logical day is still the 22nd.
         val afterMidnight = repository(dao, at = justBeforeDayStart).summary()
@@ -92,15 +93,27 @@ class TodayRepositoryImplTest {
     fun `groups a day's entries by slot in slot order, with meal totals`() = runTest {
         val dao = FakeTodayDao()
         val repository = repository(dao)
-        repository.summary() // seed: BREAKFAST, LUNCH, SNACK
-        // Written LAST but slotted DINNER — so a repository that kept insertion order, or let
-        // SQLite sort the stored names alphabetically, would put it in the wrong place.
+        // Written out of declaration order — DINNER first, BREAKFAST last — so a repository
+        // that kept insertion order, or let SQLite sort the stored names alphabetically, would
+        // put them in the wrong place.
         repository.addEntries(tray("d1"), dayInView, MealSlot.DINNER, LogStatus.LOGGED)
+        repository.addEntries(tray("e1"), dayInView, MealSlot.EVENING_SNACK, LogStatus.LOGGED)
+        repository.addEntries(tray("l1"), dayInView, MealSlot.LUNCH, LogStatus.LOGGED)
+        repository.addEntries(tray("a1"), dayInView, MealSlot.AFTERNOON_SNACK, LogStatus.LOGGED)
+        repository.addEntries(tray("m1"), dayInView, MealSlot.MORNING_SNACK, LogStatus.LOGGED)
+        repository.addEntries(tray("b1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
 
         val model = repository.summary()
 
         assertEquals(
-            listOf(MealSlot.BREAKFAST, MealSlot.LUNCH, MealSlot.DINNER, MealSlot.SNACK),
+            listOf(
+                MealSlot.BREAKFAST,
+                MealSlot.MORNING_SNACK,
+                MealSlot.LUNCH,
+                MealSlot.AFTERNOON_SNACK,
+                MealSlot.DINNER,
+                MealSlot.EVENING_SNACK,
+            ),
             model.meals.map { it.slot },
             "meals come out in MealSlot declaration order, whatever order they were written in",
         )
@@ -115,6 +128,7 @@ class TodayRepositoryImplTest {
         runTest {
             val dao = FakeTodayDao()
             val repository = repository(dao)
+            repository.addEntries(tray("b1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
             val seeded = repository.summary()
             val seededKcal = seeded.meals.flatMap { it.entries }.sumOf { it.kcal }
 
@@ -136,6 +150,7 @@ class TodayRepositoryImplTest {
     fun `computes each macro's current as the sum across LOGGED entries only, against the goal target`() = runTest {
         val dao = FakeTodayDao()
         val repository = repository(dao)
+        repository.addEntries(tray("b1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
         val seeded = repository.summary()
         val seededProtein = seeded.meals.flatMap { it.entries }.sumOf { it.proteinG }
 
@@ -174,7 +189,8 @@ class TodayRepositoryImplTest {
     fun `a mid-write failure persists nothing and surfaces a mapped DomainError`() = runTest {
         val dao = FakeTodayDao()
         val repository = repository(dao)
-        repository.summary() // seed, so the day already has rows the rollback must not touch
+        // Already on the ledger, so the rollback must not touch it.
+        repository.addEntries(tray("s1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
         val seededIds = dao.rows.map { it.id }
         dao.failInsertOfId = "t2" // the SECOND of three items blows up mid-transaction
 
@@ -196,6 +212,7 @@ class TodayRepositoryImplTest {
     fun `deleting a logged entry removes it and the day's totals recompute without it`() = runTest {
         val dao = FakeTodayDao()
         val repository = repository(dao)
+        repository.addEntries(tray("b1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
         val before = repository.summary()
         val victim = before.meals.first { it.slot == MealSlot.BREAKFAST }.entries.first()
 
@@ -217,7 +234,7 @@ class TodayRepositoryImplTest {
     fun `marking a planned entry logged makes it count toward consumed and changes no other entry`() = runTest {
         val dao = FakeTodayDao()
         val repository = repository(dao)
-        repository.summary()
+        repository.addEntries(tray("b1"), dayInView, MealSlot.BREAKFAST, LogStatus.LOGGED)
         repository.addEntries(tray("p1"), dayInView, MealSlot.DINNER, LogStatus.PLANNED)
         val before = repository.summary()
         val planned = before.meals.single { it.slot == MealSlot.DINNER }.entries.single()

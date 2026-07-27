@@ -22,6 +22,7 @@ import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.fakes.FixedClock
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -38,18 +39,24 @@ class MealTrayScreenTest {
 
     private val zone = TimeZone.UTC
     private val openedAt = LocalDateTime(2026, 7, 22, 12, 30)
+    // The header's opening state — "Lunch · Wednesday, Jul 22" — is now the caller's explicit
+    // target (MEAL-10, PLAN-04), not a clock guess, though it matches `openedAt`'s logical day.
+    private val targetDate = LocalDate(2026, 7, 22)
     private val foodRepository = FakeFoodRepository()
     private val todayRepository = FakeTodayRepository()
 
     private val chicken = Food("1", "Chicken breast", "Raw · skinless", "100 g", 165, 31, 0, 4)
 
-    private fun viewModel(): MealTrayViewModel {
+    private fun viewModel(
+        target: MealTrayInitialTarget = MealTrayInitialTarget(date = targetDate, slot = MealSlot.LUNCH),
+    ): MealTrayViewModel {
         foodRepository.foods = listOf(chicken)
         val clock = FixedClock(openedAt.toInstant(zone))
         return MealTrayViewModel(
             getFoods = GetFoodsUseCase(foodRepository),
             searchFoods = SearchFoodsUseCase(foodRepository),
             addLogEntries = AddLogEntriesUseCase(todayRepository, clock, zone, DEFAULT_DAY_START_HOUR),
+            initialTarget = target,
             clock = clock,
             zone = zone,
             dayStartHour = DEFAULT_DAY_START_HOUR,
@@ -77,18 +84,18 @@ class MealTrayScreenTest {
 
     // SPEC: MEAL-10
     @Test
-    fun `the header states the target date and slot, and a tap retargets it`() = runComposeUiTest {
+    fun `the header STATES the target it was aimed at, and offers no way to change it`() = runComposeUiTest {
         setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel()) } }
         awaitNode(hasTestTag("meal_tray_target"))
 
         onNodeWithTag("meal_tray_target", useUnmergedTree = true)
             .assertTextEquals("Lunch · Wednesday, Jul 22")
 
-        onNodeWithTag("meal_tray_slot_dinner").performClick()
-        onNodeWithTag("meal_tray_date_tomorrow").performClick()
-
-        onNodeWithTag("meal_tray_target", useUnmergedTree = true)
-            .assertTextEquals("Dinner · Thursday, Jul 23")
+        // The slot pills and the date row are GONE: retargeting mid-tray is how food lands in
+        // the wrong meal, and four generic pills could not even say WHICH snack. To aim
+        // somewhere else you go back and tap that container (PLAN-04).
+        onNodeWithTag("meal_tray_slot_dinner").assertDoesNotExist()
+        onNodeWithTag("meal_tray_date_tomorrow").assertDoesNotExist()
     }
 
     // SPEC: MEAL-11
@@ -122,18 +129,28 @@ class MealTrayScreenTest {
 
     // SPEC: MEAL-10
     @Test
-    fun `confirming a retargeted tray writes to the retargeted date and slot`() = runComposeUiTest {
-        setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel()) } }
+    fun `confirming writes to the target the tray was AIMED at, not one chosen inside it`() = runComposeUiTest {
+        // Aimed at tomorrow's Dinner by the tap that opened it — the case that used to be
+        // reached by retargeting inside the tray, now carried in from the container.
+        setContent {
+            MaterialTheme {
+                MealTrayRoute(
+                    viewModel = viewModel(
+                        target = MealTrayInitialTarget(date = LocalDate(2026, 7, 23), slot = MealSlot.DINNER),
+                    ),
+                )
+            }
+        }
         awaitNode(hasTestTag("meal_tray_item_1"))
 
+        onNodeWithTag("meal_tray_target", useUnmergedTree = true)
+            .assertTextEquals("Dinner · Thursday, Jul 23")
         onNodeWithTag("meal_tray_item_1").performClick()
-        onNodeWithTag("meal_tray_slot_dinner").performClick()
-        onNodeWithTag("meal_tray_date_tomorrow").performClick()
         onNodeWithTag("meal_tray_add").performClick()
         waitUntil(timeoutMillis = 5_000) { todayRepository.addCalls.isNotEmpty() }
 
         val call = todayRepository.addCalls.single()
-        assertTrue(call.slot == MealSlot.DINNER, "the write followed the header's slot")
-        assertTrue(call.date.toString() == "2026-07-23", "the write followed the header's date")
+        assertTrue(call.slot == MealSlot.DINNER, "the write followed the target it was aimed at")
+        assertTrue(call.date.toString() == "2026-07-23", "the write followed the target it was aimed at")
     }
 }

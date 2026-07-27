@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.domain.model.Food
+import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
 import com.kvdm.fuelled.domain.usecase.SearchFoodsUseCase
@@ -20,6 +21,7 @@ import com.kvdm.fuelled.testing.fakes.FixedClock
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -48,8 +50,10 @@ class MealGoldenTreeTest {
 
     private val zone = TimeZone.UTC
 
-    // 12:30 on a fixed logical day: Lunch preselected (MEAL-04), target date 2026-07-22.
+    // 12:30 on a fixed logical day. The target is now stated explicitly (MEAL-10, PLAN-04) —
+    // Lunch, 2026-07-22 — rather than guessed from the clock; the clock still fixes `currentDay`.
     private val openedAt = LocalDateTime(2026, 7, 22, 12, 30)
+    private val targetDate = LocalDate(2026, 7, 22)
 
     private val goldenFoods = listOf(
         Food("1", "Chicken breast", "Raw · skinless", "100 g", 165, 31, 0, 4),
@@ -65,6 +69,7 @@ class MealGoldenTreeTest {
             getFoods = GetFoodsUseCase(foodRepository),
             searchFoods = SearchFoodsUseCase(foodRepository),
             addLogEntries = AddLogEntriesUseCase(FakeTodayRepository(), clock, zone, DEFAULT_DAY_START_HOUR),
+            initialTarget = MealTrayInitialTarget(date = targetDate, slot = MealSlot.LUNCH),
             clock = clock,
             zone = zone,
             dayStartHour = DEFAULT_DAY_START_HOUR,

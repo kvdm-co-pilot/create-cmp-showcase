@@ -85,7 +85,7 @@ class FakeTodayRepository : TodayRepository {
             fat = MacroProgress("Fat", 9, 70, "g"),
             meals = listOf(
                 MealGroup(MealSlot.BREAKFAST, listOf(LogEntry("b1", "Rolled oats & whey", "80 g · 1 scoop", 430, 38))),
-                MealGroup(MealSlot.SNACK, listOf(LogEntry("s1", "Banana", "1 medium", 105, 1))),
+                MealGroup(MealSlot.MORNING_SNACK, listOf(LogEntry("s1", "Banana", "1 medium", 105, 1))),
             ),
         )
 
