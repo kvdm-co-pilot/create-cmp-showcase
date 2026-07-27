@@ -54,6 +54,13 @@ data class NewLogEntry(
     val proteinG: Int,
     val carbsG: Int,
     val fatG: Int,
+    /**
+     * Copied off the catalog [Food] at write time (PLAN-22), not looked up later. A log row is
+     * a SNAPSHOT — it already carries its own name, serving and macros rather than a foreign
+     * key — so veg-ness travels with it for the same reason: re-flagging a catalog food must
+     * not silently rewrite what last Tuesday's veg count was.
+     */
+    val veg: Boolean = false,
 )
 
 // `slotForLocalTime` lived here: the tray's time-of-day slot preselect (MEAL-04, withdrawn).

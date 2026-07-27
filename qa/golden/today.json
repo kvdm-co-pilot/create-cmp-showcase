@@ -20,28 +20,31 @@
       {"text": "141g"},
       {"text": "to go"}
     ]},
-    {"text": "TODAY'S LOG"},
-    {"children": [
-      {"text": "Breakfast"},
-      {"text": "430 kcal"},
-      {"tag": "today_add_breakfast", "role": "Button", "children": [
-        {"role": "Image", "contentDescription": "Add food to Breakfast"}
+    {"tag": "today_up_next", "text": "UP NEXT"},
+    {"tag": "today_water_total", "text": "Water 0.0 / 3.0 L"},
+    {"tag": "today_veg_total", "text": "Veg 0 of 2"},
+    {"tag": "today_slot_lunch", "children": [
+      {"text": "Lunch"},
+      {"text": "12:00"},
+      {"text": "LATE"},
+      {"text": " since 12:00"},
+      {"tag": "today_done_lunch", "role": "Button", "children": [
+        {"role": "Image", "contentDescription": "Mark Lunch done"}
       ]},
-      {"text": "Golden oats"},
-      {"text": "80 g"},
-      {"text": "430 kcal"},
-      {"text": "38g P"}
+      {"tag": "today_add_lunch", "role": "Button", "children": [
+        {"text": "Add food"}
+      ]}
     ]},
-    {"children": [
-      {"text": "Snack"},
-      {"text": "105 kcal"},
-      {"tag": "today_add_morning_snack", "role": "Button", "children": [
-        {"role": "Image", "contentDescription": "Add food to Snack"}
-      ]},
-      {"text": "Golden banana"},
-      {"text": "1 medium"},
-      {"text": "105 kcal"},
-      {"text": "1g P"}
+    {"tag": "today_water_1", "children": [
+      {"text": "Water"},
+      {"text": "500 ml · 08:15"},
+      {"tag": "today_water_done_1", "role": "Button", "children": [
+        {"role": "Image", "contentDescription": "Mark water 1 done"}
+      ]}
+    ]},
+    {"tag": "today_plan_link", "children": [
+      {"text": "This week"},
+      {"text": "Plan the week — all six meals, every day"}
     ]}
   ]}
 ]}

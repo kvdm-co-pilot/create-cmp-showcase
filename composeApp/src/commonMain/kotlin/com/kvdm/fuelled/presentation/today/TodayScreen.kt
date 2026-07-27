@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Medication
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,15 +35,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.domain.model.MealTimes
 import com.kvdm.fuelled.domain.model.LogEntry
+import com.kvdm.fuelled.domain.model.PlanSlotView
 import com.kvdm.fuelled.domain.model.TodayModel
+import com.kvdm.fuelled.domain.model.VEG_MEAL_GOAL
+import com.kvdm.fuelled.domain.model.WATER_DAY_GOAL_ML
+import com.kvdm.fuelled.domain.model.buildPlanDay
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
-import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ProgressRing
 import com.kvdm.fuelled.presentation.components.StatBar
+import com.kvdm.fuelled.presentation.mealplan.PlanEntryUi
+import com.kvdm.fuelled.presentation.mealplan.PlanMealCard
+import com.kvdm.fuelled.presentation.mealplan.PlanMealUi
+import com.kvdm.fuelled.presentation.mealplan.PlanWaterUi
+import com.kvdm.fuelled.presentation.mealplan.WaterRow
+import com.kvdm.fuelled.presentation.mealplan.clockLabel
+import com.kvdm.fuelled.presentation.mealplan.litresLabel
+import com.kvdm.fuelled.presentation.mealplan.uiKey
+import com.kvdm.fuelled.presentation.mealplan.uiState
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Today: the daily macro dashboard (the hero screen) ───────────────────────────────
@@ -77,6 +96,59 @@ val sampleToday = TodayModel(
             LogEntry("s-s2", "Almonds", "20 g", 116, 4),
         )),
     ),
+)
+
+/**
+ * PREVIEW/DEMO fixture for the highlights (decision 13) — the mid-day state that communicates
+ * most: breakfast already behind, lunch focused and LATE, third water pending, morning stack
+ * half taken. Fixed values, never a clock read, so gallery renders and golden diffs stay
+ * deterministic (ARCH-12).
+ *
+ * The plan half is a real [PlanDay] built through the real [buildPlanDay] at a fixed "now",
+ * not hand-assembled. A fixture that bypassed the derivation could show a combination of states
+ * the app can never actually produce — which is the failure mode of hand-built fixtures.
+ */
+val sampleHighlights: TodayHighlights = TodayHighlights(
+    today = sampleToday,
+    plan = buildPlanDay(
+        date = LocalDate(2026, 7, 22),
+        isCurrentDay = true,
+        now = LocalTime(12, 45),
+        times = MealTimes(),
+        entriesBySlot = mapOf(
+            MealSlot.LUNCH to listOf(
+                LogEntry("s-l1", "Chicken breast & rice", "200 g · 150 g", 620, 58),
+                LogEntry("s-l2", "Mixed greens", "1 bowl", 90, 3, veg = true),
+            ),
+        ),
+        doneSlots = setOf(MealSlot.BREAKFAST, MealSlot.MORNING_SNACK),
+        waterTicks = setOf(1, 2),
+    ),
+    supplements = SupplementBucket(name = "Morning stack", taken = 2, total = 4),
+)
+
+/**
+ * A fresh day: the ring reads the full target as remaining, and breakfast holds focus with its
+ * own add control as the card body — the whole-day empty state's replacement (TODAY-04/PLAN-04).
+ */
+val sampleHighlightsEmpty: TodayHighlights = TodayHighlights(
+    today = sampleToday.copy(
+        consumedKcal = 0,
+        protein = MacroProgress("Protein", 0, 180, "g"),
+        carbs = MacroProgress("Carbs", 0, 260, "g"),
+        fat = MacroProgress("Fat", 0, 70, "g"),
+        meals = emptyList(),
+    ),
+    plan = buildPlanDay(
+        date = LocalDate(2026, 7, 22),
+        isCurrentDay = true,
+        now = LocalTime(6, 30),
+        times = MealTimes(),
+        entriesBySlot = emptyMap(),
+        doneSlots = emptySet(),
+        waterTicks = emptySet(),
+    ),
+    supplements = SupplementBucket(name = "Morning stack", taken = 0, total = 4),
 )
 
 /**
@@ -124,30 +196,53 @@ internal val MealSlot.label: String
 fun TodayRoute(
     viewModel: TodayViewModel = koinViewModel(),
     onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
+    onOpenPlan: (LocalDate) -> Unit = {},
+    onOpenSupplements: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "today", onRetry = viewModel::load) { model ->
-        TodayScreen(model = model, onAddToMeal = onAddToMeal)
+        TodayScreen(
+            model = model,
+            actions = TodayActions(
+                onAddToMeal = onAddToMeal,
+                onToggleFocusDone = viewModel::setSlotDone,
+                onToggleWater = viewModel::setWaterDone,
+                onOpenPlan = { onOpenPlan(model.plan.date) },
+                onOpenSupplements = onOpenSupplements,
+            ),
+        )
     }
 }
 
 /**
- * The stateless dashboard — the preview/UI-first seam. Renders a [TodayModel]; defaults to a
- * sample so the preview registry can render it without a VM or Koin. The production path is
- * [TodayRoute] + [TodayViewModel].
+ * Every interaction Today offers (TODAY-07/TODAY-09..TODAY-12), bundled so the stateless screen
+ * keeps a preview-friendly shape and its golden tree stays a pure function of its arguments.
+ */
+data class TodayActions(
+    val onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
+    val onToggleFocusDone: (MealSlot, Boolean) -> Unit = { _, _ -> },
+    val onToggleWater: (Int, Boolean) -> Unit = { _, _ -> },
+    val onOpenPlan: () -> Unit = {},
+    val onOpenSupplements: () -> Unit = {},
+)
+
+/**
+ * The stateless dashboard — the preview/UI-first seam, defaulted to a sample so the registry
+ * renders it without a VM or Koin. The production path is [TodayRoute] + [TodayViewModel].
  *
- * Every meal card carries its own add control (TODAY-07) handing [onAddToMeal] the target it
- * stands for, so the tray opens aimed rather than defaulting and asking to be corrected.
+ * **Today is the highlights, not the day** (decision 13). It shows what is true right now: the
+ * ring and macros, the ONE focused container (TODAY-09), the next water (TODAY-10), the veg
+ * count (TODAY-14), the supplement bucket (TODAY-11), and one link into the full week
+ * (TODAY-12). The week itself lives on the plan screen and is never rendered here.
  *
- * MID-BUILD: this still renders the day's logged cards. Decision 13 makes this screen the
- * highlights dashboard — focused container, next water, supplement bucket, plan link
- * (TODAY-09..TODAY-13, drafted and signed as `TodayHighlightsScreen`) — which lands with the
- * ViewModel slice that can supply that state.
+ * The focused container and the water row are the plan screen's OWN composables
+ * ([PlanMealCard], [WaterRow]), imported rather than reimplemented — so the two surfaces cannot
+ * drift apart visually, the same way TODAY-13 stops them drifting behaviourally.
  */
 @Composable
 fun TodayScreen(
-    model: TodayModel = sampleToday,
-    onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
+    model: TodayHighlights = sampleHighlights,
+    actions: TodayActions = TodayActions(),
 ) {
     Column(
         modifier = Modifier
@@ -162,27 +257,118 @@ fun TodayScreen(
             FuelledWordmark(markSize = 26.dp)
             Spacer(Modifier.weight(1f))
             Text(
-                text = model.date.dayHeaderLabel().uppercase(),
+                text = model.today.date.dayHeaderLabel().uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.semantics { testTag = "today_title" },
             )
         }
 
-        HeroCard(model)
-        ProteinFocus(model.protein)
+        HeroCard(model.today)
+        ProteinFocus(model.today.protein)
 
-        Text(
-            text = "TODAY'S LOG",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        model.meals.forEach { meal ->
-            MealCard(meal = meal, onAdd = { onAddToMeal(model.date, meal.slot) })
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "UP NEXT",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { testTag = "today_up_next" },
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "Water ${model.plan.waterMl.litresLabel()} / ${WATER_DAY_GOAL_ML.litresLabel()} L",
+                style = MaterialTheme.typography.labelMedium,
+                color = FuelledColors.Info,
+                modifier = Modifier.semantics { testTag = "today_water_total" },
+            )
+            Spacer(Modifier.width(12.dp))
+            // TODAY-14: the method's veg-with-two-meals rule at a glance.
+            Text(
+                text = "Veg ${model.plan.vegMeals} of $VEG_MEAL_GOAL",
+                style = MaterialTheme.typography.labelMedium,
+                color = FuelledColors.Success,
+                modifier = Modifier.semantics { testTag = "today_veg_total" },
+            )
         }
+
+        // TODAY-09: exactly one container — the focused one. A day whose six slots are all done
+        // or missed has no focus at all (PLAN-17), and says so rather than showing an empty card.
+        model.focus?.let { focus ->
+            PlanMealCard(
+                meal = focus.toUi(),
+                onToggleDone = { actions.onToggleFocusDone(focus.slot, !focus.done) },
+                onAddFood = { actions.onAddToMeal(model.plan.date, focus.slot) },
+                // TODAY-07 names this surface's add control `today_add_<slot>`; the same
+                // composable on the plan screen tags itself `plan_add_<slot>`.
+                tagPrefix = "today",
+            )
+        } ?: Text(
+            text = "That's the day — six for six. Next up is tomorrow's breakfast.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "today_day_complete" },
+        )
+
+        // TODAY-10: the next water not yet ticked. Absent once all six are done — six ticked
+        // containers and nothing left to prompt is a finished goal, not an empty row.
+        model.nextWater?.let { water ->
+            WaterRow(
+                water = PlanWaterUi(index = water.index, time = water.time.clockLabel(), done = water.done),
+                onToggle = { actions.onToggleWater(water.index, !water.done) },
+                tagPrefix = "today",
+            )
+        }
+
+        // TODAY-11: bucket-based, because Supplement carries a free-text `timing` and a taken
+        // flag — no clock time — so "the current bucket" is genuinely underivable by hour.
+        model.supplements?.let { bucket ->
+            ListItemCard(
+                title = bucket.name,
+                subtitle = "Supplements · ${bucket.taken} of ${bucket.total} taken",
+                onClick = actions.onOpenSupplements,
+                leading = { Icon(Icons.Filled.Medication, contentDescription = null, tint = FuelledColors.Info) },
+                trailing = {
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.semantics { testTag = "today_supplements" },
+            )
+        }
+
+        // TODAY-12: the one control into the full week. Today never renders the week itself.
+        ListItemCard(
+            title = "This week",
+            subtitle = "Plan the week — all six meals, every day",
+            onClick = actions.onOpenPlan,
+            leading = { Icon(Icons.Filled.Today, contentDescription = null, tint = FuelledColors.Primary) },
+            trailing = {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            modifier = Modifier.semantics { testTag = "today_plan_link" },
+        )
         Spacer(Modifier.height(8.dp))
     }
 }
+
+/**
+ * The focused container as the plan screen's card model. Reuses the plan's own mapper so the
+ * DONE/FOCUSED/LATE/MISSED rendering is decided in exactly one place (see MealPlanRoute.kt).
+ */
+private fun PlanSlotView.toUi(): PlanMealUi = PlanMealUi(
+    key = slot.uiKey,
+    label = slot.label,
+    time = time.clockLabel(),
+    state = uiState(),
+    entries = entries.map { PlanEntryUi(it.name, it.serving, it.kcal, it.proteinG) },
+    tickedEmpty = tickedEmpty,
+)
 
 // The per-macro colours are assigned here, in presentation — the domain model carries none.
 private fun MacroProgress.colored(color: Color): Pair<MacroProgress, Color> = this to color
@@ -276,55 +462,12 @@ internal fun ProteinFocus(protein: MacroProgress) {
     }
 }
 
-/**
- * One meal's card. Its header carries the slot's add control (TODAY-07) — `today_add_<slot>`,
- * the registry's [AppIconButton] on the app's 48 dp touch floor, sitting where the eye already
- * is when reading that meal. The card itself is unchanged: this is an affordance, not a
- * redesign, and the target it carries ([onAdd]) is the card's own slot, never a default.
- */
-@Composable
-private fun MealCard(meal: MealGroup, onAdd: () -> Unit = {}) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 18.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(meal.slot.label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = "${meal.kcal} kcal",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            AppIconButton(
-                icon = Icons.Filled.Add,
-                contentDescription = "Add food to ${meal.slot.label}",
-                onClick = onAdd,
-                tint = FuelledColors.Primary,
-                modifier = Modifier.semantics { testTag = "today_add_${meal.slot.name.lowercase()}" },
-            )
-        }
-        meal.entries.forEach { EntryRow(it) }
-    }
-}
-
-@Composable
-private fun EntryRow(entry: LogEntry) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(entry.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Text(entry.serving, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Primary)
-        }
-    }
-}
+// `MealCard` and `EntryRow` lived here: the day's log rendered as one card per meal group.
+// Decision 13 made Today the HIGHLIGHTS surface — one focused container, not the whole day —
+// so the card the screen now renders is the plan's own [PlanMealCard], imported rather than
+// kept as a near-identical twin. Its `today_add_<slot>` tag (TODAY-07) survives via that
+// card's tagPrefix. Deleted rather than left unused: a second meal card is exactly the thing
+// that later gets edited instead of the real one.
 
 // `TodayEmptyLog` lived here: the whole-day empty state (`today_empty`) and its untargeted add
 // control (`today_empty_add`) — TODAY-04's old form and TODAY-08, withdrawn. An empty day is no

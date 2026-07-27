@@ -38,6 +38,8 @@ data class LogEntry(
     val kcal: Int,
     val proteinG: Int,
     val status: LogStatus = LogStatus.LOGGED,
+    /** Whether this entry is a vegetable — the day's "Veg n of 2" counts from it (PLAN-22). */
+    val veg: Boolean = false,
 )
 
 /**

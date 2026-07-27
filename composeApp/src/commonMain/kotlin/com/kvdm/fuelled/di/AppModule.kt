@@ -1,16 +1,25 @@
 package com.kvdm.fuelled.di
 
 import com.kvdm.fuelled.data.local.AppDatabase
+import com.kvdm.fuelled.data.remote.MealPlanRepositoryImpl
 import com.kvdm.fuelled.data.remote.FoodRepositoryImpl
 import com.kvdm.fuelled.data.remote.ProfileRepositoryImpl
 import com.kvdm.fuelled.data.remote.SupplementRepositoryImpl
 import com.kvdm.fuelled.data.remote.TodayRepositoryImpl
 import com.kvdm.fuelled.domain.repository.FoodRepository
+import com.kvdm.fuelled.domain.repository.MealPlanRepository
 import com.kvdm.fuelled.domain.repository.ProfileRepository
 import com.kvdm.fuelled.domain.repository.SupplementRepository
 import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
+import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
+import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
+import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
+import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
+import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodsUseCase
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
@@ -23,6 +32,8 @@ import com.kvdm.fuelled.presentation.foods.FoodDetailViewModel
 import com.kvdm.fuelled.presentation.foods.FoodsViewModel
 import com.kvdm.fuelled.presentation.meal.MealTrayInitialTarget
 import com.kvdm.fuelled.presentation.meal.MealTrayViewModel
+import com.kvdm.fuelled.presentation.mealplan.MealPlanViewModel
+import com.kvdm.fuelled.presentation.mealplan.MealTimesViewModel
 import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
@@ -40,6 +51,11 @@ val repositoryModule = module {
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
     single<ProfileRepository> { ProfileRepositoryImpl(get<AppDatabase>().profileDao()) }
+    // The structured day. It takes BOTH daos: the plan's own stored state (times, ticks) and
+    // the log rows the containers are filled from — one day is one read across both.
+    single<MealPlanRepository> {
+        MealPlanRepositoryImpl(get<AppDatabase>().mealPlanDao(), get<AppDatabase>().todayDao())
+    }
     // cmp:anchor di-repositories
 }
 
@@ -56,6 +72,17 @@ val useCaseModule = module {
     factory { GetSupplementStackUseCase(get()) }
     factory { SetSupplementTakenUseCase(get()) }
     factory { GetProfileUseCase(get()) }
+    // The structured day. GetPlanDayUseCase takes its clock/zone/dayStartHour from production
+    // defaults, like the tray's write path; tests construct it with a fixed clock (PLAN-23).
+    factory { GetPlanDayUseCase(get()) }
+    factory { GetMealTimesUseCase(get()) }
+    factory { SetSlotDoneUseCase(get()) }
+    factory { SetWaterDoneUseCase(get()) }
+    factory { CopyDayForwardUseCase(get()) }
+    // The ReminderScheduler is PLATFORM-bound: Android arms real alarms, desktop and iOS bind
+    // NoOpReminderScheduler (brief decision 9 — iOS notifications are deliberately unpromised).
+    factory { ArmMealRemindersUseCase(get(), get()) }
+    factory { SetMealTimeUseCase(get(), get()) }
     // cmp:anchor di-usecases
 }
 
@@ -65,6 +92,8 @@ val viewModelModule = module {
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::ProfileViewModel)
+    viewModelOf(::MealPlanViewModel)
+    viewModelOf(::MealTimesViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
     // graph. Tests construct it directly with a FixedClock (MEAL-10).

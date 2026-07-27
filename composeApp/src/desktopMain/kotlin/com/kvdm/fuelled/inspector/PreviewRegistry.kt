@@ -12,9 +12,9 @@ import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
 import com.kvdm.fuelled.presentation.foods.FoodsScreen
 import com.kvdm.fuelled.presentation.meal.MealTrayScreen
 import com.kvdm.fuelled.presentation.mealplan.MealPlanDayScreen
+import com.kvdm.fuelled.presentation.mealplan.MealTimesNotice
 import com.kvdm.fuelled.presentation.mealplan.MealTimesScreen
-import com.kvdm.fuelled.presentation.mealplan.TodayHighlightsScreen
-import com.kvdm.fuelled.presentation.mealplan.sampleHighlightsEmpty
+import com.kvdm.fuelled.presentation.today.sampleHighlightsEmpty
 import com.kvdm.fuelled.presentation.mealplan.samplePlanEmpty
 import com.kvdm.fuelled.presentation.mealplan.samplePlanTomorrow
 import com.kvdm.fuelled.presentation.meal.TrayContents
@@ -64,7 +64,10 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
             ),
         )
     },
-    ScreenPreview("today", "Today tab") { TabHost { TodayScreen() } },
+    ScreenPreview("today", "Today tab — highlights (lunch focused, late)") { TabHost { TodayScreen() } },
+    ScreenPreview("today@empty", "Today — fresh day (breakfast focused, add-in-card)") {
+        TabHost { TodayScreen(sampleHighlightsEmpty) }
+    },
     ScreenPreview("foods", "Foods tab") { TabHost { FoodsScreen() } },
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
@@ -73,17 +76,21 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("meal-tray@empty", "Meal tray — empty selection") {
         TabHost { MealTrayScreen(tray = TrayContents()) }
     },
-    // DESIGN DRAFTS (feature-design:meal-plan) — the structured day + set-once times,
-    // stub-driven; signed on these renders before the behavior contract is written.
+    // The structured day + the set-once times sheet. Stateless and fixture-driven, so every
+    // state renders here without a device, a clock, or a database.
     ScreenPreview("meal-plan", "Meal plan — mid-day (lunch focused, late)") { TabHost { MealPlanDayScreen() } },
     ScreenPreview("meal-plan@empty", "Meal plan — fresh day (containers always render)") { TabHost { MealPlanDayScreen(samplePlanEmpty) } },
     ScreenPreview("meal-plan@planned", "Meal plan — tomorrow, planned ahead") { TabHost { MealPlanDayScreen(samplePlanTomorrow) } },
     ScreenPreview("meal-times", "Meal times — set-once alarms") { TabHost { MealTimesScreen() } },
-    ScreenPreview("today-highlights", "Today as highlights — lunch focused, late (decision 13)") {
-        TabHost { TodayHighlightsScreen() }
-    },
-    ScreenPreview("today-highlights@empty", "Today as highlights — fresh day (breakfast focus, add-in-card)") {
-        TabHost { TodayHighlightsScreen(sampleHighlightsEmpty) }
+    ScreenPreview("meal-times@no-reminders", "Meal times — notifications denied (PLAN-07)") {
+        TabHost {
+            MealTimesScreen(
+                notice = MealTimesNotice(
+                    "Reminders are OFF — notifications are not allowed for Fuelled, so none of " +
+                        "these times will alert you. Your meal times still drive the plan.",
+                ),
+            )
+        }
     },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()

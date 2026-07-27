@@ -66,7 +66,10 @@ data class PlanMealUi(
     val entries: List<PlanEntryUi>,
     /** Decision 8: ticked with no entries — eaten off-plan / skipped, no food fabricated. */
     val tickedEmpty: Boolean = false,
-)
+) {
+    /** Done-ness IS the DONE state — kept derived so the two can never be set to disagree. */
+    val done: Boolean get() = state == PlanSlotState.DONE
+}
 
 data class PlanWaterUi(val index: Int, val time: String, val done: Boolean)
 
@@ -160,15 +163,48 @@ val samplePlanTomorrow = samplePlanMidday.copy(
 )
 
 /**
- * The structured day — DESIGN DRAFT, stateless and stub-driven for the preview registry.
- * Decision 13: this is its OWN routed screen (`plan/{date}` in the build step), not Today's
- * body — Today shows the highlights projection ([TodayHighlightsScreen]) and links here.
+ * Every interaction the plan screen offers (PLAN-04/PLAN-10/PLAN-11/PLAN-13/PLAN-20), bundled
+ * so the stateless screen keeps a preview-friendly shape — the registry renders it with
+ * [PlanDayActions.None] and no ViewModel, and the golden tree stays a pure function of its
+ * arguments.
+ */
+data class PlanDayActions(
+    val onSelectDay: (Int) -> Unit,
+    val onToggleDone: (String, Boolean) -> Unit,
+    val onToggleWater: (Int, Boolean) -> Unit,
+    val onAddFood: (String) -> Unit,
+    val onCopyForward: () -> Unit,
+    val onOpenTimes: () -> Unit,
+) {
+    companion object {
+        /** Inert actions for gallery renders and golden trees: the structure, without wiring. */
+        val None = PlanDayActions({}, { _, _ -> }, { _, _ -> }, {}, {}, {})
+    }
+}
+
+/**
+ * The structured day — stateless, so the preview registry renders every state without a
+ * ViewModel. Decision 13: this is its OWN routed screen (`plan/{date}`), not Today's body —
+ * Today shows the highlights projection ([TodayHighlightsScreen]) and links here.
  */
 @Composable
-fun MealPlanDayScreen(day: PlanDayUi = samplePlanMidday) {
+fun MealPlanDayScreen(
+    day: PlanDayUi = samplePlanMidday,
+    actions: PlanDayActions = PlanDayActions.None,
+) {
     ScreenColumn(screenTag = "meal_plan") {
-        AppHeader(title = "Meal plan", screenTag = "meal_plan")
-        DayStrip(days = day.stripDays, selected = day.selectedDay)
+        AppHeader(
+            title = "Meal plan",
+            screenTag = "meal_plan",
+            actions = {
+                AppTextButton(
+                    text = "Times",
+                    onClick = actions.onOpenTimes,
+                    modifier = Modifier.semantics { testTag = "plan_open_times" },
+                )
+            },
+        )
+        DayStrip(days = day.stripDays, selected = day.selectedDay, onSelect = actions.onSelectDay)
         Spacer(Modifier.height(6.dp))
         Row {
             Text(
@@ -192,9 +228,26 @@ fun MealPlanDayScreen(day: PlanDayUi = samplePlanMidday) {
             verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {
             day.meals.forEachIndexed { i, meal ->
-                PlanMealCard(meal)
-                day.waters.getOrNull(i)?.let { WaterRow(it) }
+                PlanMealCard(
+                    meal = meal,
+                    onToggleDone = { actions.onToggleDone(meal.key, !meal.done) },
+                    onAddFood = { actions.onAddFood(meal.key) },
+                )
+                day.waters.getOrNull(i)?.let { water ->
+                    WaterRow(
+                        water = water,
+                        onToggle = { actions.onToggleWater(water.index, !water.done) },
+                    )
+                }
             }
+            // PLAN-20: the affordance that makes a planned week survivable. It sits at the
+            // BOTTOM, after the day it copies — you reach it having just built the thing it
+            // repeats, which is the only moment the offer makes sense.
+            AppTextButton(
+                text = "Copy this day to the rest of the week",
+                onClick = actions.onCopyForward,
+                modifier = Modifier.semantics { testTag = "plan_copy_forward" },
+            )
             Spacer(Modifier.height(8.dp))
         }
     }
@@ -202,7 +255,7 @@ fun MealPlanDayScreen(day: PlanDayUi = samplePlanMidday) {
 
 /** The week strip: the one date selector (the tray's date pills are gone — the tap aims). */
 @Composable
-private fun DayStrip(days: List<String>, selected: Int) {
+private fun DayStrip(days: List<String>, selected: Int, onSelect: (Int) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -217,7 +270,7 @@ private fun DayStrip(days: List<String>, selected: Int) {
                     .height(AppButtonDefaults.MinTouchTarget)
                     .clip(RoundedCornerShape(FuelledTokens.RadiusPill))
                     .background(if (isSelected) FuelledColors.Primary else MaterialTheme.colorScheme.secondary)
-                    .selectable(selected = isSelected, onClick = {})
+                    .selectable(selected = isSelected, onClick = { onSelect(i) })
                     .semantics { testTag = "plan_day_$i" },
                 contentAlignment = Alignment.Center,
             ) {
@@ -240,7 +293,16 @@ private fun DayStrip(days: List<String>, selected: Int) {
  * card swaps its tick for a Success DONE tag, and an empty body is the add affordance itself.
  */
 @Composable
-internal fun PlanMealCard(meal: PlanMealUi) {
+internal fun PlanMealCard(
+    meal: PlanMealUi,
+    onToggleDone: () -> Unit = {},
+    onAddFood: () -> Unit = {},
+    // The card is shared with Today (decision 13 — Today renders the plan's projection), and
+    // each surface names its own tags: `plan_add_lunch` there, `today_add_lunch` here
+    // (TODAY-07). One composable, so the two can never drift visually; two tag namespaces, so
+    // a test can still say which surface it is asserting on.
+    tagPrefix: String = "plan",
+) {
     val borderColor = when (meal.state) {
         PlanSlotState.FOCUSED -> FuelledColors.Primary
         PlanSlotState.FOCUSED_LATE -> FuelledColors.Warning
@@ -253,7 +315,7 @@ internal fun PlanMealCard(meal: PlanMealUi) {
             .background(MaterialTheme.colorScheme.surface)
             .let { if (borderColor != null) it.border(1.dp, borderColor, RoundedCornerShape(20.dp)) else it }
             .padding(horizontal = 18.dp, vertical = 16.dp)
-            .semantics { testTag = "plan_slot_${meal.key}" },
+            .semantics { testTag = "${tagPrefix}_slot_${meal.key}" },
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -271,24 +333,28 @@ internal fun PlanMealCard(meal: PlanMealUi) {
                 PlanSlotState.MISSED -> Tag("MISSED", "", MaterialTheme.colorScheme.onSurfaceVariant)
                 PlanSlotState.UPCOMING -> {}
             }
-            if (meal.state != PlanSlotState.DONE) {
-                Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(6.dp))
+            // The tick is present in EVERY state, including DONE — where it is the un-tick.
+            // A completion you cannot reverse turns a mis-tap into a permanently wrong day,
+            // and un-ticking clears only the completion: the entries it logged stay logged,
+            // because they were eaten (see MealPlanRepositoryImpl.setSlotDone).
+            AppIconButton(
+                icon = Icons.Filled.Check,
+                contentDescription = if (meal.done) "Undo ${meal.label} done" else "Mark ${meal.label} done",
+                onClick = onToggleDone,
+                tint = if (meal.done) FuelledColors.Success else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { testTag = "${tagPrefix}_done_${meal.key}" },
+            )
+            // PLAN-19: a MISSED container keeps its add control — it is back-fillable, not
+            // closed. Only the empty-body case moves the affordance into the body below.
+            if (meal.entries.isNotEmpty()) {
                 AppIconButton(
-                    icon = Icons.Filled.Check,
-                    contentDescription = "Mark ${meal.label} done",
-                    onClick = {},
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.semantics { testTag = "plan_done_${meal.key}" },
+                    icon = Icons.Filled.Add,
+                    contentDescription = "Add food to ${meal.label}",
+                    onClick = onAddFood,
+                    tint = FuelledColors.Primary,
+                    modifier = Modifier.semantics { testTag = "${tagPrefix}_add_${meal.key}" },
                 )
-                if (meal.entries.isNotEmpty()) {
-                    AppIconButton(
-                        icon = Icons.Filled.Add,
-                        contentDescription = "Add food to ${meal.label}",
-                        onClick = {},
-                        tint = FuelledColors.Primary,
-                        modifier = Modifier.semantics { testTag = "plan_add_${meal.key}" },
-                    )
-                }
             }
         }
         when {
@@ -298,10 +364,12 @@ internal fun PlanMealCard(meal: PlanMealUi) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // PLAN-04: the empty body IS the add control, and the tap carries this container's
+            // day and slot — the tray never asks which meal this was for.
             else -> AppTextButton(
                 text = "Add food",
-                onClick = {},
-                modifier = Modifier.semantics { testTag = "plan_add_${meal.key}" },
+                onClick = onAddFood,
+                modifier = Modifier.semantics { testTag = "${tagPrefix}_add_${meal.key}" },
             )
         }
     }
@@ -327,14 +395,14 @@ private fun PlanEntryRow(entry: PlanEntryUi) {
  * from the neighbouring meal times (decision 5); the tick is the only interaction.
  */
 @Composable
-internal fun WaterRow(water: PlanWaterUi) {
+internal fun WaterRow(water: PlanWaterUi, onToggle: () -> Unit = {}, tagPrefix: String = "plan") {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 18.dp, vertical = 6.dp)
-            .semantics { testTag = "plan_water_${water.index}" },
+            .semantics { testTag = "${tagPrefix}_water_${water.index}" },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("Water", style = MaterialTheme.typography.bodyLarge, color = FuelledColors.Info)
@@ -345,21 +413,14 @@ internal fun WaterRow(water: PlanWaterUi) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.weight(1f))
-        if (water.done) {
-            Icon(
-                Icons.Filled.Check,
-                contentDescription = "Water ${water.index} done",
-                tint = FuelledColors.Success,
-                modifier = Modifier.semantics { testTag = "plan_water_done_${water.index}" },
-            )
-        } else {
-            AppIconButton(
-                icon = Icons.Filled.Check,
-                contentDescription = "Mark water ${water.index} done",
-                onClick = {},
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.semantics { testTag = "plan_water_done_${water.index}" },
-            )
-        }
+        // Tappable in both states, for the same reason the meal tick is: six of these a day
+        // means mis-taps, and 0.5 L you did not drink is a lie the day's total would keep.
+        AppIconButton(
+            icon = Icons.Filled.Check,
+            contentDescription = if (water.done) "Undo water ${water.index}" else "Mark water ${water.index} done",
+            onClick = onToggle,
+            tint = if (water.done) FuelledColors.Success else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "${tagPrefix}_water_done_${water.index}" },
+        )
     }
 }

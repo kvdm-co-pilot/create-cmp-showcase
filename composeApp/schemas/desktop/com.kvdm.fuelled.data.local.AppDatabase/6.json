@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "1ea32e5bab8c39a61199cdf0e6e54414",
+    "identityHash": "0332b2b2b78a3d6f1eec8bb298707b32",
     "entities": [
       {
         "tableName": "foods",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `brand` TEXT NOT NULL, `serving` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `proteinG` INTEGER NOT NULL, `carbsG` INTEGER NOT NULL, `fatG` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `brand` TEXT NOT NULL, `serving` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `proteinG` INTEGER NOT NULL, `carbsG` INTEGER NOT NULL, `fatG` INTEGER NOT NULL, `veg` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -53,6 +53,12 @@
           {
             "fieldPath": "fatG",
             "columnName": "fatG",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "veg",
+            "columnName": "veg",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -108,7 +114,7 @@
       },
       {
         "tableName": "today_log",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `logicalDate` TEXT NOT NULL, `slot` TEXT NOT NULL, `status` TEXT NOT NULL, `entryOrder` INTEGER NOT NULL, `name` TEXT NOT NULL, `serving` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `proteinG` INTEGER NOT NULL, `carbsG` INTEGER NOT NULL, `fatG` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `logicalDate` TEXT NOT NULL, `slot` TEXT NOT NULL, `status` TEXT NOT NULL, `entryOrder` INTEGER NOT NULL, `name` TEXT NOT NULL, `serving` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `proteinG` INTEGER NOT NULL, `carbsG` INTEGER NOT NULL, `fatG` INTEGER NOT NULL, `veg` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -173,6 +179,12 @@
           {
             "fieldPath": "fatG",
             "columnName": "fatG",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "veg",
+            "columnName": "veg",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -301,7 +313,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1ea32e5bab8c39a61199cdf0e6e54414')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0332b2b2b78a3d6f1eec8bb298707b32')"
     ]
   }
 }

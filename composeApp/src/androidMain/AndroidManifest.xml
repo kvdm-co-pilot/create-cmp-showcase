@@ -4,6 +4,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      PLAN-07. USE_EXACT_ALARM is deliberately NOT declared: it is reserved for alarm-clock and
+      calendar apps, and Play rejects it for a meal reminder. SCHEDULE_EXACT_ALARM is the
+      user-grantable one — when it is not granted the scheduler arms windowed-inexact alarms
+      instead, which is the normal path here, not an error path.
+    -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Alarms do not survive a reboot; the boot receiver below re-arms them. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".AppApplication"
@@ -23,6 +32,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          PLAN-07. Both exported="false": the alarm receiver is triggered only by our own
+          PendingIntents, and BOOT_COMPLETED is delivered to non-exported receivers by the
+          system anyway. Nothing outside the app has any business posting these.
+        -->
+        <receiver
+            android:name=".notification.MealReminderReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notification.BootReArmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>

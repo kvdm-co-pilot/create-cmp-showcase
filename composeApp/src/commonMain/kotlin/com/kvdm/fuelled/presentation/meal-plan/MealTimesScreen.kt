@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
 
 // ── Meal times: the set-once alarm sheet (DESIGN DRAFT — feature-design:meal-plan) ───────
@@ -29,6 +30,13 @@ import com.kvdm.fuelled.presentation.theme.FuelledTokens
 // no water rows — the note at the bottom says why, in the app's own words.
 
 data class MealTimeUi(val key: String, val label: String, val time: String)
+
+/**
+ * What the sheet says about delivery (PLAN-07). Absent when reminders will be delivered — a
+ * working feature does not need a status line. Present when the platform will drop them, which
+ * is the plain statement the clause requires instead of six alarm times that will never fire.
+ */
+data class MealTimesNotice(val message: String)
 
 val sampleMealTimes = listOf(
     MealTimeUi("breakfast", "Breakfast", "07:00"),
@@ -44,9 +52,25 @@ val sampleMealTimes = listOf(
  * Change affordance per row; the reminder each time drives is implied by the row itself.
  */
 @Composable
-fun MealTimesScreen(times: List<MealTimeUi> = sampleMealTimes) {
+fun MealTimesScreen(
+    times: List<MealTimeUi> = sampleMealTimes,
+    notice: MealTimesNotice? = null,
+    onBack: () -> Unit = {},
+    onChange: (String) -> Unit = {},
+) {
     ScreenColumn(screenTag = "meal_times") {
-        AppHeader(title = "Meal times", screenTag = "meal_times", onBack = {})
+        AppHeader(title = "Meal times", screenTag = "meal_times", onBack = onBack)
+        // PLAN-07: when the platform will not deliver, the sheet SAYS SO — above the rows, so
+        // it is read before six alarm times imply six working alarms.
+        notice?.let {
+            Text(
+                text = it.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = FuelledColors.Warning,
+                modifier = Modifier.semantics { testTag = "meal_times_notice" },
+            )
+            Spacer(Modifier.height(FuelledTokens.GapCard))
+        }
         Column(verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard)) {
             times.forEach { row ->
                 Row(
@@ -63,7 +87,7 @@ fun MealTimesScreen(times: List<MealTimeUi> = sampleMealTimes) {
                     Text(row.time, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                     AppTextButton(
                         text = "Change",
-                        onClick = {},
+                        onClick = { onChange(row.key) },
                         modifier = Modifier.semantics { testTag = "meal_times_change_${row.key}" },
                     )
                 }

@@ -56,6 +56,12 @@ data class LogEntryEntity(
     val proteinG: Int,
     val carbsG: Int,
     val fatG: Int,
+    /**
+     * Snapshotted off the catalog food at write time (PLAN-22) — the day's veg count is a fact
+     * about what was eaten that day, so re-flagging a catalog entry must not retroactively
+     * change it. Same reason this row carries its own name and macros instead of a food id.
+     */
+    val veg: Boolean = false,
 )
 
 /** The row's slot as the closed enum the domain groups by (MEAL-03). */
@@ -76,6 +82,7 @@ fun LogEntryEntity.toDomain(): LogEntry = LogEntry(
     kcal = kcal,
     proteinG = proteinG,
     status = logStatus,
+    veg = veg,
 )
 
 /** Map a tray line to the row it becomes, stamped with the confirm's target (MEAL-05). */
@@ -96,4 +103,5 @@ fun NewLogEntry.toEntity(
     proteinG = proteinG,
     carbsG = carbsG,
     fatG = fatG,
+    veg = veg,
 )

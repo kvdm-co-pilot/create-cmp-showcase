@@ -14,4 +14,12 @@ data class Food(
     val proteinG: Int,
     val carbsG: Int,
     val fatG: Int,
+    /**
+     * Whether this catalog entry counts as a vegetable (PLAN-22). A property of the FOOD, not
+     * of the log entry that references it — "is broccoli a vegetable" is a fact about broccoli.
+     * Flagging it here makes the day's veg count derivable from what was actually eaten,
+     * without anyone tagging a meal. Defaults false: most of a catalog is not veg, and the
+     * flag is a claim to be made deliberately.
+     */
+    val veg: Boolean = false,
 )

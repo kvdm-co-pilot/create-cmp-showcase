@@ -63,6 +63,14 @@ class FoodRepositoryImpl(
             Food("5", "Banana", "Medium", "1 · 118 g", 105, 1, 27, 0),
             Food("6", "White rice", "Cooked", "150 g", 195, 4, 42, 0),
             Food("7", "Almonds", "Raw", "20 g", 116, 4, 4, 10),
+            // Veg-flagged (PLAN-22). The method asks for vegetables with at least two meals,
+            // and a catalog with nothing flagged would make that count permanently 0 of 2 —
+            // a rule surfaced against food you cannot pick is worse than not surfacing it.
+            // A banana is deliberately NOT flagged: this is the method's vegetable rule, and
+            // counting fruit toward it would quietly make the target easier than it is.
+            Food("8", "Broccoli", "Steamed", "100 g", 35, 2, 7, 0, veg = true),
+            Food("9", "Mixed greens", "Salad bowl", "1 bowl · 85 g", 90, 3, 5, 6, veg = true),
+            Food("10", "Green beans", "Steamed", "100 g", 31, 2, 7, 0, veg = true),
         )
     }
 }

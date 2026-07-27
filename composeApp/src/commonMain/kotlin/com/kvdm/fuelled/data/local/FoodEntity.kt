@@ -17,6 +17,8 @@ data class FoodEntity(
     val proteinG: Int,
     val carbsG: Int,
     val fatG: Int,
+    /** PLAN-22: does this food count toward "veg with at least two meals"? */
+    val veg: Boolean = false,
 )
 
 fun FoodEntity.toDomain(): Food = Food(
@@ -28,6 +30,7 @@ fun FoodEntity.toDomain(): Food = Food(
     proteinG = proteinG,
     carbsG = carbsG,
     fatG = fatG,
+    veg = veg,
 )
 
 fun Food.toEntity(): FoodEntity = FoodEntity(
@@ -39,4 +42,5 @@ fun Food.toEntity(): FoodEntity = FoodEntity(
     proteinG = proteinG,
     carbsG = carbsG,
     fatG = fatG,
+    veg = veg,
 )

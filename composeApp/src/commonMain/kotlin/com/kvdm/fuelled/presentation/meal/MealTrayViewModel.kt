@@ -269,6 +269,9 @@ class MealTrayViewModel(
                 proteinG = line.proteinG,
                 carbsG = line.carbsG,
                 fatG = line.fatG,
+                // PLAN-22: snapshotted off the catalog food at write time, so re-flagging a
+                // food later cannot rewrite what a past day's veg count was.
+                veg = line.food.veg,
             )
         }
 

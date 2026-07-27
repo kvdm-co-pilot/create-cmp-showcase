@@ -10,6 +10,8 @@ import dev.gitlive.firebase.firestore.firestore
 import dev.gitlive.firebase.functions.functions
 import dev.gitlive.firebase.storage.storage
 import com.kvdm.fuelled.di.appModules
+import com.kvdm.fuelled.domain.notification.NoOpReminderScheduler
+import com.kvdm.fuelled.domain.notification.ReminderScheduler
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
@@ -33,6 +35,10 @@ fun initKoin() {
             module {
                 single<AppDatabase> { buildDatabase() }
                 single { NetworkMonitor(null) }
+                // PLAN-07 / brief decision 9: iOS reminders are deliberately NOT promised by
+                // this contract. NoOp reports no capability rather than pretending, so the
+                // times sheet says reminders are off here instead of implying they work.
+                single<ReminderScheduler> { NoOpReminderScheduler() }
             },
             *appModules.toTypedArray()
         )

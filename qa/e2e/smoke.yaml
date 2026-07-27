@@ -32,8 +32,12 @@ appId: com.kvdm.fuelled
     id: "nav_foods"
 - assertVisible:
     id: "foods_title"
-- assertVisible:
-    id: "foods_item_1"
+# The catalog seeds into Room on first read, so the first item arrives after a round-trip
+# rather than with the tab's first frame. Wait for it — a bare assert here races the seed.
+- extendedWaitUntil:
+    visible:
+      id: "foods_item_1"
+    timeout: 30000
 - tapOn:
     id: "foods_search"
 - inputText: "Chicken"
@@ -81,14 +85,55 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "today_title"
 
-# SPEC: TODAY-07 — a meal card's add control opens the tray ALREADY TARGETED at that card's
-# slot, proven on-device. This is also the standing proof that a destination registered
-# directly on the NavHost (outside AppShell) exposes its testTags to the automation layer at
-# all: `exposeTestTagsForAutomation` sits on the NavHost in AppNavHost.kt, and while it sat
-# inside AppShell instead, `meal_tray_screen` did not exist as a resource-id and no id-selector
-# could see this screen. If that modifier ever moves back down, this step fails.
+# SPEC: TODAY-12 + PLAN-02 + PLAN-04 — Today links into the full week, the plan renders all
+# six containers whatever the hour, and a container's add control opens the tray ALREADY
+# TARGETED at that container's slot.
+#
+# This goes via the PLAN screen deliberately. Today now shows only the FOCUSED container
+# (TODAY-09), and which slot that is depends on the wall clock — so `today_add_breakfast` only
+# exists in the early morning, and a flow asserting it would pass or fail by time of day. The
+# plan screen always renders all six (PLAN-02), so `plan_add_breakfast` is there at any hour.
+#
+# It is also the standing proof that a destination registered directly on the NavHost (outside
+# AppShell) exposes its testTags to the automation layer at all: `exposeTestTagsForAutomation`
+# sits on the NavHost in AppNavHost.kt, and while it sat inside AppShell instead,
+# `meal_tray_screen` did not exist as a resource-id and no id-selector could see this screen.
+# If that modifier ever moves back down, these steps fail.
+# The link sits below the fold — the hero, the protein card and the focused container fill the
+# first screenful — so bring it up before tapping. `tapOn` targets an element's CENTRE, and a
+# centre below the viewport lands on the bottom nav instead.
+#
+# Explicit swipes, NOT scrollUntilVisible: Compose reports a node's UNCLIPPED bounds in the
+# semantics tree, so a row scrolled off the bottom still reads as 100% visible and
+# scrollUntilVisible completes without moving anything. (Same measurement quirk the a11y step
+# already discounts for touch targets.) Two swipes clear this screen's content on any phone.
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
 - tapOn:
-    id: "today_add_breakfast"
+    id: "today_plan_link"
+- extendedWaitUntil:
+    visible:
+      id: "meal_plan_screen"
+    timeout: 30000
+# PLAN-02, on-device: the day renders its containers interleaved with water even though nothing
+# was ever written to it — the grid comes from the enum, not from stored rows.
+#
+# Only the first of each is asserted here. That all SIX render is proven exactly, and without a
+# scroll, by the golden tree (PLAN-18) and MealPlanScreenTest; six meal cards plus six water
+# rows is taller than a phone, so asserting the last one on-device would only be re-proving a
+# deterministic fact through a flaky lens.
+- assertVisible:
+    id: "plan_slot_breakfast"
+- assertVisible:
+    id: "plan_water_1"
+# Breakfast is the FIRST container, so it is on screen the moment the plan opens — PLAN-04's
+# proof taps it directly, no scrolling needed.
+- tapOn:
+    id: "plan_add_breakfast"
 - extendedWaitUntil:
     visible:
       id: "meal_tray_screen"

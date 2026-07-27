@@ -20,12 +20,6 @@
       "approvedAt": "2026-07-23T20:41:20.107Z"
     },
     {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "d39b09e1b3179d33b7f873dedefa2be186553823cf58293a7b0c41fe11e7b18a",
-      "approvedAt": "2026-07-23T20:41:20.157Z"
-    },
-    {
       "artifact": "feature-spec:supplements",
       "status": "approved",
       "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa",
@@ -73,13 +67,6 @@
       "reopenedAt": "2026-07-27T16:03:48.381Z"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "c9ef49fcfe13b79a74440c3a89c798c665f1863aa1f9535eddddf75e29ca25aa",
-      "approvedAt": "2026-07-27T16:53:04.143Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-spec:meal-plan",
       "status": "approved",
       "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
@@ -98,6 +85,20 @@
       "status": "approved",
       "hash": "37bb4d12c5ebfd718b030fd2f1e8a68bc69623239bab6b789b6f72a2af4d6bd5",
       "approvedAt": "2026-07-27T16:53:44.419Z",
+      "via": "console"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "approved",
+      "hash": "63aabff1fd395d117e9c503fac866c5ea6283d8b6fb5c4a7b695d4927d43f3cb",
+      "approvedAt": "2026-07-27T19:46:37.778Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "70daa80e1f0361fc10c0cb3dcdafb9c72f9aa94da9bafd5cfb351c6aa71b57d3",
+      "approvedAt": "2026-07-27T19:46:48.322Z",
       "via": "console"
     }
   ],

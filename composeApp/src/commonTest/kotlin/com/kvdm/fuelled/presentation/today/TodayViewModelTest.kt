@@ -2,8 +2,7 @@ package com.kvdm.fuelled.presentation.today
 
 import app.cash.turbine.test
 import com.kvdm.fuelled.domain.model.DomainError
-import com.kvdm.fuelled.domain.model.TodayModel
-import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.testing.todayViewModel
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import kotlin.test.AfterTest
@@ -41,7 +40,7 @@ class TodayViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = TodayViewModel(GetTodaySummaryUseCase(repository))
+    private fun viewModel() = todayViewModel(today = repository)
 
     // SPEC: TODAY-01
     @Test
@@ -51,11 +50,10 @@ class TodayViewModelTest {
 
         viewModel().state.test {
             assertEquals(ContentUiState.Loading, awaitItem(), "initial state should be Loading")
-            val content = assertIs<ContentUiState.Content<TodayModel>>(awaitItem())
-            assertEquals(ContentUiState.Content(day), content)
+            val content = assertIs<ContentUiState.Content<TodayHighlights>>(awaitItem())
             // The VM hands the screen a real LocalDate; formatting it is the screen's job, and
             // the VM never invents a label of its own (TODAY-01).
-            assertEquals(LocalDate(2026, 7, 22), content.data.date)
+            assertEquals(LocalDate(2026, 7, 22), content.data.today.date)
         }
     }
 
@@ -67,9 +65,9 @@ class TodayViewModelTest {
 
             viewModel().state.test {
                 assertEquals(ContentUiState.Loading, awaitItem())
-                val content = assertIs<ContentUiState.Content<TodayModel>>(awaitItem())
-                assertEquals(emptyList(), content.data.meals)
-                assertEquals(2400, content.data.remainingKcal, "ring reads the full target as remaining")
+                val content = assertIs<ContentUiState.Content<TodayHighlights>>(awaitItem())
+                assertEquals(emptyList(), content.data.today.meals)
+                assertEquals(2400, content.data.today.remainingKcal, "ring reads the full target as remaining")
             }
         }
 
@@ -101,8 +99,8 @@ class TodayViewModelTest {
             viewModel.load()
 
             assertEquals(ContentUiState.Loading, awaitItem(), "reload should show loading again")
-            val recovered = assertIs<ContentUiState.Content<TodayModel>>(awaitItem())
-            assertEquals(LocalDate(2026, 7, 22), recovered.data.date)
+            val recovered = assertIs<ContentUiState.Content<TodayHighlights>>(awaitItem())
+            assertEquals(LocalDate(2026, 7, 22), recovered.data.today.date)
         }
     }
 }

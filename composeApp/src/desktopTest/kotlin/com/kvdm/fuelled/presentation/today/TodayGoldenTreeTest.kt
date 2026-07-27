@@ -10,7 +10,7 @@ import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.TodayModel
-import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.testing.todayViewModel
 import com.kvdm.fuelled.testing.StructuralTree
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
@@ -56,7 +56,7 @@ class TodayGoldenTreeTest {
     @Test
     fun `today structure matches the committed golden tree`() = runComposeUiTest {
         val repository = FakeTodayRepository().apply { summary = goldenDay }
-        val viewModel = TodayViewModel(GetTodaySummaryUseCase(repository))
+        val viewModel = todayViewModel(today = repository)
 
         setContent {
             MaterialTheme {

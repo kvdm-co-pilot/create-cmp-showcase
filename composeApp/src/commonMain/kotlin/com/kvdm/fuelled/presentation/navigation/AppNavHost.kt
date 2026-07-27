@@ -2,6 +2,10 @@ package com.kvdm.fuelled.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,11 +21,16 @@ import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 import com.kvdm.fuelled.presentation.foods.FoodDetailRoute
 import com.kvdm.fuelled.presentation.foods.FoodsRoute
 import com.kvdm.fuelled.presentation.meal.MealTrayRoute
+import com.kvdm.fuelled.presentation.mealplan.MealPlanRoute
+import com.kvdm.fuelled.presentation.mealplan.MealTimesRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+
+/** The Supplements tab's index in [appTabs] — Today's supplement highlight opens it (TODAY-11). */
+private const val SUPPLEMENTS_TAB = 2
 
 @Composable
 fun AppNavHost() {
@@ -61,18 +70,28 @@ fun AppNavHost() {
         modifier = Modifier.exposeTestTagsForAutomation(),
     ) {
         composable(Screen.Shell.route) {
+            // Hoisted so Today's supplement highlight can move the user to that TAB (TODAY-11)
+            // — a tab switch, not a pushed destination, because the Supplements tab is where
+            // the stack is actually edited.
+            var selectedTab by rememberSaveable { mutableIntStateOf(0) }
             val tabs = appTabs(
                 today = {
                     TodayRoute(
-                        // TODAY-07/TODAY-08: the tap carries its own target into the route.
+                        // TODAY-07: the tap carries its own target into the route.
                         onAddToMeal = { date, slot -> navController.navigate(Routes.mealTray(date, slot)) },
+                        // TODAY-12: the one control into the full week, opened at the current
+                        // logical day — planning is one tap from the dashboard.
+                        onOpenPlan = { date -> navController.navigate(Routes.mealPlan(date)) },
+                        // TODAY-11: Today summarizes the stack; editing it is the Supplements
+                        // tab's job, so this switches tabs rather than opening an editor here.
+                        onOpenSupplements = { selectedTab = SUPPLEMENTS_TAB },
                     )
                 },
                 foods = { FoodsRoute(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
                 supplements = { SupplementsRoute() },
                 profile = { ProfileRoute() },
             )
-            AppShell(tabs = tabs)
+            AppShell(tabs = tabs, selectedIndex = selectedTab, onSelectTab = { selectedTab = it })
         }
 
         composable(
@@ -110,6 +129,37 @@ fun AppNavHost() {
                 BaseScreen {
                     MealTrayRoute(viewModel = koinViewModel { parametersOf(initialTarget) })
                 }
+            }
+        }
+        // The structured day (PLAN-11). The date rides the route so a link into a specific day
+        // arrives showing it and the back stack remembers which one. A malformed date pops
+        // back rather than opening a day that does not exist — same rule as the tray.
+        // BaseScreen because a destination registered directly on the NavHost owns its insets
+        // (SHELL-05); the tabs get theirs from AppShell.
+        composable(
+            route = Screen.MealPlan.route,
+            arguments = listOf(navArgument("date") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val date = Routes.mealPlanDate(backStackEntry.arguments?.read { getStringOrNull("date") })
+            if (date == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                BaseScreen {
+                    MealPlanRoute(
+                        date = date,
+                        // PLAN-04: the tap carries this container's day and slot into the tray.
+                        onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
+                        onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
+                    )
+                }
+            }
+        }
+
+        // The set-once meal-times sheet (PLAN-05/PLAN-06/PLAN-07). A literal route, matched
+        // ahead of `plan/{date}`'s pattern.
+        composable(Screen.MealTimes.route) {
+            BaseScreen {
+                MealTimesRoute(onBack = { navController.popBackStack() })
             }
         }
         // cmp:anchor nav-destinations

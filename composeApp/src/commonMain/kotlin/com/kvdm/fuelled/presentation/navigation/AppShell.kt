@@ -21,9 +21,22 @@ import com.kvdm.fuelled.presentation.components.BaseScreen
  * proposal): it was already a mature component, just invisible to the registry as a
  * `private` composable here.
  */
+/**
+ * [selectedIndex] and [onSelectTab] default to `null`, in which case the shell keeps its own
+ * selection — the ordinary case. They exist because one screen legitimately needs to move the
+ * user to another TAB rather than push a destination: Today's supplement highlight opens the
+ * Supplements tab (TODAY-11). Hoisting the selection is the standard answer; a global event bus
+ * for one link would not be.
+ */
 @Composable
-fun AppShell(tabs: List<AppTab>) {
-    var selected by rememberSaveable { mutableIntStateOf(0) }
+fun AppShell(
+    tabs: List<AppTab>,
+    selectedIndex: Int? = null,
+    onSelectTab: ((Int) -> Unit)? = null,
+) {
+    var internal by rememberSaveable { mutableIntStateOf(0) }
+    val selected = selectedIndex ?: internal
+    val select: (Int) -> Unit = onSelectTab ?: { internal = it }
 
     BaseScreen(
         // testTag exposure for automation is applied once on the NavHost in AppNavHost.kt —
@@ -35,7 +48,7 @@ fun AppShell(tabs: List<AppTab>) {
             AppBottomBar(
                 tabs = tabs,
                 selectedIndex = selected,
-                onSelect = { selected = it },
+                onSelect = select,
             )
         },
     ) {

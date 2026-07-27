@@ -1,0 +1,162 @@
+{"children": [
+  {"tag": "meal_plan_screen", "children": [
+    {"tag": "meal_plan_title", "text": "Meal plan"},
+    {"tag": "plan_open_times", "role": "Button", "children": [
+      {"text": "Times"}
+    ]},
+    {"tag": "plan_days", "children": [
+      {"tag": "plan_day_0", "children": [
+        {"text": "Tue 21"}
+      ]},
+      {"tag": "plan_day_1", "children": [
+        {"text": "Today"}
+      ]},
+      {"tag": "plan_day_2", "children": [
+        {"text": "Thu 23"}
+      ]},
+      {"tag": "plan_day_3", "children": [
+        {"text": "Fri 24"}
+      ]},
+      {"tag": "plan_day_4", "children": [
+        {"text": "Sat 25"}
+      ]},
+      {"tag": "plan_day_5", "children": [
+        {"text": "Sun 26"}
+      ]},
+      {"tag": "plan_day_6", "children": [
+        {"text": "Mon 27"}
+      ]},
+      {"tag": "plan_day_7", "children": [
+        {"text": "Tue 28"}
+      ]},
+      {"tag": "plan_day_8", "children": [
+        {"text": "Wed 29"}
+      ]}
+    ]},
+    {"tag": "plan_water_total", "text": "Water 1.0 / 3.0 L"},
+    {"tag": "plan_veg_total", "text": "Veg 1 of 2"},
+    {"children": [
+      {"tag": "plan_slot_breakfast", "children": [
+        {"text": "Breakfast"},
+        {"text": "07:00"},
+        {"text": "MISSED"},
+        {"text": " "},
+        {"tag": "plan_done_breakfast", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Breakfast done"}
+        ]},
+        {"tag": "plan_add_breakfast", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Add food to Breakfast"}
+        ]},
+        {"text": "Golden oats"},
+        {"text": "80 g"},
+        {"text": "430 kcal"},
+        {"text": "38g P"}
+      ]},
+      {"tag": "plan_water_1", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 08:15"},
+        {"tag": "plan_water_done_1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Undo water 1"}
+        ]}
+      ]},
+      {"tag": "plan_slot_morning_snack", "children": [
+        {"text": "Snack"},
+        {"text": "09:30"},
+        {"text": "DONE"},
+        {"text": " "},
+        {"tag": "plan_done_morning_snack", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Undo Snack done"}
+        ]},
+        {"text": "Eaten off-plan"}
+      ]},
+      {"tag": "plan_water_2", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 10:45"},
+        {"tag": "plan_water_done_2", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Undo water 2"}
+        ]}
+      ]},
+      {"tag": "plan_slot_lunch", "children": [
+        {"text": "Lunch"},
+        {"text": "12:00"},
+        {"text": "LATE"},
+        {"text": " since 12:00"},
+        {"tag": "plan_done_lunch", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Lunch done"}
+        ]},
+        {"tag": "plan_add_lunch", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Add food to Lunch"}
+        ]},
+        {"text": "Golden chicken"},
+        {"text": "200 g"},
+        {"text": "620 kcal"},
+        {"text": "58g P"},
+        {"text": "Golden greens"},
+        {"text": "1 bowl"},
+        {"text": "90 kcal"},
+        {"text": "3g P"}
+      ]},
+      {"tag": "plan_water_3", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 13:15"},
+        {"tag": "plan_water_done_3", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark water 3 done"}
+        ]}
+      ]},
+      {"tag": "plan_slot_afternoon_snack", "children": [
+        {"text": "Snack"},
+        {"text": "14:30"},
+        {"tag": "plan_done_afternoon_snack", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Snack done"}
+        ]},
+        {"tag": "plan_add_afternoon_snack", "role": "Button", "children": [
+          {"text": "Add food"}
+        ]}
+      ]},
+      {"tag": "plan_water_4", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 15:45"},
+        {"tag": "plan_water_done_4", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark water 4 done"}
+        ]}
+      ]},
+      {"tag": "plan_slot_dinner", "children": [
+        {"text": "Dinner"},
+        {"text": "17:00"},
+        {"tag": "plan_done_dinner", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Dinner done"}
+        ]},
+        {"tag": "plan_add_dinner", "role": "Button", "children": [
+          {"text": "Add food"}
+        ]}
+      ]},
+      {"tag": "plan_water_5", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 18:15"},
+        {"tag": "plan_water_done_5", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark water 5 done"}
+        ]}
+      ]},
+      {"tag": "plan_slot_evening_snack", "children": [
+        {"text": "Snack"},
+        {"text": "19:30"},
+        {"tag": "plan_done_evening_snack", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Snack done"}
+        ]},
+        {"tag": "plan_add_evening_snack", "role": "Button", "children": [
+          {"text": "Add food"}
+        ]}
+      ]},
+      {"tag": "plan_water_6", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 20:45"},
+        {"tag": "plan_water_done_6", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark water 6 done"}
+        ]}
+      ]},
+      {"tag": "plan_copy_forward", "role": "Button", "children": [
+        {"text": "Copy this day to the rest of the week"}
+      ]}
+    ]}
+  ]}
+]}
