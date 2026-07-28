@@ -53,6 +53,16 @@
       "resolvedAt": "2026-07-26T19:06:17.140Z",
       "resolvedBy": "agent-cli",
       "resolutionNote": "Design pass rendered: meal-plan (+@empty, @planned), meal-times, and the simplified tray are in the gallery for signature."
+    },
+    {
+      "id": "c5",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with meal-plan: prove: run node qa/verify.mjs so the receipt attests this tree",
+      "author": "human-console",
+      "createdAt": "2026-07-28T12:56:47.700Z",
+      "status": "open"
     }
   ]
 }

@@ -3,25 +3,22 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "dbdbc2adbc578be3a5837fe6bc9d6b4c0ce3e0f0",
+    "sha": "93035b3b8504ed32be4a9d27749433322d373026",
     "dirty": [
-      "CLAUDE.md",
-      "qa/approve.mjs",
-      "qa/e2e/smoke.yaml",
-      "qa/evidence/latest.json",
-      "qa/lib/approvals.mjs",
-      "qa/lib/inputs-hash.mjs"
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
+      "qa/comments.json"
     ]
   },
   "inputs": {
-    "hash": "746cb4f3c1323aefde70864aac966fac862539709a034bf4970bce88a92b5ef7",
+    "hash": "ca85f08ce8af6c1f30638fc2c6fba5189dacb951eae368fdc5ba4fed617d077b",
     "fileCount": 292
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 32,
+      "durationMs": 30,
       "details": {
         "clauses": 87,
         "withdrawn": 2,
@@ -32,8 +29,8 @@
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:meal-plan] Feature brief (docs/features/meal-plan.md) — reopened for redesign at 2026-07-27T16:03:48.381Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-brief:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-07-26T18:56:09.847Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal",
-      "durationMs": 100,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-07-26T18:56:09.847Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal",
+      "durationMs": 20,
       "details": {
         "artifacts": [
           {
@@ -43,7 +40,7 @@
           },
           {
             "id": "feature-brief:meal-plan",
-            "status": "reopened",
+            "status": "approved",
             "hash": "e2ee819050a6d5890826e105ce3ee19f252346a80501ef1aa08f6da02860e0bf"
           },
           {
@@ -117,7 +114,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -128,7 +125,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 10,
+      "durationMs": 9,
       "details": {
         "features": [
           {
@@ -193,7 +190,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 14,
       "details": {
         "sectionsChecked": 4
       }
@@ -201,12 +198,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2432
+      "durationMs": 2458
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10800,
+      "durationMs": 13113,
       "details": {
         "tests": 200,
         "failures": 0,
@@ -217,17 +214,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3371
+      "durationMs": 35474
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4944
+      "durationMs": 6313
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 7926,
+      "durationMs": 292,
       "details": {
         "checked": 7,
         "drifted": 0
@@ -236,12 +233,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4237
+      "durationMs": 6922
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 76072
+      "durationMs": 81445
     }
   ],
   "strength": {
@@ -255,5 +252,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-28T10:16:45.837Z"
+  "generatedAt": "2026-07-28T13:00:29.206Z"
 }
