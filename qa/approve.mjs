@@ -79,7 +79,12 @@ function printStatus() {
             ? `approved ${shortHash(s.storedHash)} -> now ${shortHash(s.hash)}`
             : `approved ${shortHash(s.storedHash)} -> unresolvable (${s.fileCount} of expected files resolved)`
           : s.status === "approved"
-            ? shortHash(s.hash)
+            ? // storedHash is the signature; s.hash is the live recompute. They
+              // agree except on a legacy raw-bytes row, where printing the live
+              // value would name a hash nobody signed.
+              `${shortHash(s.storedHash) || shortHash(s.hash)}${
+                s.hashBasis === "raw-bytes" ? ", signed pre-strip — bytes unchanged since" : ""
+              }`
             : s.resolvable
               ? `would approve at ${shortHash(s.hash)}`
               : `unresolvable (${s.fileCount} of expected files resolved) — not approvable`;

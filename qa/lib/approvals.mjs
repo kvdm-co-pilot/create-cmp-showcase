@@ -759,7 +759,15 @@ function shortHash(hash) {
  * stored record actually carries them — never as an explicit `undefined` key, so
  * structural equality checks against a plain unreviewed/approved status shape
  * still hold.
- * @returns {{id: string, label: string, status: string, hash: string, storedHash: (string|null), approvedAt: (string|null), fileCount: number, missing: string[], resolvable: boolean, mode?: string, reopenedAt?: string}}
+ *
+ * `hash` is always the LIVE recompute and `storedHash` always what was actually
+ * signed. They are equal for every artifact signed on the current basis, which is
+ * why they are easy to conflate — but a display that means "the signature" must
+ * read `storedHash`. The one case where they legitimately differ on an `approved`
+ * row is `hashBasis: "raw-bytes"` (below): the stored hash is on a superseded
+ * basis, so the live recompute is a number NOBODY EVER SIGNED and must never be
+ * labelled as one.
+ * @returns {{id: string, label: string, status: string, hash: string, storedHash: (string|null), approvedAt: (string|null), fileCount: number, missing: string[], resolvable: boolean, mode?: string, reopenedAt?: string, hashBasis?: string}}
  */
 export function resolveArtifactStatus(root, artifact, storedRecord) {
   const recomputed = computeArtifactHash(root, artifact);
@@ -804,6 +812,7 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
   // byte-identical to what the human signed — strictly stronger than a
   // stripped-basis match — so the signature stands. Permanent and safe: this
   // path can only accept content that has not changed at all since signing.
+  let hashBasis = null;
   if (
     changed &&
     resolvable &&
@@ -811,6 +820,12 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
     storedRecord.hash === hashArtifactFiles(root, artifact.files).hash
   ) {
     changed = false;
+    // Say so. This is the ONE approved state where storedHash !== hash
+    // legitimately, and a row that shows the disagreement without naming its
+    // cause is indistinguishable from tolerated drift — the exact ambiguity the
+    // governance surface exists to remove. Emitted only when the path actually
+    // fires; absence means "signed on the current basis", the normal case.
+    hashBasis = "raw-bytes";
   }
   return {
     id: artifact.id,
@@ -822,6 +837,7 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
     fileCount: recomputed.fileCount,
     missing: recomputed.missing,
     resolvable,
+    ...(hashBasis ? { hashBasis } : {}),
     ...(storedRecord.mode ? { mode: storedRecord.mode } : {}),
     // Feature-brief acceptance (acceptFeature) — surfaced only when the row
     // actually carries the fields, same stance as `mode`: never an explicit

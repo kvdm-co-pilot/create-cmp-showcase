@@ -3,22 +3,21 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "93035b3b8504ed32be4a9d27749433322d373026",
+    "sha": "e0b5f5e3a365681ecfeaaf005a9d7db46e056f95",
     "dirty": [
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl",
-      "qa/comments.json"
+      "qa/approve.mjs",
+      "qa/lib/approvals.mjs"
     ]
   },
   "inputs": {
-    "hash": "ca85f08ce8af6c1f30638fc2c6fba5189dacb951eae368fdc5ba4fed617d077b",
+    "hash": "7cf374d8d2423e0c2dffbb7f2b409eed5b7e25d4c47585d50e284e075c2c4467",
     "fileCount": 292
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 30,
+      "durationMs": 27,
       "details": {
         "clauses": 87,
         "withdrawn": 2,
@@ -30,7 +29,7 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-07-26T18:56:09.847Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal",
-      "durationMs": 20,
+      "durationMs": 19,
       "details": {
         "artifacts": [
           {
@@ -198,12 +197,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2458
+      "durationMs": 19174
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 13113,
+      "durationMs": 13389,
       "details": {
         "tests": 200,
         "failures": 0,
@@ -214,31 +213,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 35474
+      "durationMs": 34755
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 6313
+      "durationMs": 5903
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 292,
+      "durationMs": 217,
       "details": {
-        "checked": 7,
+        "checked": 25,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 6922
+      "durationMs": 4638
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 81445
+      "durationMs": 47059
     }
   ],
   "strength": {
@@ -252,5 +251,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-28T13:00:29.206Z"
+  "generatedAt": "2026-07-28T16:51:53.362Z"
 }
