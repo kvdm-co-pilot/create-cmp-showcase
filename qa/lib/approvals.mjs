@@ -24,8 +24,8 @@
 //      meant. The registry is recomputed on every call — it reflects the tree as it
 //      stands, never a stale snapshot.
 //   2. STATE (`loadApprovals`/`saveApprovals`) — qa/approvals.json, the human's
-//      decisions: { artifact, status, hash, approvedAt, mode?, reopenedAt? } plus the
-//      top-level `exemplarFeature` config key. Absent or corrupt is TOLERATED
+//      decisions: { artifact, status, hash, approvedAt, mode?, reopenedAt?, via?,
+//      reason? } plus the top-level `exemplarFeature` config key. Absent or corrupt is TOLERATED
 //      (treated as empty / all-unreviewed / default exemplar) — this ledger must
 //      never crash the verify lane or the stamper.
 //
@@ -63,6 +63,16 @@ import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs, parseFeature
 
 export const APPROVALS_REL_PATH = "qa/approvals.json";
 export const APPROVALS_SCHEMA = "cmp-approvals/1";
+// The JOURNAL (2026-07-28 flow audit, fix 1): qa/approvals.json is a mutable
+// snapshot — every transition overwrites the row, so the ledger cannot answer
+// "what happened while I was away?". The journal is the append-only memory
+// beside it: one JSON line per human-meaningful transition (approve / reopen /
+// accept), each carrying {at, verb, artifact, via, reason?}. State stays
+// DERIVED from the snapshot exactly as before; the journal gates nothing and
+// no lane step reads it — which is why it sits in inputs-hash.mjs's
+// EXCLUDED_PREFIXES (like qa/comments.json): appending history must never
+// invalidate the receipt for a tree whose code did not change.
+export const APPROVALS_JOURNAL_REL_PATH = "qa/approvals.log.jsonl";
 
 // Kotlin source-set roots, relative to project root — mirrors qa/scaffold-feature.mjs's
 // SRC() helper (composeApp/src/<sourceSet>/kotlin/<packageDir>).
@@ -638,6 +648,56 @@ export function saveApprovals(root, state) {
   fs.writeFileSync(p, `${JSON.stringify(out, null, 2)}\n`);
 }
 
+// ── The journal (append-only; the snapshot above stays the derived state) ────
+
+/**
+ * Append one transition to qa/approvals.log.jsonl. TOLERANT — a failed append
+ * (read-only fs, weird mount) must never block the transition it records, so
+ * this returns {ok:false} rather than throwing; the snapshot write (the state
+ * that gates) has already happened or is about to, and history-keeping is
+ * strictly subordinate to it.
+ * @param {string} root
+ * @param {{verb: string, artifact: string, via?: string, reason?: string, [k: string]: unknown}} event
+ * @returns {{ok: boolean}}
+ */
+export function appendJournal(root, event) {
+  const p = path.join(root, APPROVALS_JOURNAL_REL_PATH);
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(p, `${JSON.stringify({ at: new Date().toISOString(), ...event })}\n`);
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Every journal event, oldest first. Absent file -> []. A corrupt LINE is
+ * skipped, never fatal (same tolerance stance as loadApprovals) — one mangled
+ * append must not blind the console to the rest of the history.
+ * @param {string} root
+ * @returns {Array<{at: string, verb: string, artifact: string, via?: string, reason?: string}>}
+ */
+export function readJournal(root) {
+  let raw;
+  try {
+    raw = fs.readFileSync(path.join(root, APPROVALS_JOURNAL_REL_PATH), "utf8");
+  } catch {
+    return [];
+  }
+  const events = [];
+  for (const line of raw.split("\n")) {
+    if (line.trim() === "") continue;
+    try {
+      const parsed = JSON.parse(line);
+      if (parsed && typeof parsed === "object" && typeof parsed.verb === "string") events.push(parsed);
+    } catch {
+      /* skip the mangled line, keep the history */
+    }
+  }
+  return events;
+}
+
 /**
  * The configured exemplar feature's lowercase name (the package-segment form,
  * e.g. `"home"`, `"favorites"`) — `qa/approvals.json`'s top-level
@@ -717,6 +777,11 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
       missing: recomputed.missing,
       resolvable,
       reopenedAt: storedRecord.reopenedAt,
+      // Attribution (2026-07-28 flow audit): who walked the signature back and
+      // why, read straight off the row — surfaced only when actually recorded
+      // (pre-audit rows carry neither; absence is the honest answer there).
+      ...(storedRecord.via ? { via: storedRecord.via } : {}),
+      ...(storedRecord.reason ? { reason: storedRecord.reason } : {}),
     };
   }
 
@@ -844,6 +909,13 @@ export function approveArtifact(root, artifactId, options = {}) {
   if (options.via) record.via = options.via;
   others.push(record);
   saveApprovals(root, { artifacts: others, exemplarFeature: state.exemplarFeature });
+  appendJournal(root, {
+    verb: "approve",
+    artifact: artifactId,
+    hash: resolved.hash,
+    ...(options.via ? { via: options.via } : {}),
+    ...(options.mode ? { mode: options.mode } : {}),
+  });
   return { ok: true, artifact: artifactId, hash: resolved.hash, approvedAt, ...(options.mode ? { mode: options.mode } : {}) };
 }
 
@@ -881,11 +953,33 @@ export function approveAllDefaults(root) {
  * artifact whose LIVE status is not `"approved"` — reopening the unreviewed, the
  * already-reopened, or a changed-since-approval artifact is meaningless (there is
  * nothing sanctioned to walk back from).
+ *
+ * REFUSES a missing `reason` (2026-07-28 flow audit, fix 2): a reopen is a
+ * state change on a SIGNED document — the one act in this file that walks back
+ * a human's signature. The ledger used to record neither who did it nor why,
+ * so the signer came back to "reopened" with no way to learn what happened.
+ * ECO discipline: every change to a released document carries initiator and
+ * justification, mechanically required. `via`/`reason` land on the row (they
+ * are outside the inputs-hash projection, so no receipt is invalidated) and
+ * in the journal.
  * @param {string} root
  * @param {string} artifactId
+ * @param {{reason: string, via?: string, feature?: string}} options `reason` is
+ *   REQUIRED — one plain sentence for the human who signed. `via` records the
+ *   surface ("console"/"cli"). `feature` groups the reopens of one
+ *   `reopenFeature` walk under the brief's name.
  * @returns {{ok: true, artifact: string, reopenedAt: string} | {ok: false, reason: string}}
  */
-export function reopenArtifact(root, artifactId) {
+export function reopenArtifact(root, artifactId, options = {}) {
+  const why = typeof options.reason === "string" ? options.reason.trim() : "";
+  if (why === "") {
+    return {
+      ok: false,
+      reason:
+        `cannot reopen "${artifactId}" without a reason — a reopen walks back a signature, and the signer ` +
+        `must be able to read why from the ledger itself. Pass one plain sentence (CLI: --reason "…").`,
+    };
+  }
   const registry = listGovernedArtifacts(root);
   const artifact = registry.find((a) => a.id === artifactId);
   if (!artifact) {
@@ -903,12 +997,80 @@ export function reopenArtifact(root, artifactId) {
   }
   const others = state.artifacts.filter((a) => a.artifact !== artifactId);
   const reopenedAt = new Date().toISOString();
-  const record = { artifact: artifactId, status: "reopened", hash: stored.hash, approvedAt: stored.approvedAt, reopenedAt };
+  const record = { artifact: artifactId, status: "reopened", hash: stored.hash, approvedAt: stored.approvedAt, reopenedAt, reason: why };
+  if (options.via) record.via = options.via;
   others.push(record);
   saveApprovals(root, { artifacts: others, exemplarFeature: state.exemplarFeature });
+  appendJournal(root, {
+    verb: "reopen",
+    artifact: artifactId,
+    reason: why,
+    ...(options.via ? { via: options.via } : {}),
+    ...(options.feature ? { feature: options.feature } : {}),
+  });
   // `artifact` is the ID STRING — the same convention approveArtifact returns
   // (one library, one shape; the console bridge relies on the symmetry).
   return { ok: true, artifact: artifactId, reopenedAt };
+}
+
+/**
+ * Reopen one FEATURE as one recorded change (2026-07-28 flow audit, fix 4):
+ * the brief is the change container — a human edits "the meal-plan feature",
+ * not four artifact ids at four timestamps. This walks the brief's set —
+ * `feature-brief:<name>`, `feature-spec:<name>`, `feature-design:<name>`, and
+ * every artifact the brief DECLARES in `touches` — and reopens each one that
+ * is currently `approved`, all under the same reason, each journal event
+ * carrying `feature: <name>` so the history reads as one change.
+ *
+ * Artifacts in the set that are not currently approved are SKIPPED and
+ * reported (already reopened, unreviewed, or drifted — each already tells its
+ * own story; silently "fixing" their state here would erase it). Refuses only
+ * when the set contains nothing approved at all — then there is no signature
+ * to walk back and the caller's premise is wrong.
+ * @param {string} root
+ * @param {string} name the brief's name (docs/features/<name>.md)
+ * @param {{reason: string, via?: string}} options same contract as reopenArtifact
+ * @returns {{ok: true, feature: string, reopened: string[], skipped: Array<{id: string, status: string}>} | {ok: false, reason: string}}
+ */
+export function reopenFeature(root, name, options = {}) {
+  const why = typeof options.reason === "string" ? options.reason.trim() : "";
+  if (why === "") {
+    return {
+      ok: false,
+      reason: `cannot reopen feature "${name}" without a reason — pass one plain sentence (CLI: --reason "…").`,
+    };
+  }
+  const briefId = `${FEATURE_BRIEF_PREFIX}${name}`;
+  const registry = listGovernedArtifacts(root);
+  if (!registry.some((a) => a.id === briefId)) {
+    const briefs = registry.filter((a) => a.id.startsWith(FEATURE_BRIEF_PREFIX)).map((a) => a.id.slice(FEATURE_BRIEF_PREFIX.length));
+    return { ok: false, reason: `unknown feature "${name}" — known briefs: ${briefs.join(", ") || "(none)"}` };
+  }
+  const derived = deriveAllFeatures(root).find((d) => d.name === name);
+  const set = [briefId, `feature-spec:${name}`, `${FEATURE_DESIGN_PREFIX}${name}`, ...(derived ? derived.touches : [])];
+  const byId = new Map(getApprovalStatuses(root).map((s) => [s.id, s]));
+  const reopened = [];
+  const skipped = [];
+  for (const id of [...new Set(set)]) {
+    const live = byId.get(id);
+    if (!live) continue; // declared touch that resolves to no governed artifact — nothing to reopen
+    if (live.status !== "approved") {
+      skipped.push({ id, status: live.status });
+      continue;
+    }
+    const result = reopenArtifact(root, id, { reason: why, via: options.via, feature: name });
+    if (result.ok) reopened.push(id);
+    else skipped.push({ id, status: `refused: ${result.reason}` });
+  }
+  if (reopened.length === 0) {
+    return {
+      ok: false,
+      reason:
+        `nothing in "${name}"'s set is currently approved — there is no signature to walk back. ` +
+        `Set: ${[...new Set(set)].join(", ")}; states: ${skipped.map((s) => `${s.id}=${s.status}`).join(", ") || "(unresolved)"}`,
+    };
+  }
+  return { ok: true, feature: name, reopened, skipped };
 }
 
 // ── The verify-lane gate ─────────────────────────────────────────────────────
@@ -958,7 +1120,7 @@ export function evaluateApprovalsGate(root) {
     for (const s of pending) {
       if (s.status === "reopened") {
         lines.push(
-          `  [${s.id}] ${s.label} — reopened for redesign at ${s.reopenedAt} (non-blocking until re-approved). Approve: node qa/approve.mjs ${s.id}`,
+          `  [${s.id}] ${s.label} — reopened for redesign at ${s.reopenedAt}${s.reason ? ` (reason: ${s.reason})` : ""} (non-blocking until re-approved). Approve: node qa/approve.mjs ${s.id}`,
         );
       } else if (!s.resolvable) {
         lines.push(`  [${s.id}] ${s.label} — unreviewed, currently unresolvable (${s.fileCount} of expected files resolved) — not approvable in this tree.`);
@@ -995,9 +1157,10 @@ export const FEATURE_BRIEF_PREFIX = "feature-brief:";
  * Acceptance never gates the lane — it closes the card, on the human's schedule.
  * @param {string} root
  * @param {string} name the brief's name (docs/features/<name>.md)
+ * @param {{via?: string}} [options] `via` records the surface ("console"/"cli") in the journal
  * @returns {{ok: true, artifact: string, acceptedAt: string} | {ok: false, reason: string}}
  */
-export function acceptFeature(root, name) {
+export function acceptFeature(root, name, options = {}) {
   const artifactId = `${FEATURE_BRIEF_PREFIX}${name}`;
   const registry = listGovernedArtifacts(root);
   const artifact = registry.find((a) => a.id === artifactId);
@@ -1048,6 +1211,7 @@ export function acceptFeature(root, name) {
   // an old acceptance).
   const next = state.artifacts.map((a) => (a.artifact === artifactId ? { ...a, accepted: true, acceptedAt } : a));
   saveApprovals(root, { artifacts: next, exemplarFeature: state.exemplarFeature });
+  appendJournal(root, { verb: "accept", artifact: artifactId, ...(options.via ? { via: options.via } : {}) });
   return { ok: true, artifact: artifactId, acceptedAt };
 }
 
@@ -1116,7 +1280,18 @@ export function getFeatureBoard(root) {
     if (phase === "accepted") return { key: "closed", owner: null, label: "closed — the brief is this feature's doc-of-record" };
     if (phase === "changed-since-approval")
       return { key: "re-approve", owner: "human", label: `re-approve the brief — it changed after signing (or revert the edit)` };
-    if (phase === "reopened") return { key: "re-approve", owner: "human", label: "finish the redesign, then re-approve the brief" };
+    // `reopened` is ONE stored state covering two OPPOSITE situations (2026-07-28
+    // flow audit, fix 3): mid-redesign it waits on the WORK; once the redesign is
+    // proven (provenDone — every live clause cited + receipt PASS + receipt
+    // attests this tree) it waits on the SIGNATURE. The split is derived, never
+    // claimed — the same derivation acceptance already trusts. Before this,
+    // meal-plan sat reopened AND 23/23-proven simultaneously: the card said
+    // "waiting on you" while the guided queue said "nothing waits on you".
+    if (phase === "reopened") {
+      return d.provenDone
+        ? { key: "re-approve", owner: "human", label: "redesign proven — re-approve the brief" }
+        : { key: "redesign", owner: "agent", label: "redesign in progress — finish and prove it; the brief then returns for your signature" };
+    }
     if (designUndrafted)
       return {
         key: "design",

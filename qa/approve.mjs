@@ -9,8 +9,19 @@
 //   node qa/approve.mjs --accept-defaults   express lane (GENESIS-FLOW-DESIGN.md §2): approves
 //                                            every currently-resolvable, not-yet-approved
 //                                            artifact, each stamped "defaults-accepted"
-//   node qa/approve.mjs --reopen <artifact> moves an approved artifact back to "reopened" for
-//                                            redesign (refuses anything not currently approved)
+//   node qa/approve.mjs --reopen <artifact> --reason "…"
+//                                            moves an approved artifact back to "reopened" for
+//                                            redesign (refuses anything not currently approved).
+//                                            --reason is REQUIRED — a reopen walks back a
+//                                            signature, and the signer must be able to read why
+//                                            from the ledger itself (2026-07-28 flow audit)
+//   node qa/approve.mjs --reopen-feature <name> --reason "…"
+//                                            one recorded change, not N reopen commands: reopens
+//                                            the brief + its spec + its design + every artifact
+//                                            the brief declares in `touches` (each only if
+//                                            currently approved), all under one reason
+//   node qa/approve.mjs --log               the journal — every approve/reopen/accept with
+//                                            when, which surface, and why (newest last)
 //   node qa/approve.mjs --accept <name>     the HUMAN's bookend on a feature brief
 //                                            (feature-brief:<name>) — refused until the feature
 //                                            is provenDone (every live clause cited + receipt
@@ -35,7 +46,9 @@ import {
   getFeatureBoard,
   isPackageResolvable,
   listGovernedArtifacts,
+  readJournal,
   reopenArtifact,
+  reopenFeature,
 } from "./lib/approvals.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -60,7 +73,7 @@ function printStatus() {
     // approvable — approval over an unresolved file set is refused.
     const hashInfo =
       s.status === "reopened"
-        ? `reopened at ${s.reopenedAt} (was approved ${shortHash(s.storedHash)})`
+        ? `reopened at ${s.reopenedAt} (was approved ${shortHash(s.storedHash)})${s.reason ? ` — ${s.reason}` : ""}`
         : s.status === "changed-since-approval"
           ? s.resolvable
             ? `approved ${shortHash(s.storedHash)} -> now ${shortHash(s.hash)}`
@@ -127,20 +140,65 @@ if (args.includes("--accept-defaults")) {
   process.exit(0);
 }
 
+// --reason is shared by --reopen and --reopen-feature: one plain sentence for
+// the human who signed, recorded on the ledger row AND the journal. The library
+// refuses without it; parsing it here just makes the usage line honest.
+const reasonFlagIdx = args.indexOf("--reason");
+const reason = reasonFlagIdx !== -1 ? args[reasonFlagIdx + 1] : undefined;
+
+if (args.includes("--log")) {
+  const events = readJournal(ROOT);
+  if (events.length === 0) {
+    console.log("No journal yet (qa/approvals.log.jsonl) — it starts recording with the next approve/reopen/accept.");
+    process.exit(0);
+  }
+  console.log("Governance journal (oldest first):\n");
+  for (const e of events) {
+    const mark = e.verb === "approve" ? "✓" : e.verb === "reopen" ? "↺" : e.verb === "accept" ? "◆" : "·";
+    const bits = [e.via ? `via ${e.via}` : null, e.mode ? `[${e.mode}]` : null, e.feature ? `feature ${e.feature}` : null]
+      .filter(Boolean)
+      .join(" · ");
+    console.log(`${mark} ${e.at}  ${e.verb} ${e.artifact}${bits ? ` (${bits})` : ""}${e.reason ? ` — ${e.reason}` : ""}`);
+  }
+  process.exit(0);
+}
+
 const reopenFlagIdx = args.indexOf("--reopen");
 if (reopenFlagIdx !== -1) {
   refuseIfUnresolvable();
   const artifactId = args[reopenFlagIdx + 1];
-  if (!artifactId) {
-    console.error("usage: node qa/approve.mjs --reopen <artifact>");
+  if (!artifactId || artifactId === "--reason") {
+    console.error('usage: node qa/approve.mjs --reopen <artifact> --reason "why, in one sentence"');
     process.exit(1);
   }
-  const result = reopenArtifact(ROOT, artifactId);
+  const result = reopenArtifact(ROOT, artifactId, { reason, via: "cli" });
   if (!result.ok) {
     console.error(`error: ${result.reason}`);
     process.exit(1);
   }
-  console.log(`↺ reopened ${result.artifact} for redesign — at ${result.reopenedAt}`);
+  console.log(`↺ reopened ${result.artifact} for redesign — at ${result.reopenedAt}\n  reason: ${reason.trim()}`);
+  process.exit(0);
+}
+
+// One recorded change, not N reopen commands (2026-07-28 flow audit, fix 4):
+// the brief is the container the human thinks in — reopen its whole declared
+// set under one reason, each journal event grouped by the feature's name.
+const reopenFeatureFlagIdx = args.indexOf("--reopen-feature");
+if (reopenFeatureFlagIdx !== -1) {
+  refuseIfUnresolvable();
+  const name = args[reopenFeatureFlagIdx + 1];
+  if (!name || name === "--reason") {
+    console.error('usage: node qa/approve.mjs --reopen-feature <name> --reason "why, in one sentence"');
+    process.exit(1);
+  }
+  const result = reopenFeature(ROOT, name, { reason, via: "cli" });
+  if (!result.ok) {
+    console.error(`error: ${result.reason}`);
+    process.exit(1);
+  }
+  console.log(`↺ reopened feature "${result.feature}" as one change — reason: ${reason.trim()}`);
+  for (const id of result.reopened) console.log(`  ↺ ${id}`);
+  for (const s of result.skipped) console.log(`  → skipped ${s.id} (${s.status})`);
   process.exit(0);
 }
 
@@ -155,7 +213,7 @@ if (acceptFlagIdx !== -1) {
     console.error("usage: node qa/approve.mjs --accept <name>   (the brief's name — docs/features/<name>.md)");
     process.exit(1);
   }
-  const result = acceptFeature(ROOT, name);
+  const result = acceptFeature(ROOT, name, { via: "cli" });
   if (!result.ok) {
     console.error(`error: ${result.reason}`);
     process.exit(1);
@@ -167,7 +225,7 @@ if (acceptFlagIdx !== -1) {
 if (args.length === 0) {
   const ids = listGovernedArtifacts(ROOT).map((a) => a.id);
   console.error(
-    "usage: node qa/approve.mjs <artifact> | --status | --accept-defaults | --reopen <artifact> | --accept <name>\n" +
+    'usage: node qa/approve.mjs <artifact> | --status | --log | --accept-defaults | --reopen <artifact> --reason "…" | --reopen-feature <name> --reason "…" | --accept <name>\n' +
       `  valid artifacts: ${ids.length > 0 ? ids.join(", ") : "(none resolved in this project)"}`,
   );
   process.exit(1);
@@ -176,7 +234,7 @@ if (args.length === 0) {
 refuseIfUnresolvable();
 
 const artifactId = args[0];
-const result = approveArtifact(ROOT, artifactId);
+const result = approveArtifact(ROOT, artifactId, { via: "cli" });
 if (!result.ok) {
   console.error(`error: ${result.reason}`);
   process.exit(1);

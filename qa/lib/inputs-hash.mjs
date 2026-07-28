@@ -35,8 +35,12 @@ export const VERIFIED_SURFACE = [
 // by this file's own stated principle: comments are explicitly advisory and no
 // lane step reads them, so their content cannot change the verdict — hashing
 // them made resolving a review note invalidate a receipt for a tree whose
-// code had not changed.
-const EXCLUDED_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/comments.json"];
+// code had not changed. qa/approvals.log.jsonl (the governance journal) is
+// excluded by the same principle: it is append-only HISTORY of decisions the
+// snapshot (qa/approvals.json) already carries as state — no lane step reads
+// it, so recording who/why must never invalidate a receipt for a tree whose
+// code did not change (the exact failure FI-8 killed for acceptance).
+const EXCLUDED_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/comments.json", "qa/approvals.log.jsonl"];
 
 // qa/approvals.json is hashed by PROJECTION, not raw bytes. The approvals gate's
 // verdict depends on exactly three row fields (artifact, status, hash) plus the

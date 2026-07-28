@@ -41,7 +41,14 @@ appId: com.kvdm.fuelled
 - tapOn:
     id: "foods_search"
 - inputText: "Chicken"
-- hideKeyboard
+# NOT hideKeyboard: Maestro's hideKeyboard falls back to pressing BACK, and when the IME
+# is already down the BACK reaches the activity and EXITS the app (observed 2026-07-28:
+# ActivityManager froze the process mid-flow and the next assert stared at the launcher
+# for 30s). The search field is singleLine ⇒ imeAction Done, and Compose's default
+# keyboard action for Done hides the IME — so Enter dismisses it through the app's own
+# contract, deterministically, and never navigates. The keyboard must be down before the
+# nav_supplements tap below (the IME overlays the bottom bar).
+- pressKey: Enter
 # The query round-trips through the ViewModel → Room (a brief Loading arm clears the list
 # between keystrokes), and a loaded emulator stretches that window. Wait for the search to
 # SETTLE rather than asserting into the transition — this is the FOODS-02 proof, on-device.

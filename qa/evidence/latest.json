@@ -3,80 +3,25 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "1b6278009262024cbb580e00a95034775384f42f",
+    "sha": "dbdbc2adbc578be3a5837fe6bc9d6b4c0ce3e0f0",
     "dirty": [
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/7.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/6.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/7.json",
-      "composeApp/src/androidMain/AndroidManifest.xml",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/di/AndroidModule.kt",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/MealPlanDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/MealPlanEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/MealPlanRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Food.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Meal.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealReminder.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/PlanDay.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Today.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/notification/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/MealPlanRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/CopyDayForwardUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetMealTimesUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetPlanDayUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SetMealTimeUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SetSlotDoneUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SetWaterDoneUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/TodayHighlightsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppShell.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayHighlights.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/MealPlanUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeMealPlanRepository.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeReminderScheduler.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/di/DesktopModule.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
-      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/KoinHelper.kt",
-      "docs/ARCHITECTURE.md",
-      "qa/approvals.json",
+      "CLAUDE.md",
+      "qa/approve.mjs",
       "qa/e2e/smoke.yaml",
       "qa/evidence/latest.json",
-      "qa/golden/meal-plan.json",
-      "qa/golden/today.json"
+      "qa/lib/approvals.mjs",
+      "qa/lib/inputs-hash.mjs"
     ]
   },
   "inputs": {
-    "hash": "0f1ab851586764f802b0399b6c83367142f9dad3b4c1736922855923fbb2a002",
+    "hash": "746cb4f3c1323aefde70864aac966fac862539709a034bf4970bce88a92b5ef7",
     "fileCount": 292
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 26,
+      "durationMs": 32,
       "details": {
         "clauses": 87,
         "withdrawn": 2,
@@ -88,7 +33,7 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:meal-plan] Feature brief (docs/features/meal-plan.md) — reopened for redesign at 2026-07-27T16:03:48.381Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-brief:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-07-26T18:56:09.847Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal",
-      "durationMs": 25,
+      "durationMs": 100,
       "details": {
         "artifacts": [
           {
@@ -172,7 +117,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -183,7 +128,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 8,
+      "durationMs": 10,
       "details": {
         "features": [
           {
@@ -248,7 +193,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 14,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -256,12 +201,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2548
+      "durationMs": 2432
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10888,
+      "durationMs": 10800,
       "details": {
         "tests": 200,
         "failures": 0,
@@ -272,31 +217,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2956
+      "durationMs": 3371
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4965
+      "durationMs": 4944
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 180,
+      "durationMs": 7926,
       "details": {
-        "checked": 25,
+        "checked": 7,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4071
+      "durationMs": 4237
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 45340
+      "durationMs": 76072
     }
   ],
   "strength": {
@@ -310,5 +255,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-27T20:19:08.072Z"
+  "generatedAt": "2026-07-28T10:16:45.837Z"
 }
