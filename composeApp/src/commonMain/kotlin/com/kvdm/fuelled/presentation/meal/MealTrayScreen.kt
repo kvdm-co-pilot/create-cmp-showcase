@@ -55,11 +55,13 @@ import kotlinx.datetime.plus
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Meal tray: the add-to-meal screen (MEAL-09/10/11/12) ─────────────────────────────
-// The visual language is the human-signed design draft (feature-design:meal): target pills,
-// searchable list, checkbox rows, a pinned total bar with one primary Add. This slice wires
-// that shape to the real path and changes exactly the two things the contract requires —
-// the running total now carries protein/carbs/fat (MEAL-09), and the header states the
-// target DATE as well as the slot, both changeable (MEAL-10). Nothing else is restyled.
+// The visual language descends from the signed design draft (feature-design:meal):
+// searchable list, checkbox rows, a pinned total bar with one primary Add. The running
+// total carries protein/carbs/fat (MEAL-09) and the header states the target slot AND
+// date (MEAL-10). The meal-plan brief's usability audit then removed the draft's two
+// targeting controls — the slot pills and the date row — leaving the target a statement;
+// the call site below says why. That removal is what feature-design:meal is currently
+// reopened for: it re-signs on rendered output, never on this description.
 //
 // Two entry points, the UI-first preview seam mirroring the Foods exemplar:
 //   • MealTrayScreen — STATELESS, sample-defaulted. The preview registry renders it, no VM.
@@ -188,9 +190,9 @@ fun MealTrayScreen(
 }
 
 /**
- * The header's statement of the target (MEAL-10): which slot, on which logical date. The
- * pills below change it; this line is what the tray is aimed at right now, in words — a
- * segmented control alone leaves "tomorrow" implied rather than stated.
+ * The header's statement of the target (MEAL-10): which slot, on which logical date. It is
+ * the whole targeting surface now — nothing here changes it, so it says both halves in
+ * words rather than leaving "tomorrow" implied the way a segmented control would.
  *
  * Both halves reuse the Today screen's formatters ([label], [dayHeaderLabel]) — the app has
  * ONE rendering of a slot and of a logical day, and a second copy here would be the thing
@@ -230,6 +232,11 @@ private fun TraySearchField(query: String, onQueryChange: (String) -> Unit) {
  * One checkbox-selectable food row (§2): the whole card toggles, the checkbox mirrors —
  * ticking accumulates into the running total. [ListItemCard] owns the card surface, radius,
  * elevation, and the 48 dp row floor.
+ *
+ * The checkbox is DECORATIVE (`onCheckedChange = null`): the card is the control. A second
+ * clickable inside the row was a 24x24 hit target — half the 48 dp floor — that announced
+ * nothing to a screen reader, since a testTag is a test hook and not an accessibility label.
+ * As a mirror it inherits the card's target and the card's name; one control per row.
  */
 @Composable
 private fun TrayFoodRow(food: Food, checked: Boolean, onToggle: () -> Unit) {
@@ -258,7 +265,7 @@ private fun TrayFoodRow(food: Food, checked: Boolean, onToggle: () -> Unit) {
                 }
                 Checkbox(
                     checked = checked,
-                    onCheckedChange = { onToggle() },
+                    onCheckedChange = null,
                     modifier = Modifier.semantics { testTag = "meal_tray_check_${food.id}" },
                 )
             }

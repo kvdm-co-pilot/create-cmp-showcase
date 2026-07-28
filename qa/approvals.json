@@ -53,13 +53,6 @@
       "acceptedAt": "2026-07-26T11:49:13.080Z"
     },
     {
-      "artifact": "feature-design:meal",
-      "status": "reopened",
-      "hash": "6716fc54895c1fcd13f74c8805b6fe457f57f7d81fb5254099e6f59f219241df",
-      "approvedAt": "2026-07-26T11:39:47.794Z",
-      "reopenedAt": "2026-07-26T18:56:09.847Z"
-    },
-    {
       "artifact": "feature-spec:meal-plan",
       "status": "approved",
       "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
@@ -99,6 +92,15 @@
       "status": "approved",
       "hash": "e2ee819050a6d5890826e105ce3ee19f252346a80501ef1aa08f6da02860e0bf",
       "approvedAt": "2026-07-28T12:56:44.045Z",
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-07-28T17:44:01.801Z"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "approved",
+      "hash": "b7f15db9d13d679e392b2be9c6cee4ab0ed031d39e26472883d86e0e095f71db",
+      "approvedAt": "2026-07-28T17:57:17.729Z",
       "via": "console"
     }
   ],

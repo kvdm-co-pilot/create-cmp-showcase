@@ -3,21 +3,23 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "e0b5f5e3a365681ecfeaaf005a9d7db46e056f95",
+    "sha": "e60bca6b7d0ed4e5d7c4791b9df4c03fbedb4604",
     "dirty": [
-      "qa/approve.mjs",
-      "qa/lib/approvals.mjs"
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
+      "qa/golden/meal.json"
     ]
   },
   "inputs": {
-    "hash": "7cf374d8d2423e0c2dffbb7f2b409eed5b7e25d4c47585d50e284e075c2c4467",
+    "hash": "54cef0bd02f79814afc0bc697eb9996a34c26af7e8a612bbf4af490148922bd3",
     "fileCount": 292
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 27,
+      "durationMs": 72,
       "details": {
         "clauses": 87,
         "withdrawn": 2,
@@ -27,9 +29,8 @@
     },
     {
       "name": "approvals",
-      "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-07-26T18:56:09.847Z (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal",
-      "durationMs": 19,
+      "verdict": "PASS",
+      "durationMs": 23,
       "details": {
         "artifacts": [
           {
@@ -79,8 +80,8 @@
           },
           {
             "id": "feature-design:meal",
-            "status": "reopened",
-            "hash": "f969e1066b5668dc066616068831c6c8258a3e535dd7b0282367d3d8900b0edd"
+            "status": "approved",
+            "hash": "b7f15db9d13d679e392b2be9c6cee4ab0ed031d39e26472883d86e0e095f71db"
           },
           {
             "id": "feature-spec:meal-plan",
@@ -197,12 +198,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 19174
+      "durationMs": 23353
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 13389,
+      "durationMs": 13314,
       "details": {
         "tests": 200,
         "failures": 0,
@@ -213,17 +214,17 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 34755
+      "durationMs": 4245
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5903
+      "durationMs": 7241
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 217,
+      "durationMs": 503,
       "details": {
         "checked": 25,
         "drifted": 0
@@ -232,12 +233,12 @@
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4638
+      "durationMs": 6044
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 47059
+      "durationMs": 54505
     }
   ],
   "strength": {
@@ -251,5 +252,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-28T16:51:53.362Z"
+  "generatedAt": "2026-07-28T18:03:44.027Z"
 }
