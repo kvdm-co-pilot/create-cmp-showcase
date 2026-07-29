@@ -368,6 +368,33 @@ function stepBuild() {
   };
 }
 
+// The build nobody runs until the day they need it.
+//
+// assembleDebug passing says nothing about assembleRelease: R8 and `lintVital` only run on
+// the release variant, and BuildConfig is generated PER BUILD TYPE, so a constant declared
+// in one and not the other is a compile error that only release ever sees. All three of
+// those bit this template at once, and none of them were visible from a green debug lane —
+// the first release build ever attempted (2026-07-29) failed three times over.
+//
+// So release is proven at the checkpoint, not discovered at launch. Unsigned: signing needs
+// a keystore, which belongs to whoever ships the app, and this step is about the shrinker
+// and the build graph rather than the signature.
+function stepReleaseBuild() {
+  const res = shGradle(`${GRADLEW} :composeApp:assembleRelease --console=plain`);
+  return {
+    name: "releaseBuild",
+    verdict: res.ok ? "PASS" : "FAIL",
+    reason: res.ok
+      ? undefined
+      : `assembleRelease failed — the shippable build is broken even though the debug one is fine:\n${res.out
+          .split("\n")
+          .filter((l) => /error|FAILURE|Missing class|Unresolved/i.test(l))
+          .slice(0, 12)
+          .join("\n")}`,
+    durationMs: res.durationMs,
+  };
+}
+
 // Runs a filtered slice of the JVM test tier and names the verdict after the gate it proves.
 // The full suite already ran in unitTests; the filtered slices stay cheap (compilation is
 // cached) while `--rerun` forces the tests themselves to EXECUTE — see stepUnitTests.
@@ -607,6 +634,10 @@ const stepsForProfile = {
     stepReachability,
     stepArchDoc,
     stepBuild,
+    // Release stays OUT of `scaffold`: stamp-time --verify promises a green first build, and
+    // an R8 pass would add minutes to every scaffold to re-prove what this step proves here.
+    // local + ci is where release rot gets caught before it reaches anyone.
+    stepReleaseBuild,
     stepUnitTests,
     stepConformance,
     stepGoldenTrees,

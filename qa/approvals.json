@@ -63,15 +63,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-spec:today",
-      "status": "reopened",
-      "hash": "37bb4d12c5ebfd718b030fd2f1e8a68bc69623239bab6b789b6f72a2af4d6bd5",
-      "approvedAt": "2026-07-27T16:53:44.419Z",
-      "reopenedAt": "2026-07-29T07:13:35.623Z",
-      "reason": "reactive-state: failures recover on the next emission; retry control removed",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-brief:reactive-state",
       "status": "approved",
       "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76",
@@ -101,30 +92,31 @@
     },
     {
       "artifact": "feature-spec:meal-plan",
-      "status": "reopened",
-      "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
-      "approvedAt": "2026-07-27T16:53:29.902Z",
-      "reopenedAt": "2026-07-29T09:21:27.836Z",
-      "reason": "walkthrough findings 1/2/6: PLAN-24 the plan keeps its selected day across a tray trip; PLAN-25 the focused tag waits for the clock; PLAN-26 a reminder delivered hours late is not posted",
-      "via": "cli"
+      "status": "approved",
+      "hash": "1871d480cb337eb1d9d302e99cba749fe1847569503d9c7c0e9abb098cc0c3b9",
+      "approvedAt": "2026-07-29T10:01:35.937Z",
+      "via": "console"
     },
     {
       "artifact": "feature-spec:meal",
-      "status": "reopened",
-      "hash": "9228139522dc431a42c85d2f7b64a4df09c085b5403248e8dfbe1ec83615d375",
-      "approvedAt": "2026-07-27T16:53:37.837Z",
-      "reopenedAt": "2026-07-29T09:21:27.921Z",
-      "reason": "walkthrough finding 5: MEAL-13 - a confirmed add closes the tray back onto the container that opened it",
-      "via": "cli"
+      "status": "approved",
+      "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1",
+      "approvedAt": "2026-07-29T10:01:48.968Z",
+      "via": "console"
     },
     {
       "artifact": "feature-spec:supplements",
-      "status": "reopened",
-      "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa",
-      "approvedAt": "2026-07-23T21:01:48.874Z",
-      "reopenedAt": "2026-07-29T09:21:28.012Z",
-      "reason": "walkthrough findings 3+4: SUPP-07 - taken is a fact about a logical day, stored per day like water ticks, so a fresh install claims nothing taken and Thursday does not inherit Wednesday",
-      "via": "cli"
+      "status": "approved",
+      "hash": "cf510ff6d349ab26c205c45d338650c411f5916d83f0a5e7b8ed7acec4c9b7ea",
+      "approvedAt": "2026-07-29T10:02:06.664Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:today",
+      "status": "approved",
+      "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
+      "approvedAt": "2026-07-29T10:02:20.031Z",
+      "via": "console"
     }
   ],
   "exemplarFeature": "foods"

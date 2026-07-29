@@ -10,3 +10,7 @@
 {"at":"2026-07-29T09:21:27.838Z","verb":"reopen","artifact":"feature-spec:meal-plan","reason":"walkthrough findings 1/2/6: PLAN-24 the plan keeps its selected day across a tray trip; PLAN-25 the focused tag waits for the clock; PLAN-26 a reminder delivered hours late is not posted","via":"cli"}
 {"at":"2026-07-29T09:21:27.923Z","verb":"reopen","artifact":"feature-spec:meal","reason":"walkthrough finding 5: MEAL-13 - a confirmed add closes the tray back onto the container that opened it","via":"cli"}
 {"at":"2026-07-29T09:21:28.013Z","verb":"reopen","artifact":"feature-spec:supplements","reason":"walkthrough findings 3+4: SUPP-07 - taken is a fact about a logical day, stored per day like water ticks, so a fresh install claims nothing taken and Thursday does not inherit Wednesday","via":"cli"}
+{"at":"2026-07-29T10:01:35.938Z","verb":"approve","artifact":"feature-spec:meal-plan","hash":"1871d480cb337eb1d9d302e99cba749fe1847569503d9c7c0e9abb098cc0c3b9","via":"console"}
+{"at":"2026-07-29T10:01:48.968Z","verb":"approve","artifact":"feature-spec:meal","hash":"23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1","via":"console"}
+{"at":"2026-07-29T10:02:06.665Z","verb":"approve","artifact":"feature-spec:supplements","hash":"cf510ff6d349ab26c205c45d338650c411f5916d83f0a5e7b8ed7acec4c9b7ea","via":"console"}
+{"at":"2026-07-29T10:02:20.032Z","verb":"approve","artifact":"feature-spec:today","hash":"fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16","via":"console"}

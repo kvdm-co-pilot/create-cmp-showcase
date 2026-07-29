@@ -3,57 +3,25 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "22a839d5ac3d0e77602a43657b519acf52619509",
+    "sha": "327a96b4084a9d99fba1f41e3a93bd7f16c21483",
     "dirty": [
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/8.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/7.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/8.json",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/AndroidReminderScheduler.kt",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/MealReminderReceiver.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/PlanDay.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/notification/ReminderDelivery.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/MealPlanTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/notification/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementDao.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
-      "docs/ARCHITECTURE.md",
+      "composeApp/build.gradle.kts",
+      "composeApp/proguard-rules.pro",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/e2e/smoke.yaml",
       "qa/evidence/latest.json",
-      "specs/meal-plan.spec.md",
-      "specs/meal.spec.md",
-      "specs/supplements.spec.md"
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "ad54c9e17e031dc7ca7a5420c91535562a7b66a576d034c5e3221db41ed7d134",
+    "hash": "98a708a3b81f3e48c93572ec20a823b64ebe000c83fe784a23160dbc4a7b707c",
     "fileCount": 302
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 30,
+      "durationMs": 128,
       "details": {
         "clauses": 96,
         "withdrawn": 2,
@@ -63,9 +31,8 @@
     },
     {
       "name": "approvals",
-      "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-spec:meal-plan] Feature spec (specs/meal-plan.spec.md) — reopened for redesign at 2026-07-29T09:21:27.836Z (reason: walkthrough findings 1/2/6: PLAN-24 the plan keeps its selected day across a tray trip; PLAN-25 the focused tag waits for the clock; PLAN-26 a reminder delivered hours late is not posted) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal-plan\n  [feature-spec:meal] Feature spec (specs/meal.spec.md) — reopened for redesign at 2026-07-29T09:21:27.921Z (reason: walkthrough finding 5: MEAL-13 - a confirmed add closes the tray back onto the container that opened it) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal\n  [feature-spec:supplements] Feature spec (specs/supplements.spec.md) — reopened for redesign at 2026-07-29T09:21:28.012Z (reason: walkthrough findings 3+4: SUPP-07 - taken is a fact about a logical day, stored per day like water ticks, so a fresh install claims nothing taken and Thursday does not inherit Wednesday) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:supplements\n  [feature-spec:today] Feature spec (specs/today.spec.md) — reopened for redesign at 2026-07-29T07:13:35.623Z (reason: reactive-state: failures recover on the next emission; retry control removed) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:today",
-      "durationMs": 18,
+      "verdict": "PASS",
+      "durationMs": 21,
       "details": {
         "artifacts": [
           {
@@ -125,12 +92,12 @@
           },
           {
             "id": "feature-spec:meal-plan",
-            "status": "reopened",
+            "status": "approved",
             "hash": "1871d480cb337eb1d9d302e99cba749fe1847569503d9c7c0e9abb098cc0c3b9"
           },
           {
             "id": "feature-spec:meal",
-            "status": "reopened",
+            "status": "approved",
             "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1"
           },
           {
@@ -145,12 +112,12 @@
           },
           {
             "id": "feature-spec:supplements",
-            "status": "reopened",
+            "status": "approved",
             "hash": "cf510ff6d349ab26c205c45d338650c411f5916d83f0a5e7b8ed7acec4c9b7ea"
           },
           {
             "id": "feature-spec:today",
-            "status": "reopened",
+            "status": "approved",
             "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16"
           }
         ]
@@ -170,7 +137,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 8,
+      "durationMs": 9,
       "details": {
         "features": [
           {
@@ -235,7 +202,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 14,
+      "durationMs": 15,
       "details": {
         "sectionsChecked": 4
       }
@@ -243,12 +210,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 9829
+      "durationMs": 2029
+    },
+    {
+      "name": "releaseBuild",
+      "verdict": "PASS",
+      "durationMs": 2290
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 18274,
+      "durationMs": 11202,
       "details": {
         "tests": 216,
         "failures": 0,
@@ -259,31 +231,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2829
+      "durationMs": 3400
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4766
+      "durationMs": 6155
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 426,
+      "durationMs": 120,
       "details": {
-        "checked": 1,
+        "checked": 7,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3936
+      "durationMs": 5247
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 78047
+      "durationMs": 83262
     }
   ],
   "strength": {
@@ -297,5 +269,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-29T09:49:42.791Z"
+  "generatedAt": "2026-07-29T10:36:07.210Z"
 }
