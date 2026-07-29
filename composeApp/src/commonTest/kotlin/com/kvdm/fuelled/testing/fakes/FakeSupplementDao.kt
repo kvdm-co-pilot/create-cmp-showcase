@@ -2,6 +2,7 @@ package com.kvdm.fuelled.testing.fakes
 
 import com.kvdm.fuelled.data.local.SupplementDao
 import com.kvdm.fuelled.data.local.SupplementEntity
+import com.kvdm.fuelled.data.local.SupplementTakenEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -10,12 +11,15 @@ import kotlinx.coroutines.flow.map
  * Hand-written in-memory [SupplementDao] — lets
  * [com.kvdm.fuelled.data.remote.SupplementRepositoryImpl] be tested through its DOMAIN contract
  * without a real Room database. Mirrors the DAO's observable behaviour: `getAll()` is stably
- * ordered by `timingOrder` (a stable sort preserves insertion order within a bucket), and
- * `setTaken` writes THROUGH to the stored row so a re-read returns the persisted state (SUPP-03).
+ * ordered by `timingOrder` (a stable sort preserves insertion order within a bucket), and doses
+ * are keyed by logical day so a re-read returns the persisted state (SUPP-03/SUPP-07).
  */
 class FakeSupplementDao : SupplementDao {
 
     private val rows = mutableListOf<SupplementEntity>()
+
+    /** Doses, keyed exactly as the table is: (logicalDate, supplementId). */
+    private val taken = mutableSetOf<Pair<String, String>>()
 
 
     /**
@@ -31,12 +35,22 @@ class FakeSupplementDao : SupplementDao {
 
     override fun getAllStream(): Flow<List<SupplementEntity>> = version.map { rows.sortedBy { r -> r.timingOrder } }
 
+    override suspend fun takenOn(logicalDate: String): List<SupplementTakenEntity> =
+        taken.filter { it.first == logicalDate }.map { SupplementTakenEntity(it.first, it.second) }
+
+    override fun takenStream(logicalDate: String): Flow<List<SupplementTakenEntity>> =
+        version.map { takenOn(logicalDate) }
+
     // Bumped AFTER each mutation, never before — Room's invalidation tracker fires after the
     // transaction commits, and a bump-first fake under an immediate dispatcher lets a collector
     // re-query pre-write state with no emission ever carrying the write.
-    override suspend fun setTaken(id: String, taken: Boolean) {
-        val i = rows.indexOfFirst { it.id == id }
-        if (i >= 0) rows[i] = rows[i].copy(taken = taken)
+    override suspend fun insertTaken(row: SupplementTakenEntity) {
+        taken += row.logicalDate to row.supplementId
+        bump()
+    }
+
+    override suspend fun clearTaken(logicalDate: String, id: String) {
+        taken -= logicalDate to id
         bump()
     }
 

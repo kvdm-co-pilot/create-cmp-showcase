@@ -41,6 +41,7 @@ const val PLAN_DAYS_AHEAD: Int = 7
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealPlanViewModel(
+    initialDate: LocalDate,
     private val getPlanDay: GetPlanDayUseCase,
     private val setSlotDone: SetSlotDoneUseCase,
     private val setWaterDone: SetWaterDoneUseCase,
@@ -73,7 +74,18 @@ class MealPlanViewModel(
                 (-1..PLAN_DAYS_AHEAD).map { getPlanDay.currentLogicalDayNow().plus(it, DateTimeUnit.DAY) },
             )
 
-    private val _selectedDate = MutableStateFlow(getPlanDay.currentLogicalDayNow())
+    /**
+     * The day on screen. Seeded from the route's date ONCE, at construction, and owned by this
+     * ViewModel from then on (PLAN-24).
+     *
+     * The seed is a constructor parameter rather than something the route re-applies, because
+     * the route re-enters composition every time the tray is dismissed — and a re-applied nav
+     * argument silently threw the strip's selection away, so planning Thursday meant re-picking
+     * Thursday after every single food (observed on-device, 2026-07-29). This ViewModel is
+     * scoped to the nav entry, so it outlives the trip to the tray and the selection with it;
+     * arriving on a genuinely new `plan/{date}` entry builds a new one, correctly aimed.
+     */
+    private val _selectedDate = MutableStateFlow(initialDate)
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
     /**

@@ -16,9 +16,22 @@ interface SupplementDao {
     @Query("SELECT * FROM supplements ORDER BY timingOrder")
     fun getAllStream(): Flow<List<SupplementEntity>>
 
-    // The tap-to-take write: persists the taken state so it survives a reload (SUPP-03).
-    @Query("UPDATE supplements SET taken = :taken WHERE id = :id")
-    suspend fun setTaken(id: String, taken: Boolean)
+    // ── The day's doses (SUPP-03/SUPP-07) ────────────────────────────────────────────────
+    // Set/clear rather than a toggle, for the reason MealPlanDao states: a toggle's result
+    // depends on state the caller did not read, so two taps racing land on either answer.
+
+    @Query("SELECT * FROM supplement_taken WHERE logicalDate = :logicalDate")
+    suspend fun takenOn(logicalDate: String): List<SupplementTakenEntity>
+
+    /** The day's doses as a stream — a tap on the Supplements tab moves Today's bucket count. */
+    @Query("SELECT * FROM supplement_taken WHERE logicalDate = :logicalDate")
+    fun takenStream(logicalDate: String): Flow<List<SupplementTakenEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTaken(row: SupplementTakenEntity)
+
+    @Query("DELETE FROM supplement_taken WHERE logicalDate = :logicalDate AND supplementId = :id")
+    suspend fun clearTaken(logicalDate: String, id: String)
 
     @Query("SELECT COUNT(*) FROM supplements")
     suspend fun count(): Int

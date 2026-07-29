@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.coroutines.flow.first
 
@@ -203,6 +204,53 @@ class MealPlanTest {
         assertEquals(
             DayFocus.NextDayBreakfast,
             focusFor(doneSlots = setOf(MealSlot.EVENING_SNACK), now = at(23, 0)),
+        )
+    }
+
+    // SPEC: PLAN-25
+    @Test
+    fun `the focused slot is only DUE once its time arrives - next is not the same as now`() {
+        fun dayAt(hour: Int, minute: Int, done: Set<MealSlot> = emptySet()) = buildPlanDay(
+            date = LocalDate(2026, 7, 30),
+            isCurrentDay = true,
+            now = at(hour, minute),
+            times = MealTimes(),
+            entriesBySlot = emptyMap(),
+            doneSlots = done,
+            waterTicks = emptySet(),
+        )
+
+        // 07:02, the morning of the on-device report: breakfast is focused and its time HAS
+        // come, so "up now" is true of it — and the grace has not run out, so it is not late.
+        val morning = dayAt(7, 2)
+        val breakfast = morning.slots.first { it.slot == MealSlot.BREAKFAST }
+        assertTrue(breakfast.focused)
+        assertTrue(breakfast.due, "07:02 is past a 07:00 slot")
+        assertFalse(breakfast.late)
+
+        // The 09:30 snack at the same moment: the day's next-but-one, and nothing about it is
+        // happening now.
+        assertFalse(morning.slots.first { it.slot == MealSlot.MORNING_SNACK }.due)
+
+        // Tick breakfast and the snack BECOMES the focused slot — still at 07:02, still not
+        // due. This is the exact state that rendered "NEXT · up now" two and a half hours early.
+        val snack = dayAt(7, 2, done = setOf(MealSlot.BREAKFAST))
+            .slots.first { it.slot == MealSlot.MORNING_SNACK }
+        assertTrue(snack.focused, "with breakfast done the 09:30 snack is next")
+        assertFalse(snack.due, "but it is not up NOW — the clock says 07:02")
+
+        // PLAN-23: a day that is not the current one makes no claim either way.
+        assertTrue(
+            buildPlanDay(
+                date = LocalDate(2026, 8, 5),
+                isCurrentDay = false,
+                now = at(23, 0),
+                times = MealTimes(),
+                entriesBySlot = emptyMap(),
+                doneSlots = emptySet(),
+                waterTicks = emptySet(),
+            ).slots.none { it.due },
+            "a future day being planned is not 'due' at any hour",
         )
     }
 }

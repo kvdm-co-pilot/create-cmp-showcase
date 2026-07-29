@@ -86,6 +86,7 @@ internal fun PlanDay.toUi(stripDays: List<LocalDate>, today: LocalDate): PlanDay
                 )
             },
             tickedEmpty = view.tickedEmpty,
+            due = view.due,
         )
     },
     waters = water.map { PlanWaterUi(index = it.index, time = it.time.clockLabel(), done = it.done) },
@@ -94,24 +95,21 @@ internal fun PlanDay.toUi(stripDays: List<LocalDate>, today: LocalDate): PlanDay
 /**
  * The VM-backed plan screen the nav graph hosts (`plan/{date}`, PLAN-11).
  *
+ * The route's date arrives as the ViewModel's SEED, not as a parameter here (PLAN-24). There is
+ * deliberately no route-level date left to re-apply: this composable re-enters composition every
+ * time the tray closes, and the effect that used to re-aim it discarded whatever day the strip
+ * had selected. The selection lives in the nav-entry-scoped ViewModel, which survives the trip.
+ *
  * @param onAddToMeal where an add control goes: the tray, already targeted at this container's
  *   logical day and slot (PLAN-04) — the tap carries the target, so the tray never asks.
  */
 @Composable
 fun MealPlanRoute(
-    date: LocalDate,
     onAddToMeal: (LocalDate, MealSlot) -> Unit,
     onOpenTimes: () -> Unit,
     viewModel: MealPlanViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val selected by viewModel.selectedDate.collectAsStateWithLifecycle()
-
-    // The route's date is the opening selection; afterwards the strip owns it. Keyed on `date`
-    // so arriving from a fresh link re-aims the screen, while a strip tap does not fight it.
-    androidx.compose.runtime.LaunchedEffect(date) {
-        if (date != selected) viewModel.select(date)
-    }
 
     // The strip window and the anchor day are observed too — a plan left open across 04:00
     // re-centres instead of offering yesterday's nine days.

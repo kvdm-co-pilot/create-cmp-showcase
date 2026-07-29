@@ -151,3 +151,19 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "meal_tray_target"
     text: "Breakfast · .*"
+
+# SPEC: MEAL-13 — pick a food, confirm, and the tray CLOSES back onto the container that
+# opened it. On-device is the only place this clause is fully true: the pop is a back-stack
+# act, so a screen test can prove the callback fires but only the real nav graph proves the
+# user lands on the plan. Planning a day means doing this six times; a tray that stayed open
+# made it six manual dismissals with the just-added food out of sight behind it.
+- tapOn:
+    id: "meal_tray_item_1"
+- tapOn:
+    id: "meal_tray_add"
+- extendedWaitUntil:
+    visible:
+      id: "meal_plan_screen"
+    timeout: 30000
+- assertVisible:
+    id: "plan_slot_breakfast"

@@ -56,7 +56,7 @@ class AndroidReminderScheduler(
             // reminders are off, which the domain's list already carries the mode for.
             if (reminder.mode == ReminderMode.UNAVAILABLE) continue
             val triggerAt = nextOccurrenceMillis(reminder)
-            val pending = pendingIntentFor(reminder)
+            val pending = pendingIntentFor(reminder, triggerAt)
             if (exact) {
                 manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
             } else {
@@ -111,11 +111,16 @@ class AndroidReminderScheduler(
         return next.timeInMillis
     }
 
-    private fun pendingIntentFor(reminder: MealReminder): PendingIntent {
+    private fun pendingIntentFor(reminder: MealReminder, triggerAt: Long): PendingIntent {
         val intent = Intent(context, MealReminderReceiver::class.java).apply {
             action = ACTION_REMIND
             putExtra(EXTRA_KEY, reminder.key)
             putExtra(EXTRA_TITLE, titleFor(reminder))
+            // PLAN-26: the moment this alarm is FOR, carried to the moment it actually fires.
+            // The two are not the same — Doze holds inexact alarms, and a device that was off
+            // is handed everything it missed at once — so the receiver needs the intended
+            // instant to tell a reminder from an echo of one.
+            putExtra(EXTRA_AT, triggerAt)
         }
         return PendingIntent.getBroadcast(
             context,
@@ -168,6 +173,9 @@ class AndroidReminderScheduler(
         const val ACTION_REMIND = "com.kvdm.fuelled.action.MEAL_REMINDER"
         const val EXTRA_KEY = "reminder_key"
         const val EXTRA_TITLE = "reminder_title"
+
+        /** The wall-clock instant this alarm was armed FOR, in epoch millis (PLAN-26). */
+        const val EXTRA_AT = "reminder_at"
 
         /** The inexact window — batched by the OS, still recognisably "around lunch". */
         private const val WINDOW_MILLIS = 60L * 60L * 1000L

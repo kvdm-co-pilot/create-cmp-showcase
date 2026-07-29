@@ -121,6 +121,20 @@ those slices are built.
   **current** stored times — times are settings, not history (decision 15) — and lateness,
   missed-ness, and reminders are derived **only for the current logical day**: a past day
   shows its entries and its ticks and makes no punctuality claims.
+- **PLAN-24** — Given the plan screen is open on a selected day, When the user leaves it for
+  the add-to-meal tray and comes back, Then the **selected day is still selected** — the
+  route's date is the opening seed only and is never re-applied. Planning a day ahead means
+  many trips to the tray, and a screen that silently snapped back to today after each one both
+  lost the user's place and hid whether the add had worked.
+- **PLAN-25** — Given the focused container on the current logical day, When the current time
+  has **not yet reached** its slot time, Then it is marked as next **and says when it is due**
+  rather than claiming it is up now; once its time arrives it reads as up now, and past the
+  grace it reads late (PLAN-16). "Now" is a claim about the clock, so it waits for the clock.
+- **PLAN-26** — Given an armed reminder, When it is delivered **more than two hours after the
+  time it was armed for** — held through Doze, or handed back in a pile by a device that was
+  off or whose clock jumped — Then it is **not posted**, while the re-arm still runs. A meal
+  reminder is about a moment: delivered late enough it announces nothing, and delivered in a
+  pile it buries the one reminder that is still true.
 
 ## Structure
 

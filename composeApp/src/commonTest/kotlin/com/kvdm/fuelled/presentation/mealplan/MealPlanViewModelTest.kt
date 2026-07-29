@@ -55,6 +55,7 @@ class MealPlanViewModelTest {
     private fun viewModel(): MealPlanViewModel {
         val getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
         return MealPlanViewModel(
+            initialDate = today,
             getPlanDay = getPlanDay,
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),

@@ -9,7 +9,10 @@ import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.kvdm.fuelled.R
+import com.kvdm.fuelled.domain.notification.isStaleDelivery
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +20,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
- * Posts one reminder when its alarm fires, and re-arms the next day's (PLAN-07).
+ * Posts one reminder when its alarm fires — if it is still about now (PLAN-26) — and re-arms
+ * the next day's (PLAN-07).
  *
  * The re-arm is why this receiver exists at all rather than a repeating alarm: repeating alarms
  * are inexact by definition on modern Android, and a daily one drifts. Arming the next
@@ -33,7 +37,17 @@ class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
         val title = intent.getStringExtra(AndroidReminderScheduler.EXTRA_TITLE) ?: return
         val key = intent.getStringExtra(AndroidReminderScheduler.EXTRA_KEY) ?: return
 
-        postNotification(context, key, title)
+        // PLAN-26: post only if this alarm is still about now. An alarm the OS held through
+        // Doze — or the pile it hands back after a device was off or its clock jumped —
+        // arrives hours late, and posting it announces a meal whose moment has gone. The
+        // re-arm below still runs either way: the day ahead is exactly what a stale delivery
+        // is evidence we need to fix.
+        val intendedAt = intent.getLongExtra(AndroidReminderScheduler.EXTRA_AT, 0L)
+        val stale = intendedAt > 0L && isStaleDelivery(
+            intendedAt = Instant.fromEpochMilliseconds(intendedAt),
+            deliveredAt = Clock.System.now(),
+        )
+        if (!stale) postNotification(context, key, title)
 
         // goAsync keeps the process alive across the suspend boundary; without it the re-arm
         // races the receiver's return and silently loses tomorrow's alarms.

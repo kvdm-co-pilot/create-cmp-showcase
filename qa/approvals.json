@@ -20,12 +20,6 @@
       "approvedAt": "2026-07-23T20:41:20.107Z"
     },
     {
-      "artifact": "feature-spec:supplements",
-      "status": "approved",
-      "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa",
-      "approvedAt": "2026-07-23T21:01:48.874Z"
-    },
-    {
       "artifact": "feature-spec:profile",
       "status": "approved",
       "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8",
@@ -53,27 +47,6 @@
       "acceptedAt": "2026-07-26T11:49:13.080Z"
     },
     {
-      "artifact": "feature-spec:meal-plan",
-      "status": "approved",
-      "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
-      "approvedAt": "2026-07-27T16:53:29.902Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-spec:meal",
-      "status": "approved",
-      "hash": "9228139522dc431a42c85d2f7b64a4df09c085b5403248e8dfbe1ec83615d375",
-      "approvedAt": "2026-07-27T16:53:37.837Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "70daa80e1f0361fc10c0cb3dcdafb9c72f9aa94da9bafd5cfb351c6aa71b57d3",
-      "approvedAt": "2026-07-27T19:46:48.322Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:meal-plan",
       "status": "approved",
       "hash": "e2ee819050a6d5890826e105ce3ee19f252346a80501ef1aa08f6da02860e0bf",
@@ -81,13 +54,6 @@
       "via": "console",
       "accepted": true,
       "acceptedAt": "2026-07-28T17:44:01.801Z"
-    },
-    {
-      "artifact": "feature-design:meal",
-      "status": "approved",
-      "hash": "b7f15db9d13d679e392b2be9c6cee4ab0ed031d39e26472883d86e0e095f71db",
-      "approvedAt": "2026-07-28T17:57:17.729Z",
-      "via": "console"
     },
     {
       "artifact": "exemplar-feature",
@@ -103,6 +69,61 @@
       "approvedAt": "2026-07-27T16:53:44.419Z",
       "reopenedAt": "2026-07-29T07:13:35.623Z",
       "reason": "reactive-state: failures recover on the next emission; retry control removed",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-brief:reactive-state",
+      "status": "approved",
+      "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76",
+      "approvedAt": "2026-07-29T08:51:29.347Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:reactive-state",
+      "status": "approved",
+      "hash": "6f3c138ff97dbe1ba00e8b0788fa3b126cdd4600dd5d8988493f5bc8c618e06e",
+      "approvedAt": "2026-07-29T08:51:50.748Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c",
+      "approvedAt": "2026-07-29T09:10:14.177Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "approved",
+      "hash": "c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6",
+      "approvedAt": "2026-07-29T09:10:19.543Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:meal-plan",
+      "status": "reopened",
+      "hash": "a00538d89ad8c3806a47396b5d789e01d6f054b4db5f2e92d0e01e0958efee3a",
+      "approvedAt": "2026-07-27T16:53:29.902Z",
+      "reopenedAt": "2026-07-29T09:21:27.836Z",
+      "reason": "walkthrough findings 1/2/6: PLAN-24 the plan keeps its selected day across a tray trip; PLAN-25 the focused tag waits for the clock; PLAN-26 a reminder delivered hours late is not posted",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:meal",
+      "status": "reopened",
+      "hash": "9228139522dc431a42c85d2f7b64a4df09c085b5403248e8dfbe1ec83615d375",
+      "approvedAt": "2026-07-27T16:53:37.837Z",
+      "reopenedAt": "2026-07-29T09:21:27.921Z",
+      "reason": "walkthrough finding 5: MEAL-13 - a confirmed add closes the tray back onto the container that opened it",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:supplements",
+      "status": "reopened",
+      "hash": "ffe07c5efb5e68201d7590ac9b12abb202427fef09ae37b1ca7ca7a6c2462caa",
+      "approvedAt": "2026-07-23T21:01:48.874Z",
+      "reopenedAt": "2026-07-29T09:21:28.012Z",
+      "reason": "walkthrough findings 3+4: SUPP-07 - taken is a fact about a logical day, stored per day like water ticks, so a fresh install claims nothing taken and Thursday does not inherit Wednesday",
       "via": "cli"
     }
   ],

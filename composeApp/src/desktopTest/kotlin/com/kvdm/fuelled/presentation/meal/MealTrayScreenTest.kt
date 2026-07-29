@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
@@ -153,5 +154,41 @@ class MealTrayScreenTest {
         val call = todayRepository.addCalls.single()
         assertTrue(call.slot == MealSlot.DINNER, "the write followed the target it was aimed at")
         assertTrue(call.date.toString() == "2026-07-23", "the write followed the target it was aimed at")
+    }
+
+    // SPEC: MEAL-13
+    @Test
+    fun `a confirmed add closes the tray - and only AFTER the write actually lands`() = runComposeUiTest {
+        var closed = 0
+        setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel(), onAdded = { closed++ }) } }
+        awaitNode(hasTestTag("meal_tray_item_1"))
+
+        // Picking food does not close it. Only the confirmed WRITE does — a tray that popped on
+        // selection would make a multi-item meal impossible to assemble.
+        onNodeWithTag("meal_tray_item_1").performClick()
+        waitForIdle()
+        assertTrue(closed == 0, "selecting is not confirming")
+
+        onNodeWithTag("meal_tray_add").performClick()
+        waitUntil(timeoutMillis = 5_000) { closed > 0 }
+
+        assertTrue(todayRepository.addCalls.isNotEmpty(), "the close follows a real write")
+        assertTrue(closed == 1, "exactly once — a recomposition must not re-pop the back stack")
+    }
+
+    // SPEC: MEAL-13
+    @Test
+    fun `a FAILED confirm keeps the tray open - there is nothing to go back to yet`() = runComposeUiTest {
+        todayRepository.failure = DomainError.Unexpected()
+        var closed = 0
+        setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel(), onAdded = { closed++ }) } }
+        awaitNode(hasTestTag("meal_tray_item_1"))
+
+        onNodeWithTag("meal_tray_item_1").performClick()
+        onNodeWithTag("meal_tray_add").performClick()
+        waitUntil(timeoutMillis = 5_000) { todayRepository.addCalls.isNotEmpty() }
+        waitForIdle()
+
+        assertTrue(closed == 0, "closing on a failed write would silently discard the user's tray")
     }
 }

@@ -144,7 +144,11 @@ fun AppNavHost() {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
                 BaseScreen {
-                    MealTrayRoute(viewModel = koinViewModel { parametersOf(initialTarget) })
+                    MealTrayRoute(
+                        viewModel = koinViewModel { parametersOf(initialTarget) },
+                        // MEAL-13: a confirmed add returns to the container it came from.
+                        onAdded = { navController.popBackStack() },
+                    )
                 }
             }
         }
@@ -163,7 +167,9 @@ fun AppNavHost() {
             } else {
                 BaseScreen {
                     MealPlanRoute(
-                        date = date,
+                        // PLAN-24: the route's date SEEDS the ViewModel and is never re-applied
+                        // — same shape as the tray's target above, and for the same reason.
+                        viewModel = koinViewModel { parametersOf(date) },
                         // PLAN-04: the tap carries this container's day and slot into the tray.
                         onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
                         onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },

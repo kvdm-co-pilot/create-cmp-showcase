@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,12 +100,21 @@ val sampleTrayContents = TrayContents(
 @Composable
 fun MealTrayRoute(
     viewModel: MealTrayViewModel = koinViewModel(),
+    onAdded: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val target by viewModel.target.collectAsStateWithLifecycle()
     val tray by viewModel.tray.collectAsStateWithLifecycle()
     val confirmState by viewModel.confirmState.collectAsStateWithLifecycle()
+
+    // MEAL-13: the write landed, so the tray's job is done — go back to the container that
+    // opened it. The confirmation the user actually needs is the food sitting in that
+    // container, not a line of copy on a screen they still have to dismiss by hand, six times
+    // over for a planned day. Keyed on the state, so only the transition INTO Saved pops.
+    LaunchedEffect(confirmState) {
+        if (confirmState == TrayConfirmState.Saved) onAdded()
+    }
 
     MealTrayScreen(
         state = state,

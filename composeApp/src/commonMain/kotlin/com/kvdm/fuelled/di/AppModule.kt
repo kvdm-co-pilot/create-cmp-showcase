@@ -40,6 +40,7 @@ import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 // cmp:anchor di-imports
+import kotlinx.datetime.LocalDate
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -58,7 +59,7 @@ val repositoryModule = module {
     // The Room-backed Today source: the TodayDao comes off the same platform-bound AppDatabase.
     single<TodayRepository> { TodayRepositoryImpl(get<AppDatabase>().todayDao(), get()) }
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
-    single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao()) }
+    single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao(), get()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
     single<ProfileRepository> { ProfileRepositoryImpl(get<AppDatabase>().profileDao()) }
     // The structured day. It takes BOTH daos: the plan's own stored state (times, ticks) and
@@ -102,7 +103,13 @@ val viewModelModule = module {
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::ProfileViewModel)
-    viewModelOf(::MealPlanViewModel)
+    // Like the tray below, the plan's opening day comes from the CALL SITE: the nav destination
+    // passes `plan/{date}`'s date as a Koin parameter, so the ViewModel is aimed before its
+    // first frame and nothing re-aims it afterwards (PLAN-24). Required for the same reason —
+    // the nav layer never composes the plan without a resolved date.
+    viewModel { params ->
+        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get())
+    }
     viewModelOf(::MealTimesViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the

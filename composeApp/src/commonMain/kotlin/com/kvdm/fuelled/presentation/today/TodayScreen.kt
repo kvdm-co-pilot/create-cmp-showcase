@@ -370,6 +370,11 @@ private fun PlanSlotView.toUi(): PlanMealUi = PlanMealUi(
     state = uiState(),
     entries = entries.map { PlanEntryUi(it.name, it.serving, it.kcal, it.proteinG) },
     tickedEmpty = tickedEmpty,
+    // PLAN-25. Carried, not defaulted: this mapper and the plan's are two hands on the same
+    // card, and a field only one of them fills is a field the two surfaces disagree about —
+    // Today went on saying "up now" for a 12:00 lunch at 11:32 while the plan already said
+    // "at 12:00" (observed on-device, 2026-07-29).
+    due = due,
 )
 
 // The per-macro colours are assigned here, in presentation — the domain model carries none.

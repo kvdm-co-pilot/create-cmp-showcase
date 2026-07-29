@@ -68,6 +68,11 @@ the tray fills; these clauses store.
   is the identical flow to "add to Lunch today": aim, then fill.
 - **MEAL-11** — Given the tray holds no items, Then the confirm control is disabled and no
   write can be attempted.
+- **MEAL-13** — Given the tray's contents are confirmed, When the write succeeds, Then the
+  tray **closes**, returning to the container that opened it. The confirmation the user needs
+  is the food sitting in that container; a tray that stays open makes planning six meals six
+  manual dismissals, and leaves the just-added food out of sight while you do it. A FAILED
+  confirm keeps the tray open with its contents and its error — there is nothing to go back to.
 - **MEAL-12** — Given the add-to-meal screen renders, When its structure is inspected, Then it
   matches its committed golden tree (`qa/golden/meal.json`) — structural change must be
   intentional and declared.

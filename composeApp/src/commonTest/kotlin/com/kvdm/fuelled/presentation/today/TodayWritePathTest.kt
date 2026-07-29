@@ -66,6 +66,7 @@ class TodayWritePathTest {
     }
 
     private fun planViewModel(repo: FakeMealPlanRepository) = MealPlanViewModel(
+        initialDate = today,
         getPlanDay = GetPlanDayUseCase(repo, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
         setSlotDone = SetSlotDoneUseCase(repo),
         setWaterDone = SetWaterDoneUseCase(repo),

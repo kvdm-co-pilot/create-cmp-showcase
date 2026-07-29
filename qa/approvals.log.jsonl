@@ -3,3 +3,10 @@
 {"at":"2026-07-28T17:57:17.730Z","verb":"approve","artifact":"feature-design:meal","hash":"b7f15db9d13d679e392b2be9c6cee4ab0ed031d39e26472883d86e0e095f71db","via":"console"}
 {"at":"2026-07-29T06:28:56.325Z","verb":"approve","artifact":"exemplar-feature","hash":"0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896","via":"console"}
 {"at":"2026-07-29T07:13:35.627Z","verb":"reopen","artifact":"feature-spec:today","reason":"reactive-state: failures recover on the next emission; retry control removed","via":"cli"}
+{"at":"2026-07-29T08:51:29.347Z","verb":"approve","artifact":"feature-brief:reactive-state","hash":"e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76","via":"console"}
+{"at":"2026-07-29T08:51:50.748Z","verb":"approve","artifact":"feature-spec:reactive-state","hash":"6f3c138ff97dbe1ba00e8b0788fa3b126cdd4600dd5d8988493f5bc8c618e06e","via":"console"}
+{"at":"2026-07-29T09:10:14.178Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c","via":"console"}
+{"at":"2026-07-29T09:10:19.543Z","verb":"approve","artifact":"feature-design:meal","hash":"c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6","via":"console"}
+{"at":"2026-07-29T09:21:27.838Z","verb":"reopen","artifact":"feature-spec:meal-plan","reason":"walkthrough findings 1/2/6: PLAN-24 the plan keeps its selected day across a tray trip; PLAN-25 the focused tag waits for the clock; PLAN-26 a reminder delivered hours late is not posted","via":"cli"}
+{"at":"2026-07-29T09:21:27.923Z","verb":"reopen","artifact":"feature-spec:meal","reason":"walkthrough finding 5: MEAL-13 - a confirmed add closes the tray back onto the container that opened it","via":"cli"}
+{"at":"2026-07-29T09:21:28.013Z","verb":"reopen","artifact":"feature-spec:supplements","reason":"walkthrough findings 3+4: SUPP-07 - taken is a fact about a logical day, stored per day like water ticks, so a fresh install claims nothing taken and Thursday does not inherit Wednesday","via":"cli"}

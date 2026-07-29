@@ -34,6 +34,17 @@ data class PlanSlotView(
     val focused: Boolean,
     val late: Boolean,
     val missed: Boolean,
+    /**
+     * PLAN-25: its time has arrived — the clock is at or past [time] on the current day.
+     *
+     * Distinct from [late], which only starts once the grace has run out: between those two
+     * points a slot is due and not yet late, and BEFORE them it is the day's next meal but not
+     * yet anything to act on. A surface with only `focused` and `late` cannot tell a 07:02
+     * breakfast from a 09:30 snack seen at 07:02, which is how the plan came to announce a slot
+     * two and a half hours early (observed on-device, 2026-07-29). Like every other punctuality
+     * claim here it is false on any day but the current one (PLAN-23).
+     */
+    val due: Boolean = false,
 ) {
     /**
      * PLAN-14: ticked with nothing in it — eaten off-plan, or skipped and closed out. A real
@@ -116,6 +127,7 @@ fun buildPlanDay(
                 focused = focusedSlot?.slot == slot,
                 late = focusedSlot?.slot == slot && focusedSlot.late,
                 missed = slot in missed,
+                due = isCurrentDay && now >= times[slot],
             )
         },
         water = waterSchedule(times).map { container ->

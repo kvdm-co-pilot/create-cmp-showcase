@@ -11,12 +11,17 @@ import androidx.room.RoomDatabaseConstructor
         TodayGoalEntity::class,
         LogEntryEntity::class,
         SupplementEntity::class,
+        SupplementTakenEntity::class,
         ProfileEntity::class,
         SlotTimeEntity::class,
         SlotDoneEntity::class,
         WaterTickEntity::class,
     ],
-    version = 7,
+    // 8: supplement doses moved to their own per-logical-day table (SUPP-07), so the catalog
+    // row lost its `taken` flag. Destructive migration, as everything here is (DatabaseBuilder):
+    // every table is seeded or user-entered on device, and a stale `taken` column is precisely
+    // what this version exists to drop.
+    version = 8,
     exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)

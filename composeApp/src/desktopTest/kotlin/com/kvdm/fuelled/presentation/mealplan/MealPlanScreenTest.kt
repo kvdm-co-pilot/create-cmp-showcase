@@ -1,6 +1,9 @@
 package com.kvdm.fuelled.presentation.mealplan
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasTestTag
@@ -27,7 +30,9 @@ import com.kvdm.fuelled.testing.fakes.FixedClock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.plus
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
@@ -43,9 +48,10 @@ class MealPlanScreenTest {
     private val today = LocalDate(2026, 7, 22)
     private val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
 
-    private fun viewModel(): MealPlanViewModel {
+    private fun viewModel(on: LocalDate = today): MealPlanViewModel {
         val getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
         return MealPlanViewModel(
+            initialDate = on,
             getPlanDay = getPlanDay,
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
@@ -60,7 +66,7 @@ class MealPlanScreenTest {
         runComposeUiTest {
             setContent {
                 MaterialTheme {
-                    MealPlanRoute(date = today, onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
+                    MealPlanRoute(onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
                 }
             }
 
@@ -85,7 +91,6 @@ class MealPlanScreenTest {
             setContent {
                 MaterialTheme {
                     MealPlanRoute(
-                        date = today,
                         onAddToMeal = { date, slot -> requested = Routes.mealTray(date, slot) },
                         onOpenTimes = {},
                         viewModel = viewModel(),
@@ -113,7 +118,7 @@ class MealPlanScreenTest {
 
         setContent {
             MaterialTheme {
-                MealPlanRoute(date = today, onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
+                MealPlanRoute(onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
             }
         }
 
@@ -136,7 +141,7 @@ class MealPlanScreenTest {
     fun `ticking water raises the day's litres on screen`() = runComposeUiTest {
         setContent {
             MaterialTheme {
-                MealPlanRoute(date = today, onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
+                MealPlanRoute(onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
             }
         }
 
@@ -158,7 +163,7 @@ class MealPlanScreenTest {
 
         setContent {
             MaterialTheme {
-                MealPlanRoute(date = today, onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
+                MealPlanRoute(onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
             }
         }
 
@@ -179,10 +184,10 @@ class MealPlanScreenTest {
         setContent {
             MaterialTheme {
                 MealPlanRoute(
-                    date = LocalDate(2026, 7, 25),
                     onAddToMeal = { _, _ -> },
                     onOpenTimes = {},
-                    viewModel = viewModel(),
+                    // PLAN-24: the day arrives as the ViewModel's seed, not as a route argument.
+                    viewModel = viewModel(on = LocalDate(2026, 7, 25)),
                 )
             }
         }
@@ -205,7 +210,7 @@ class MealPlanScreenTest {
 
         setContent {
             MaterialTheme {
-                MealPlanRoute(date = today, onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
+                MealPlanRoute(onAddToMeal = { _, _ -> }, onOpenTimes = {}, viewModel = viewModel())
             }
         }
 
@@ -218,5 +223,36 @@ class MealPlanScreenTest {
         onAllNodesWithText("Rolled oats").assertCountEquals(1)
         assertEquals(today, repository.copyCalls.single().from)
         assertEquals(6, repository.copyCalls.single().to.size, "the rest of the week")
+    }
+
+    // SPEC: PLAN-24
+    @Test
+    fun `the selected day survives a trip to the tray and back`() = runComposeUiTest {
+        // The nav-entry-scoped ViewModel outlives the tray, so the same instance comes back —
+        // and `visible` toggling is exactly what happens to this composable when the tray covers
+        // it and is then dismissed: it leaves composition and re-enters.
+        val vm = viewModel()
+        var visible by mutableStateOf(true)
+        setContent { MaterialTheme { if (visible) MealPlanRoute({ _, _ -> }, {}, vm) } }
+
+        awaitNode(hasTestTag("plan_days"))
+        // Thursday: index 3 of [yesterday, today, +1 … +7], two days out.
+        val thursday = today.plus(2, DateTimeUnit.DAY)
+        vm.select(thursday)
+        waitUntil { vm.selectedDate.value == thursday }
+        waitForIdle()
+
+        // Off to the tray, and back.
+        visible = false
+        waitForIdle()
+        visible = true
+        awaitNode(hasTestTag("plan_days"))
+
+        assertEquals(
+            thursday,
+            vm.selectedDate.value,
+            "re-entering must not re-apply the route's opening date — that is what made " +
+                "planning a day ahead mean re-picking it after every single food",
+        )
     }
 }

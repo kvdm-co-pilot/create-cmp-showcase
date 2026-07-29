@@ -69,6 +69,7 @@ class MealPlanGoldenTreeTest {
             waterTicks[goldenDay] = mutableSetOf(1, 2)
         }
         val viewModel = MealPlanViewModel(
+            initialDate = goldenDay,
             getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
@@ -79,7 +80,6 @@ class MealPlanGoldenTreeTest {
         setContent {
             MaterialTheme {
                 MealPlanRoute(
-                    date = goldenDay,
                     onAddToMeal = { _, _ -> },
                     onOpenTimes = {},
                     viewModel = viewModel,

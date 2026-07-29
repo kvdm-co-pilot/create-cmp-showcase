@@ -149,6 +149,30 @@ class TodayScreenTest {
             onNodeWithTag("today_slot_dinner").assertDoesNotExist()
         }
 
+    // SPEC: PLAN-25
+    @Test
+    fun `Today's focus card says WHEN a not-yet-due slot is due - the same as the plan's`() =
+        runComposeUiTest {
+            // 12:45 with the day ticked through lunch: the 14:30 afternoon snack holds focus and
+            // its time has not come. Today builds this card through its OWN mapper, so a field
+            // only the plan's mapper filled left the two surfaces disagreeing — Today claiming
+            // "up now" about a meal an hour and three quarters away (TODAY-13).
+            val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
+                doneSlots[TEST_DATE] =
+                    mutableSetOf(MealSlot.BREAKFAST, MealSlot.MORNING_SNACK, MealSlot.LUNCH)
+            }
+
+            setContent {
+                MaterialTheme { TodayRoute(viewModel = todayViewModel(today = repository, plan = plan)) }
+            }
+
+            awaitNode(hasTestTag("today_screen"))
+            onNodeWithTag("today_slot_afternoon_snack", useUnmergedTree = true).assertExists()
+            // substring: Tag renders its value as " $value", leading space and all.
+            onAllNodesWithText("at 14:30", substring = true).assertCountEquals(1)
+            onAllNodesWithText("up now", substring = true).assertCountEquals(0)
+        }
+
     // SPEC: TODAY-07
     @Test
     fun `the focused container's add control opens the tray targeted at that day and that slot`() =

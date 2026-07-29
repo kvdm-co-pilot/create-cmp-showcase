@@ -66,6 +66,8 @@ data class PlanMealUi(
     val entries: List<PlanEntryUi>,
     /** Decision 8: ticked with no entries — eaten off-plan / skipped, no food fabricated. */
     val tickedEmpty: Boolean = false,
+    /** PLAN-25: its time has arrived. Splits the focused tag's "up now" from "at 09:30". */
+    val due: Boolean = true,
 ) {
     /** Done-ness IS the DONE state — kept derived so the two can never be set to disagree. */
     val done: Boolean get() = state == PlanSlotState.DONE
@@ -326,7 +328,11 @@ internal fun PlanMealCard(
             Spacer(Modifier.weight(1f))
             when (meal.state) {
                 PlanSlotState.DONE -> Tag("DONE", "", FuelledColors.Success)
-                PlanSlotState.FOCUSED -> Tag("NEXT", "up now", FuelledColors.Primary)
+                // PLAN-25: "up now" is a claim about the clock, so it waits for the clock.
+                // Before its time the honest line is when it is due — a 09:30 snack seen at
+                // 07:02 is next, not now.
+                PlanSlotState.FOCUSED ->
+                    Tag("NEXT", if (meal.due) "up now" else "at ${meal.time}", FuelledColors.Primary)
                 PlanSlotState.FOCUSED_LATE -> Tag("LATE", "since ${meal.time}", FuelledColors.Warning)
                 // Muted, deliberately: the day moved on (PLAN-19). The tick and add stay
                 // live below — a missed meal is back-fillable, not closed.

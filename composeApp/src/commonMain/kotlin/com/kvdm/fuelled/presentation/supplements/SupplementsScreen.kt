@@ -78,15 +78,19 @@ val sampleSupplementStack = SupplementStackUi(
  * The VM-backed Supplements tab the nav graph hosts. The Loading/Content/Empty/Error state
  * machine lives in [SupplementsViewModel]; this wrapper only renders it through
  * [ContentStateContainer] (which owns the `supplements_loading`/`supplements_empty`/
- * `supplements_error`/`supplements_retry` arms). Tap-to-take routes to the VM, which persists
- * and re-reads (SUPP-03).
+ * `supplements_error` arms). Tap-to-take routes to the VM, which persists and re-reads
+ * (SUPP-03).
+ *
+ * No onRetry: the state is observed, so a transient failure recovers on the next emission —
+ * the same reason Today and Plan dropped theirs. What sat here was a retry button wired to
+ * `{}`: it looked like the way out of an error and did nothing at all (SUPP-05).
  */
 @Composable
 fun SupplementsRoute(
     viewModel: SupplementsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ContentStateContainer(state = state, screenTag = "supplements", onRetry = {}) { stack ->
+    ContentStateContainer(state = state, screenTag = "supplements") { stack ->
         SupplementsScreen(stack = stack, onToggleTaken = viewModel::onToggleTaken)
     }
 }

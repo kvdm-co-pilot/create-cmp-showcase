@@ -121,35 +121,40 @@ class SupplementsScreenTest {
 
     // SPEC: SUPP-05
     @Test
-    fun `shows presentation-mapped error copy and retry when loading fails`() = runComposeUiTest {
-        repository.failure = DomainError.Network
+    fun `shows presentation-mapped error copy when loading fails - and NO retry control`() =
+        runComposeUiTest {
+            repository.failure = DomainError.Network
 
-        setContent {
-            MaterialTheme { SupplementsRoute(viewModel = viewModel()) }
+            setContent {
+                MaterialTheme { SupplementsRoute(viewModel = viewModel()) }
+            }
+
+            awaitNode(hasTestTag("supplements_error"))
+            onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(1)
+            // The retry that used to sit here was wired to `{}` — a control that looked like the
+            // way out of the error and did nothing. Recovery is automatic now, so offering a
+            // button would be a second lie on top of the first.
+            onNodeWithTag("supplements_retry", useUnmergedTree = true).assertDoesNotExist()
         }
-
-        awaitNode(hasTestTag("supplements_error"))
-        onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(1)
-        onNodeWithTag("supplements_retry", useUnmergedTree = true).assertExists()
-    }
 
     // SPEC: SUPP-05
     @Test
-    fun `tapping retry after a failure reloads and shows the recovered stack`() = runComposeUiTest {
-        repository.failure = DomainError.Network
-        val vm = viewModel()
+    fun `the stack recovers on its own when the source does - no human press required`() =
+        runComposeUiTest {
+            repository.failure = DomainError.Network
 
-        setContent {
-            MaterialTheme { SupplementsRoute(viewModel = vm) }
+            setContent {
+                MaterialTheme { SupplementsRoute(viewModel = viewModel()) }
+            }
+
+            awaitNode(hasTestTag("supplements_error"))
+
+            // The source comes back. Nothing is tapped: the state is observed, so the next
+            // emission carries the recovery to the screen by itself.
+            repository.stack = stack
+            repository.failure = null
+
+            awaitNode(hasTestTag("supplements_screen"))
+            onAllNodesWithText("Creatine").assertCountEquals(1)
         }
-
-        awaitNode(hasTestTag("supplements_error"))
-
-        repository.failure = null
-        repository.stack = stack
-        onNodeWithTag("supplements_retry").performClick()
-
-        awaitNode(hasTestTag("supplements_screen"))
-        onAllNodesWithText("Creatine").assertCountEquals(1)
-    }
 }
