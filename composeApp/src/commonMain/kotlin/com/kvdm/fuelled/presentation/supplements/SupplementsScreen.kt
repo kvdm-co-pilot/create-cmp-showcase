@@ -86,7 +86,7 @@ fun SupplementsRoute(
     viewModel: SupplementsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ContentStateContainer(state = state, screenTag = "supplements", onRetry = viewModel::load) { stack ->
+    ContentStateContainer(state = state, screenTag = "supplements", onRetry = {}) { stack ->
         SupplementsScreen(stack = stack, onToggleTaken = viewModel::onToggleTaken)
     }
 }

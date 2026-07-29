@@ -1,6 +1,8 @@
 package com.kvdm.fuelled.di
 
 import com.kvdm.fuelled.data.local.AppDatabase
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
 import com.kvdm.fuelled.data.remote.MealPlanRepositoryImpl
 import com.kvdm.fuelled.data.remote.FoodRepositoryImpl
 import com.kvdm.fuelled.data.remote.ProfileRepositoryImpl
@@ -44,9 +46,17 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
     // The Room-backed catalog source: the FoodDao comes off the platform-bound AppDatabase.
+    // ONE TimeSignal for the whole app, and it must be a `single`.
+    //
+    // `wake()` is how the foreground / date-changed broadcast tells everything time may have
+    // jumped, and it reaches only the consumers sharing this instance. A `factory` here would
+    // hand each repository its own private wake channel, and the overnight bug would come back
+    // wearing a fix — every screen ticking on its own minute timer, none of them woken.
+    single<TimeSignal> { RealTimeSignal() }
+
     single<FoodRepository> { FoodRepositoryImpl(get<AppDatabase>().foodDao()) }
     // The Room-backed Today source: the TodayDao comes off the same platform-bound AppDatabase.
-    single<TodayRepository> { TodayRepositoryImpl(get<AppDatabase>().todayDao()) }
+    single<TodayRepository> { TodayRepositoryImpl(get<AppDatabase>().todayDao(), get()) }
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
@@ -54,7 +64,7 @@ val repositoryModule = module {
     // The structured day. It takes BOTH daos: the plan's own stored state (times, ticks) and
     // the log rows the containers are filled from — one day is one read across both.
     single<MealPlanRepository> {
-        MealPlanRepositoryImpl(get<AppDatabase>().mealPlanDao(), get<AppDatabase>().todayDao())
+        MealPlanRepositoryImpl(get<AppDatabase>().mealPlanDao(), get<AppDatabase>().todayDao(), get())
     }
     // cmp:anchor di-repositories
 }
@@ -74,7 +84,7 @@ val useCaseModule = module {
     factory { GetProfileUseCase(get()) }
     // The structured day. GetPlanDayUseCase takes its clock/zone/dayStartHour from production
     // defaults, like the tray's write path; tests construct it with a fixed clock (PLAN-23).
-    factory { GetPlanDayUseCase(get()) }
+    factory { GetPlanDayUseCase(get(), get()) }
     factory { GetMealTimesUseCase(get()) }
     factory { SetSlotDoneUseCase(get()) }
     factory { SetWaterDoneUseCase(get()) }

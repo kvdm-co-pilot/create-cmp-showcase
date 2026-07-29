@@ -3,6 +3,7 @@ package com.kvdm.fuelled.domain.usecase
 import com.kvdm.fuelled.domain.model.Supplement
 import com.kvdm.fuelled.domain.repository.SupplementRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlinx.coroutines.flow.Flow
 
 // A use case is a single business action. ViewModels depend on use cases, not repositories
 // directly, so business rules stay testable and out of the presentation layer. The typed
@@ -10,5 +11,5 @@ import com.kvdm.fuelled.domain.result.AppResult
 class GetSupplementStackUseCase(
     private val repository: SupplementRepository,
 ) {
-    suspend operator fun invoke(): AppResult<List<Supplement>> = repository.getStack()
+    operator fun invoke(): Flow<AppResult<List<Supplement>>> = repository.observeStack()
 }

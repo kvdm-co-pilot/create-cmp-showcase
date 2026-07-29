@@ -24,9 +24,10 @@
   still shown with its own add control (TODAY-09, PLAN-04), and no error is shown — an empty
   day is a plannable day, not an error or a dead end.
 - **TODAY-05** — Given the source fails, When loading completes, Then a mapped error
-  (`today_error`) with a retry control (`today_retry`) is shown from the failure's
-  `DomainError` kind, never a raw exception message; retry after the source recovers renders
-  the summary.
+  (`today_error`) is shown from the failure's `DomainError` kind, never a raw exception
+  message, and **no retry control** is offered; When the source next emits after recovering,
+  Then the summary renders on its own (RS-01) — the state is observed, so recovery is the
+  stream's next emission, not a button.
 - **TODAY-06** — Given the Today screen renders, When its structure is inspected, Then it
   matches its committed golden tree (`qa/golden/today.json`) — structural change must be
   intentional and declared.

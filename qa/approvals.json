@@ -67,20 +67,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-spec:today",
-      "status": "approved",
-      "hash": "37bb4d12c5ebfd718b030fd2f1e8a68bc69623239bab6b789b6f72a2af4d6bd5",
-      "approvedAt": "2026-07-27T16:53:44.419Z",
-      "via": "console"
-    },
-    {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "63aabff1fd395d117e9c503fac866c5ea6283d8b6fb5c4a7b695d4927d43f3cb",
-      "approvedAt": "2026-07-27T19:46:37.778Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-design:meal-plan",
       "status": "approved",
       "hash": "70daa80e1f0361fc10c0cb3dcdafb9c72f9aa94da9bafd5cfb351c6aa71b57d3",
@@ -102,6 +88,22 @@
       "hash": "b7f15db9d13d679e392b2be9c6cee4ab0ed031d39e26472883d86e0e095f71db",
       "approvedAt": "2026-07-28T17:57:17.729Z",
       "via": "console"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "approved",
+      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
+      "approvedAt": "2026-07-29T06:28:56.324Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:today",
+      "status": "reopened",
+      "hash": "37bb4d12c5ebfd718b030fd2f1e8a68bc69623239bab6b789b6f72a2af4d6bd5",
+      "approvedAt": "2026-07-27T16:53:44.419Z",
+      "reopenedAt": "2026-07-29T07:13:35.623Z",
+      "reason": "reactive-state: failures recover on the next emission; retry control removed",
+      "via": "cli"
     }
   ],
   "exemplarFeature": "foods"

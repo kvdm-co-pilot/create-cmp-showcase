@@ -4,6 +4,7 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.MealTimes
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -35,6 +36,20 @@ interface MealPlanRepository {
      * every caller re-deriving the boundary.
      */
     suspend fun planDay(date: LocalDate, today: LocalDate, now: LocalTime): AppResult<PlanDay>
+
+    /**
+     * One day's plan as a STREAM, re-emitted on every input that can change it:
+     *
+     * - the day's log rows (a meal added in the tray),
+     * - its done-ticks and water ticks (ticked here or on Today — either surface moves both),
+     * - the slot times (the times sheet re-derives every water midpoint),
+     * - and the clock, each minute, because focus / LATE / MISSED are time-derived and a
+     *   screen that read the clock once announces a lateness that stopped being true.
+     *
+     * `today` and `now` are NOT parameters here: taking them as arguments is what froze them.
+     * They come from the injected time signal, per emission.
+     */
+    fun observePlanDay(date: LocalDate): Flow<AppResult<PlanDay>>
 
     /**
      * Tick a slot done (PLAN-13/PLAN-14): its `PLANNED` entries become `LOGGED` in the same

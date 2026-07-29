@@ -5,10 +5,13 @@ import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.repository.MealPlanRepository
 import com.kvdm.fuelled.domain.result.AppResult
-import kotlin.time.Clock
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.currentDay
+import com.kvdm.fuelled.core.time.days
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * Read one day of the structured plan (PLAN-02/PLAN-15..PLAN-23).
@@ -23,19 +26,24 @@ import kotlinx.datetime.toLocalDateTime
  */
 class GetPlanDayUseCase(
     private val repository: MealPlanRepository,
-    private val clock: Clock = Clock.System,
+    private val time: TimeSignal = RealTimeSignal(),
     private val zone: TimeZone = TimeZone.currentSystemDefault(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) {
-    suspend operator fun invoke(date: LocalDate): AppResult<PlanDay> {
-        val instant = clock.now()
-        return repository.planDay(
-            date = date,
-            today = logicalDate(instant, dayStartHour, zone),
-            now = instant.toLocalDateTime(zone).time,
-        )
-    }
+    /**
+     * Observe one day. The repository derives `today` and `now` per emission from the same
+     * signal, so focus and the day boundary still cannot be computed a tick apart — that
+     * guarantee moved with the derivation rather than being lost.
+     */
+    operator fun invoke(date: LocalDate): Flow<AppResult<PlanDay>> = repository.observePlanDay(date)
 
-    /** The current logical day — what the plan screen opens on and the day strip centres (PLAN-11). */
-    fun currentLogicalDay(): LocalDate = logicalDate(clock.now(), dayStartHour, zone)
+    /**
+     * The CURRENT logical day, as a stream — what the plan screen opens on and the day strip
+     * centres (PLAN-11), and what Today speaks for. A screen that held this as a value showed
+     * yesterday's date after a night with the app open (observed on-device 2026-07-28).
+     */
+    fun currentLogicalDay(): Flow<LocalDate> = time.days(dayStartHour, zone)
+
+    /** The current logical day as a one-shot — for a WRITE's target, never for held state. */
+    fun currentLogicalDayNow(): LocalDate = time.currentDay(dayStartHour, zone)
 }

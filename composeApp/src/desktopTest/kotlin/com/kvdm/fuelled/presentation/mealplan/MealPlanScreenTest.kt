@@ -28,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
  * Durable screen tests for the structured day — first-party Compose UI Test, spec-cited,
@@ -40,10 +41,10 @@ import kotlinx.datetime.LocalDate
 class MealPlanScreenTest {
 
     private val today = LocalDate(2026, 7, 22)
-    private val repository = FakeMealPlanRepository()
+    private val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
 
     private fun viewModel(): MealPlanViewModel {
-        val getPlanDay = GetPlanDayUseCase(repository, clock = FixedClock(TEST_NOW), zone = TEST_ZONE)
+        val getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
         return MealPlanViewModel(
             getPlanDay = getPlanDay,
             setSlotDone = SetSlotDoneUseCase(repository),

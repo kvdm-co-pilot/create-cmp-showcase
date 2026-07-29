@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * The Supplements ViewModel test — mirrors FoodsViewModelTest/TodayViewModelTest: Turbine over
@@ -81,6 +82,7 @@ class SupplementsViewModelTest {
     fun `toggling a supplement persists and updates the taken summary`() = runTest(dispatcher) {
         repository.stack = listOf(creatine, omega, caffeine) // 1 of 3 taken
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
@@ -118,21 +120,23 @@ class SupplementsViewModelTest {
         }
     }
 
-    // SPEC: SUPP-05
+    // SPEC: SUPP-05, RS-01
     @Test
     fun `reload after failure clears the error and loads the stack`() = runTest(dispatcher) {
         repository.failure = DomainError.Network
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
             assertIs<ContentUiState.Error>(awaitItem(), "first load should fail")
 
+            // Recovery needs no retry button and no reload: clearing the failure re-emits, and
+            // the observed state moves on its own. There is no second Loading — a recovery is
+            // not a page load.
             repository.failure = null
             repository.stack = listOf(creatine)
-            viewModel.load()
 
-            assertEquals(ContentUiState.Loading, awaitItem(), "reload should show loading again")
             val recovered = assertIs<ContentUiState.Content<SupplementStackUi>>(awaitItem())
             assertEquals(1, recovered.data.total)
         }

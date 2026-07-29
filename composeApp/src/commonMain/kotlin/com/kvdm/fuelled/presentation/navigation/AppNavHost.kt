@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +17,9 @@ import androidx.navigation.navArgument
 // Nav 2.9 (multiplatform): backStackEntry.arguments is a SavedState, not an Android Bundle.
 // Read it via the androidx.savedstate.read extension, NOT Bundle.getString().
 import androidx.savedstate.read
+import com.kvdm.fuelled.core.time.TimeSignal
 import com.kvdm.fuelled.presentation.components.BaseScreen
+import org.koin.compose.koinInject
 import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 import com.kvdm.fuelled.presentation.foods.FoodDetailRoute
 import com.kvdm.fuelled.presentation.foods.FoodsRoute
@@ -35,6 +38,20 @@ private const val SUPPLEMENTS_TAB = 2
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+
+    // The other half of the day-rollover fix, at the app root rather than inside AppShell —
+    // the shell is a generic presentation component and must stay constructible without a DI
+    // container (its screen tests build it directly).
+    //
+    // TimeSignal's minute ticker is a coroutine timer, and coroutine timers do not run
+    // dependably while the device sleeps — Doze parks them — which is exactly why an app left
+    // open overnight woke up still showing yesterday. Returning to the foreground is the moment
+    // to say "time may have jumped"; everything derived from the clock re-derives from this.
+    val time: TimeSignal = koinInject()
+    LifecycleResumeEffect(Unit) {
+        time.wake()
+        onPauseOrDispose { }
+    }
 
     // Report every back-stack change to the common inspection seam — a no-op unless the
     // androidDebug inspector registered a listener (see NavInspectionHook.kt). Best-effort:

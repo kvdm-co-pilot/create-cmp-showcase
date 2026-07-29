@@ -24,6 +24,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
  * Golden-tree structural baseline for the structured day — SPEC: PLAN-18.
@@ -52,7 +53,7 @@ class MealPlanGoldenTreeTest {
     // SPEC: PLAN-18
     @Test
     fun `meal plan structure matches the committed golden tree`() = runComposeUiTest {
-        val repository = FakeMealPlanRepository().apply {
+        val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
             entries[goldenDay] = mapOf(
                 // Planned, never ticked, and the morning has gone: breakfast reads MISSED.
                 MealSlot.BREAKFAST to listOf(
@@ -68,7 +69,7 @@ class MealPlanGoldenTreeTest {
             waterTicks[goldenDay] = mutableSetOf(1, 2)
         }
         val viewModel = MealPlanViewModel(
-            getPlanDay = GetPlanDayUseCase(repository, clock = FixedClock(TEST_NOW), zone = TEST_ZONE),
+            getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),

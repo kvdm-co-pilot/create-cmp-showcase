@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalTime
+import kotlinx.coroutines.flow.first
 
 /**
  * The structured day's derivations: slot times, the water schedule that falls out of them, and

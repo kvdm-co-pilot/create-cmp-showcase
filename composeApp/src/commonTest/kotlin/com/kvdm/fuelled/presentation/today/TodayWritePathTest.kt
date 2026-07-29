@@ -32,6 +32,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * TODAY-13 — Today renders a projection of the plan and writes through the SAME use case.
@@ -55,7 +57,7 @@ class TodayWritePathTest {
     fun tearDown() = Dispatchers.resetMain()
 
     /** The same starting day, twice — one for each surface to write into. */
-    private fun seededRepository() = FakeMealPlanRepository().apply {
+    private fun seededRepository() = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
         entries[today] = mapOf(
             MealSlot.LUNCH to listOf(
                 LogEntry("l1", "Chicken & rice", "200 g", 620, 58, status = LogStatus.PLANNED),
@@ -64,7 +66,7 @@ class TodayWritePathTest {
     }
 
     private fun planViewModel(repo: FakeMealPlanRepository) = MealPlanViewModel(
-        getPlanDay = GetPlanDayUseCase(repo, clock = FixedClock(TEST_NOW), zone = TEST_ZONE),
+        getPlanDay = GetPlanDayUseCase(repo, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
         setSlotDone = SetSlotDoneUseCase(repo),
         setWaterDone = SetWaterDoneUseCase(repo),
         copyDayForward = CopyDayForwardUseCase(repo),
@@ -124,6 +126,9 @@ class TodayWritePathTest {
         // ONE repository this time, written through Today, then READ by the plan screen. If
         // Today kept its own projection, the plan would still show lunch outstanding here.
         val todayVm = todayViewModel(today = FakeTodayRepository(), plan = repo)
+        // WhileSubscribed emits nothing until something collects: without this, `state.value`
+        // below would read the initial Loading forever, not the observed day.
+        keepCollecting(todayVm.state)
         advanceUntilIdle()
         todayVm.setSlotDone(MealSlot.LUNCH, done = true)
         advanceUntilIdle()

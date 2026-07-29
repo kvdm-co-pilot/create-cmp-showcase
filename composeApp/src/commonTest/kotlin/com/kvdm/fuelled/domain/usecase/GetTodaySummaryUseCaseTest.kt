@@ -9,6 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
+import kotlinx.coroutines.flow.first
 
 /**
  * The Today use-case test — pure business action, fake in / behavior out (mirrors
@@ -25,14 +26,16 @@ class GetTodaySummaryUseCaseTest {
         val expected = FakeTodayRepository.populatedDay
         repository.summary = expected
 
-        val result = getTodaySummary()
+        val result = getTodaySummary().first()
 
         assertEquals(AppResult.Success(expected), result)
         // The day the screen shows is a real LocalDate carried through untouched — the use case
         // neither derives it nor formats it (TODAY-01; the derivation is the repository's, and
         // the formatting is the screen's).
         assertEquals(LocalDate(2026, 7, 22), assertIs<AppResult.Success<TodayModel>>(result).value.date)
-        assertEquals(1, repository.getCallCount)
+        // getCallCount tracked the one-shot read, which no longer exists: the use case
+        // hands back the repository's STREAM. That it carries the value through untouched is
+        // what the assertions above prove.
     }
 
     // SPEC: TODAY-05
@@ -40,6 +43,6 @@ class GetTodaySummaryUseCaseTest {
     fun `passes a typed failure through untouched`() = runTest {
         repository.failure = DomainError.Network
 
-        assertEquals(AppResult.Failure(DomainError.Network), getTodaySummary())
+        assertEquals(AppResult.Failure(DomainError.Network), getTodaySummary().first())
     }
 }

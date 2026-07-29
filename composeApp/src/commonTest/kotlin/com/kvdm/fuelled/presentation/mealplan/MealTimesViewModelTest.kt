@@ -22,13 +22,17 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalTime
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.TEST_NOW
+import com.kvdm.fuelled.testing.keepCollecting
 
 /** The meal-times sheet's ViewModel (PLAN-05/PLAN-06/PLAN-07). */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealTimesViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val repository = FakeMealPlanRepository()
+    private val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -62,6 +66,7 @@ class MealTimesViewModelTest {
     fun `changing one slot moves that slot and shows where the write actually landed`() =
         runTest(dispatcher) {
             val vm = viewModel()
+            keepCollecting(vm.state)
 
             vm.state.test {
                 assertEquals(ContentUiState.Loading, awaitItem())

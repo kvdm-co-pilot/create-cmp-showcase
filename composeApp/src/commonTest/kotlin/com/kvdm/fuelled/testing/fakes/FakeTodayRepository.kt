@@ -10,6 +10,9 @@ import com.kvdm.fuelled.domain.model.NewLogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 
 /**
@@ -25,7 +28,16 @@ import kotlinx.datetime.LocalDate
 class FakeTodayRepository : TodayRepository {
 
     var summary: TodayModel = populatedDay
+        set(value) { field = value; revision.value += 1 }
     var failure: DomainError? = null
+        set(value) { field = value; revision.value += 1 }
+
+    /**
+     * What makes this fake OBSERVABLE. Setting `summary` or `failure` re-emits, so a test can
+     * assert that a collector saw the change — the behaviour the real repository gets from
+     * Room's invalidation tracker, and the whole point of the read path being a stream.
+     */
+    private val revision = MutableStateFlow(0)
 
     var getCallCount: Int = 0
         private set
@@ -43,11 +55,14 @@ class FakeTodayRepository : TodayRepository {
     val deletedIds: MutableList<String> = mutableListOf()
     val markedLoggedIds: MutableList<String> = mutableListOf()
 
-    override suspend fun getTodaySummary(): AppResult<TodayModel> {
+    suspend fun getTodaySummary(): AppResult<TodayModel> {
         getCallCount++
         failure?.let { return AppResult.Failure(it) }
         return AppResult.Success(summary)
     }
+
+    override fun observeTodaySummary(): Flow<AppResult<TodayModel>> =
+        revision.map { failure?.let { AppResult.Failure(it) } ?: AppResult.Success(summary) }
 
     override suspend fun addEntries(
         entries: List<NewLogEntry>,

@@ -7,6 +7,7 @@ import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.first
 
 /**
  * The Supplements read use-case test — mirrors GetFoodsUseCaseTest: fake in, behaviour out.
@@ -26,7 +27,7 @@ class GetSupplementStackUseCaseTest {
         )
         repository.stack = expected
 
-        assertEquals(AppResult.Success(expected), getStack())
+        assertEquals(AppResult.Success(expected), getStack().first())
     }
 
     // SPEC: SUPP-01
@@ -34,6 +35,6 @@ class GetSupplementStackUseCaseTest {
     fun `passes a typed failure through untouched`() = runTest {
         repository.failure = DomainError.Network
 
-        assertEquals(AppResult.Failure(DomainError.Network), getStack())
+        assertEquals(AppResult.Failure(DomainError.Network), getStack().first())
     }
 }

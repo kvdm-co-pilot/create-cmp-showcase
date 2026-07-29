@@ -15,6 +15,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
  * The tray-confirm use case — where MEAL-08 lives. Scheduling and logging are the SAME write

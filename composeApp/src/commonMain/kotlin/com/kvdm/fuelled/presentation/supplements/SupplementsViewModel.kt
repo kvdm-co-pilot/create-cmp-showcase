@@ -9,6 +9,9 @@ import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -23,27 +26,24 @@ import kotlinx.coroutines.launch
  * while suspended simply cancels this coroutine (structured concurrency) — never an error state.
  *
  * Tap-to-take is a VM action: [onToggleTaken] persists through [SetSupplementTakenUseCase]
- * (the repository/DAO), then RE-READS the stack so the state it renders is the state Room
- * persisted (SUPP-03) — the toggle never mutates a local list the screen holds.
+ * (the repository/DAO) and stops there. What the screen renders is whatever Room then emits
+ * (SUPP-03) — the toggle never mutates a local list, and never re-reads either: the write IS
+ * the emission.
  */
 class SupplementsViewModel(
     private val getStack: GetSupplementStackUseCase,
     private val setTaken: SetSupplementTakenUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ContentUiState<SupplementStackUi>>(ContentUiState.Loading)
-    val state: StateFlow<ContentUiState<SupplementStackUi>> = _state.asStateFlow()
-
-    init {
-        load()
-    }
-
-    fun load() {
-        viewModelScope.launch {
-            _state.value = ContentUiState.Loading
-            _state.value = getStack().toUiState()
-        }
-    }
+    /**
+     * Observed, not loaded. Room re-emits on every `setTaken`, so the summary and the progress
+     * follow the write with no re-read — and the same emission moves Today's supplement bucket
+     * row, which a local re-read could never have done.
+     */
+    val state: StateFlow<ContentUiState<SupplementStackUi>> =
+        getStack()
+            .map { it.toUiState() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
 
     /**
      * Persist [taken] for the supplement [id], then reflect the PERSISTED state: on success
@@ -52,12 +52,15 @@ class SupplementsViewModel(
      */
     fun onToggleTaken(id: String, taken: Boolean) {
         viewModelScope.launch {
-            when (val result = setTaken(id, taken)) {
-                is AppResult.Success -> _state.value = getStack().toUiState()
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-            }
+            if (setTaken(id, taken) is AppResult.Failure) _writeError.value = true
         }
     }
+
+    /** A failed WRITE is its own transient fact — the read stream would overwrite it. */
+    private val _writeError = MutableStateFlow(false)
+    val writeFailed: StateFlow<Boolean> = _writeError.asStateFlow()
+
+    fun clearWriteError() { _writeError.value = false }
 
     private fun AppResult<List<Supplement>>.toUiState(): ContentUiState<SupplementStackUi> = when (this) {
         is AppResult.Success -> value.toStackUi()

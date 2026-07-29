@@ -11,6 +11,9 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 
 /**
  * The Supplements data-layer test. [SupplementRepositoryImpl] is Room-backed via
@@ -59,13 +62,14 @@ class SupplementRepositoryImplTest {
     // SPEC: SUPP-05
     @Test
     fun `translates a thrown source error into a typed Failure - never lets it escape`() = runTest {
-        val result = SupplementRepositoryImpl(ThrowingSupplementDao()).getStack()
+        val result = SupplementRepositoryImpl(ThrowingSupplementDao()).observeStack().first()
         assertIs<AppResult.Failure>(result)
     }
 
     /** A DAO whose reads fail — proves the repository translates infrastructure errors (never throws). */
     private class ThrowingSupplementDao : SupplementDao {
         override suspend fun getAll(): List<SupplementEntity> = throw IllegalStateException("db unavailable")
+        override fun getAllStream(): Flow<List<SupplementEntity>> = flow { throw IllegalStateException("db unavailable") }
         override suspend fun setTaken(id: String, taken: Boolean) = Unit
         override suspend fun count(): Int = 1 // non-zero so the repo skips seeding and hits getAll()
         override suspend fun upsertAll(supplements: List<SupplementEntity>) = Unit

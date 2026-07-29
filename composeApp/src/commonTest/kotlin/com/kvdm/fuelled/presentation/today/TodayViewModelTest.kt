@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * The Today ViewModel test — mirrors FoodsViewModelTest: Turbine over the [ContentUiState]
@@ -89,6 +90,7 @@ class TodayViewModelTest {
     fun `reload after failure clears the error and loads the summary`() = runTest(dispatcher) {
         repository.failure = DomainError.Network
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
@@ -96,9 +98,6 @@ class TodayViewModelTest {
 
             repository.failure = null
             repository.summary = FakeTodayRepository.populatedDay
-            viewModel.load()
-
-            assertEquals(ContentUiState.Loading, awaitItem(), "reload should show loading again")
             val recovered = assertIs<ContentUiState.Content<TodayHighlights>>(awaitItem())
             assertEquals(LocalDate(2026, 7, 22), recovered.data.today.date)
         }

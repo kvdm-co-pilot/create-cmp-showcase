@@ -3,7 +3,11 @@ package com.kvdm.fuelled.data.remote
 import com.kvdm.fuelled.data.local.SupplementDao
 import com.kvdm.fuelled.data.local.SupplementEntity
 import com.kvdm.fuelled.data.local.toDomain
+import com.kvdm.fuelled.data.asAppResult
 import com.kvdm.fuelled.data.suspendRunCatching
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
 import com.kvdm.fuelled.domain.repository.SupplementRepository
@@ -28,6 +32,13 @@ class SupplementRepositoryImpl(
         ensureSeeded()
         dao.getAll().map { it.toDomain() }
     }
+
+    /** Room re-emits on every `setTaken`, so Today's bucket row follows a tap on the Supplements tab. */
+    override fun observeStack(): Flow<AppResult<List<Supplement>>> =
+        dao.getAllStream()
+            .onStart { ensureSeeded() }
+            .map { rows -> rows.map { it.toDomain() } }
+            .asAppResult()
 
     override suspend fun setTaken(id: String, taken: Boolean): AppResult<Unit> = suspendRunCatching {
         dao.setTaken(id, taken)

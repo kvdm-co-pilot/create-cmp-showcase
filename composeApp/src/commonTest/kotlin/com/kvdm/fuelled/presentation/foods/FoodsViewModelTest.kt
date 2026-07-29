@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * The exemplar ViewModel test — the pattern every generated ViewModel test follows:
@@ -78,6 +79,7 @@ class FoodsViewModelTest {
     fun `search filters the catalog through the use case and updates query state`() = runTest(dispatcher) {
         repository.foods = listOf(chicken, oats)
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
@@ -97,6 +99,7 @@ class FoodsViewModelTest {
     fun `search with no matches emits Empty`() = runTest(dispatcher) {
         repository.foods = listOf(chicken, oats)
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
@@ -127,6 +130,7 @@ class FoodsViewModelTest {
     fun `reload after failure clears the error and loads foods`() = runTest(dispatcher) {
         repository.failure = DomainError.Network
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())

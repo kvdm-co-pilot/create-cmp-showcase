@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.kvdm.fuelled.testing.keepCollecting
 
 /** The detail VM resolves one food by id through the repository — Content on hit, mapped copy on miss. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,6 +45,7 @@ class FoodDetailViewModelTest {
     fun `resolves the food by id and emits Content`() = runTest(dispatcher) {
         repository.foods = listOf(banana)
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
@@ -59,6 +61,7 @@ class FoodDetailViewModelTest {
     fun `an unknown id maps NotFound to presentation copy`() = runTest(dispatcher) {
         repository.foods = listOf(banana)
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())

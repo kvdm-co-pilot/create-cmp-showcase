@@ -31,6 +31,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * The add-to-meal tray's ViewModel — MEAL-09 (the running total), MEAL-10 (retargeting), and
@@ -120,6 +122,7 @@ class MealTrayViewModelTest {
     fun `the running total carries calories and all three macros as items go in and out`() =
         runTest(dispatcher) {
             val viewModel = viewModel()
+            keepCollecting(viewModel.state)
 
             viewModel.tray.test {
                 assertEquals(TrayTotal.Empty, awaitItem().total, "an untouched tray totals nothing")
@@ -150,6 +153,7 @@ class MealTrayViewModelTest {
     @Test
     fun `adjusting a serving recomputes the running total`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
         viewModel.onFoodToggled(chicken)
 
         viewModel.onServingsChanged(chicken.id, servings = 3)
@@ -165,6 +169,7 @@ class MealTrayViewModelTest {
     @Test
     fun `changing the slot retargets the same tray and keeps its contents`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
         viewModel.onFoodToggled(chicken)
         viewModel.onFoodToggled(oats)
         val totalBefore = viewModel.tray.value.total
@@ -181,6 +186,7 @@ class MealTrayViewModelTest {
     @Test
     fun `changing the date retargets the same tray and keeps its contents`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
         viewModel.onFoodToggled(chicken)
         val totalBefore = viewModel.tray.value.total
 
@@ -197,6 +203,7 @@ class MealTrayViewModelTest {
     fun `confirming after retargeting writes to the new date and slot - one flow, two targets`() =
         runTest(dispatcher) {
             val viewModel = viewModel()
+            keepCollecting(viewModel.state)
             viewModel.onFoodToggled(chicken)
             viewModel.onSlotSelected(MealSlot.DINNER)
             viewModel.onDateSelected(tomorrow)
@@ -216,6 +223,7 @@ class MealTrayViewModelTest {
     @Test
     fun `an empty tray attempts no write at all`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         // Called DIRECTLY, bypassing the disabled Add control: a disabled button is a
         // rendering, and the clause says no write can be ATTEMPTED. The refusal has to hold
@@ -235,6 +243,7 @@ class MealTrayViewModelTest {
     @Test
     fun `emptying a filled tray makes the write unreachable again`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
         viewModel.onFoodToggled(chicken)
         viewModel.onFoodToggled(chicken)
 
@@ -251,6 +260,7 @@ class MealTrayViewModelTest {
     @Test
     fun `a failed confirm surfaces mapped copy and keeps the tray`() = runTest(dispatcher) {
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
         viewModel.onFoodToggled(chicken)
         todayRepository.failure = DomainError.Network
 

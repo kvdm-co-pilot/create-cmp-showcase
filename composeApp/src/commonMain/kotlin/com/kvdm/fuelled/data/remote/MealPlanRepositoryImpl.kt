@@ -15,7 +15,16 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.buildPlanDay
 import com.kvdm.fuelled.domain.repository.MealPlanRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.logicalDate
+import com.kvdm.fuelled.data.asAppResult
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.LocalTime
 
 /**
@@ -33,7 +42,43 @@ import kotlinx.datetime.LocalTime
 class MealPlanRepositoryImpl(
     private val planDao: MealPlanDao,
     private val todayDao: TodayDao,
+    private val time: TimeSignal = RealTimeSignal(),
+    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : MealPlanRepository {
+
+    /**
+     * The observable twin of [planDay]. Five streams, one derivation.
+     *
+     * `time.ticks` is in the combine deliberately: `isCurrentDay`, the focused container, the
+     * LATE tag and the MISSED set are all functions of the current instant, so a plan built
+     * once is wrong from the next minute onward. The four Room streams cover the stored half —
+     * any write on any surface lands here. `buildPlanDay` stays pure and untouched; only WHEN
+     * it is called changed.
+     */
+    override fun observePlanDay(date: LocalDate): Flow<AppResult<PlanDay>> {
+        val key = date.toString()
+        return combine(
+            todayDao.entriesStream(key),
+            planDao.doneSlotsStream(key),
+            planDao.waterTicksStream(key),
+            planDao.slotTimesStream(),
+            time.ticks,
+        ) { entries, done, water, times, instant ->
+            val localNow = instant.toLocalDateTime(zone)
+            buildPlanDay(
+                date = date,
+                // PLAN-23: only the current logical day makes punctuality claims — and which
+                // day is current is re-derived per emission, never captured once.
+                isCurrentDay = date == logicalDate(instant, dayStartHour, zone),
+                now = localNow.time,
+                times = MealTimes(times.associate { it.mealSlot to it.localTime }),
+                entriesBySlot = entries.groupBy({ it.mealSlot }, { it.toDomain() }),
+                doneSlots = done.map { MealSlot.valueOf(it.slot) }.toSet(),
+                waterTicks = water.map { it.waterIndex }.toSet(),
+            )
+        }.asAppResult()
+    }
 
     override suspend fun mealTimes(): AppResult<MealTimes> = suspendRunCatching {
         storedTimes()

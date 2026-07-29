@@ -20,6 +20,8 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import kotlinx.coroutines.flow.first
 
 /**
  * The structured day's use cases (specs/meal-plan.spec.md). Hand-written fakes, a fixed clock,
@@ -29,17 +31,17 @@ import kotlinx.datetime.LocalTime
 class MealPlanUseCaseTest {
 
     private val today = LocalDate(2026, 7, 22)
-    private val clock = FixedClock(TEST_NOW) // 12:45 UTC
+    private val time = FakeTimeSignal(TEST_NOW) // 12:45 UTC
 
     private fun getPlanDay(repo: FakeMealPlanRepository) =
-        GetPlanDayUseCase(repo, clock = clock, zone = TEST_ZONE)
+        GetPlanDayUseCase(repo, time = time, zone = TEST_ZONE)
 
     // SPEC: PLAN-02
     @Test
     fun `every day renders all six containers and six waters, planned or not`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
 
-        val day = assertIs<AppResult.Success<*>>(getPlanDay(repo)(today)).value as com.kvdm.fuelled.domain.model.PlanDay
+        val day = assertIs<AppResult.Success<com.kvdm.fuelled.domain.model.PlanDay>>(getPlanDay(repo)(today).first()).value
 
         // Nothing has ever been written for this date — and the day is still a full day.
         assertEquals(6, day.slots.size)
@@ -52,7 +54,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-23
     @Test
     fun `only the current logical day makes punctuality claims`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
 
         val current = plan(repo, today)
         val tomorrow = plan(repo, LocalDate(2026, 7, 23))
@@ -77,7 +79,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-13
     @Test
     fun `ticking a container logs its planned entries and records the slot done`() = runTest {
-        val repo = FakeMealPlanRepository().apply {
+        val repo = FakeMealPlanRepository(time, TEST_ZONE).apply {
             entries[today] = mapOf(
                 MealSlot.LUNCH to listOf(
                     LogEntry("l1", "Chicken & rice", "200 g", 620, 58, status = LogStatus.PLANNED),
@@ -97,7 +99,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-14
     @Test
     fun `ticking an EMPTY container is a completion and fabricates no food`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
 
         SetSlotDoneUseCase(repo)(today, MealSlot.MORNING_SNACK, done = true)
 
@@ -112,7 +114,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-10
     @Test
     fun `water ticks are per day - each 500 ml, and a new day starts at zero`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
 
         SetWaterDoneUseCase(repo)(today, index = 1, done = true)
         SetWaterDoneUseCase(repo)(today, index = 2, done = true)
@@ -128,7 +130,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-22
     @Test
     fun `the veg count counts CONTAINERS holding a vegetable, not vegetables`() = runTest {
-        val repo = FakeMealPlanRepository().apply {
+        val repo = FakeMealPlanRepository(time, TEST_ZONE).apply {
             entries[today] = mapOf(
                 // Three vegetables, ONE container: the method's rule is about meals with veg.
                 MealSlot.LUNCH to listOf(
@@ -160,7 +162,7 @@ class MealPlanUseCaseTest {
                     LogEntry("b1", "Oats & whey", "80 g", 430, 38, status = LogStatus.PLANNED),
                 ),
             )
-            val repo = FakeMealPlanRepository().apply { entries[today] = source }
+            val repo = FakeMealPlanRepository(time, TEST_ZONE).apply { entries[today] = source }
 
             assertIs<AppResult.Success<Unit>>(CopyDayForwardUseCase(repo)(today, days = 3))
 
@@ -176,7 +178,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-12
     @Test
     fun `entries added to a FUTURE day are written PLANNED and never counted as consumed`() = runTest {
-        val repo = FakeMealPlanRepository().apply {
+        val repo = FakeMealPlanRepository(time, TEST_ZONE).apply {
             entries[LocalDate(2026, 7, 25)] = mapOf(
                 MealSlot.DINNER to listOf(
                     LogEntry("d1", "Salmon", "180 g", 610, 45, status = LogStatus.PLANNED),
@@ -199,7 +201,7 @@ class MealPlanUseCaseTest {
     fun `a planned entry on a day that ended unlogged is stale plan - still there, still tickable`() =
         runTest {
             val past = LocalDate(2026, 7, 20)
-            val repo = FakeMealPlanRepository().apply {
+            val repo = FakeMealPlanRepository(time, TEST_ZONE).apply {
                 entries[past] = mapOf(
                     MealSlot.DINNER to listOf(
                         LogEntry("d1", "Salmon", "180 g", 610, 45, status = LogStatus.PLANNED),
@@ -221,7 +223,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-07
     @Test
     fun `reminders are armed for every slot and water, and a ticked slot's is cancelled`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
         val scheduler = FakeReminderScheduler()
         val arm = ArmMealRemindersUseCase(repo, scheduler)
 
@@ -240,7 +242,7 @@ class MealPlanUseCaseTest {
     @Test
     fun `no exact-alarm permission means WINDOWED, denied notifications mean UNAVAILABLE - never nothing`() =
         runTest {
-            val repo = FakeMealPlanRepository()
+            val repo = FakeMealPlanRepository(time, TEST_ZONE)
 
             // The COMMON case on modern Android: exact alarms are not granted. Windowed is the
             // normal path, not an error path — the day still gets all twelve reminders.
@@ -265,7 +267,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-06, PLAN-07, PLAN-09
     @Test
     fun `changing a slot time re-arms that slot and moves the water either side of it`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
         val scheduler = FakeReminderScheduler()
         val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, scheduler))
 
@@ -290,7 +292,7 @@ class MealPlanUseCaseTest {
     // SPEC: PLAN-06
     @Test
     fun `a write that would invert the timetable is coerced, not stored verbatim`() = runTest {
-        val repo = FakeMealPlanRepository()
+        val repo = FakeMealPlanRepository(time, TEST_ZONE)
         val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, FakeReminderScheduler()))
 
         // The shift-worker case: dinner before breakfast. Every derivation downstream assumes
@@ -305,5 +307,5 @@ class MealPlanUseCaseTest {
     }
 
     private suspend fun plan(repo: FakeMealPlanRepository, date: LocalDate) =
-        assertIs<AppResult.Success<com.kvdm.fuelled.domain.model.PlanDay>>(getPlanDay(repo)(date)).value
+        assertIs<AppResult.Success<com.kvdm.fuelled.domain.model.PlanDay>>(getPlanDay(repo)(date).first()).value
 }

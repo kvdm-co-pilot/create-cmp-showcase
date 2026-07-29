@@ -29,6 +29,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.TEST_NOW
 
 /**
  * Durable screen tests — first-party Compose UI Test, spec-cited, testTag selectors. Each test
@@ -108,7 +111,7 @@ class TodayScreenTest {
 
     // SPEC: TODAY-05
     @Test
-    fun `shows presentation-mapped error copy and retry when loading fails`() = runComposeUiTest {
+    fun `shows presentation-mapped error copy with no retry control when loading fails`() = runComposeUiTest {
         repository.failure = DomainError.Network
 
         setContent {
@@ -117,7 +120,10 @@ class TodayScreenTest {
 
         awaitNode(hasTestTag("today_error"))
         onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(1)
-        onNodeWithTag("today_retry", useUnmergedTree = true).assertExists()
+        // No retry control: the state is OBSERVED, so recovery is the stream's job, not a
+        // button's — a transient failure heals on the source's next emission (see the test
+        // below), and a control that re-runs a load that no longer exists would be a lie.
+        onNodeWithTag("today_retry", useUnmergedTree = true).assertDoesNotExist()
     }
 
     // SPEC: TODAY-07, TODAY-09
@@ -126,7 +132,7 @@ class TodayScreenTest {
         runComposeUiTest {
             // Frozen at 12:45 with breakfast and the morning snack ticked: lunch is the earliest
             // slot neither done nor missed, so it holds focus and nothing else is on screen.
-            val plan = FakeMealPlanRepository().apply {
+            val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
                 doneSlots[TEST_DATE] = mutableSetOf(MealSlot.BREAKFAST, MealSlot.MORNING_SNACK)
             }
 
@@ -147,7 +153,7 @@ class TodayScreenTest {
     @Test
     fun `the focused container's add control opens the tray targeted at that day and that slot`() =
         runComposeUiTest {
-            val plan = FakeMealPlanRepository().apply {
+            val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
                 doneSlots[TEST_DATE] = mutableSetOf(MealSlot.BREAKFAST, MealSlot.MORNING_SNACK)
             }
             // What the tap ASKS FOR: the navigation request the shell would issue, built by the
@@ -174,7 +180,7 @@ class TodayScreenTest {
     @Test
     fun `ticking the focused container from today advances the focus without leaving the screen`() =
         runComposeUiTest {
-            val plan = FakeMealPlanRepository().apply {
+            val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
                 doneSlots[TEST_DATE] = mutableSetOf(MealSlot.BREAKFAST, MealSlot.MORNING_SNACK)
             }
 
@@ -196,7 +202,7 @@ class TodayScreenTest {
     @Test
     fun `today shows the next unticked water and ticking it raises the day's litres`() =
         runComposeUiTest {
-            val plan = FakeMealPlanRepository().apply {
+            val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
                 waterTicks[TEST_DATE] = mutableSetOf(1, 2)
             }
 
@@ -274,7 +280,7 @@ class TodayScreenTest {
     // SPEC: TODAY-14
     @Test
     fun `today shows the day's vegetable count against the method's two`() = runComposeUiTest {
-        val plan = FakeMealPlanRepository().apply {
+        val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE).apply {
             entries[TEST_DATE] = mapOf(
                 MealSlot.BREAKFAST to listOf(LogEntry("b1", "Rolled oats", "80 g", 430, 38)),
                 MealSlot.LUNCH to listOf(
@@ -296,20 +302,25 @@ class TodayScreenTest {
 
     // SPEC: TODAY-05
     @Test
-    fun `tapping retry after a failure reloads and shows the recovered summary`() = runComposeUiTest {
-        repository.failure = DomainError.Network
-        val vm = viewModel()
+    fun `recovers to the summary on the source's next emission after a failure - no retry tap`() =
+        runComposeUiTest {
+            repository.failure = DomainError.Network
+            val vm = viewModel()
 
-        setContent {
-            MaterialTheme { TodayRoute(viewModel = vm) }
+            setContent {
+                MaterialTheme { TodayRoute(viewModel = vm) }
+            }
+
+            awaitNode(hasTestTag("today_error"))
+            onNodeWithTag("today_retry", useUnmergedTree = true).assertDoesNotExist()
+
+            // The source recovers and emits again (the fake's setters re-emit, the way Room's
+            // invalidation tracker does). Nothing is tapped and nothing reloads: the observed
+            // state heals itself, which is the whole contract that replaced the retry button.
+            repository.failure = null
+            repository.summary = FakeTodayRepository.populatedDay
+
+            awaitNode(hasTestTag("today_screen"))
+            onAllNodesWithText(DomainError.Network.toUserMessage()).assertCountEquals(0)
         }
-
-        awaitNode(hasTestTag("today_error"))
-
-        repository.failure = null
-        repository.summary = FakeTodayRepository.populatedDay
-        onNodeWithTag("today_retry").performClick()
-
-        awaitNode(hasTestTag("today_screen"))
-    }
 }

@@ -18,7 +18,16 @@ import com.kvdm.fuelled.domain.model.NewLogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.result.AppResult
-import kotlin.time.Clock
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.days
+import com.kvdm.fuelled.data.asAppResult
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 
@@ -44,19 +53,40 @@ import kotlinx.datetime.TimeZone
  * typed DomainError values and ALWAYS rethrows CancellationException. Seed data lives here in
  * the data layer (ARCH-09) — it never reaches for the presentation layer's preview fixtures.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class TodayRepositoryImpl(
     private val dao: TodayDao,
-    private val clock: Clock = Clock.System,
+    private val time: TimeSignal = RealTimeSignal(),
     private val zone: TimeZone = TimeZone.currentSystemDefault(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : TodayRepository {
 
-    override suspend fun getTodaySummary(): AppResult<TodayModel> = suspendRunCatching {
-        val dayInView = currentLogicalDay()
-        ensureSeeded()
-        val goal = dao.goal() ?: error("today goal row missing after seeding")
-        aggregate(dayInView, goal, dao.entries(dayInView.toString()))
-    }
+    /**
+     * Two independent change sources, combined:
+     *
+     * - `time.days(...)` re-emits the moment the LOGICAL DAY changes (04:00, or a wake after
+     *   the device slept). `flatMapLatest` tears down the previous day's queries and starts
+     *   the new day's, so the dashboard follows the boundary instead of holding the day it
+     *   launched in.
+     * - the two Room streams re-emit on every write to their tables, which is what carries a
+     *   meal added in the tray straight to this dashboard.
+     *
+     * `onStart { ensureSeeded() }` runs once per collection BEFORE the goal stream is read,
+     * so the ring has a target on a first run; the seeded write then flows back through
+     * `goalStream()` like any other. A missing goal is mapped to a typed failure rather than
+     * thrown, because a stream that throws kills the collection for good — the screen would
+     * need a relaunch, which is the staleness this whole change exists to remove.
+     */
+    override fun observeTodaySummary(): Flow<AppResult<TodayModel>> =
+        time.days(dayStartHour, zone)
+            .flatMapLatest { dayInView ->
+                combine(dao.goalStream(), dao.entriesStream(dayInView.toString())) { goal, rows ->
+                    goal?.let { aggregate(dayInView, it, rows) }
+                }
+            }
+            .onStart { ensureSeeded() }
+            .map { it ?: throw IllegalStateException("today goal row missing after seeding") }
+            .asAppResult()
 
     /**
      * MEAL-05: one transaction, all-or-nothing. The rows are built first and handed to the
@@ -87,8 +117,8 @@ class TodayRepositoryImpl(
         dao.setStatus(id, LogStatus.LOGGED.name)
     }
 
-    /** The logical day the app is showing right now — recomputed on every call (MEAL-02). */
-    private fun currentLogicalDay(): LocalDate = logicalDate(clock.now(), dayStartHour, zone)
+    /** The logical day right now — a one-shot for WRITES only; reads observe (MEAL-02). */
+    private fun currentLogicalDay(): LocalDate = logicalDate(time.now(), dayStartHour, zone)
 
     /**
      * Fold the flat rows into the aggregate.

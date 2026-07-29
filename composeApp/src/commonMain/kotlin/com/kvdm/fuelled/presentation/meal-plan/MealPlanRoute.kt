@@ -113,15 +113,20 @@ fun MealPlanRoute(
         if (date != selected) viewModel.select(date)
     }
 
+    // The strip window and the anchor day are observed too — a plan left open across 04:00
+    // re-centres instead of offering yesterday's nine days.
+    val stripDays by viewModel.stripDays.collectAsStateWithLifecycle()
+    val anchorDay by viewModel.todayStream.collectAsStateWithLifecycle()
+
+    // No onRetry: the state is observed, so a transient failure recovers on the next emission.
     ContentStateContainer(
         state = state,
         screenTag = "meal_plan",
-        onRetry = { viewModel.load() },
     ) { day ->
         MealPlanDayScreen(
-            day = day.toUi(viewModel.stripDays, viewModel.today),
+            day = day.toUi(stripDays, anchorDay),
             actions = PlanDayActions(
-                onSelectDay = { index -> viewModel.stripDays.getOrNull(index)?.let(viewModel::select) },
+                onSelectDay = { index -> stripDays.getOrNull(index)?.let(viewModel::select) },
                 onToggleDone = { key, done -> mealSlotForKey(key)?.let { viewModel.setDone(it, done) } },
                 onToggleWater = viewModel::setWater,
                 onAddFood = { key -> mealSlotForKey(key)?.let { onAddToMeal(day.date, it) } },

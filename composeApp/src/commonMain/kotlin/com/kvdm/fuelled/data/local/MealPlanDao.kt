@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 
 /**
  * The structured day's stored state: slot times, done-ticks, water ticks (specs/meal-plan.spec.md).
@@ -20,12 +21,20 @@ interface MealPlanDao {
     @Query("SELECT * FROM meal_slot_time")
     suspend fun slotTimes(): List<SlotTimeEntity>
 
+    /** Slot times as a stream — changing one on the times sheet re-derives every water midpoint. */
+    @Query("SELECT * FROM meal_slot_time")
+    fun slotTimesStream(): Flow<List<SlotTimeEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSlotTime(row: SlotTimeEntity)
 
     // ── Done-ticks (PLAN-13/PLAN-14) ─────────────────────────────────────────────────────
     @Query("SELECT * FROM meal_slot_done WHERE logicalDate = :logicalDate")
     suspend fun doneSlots(logicalDate: String): List<SlotDoneEntity>
+
+    /** Done-ticks as a stream — ticking on Today moves the plan screen's focus, and vice versa. */
+    @Query("SELECT * FROM meal_slot_done WHERE logicalDate = :logicalDate")
+    fun doneSlotsStream(logicalDate: String): Flow<List<SlotDoneEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDoneSlot(row: SlotDoneEntity)
@@ -36,6 +45,10 @@ interface MealPlanDao {
     // ── Water ticks (PLAN-10) ────────────────────────────────────────────────────────────
     @Query("SELECT * FROM meal_water_tick WHERE logicalDate = :logicalDate")
     suspend fun waterTicks(logicalDate: String): List<WaterTickEntity>
+
+    /** Water ticks as a stream — the litres total on Today follows a tick made on the plan. */
+    @Query("SELECT * FROM meal_water_tick WHERE logicalDate = :logicalDate")
+    fun waterTicksStream(logicalDate: String): Flow<List<WaterTickEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterTick(row: WaterTickEntity)

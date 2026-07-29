@@ -14,9 +14,15 @@ import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
+import com.kvdm.fuelled.domain.model.Supplement
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
@@ -34,6 +40,7 @@ import kotlinx.datetime.LocalDate
  * remaining and the focused container carries its own add control (TODAY-04, PLAN-04). The
  * dataless [ContentUiState.Empty] arm would drop that target, so Today does not use it.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class TodayViewModel(
     private val getTodaySummary: GetTodaySummaryUseCase,
     private val getPlanDay: GetPlanDayUseCase,
@@ -43,24 +50,45 @@ class TodayViewModel(
     private val armReminders: ArmMealRemindersUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ContentUiState<TodayHighlights>>(ContentUiState.Loading)
-    val state: StateFlow<ContentUiState<TodayHighlights>> = _state.asStateFlow()
+    /**
+     * The logical day Today speaks for, as a STREAM — it advances at 04:00 and on every wake,
+     * so the dashboard left open overnight speaks for the new day (MEAL-02).
+     */
+    val todayStream: StateFlow<LocalDate> =
+        getPlanDay.currentLogicalDay()
+            .stateIn(viewModelScope, SharingStarted.Eagerly, getPlanDay.currentLogicalDayNow())
 
-    /** The logical day Today speaks for — re-derived on every read, never stored (MEAL-02). */
-    val today: LocalDate get() = getPlanDay.currentLogicalDay()
+    /** The day a WRITE targets right now — a one-shot at the moment of the tap, never held. */
+    private val today: LocalDate get() = todayStream.value
+
+    /**
+     * The dashboard, as a stream of streams.
+     *
+     * `flatMapLatest` on the day means the boundary tears down yesterday's collection and
+     * starts today's. Inside, the three sources are combined and every one of them re-emits on
+     * its own: the meal log on any write, the plan on any write OR on the minute (focus, LATE,
+     * MISSED), the supplement stack on any tap. Nothing here reloads and nothing polls — this
+     * is why adding a food in the tray and pressing back shows the meal, and why the LATE tag
+     * appears at 30 minutes past without touching the screen.
+     *
+     * `WhileSubscribed(5_000)` keeps the upstream alive across a rotation or a quick tab
+     * switch, and stops all of it — ticker included — when Today is genuinely gone.
+     */
+    val state: StateFlow<ContentUiState<TodayHighlights>> =
+        todayStream
+            .flatMapLatest { day ->
+                combine(
+                    getTodaySummary(),
+                    getPlanDay(day),
+                    getSupplementStack(),
+                ) { summary, plan, stack -> combineHighlights(summary, plan, stack) }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
 
     init {
-        load()
         // PLAN-07: app open is one of the moments the clause names for re-arming, and Today is
         // the screen the app opens on.
         viewModelScope.launch { armReminders() }
-    }
-
-    fun load() {
-        viewModelScope.launch {
-            _state.value = ContentUiState.Loading
-            _state.value = read()
-        }
     }
 
     /**
@@ -70,12 +98,11 @@ class TodayViewModel(
      */
     fun setSlotDone(slot: MealSlot, done: Boolean) {
         viewModelScope.launch {
-            when (val result = setSlotDone(today, slot, done)) {
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-                is AppResult.Success -> {
-                    _state.value = read()
-                    armReminders(doneSlots())
-                }
+            // No reload after the write: Room's stream carries it back into `state` on its own,
+            // which is also what makes the same tick land on the plan screen.
+            when (setSlotDone(today, slot, done)) {
+                is AppResult.Failure -> _writeError.value = true
+                is AppResult.Success -> armReminders(doneSlots())
             }
         }
     }
@@ -83,12 +110,20 @@ class TodayViewModel(
     /** Tick the next water from Today (TODAY-10) — identical to ticking it on the plan screen. */
     fun setWaterDone(index: Int, done: Boolean) {
         viewModelScope.launch {
-            when (val result = setWaterDone(today, index, done)) {
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-                is AppResult.Success -> _state.value = read()
-            }
+            if (setWaterDone(today, index, done) is AppResult.Failure) _writeError.value = true
         }
     }
+
+    /**
+     * A failed WRITE is surfaced separately from the read stream. Overwriting `state` with an
+     * error used to throw the whole dashboard away on a failed tick — and, now that state is
+     * observed, the next emission would silently overwrite the error a moment later. A write
+     * failure is its own transient fact.
+     */
+    private val _writeError = MutableStateFlow(false)
+    val writeFailed: StateFlow<Boolean> = _writeError.asStateFlow()
+
+    fun clearWriteError() { _writeError.value = false }
 
     /**
      * One read across the three sources.
@@ -98,12 +133,13 @@ class TodayViewModel(
      * Supplements are OPTIONAL: they are one highlight row among several, and losing the whole
      * dashboard because a supplement query failed is the worse trade.
      */
-    private suspend fun read(): ContentUiState<TodayHighlights> {
-        val summary = getTodaySummary()
+    private fun combineHighlights(
+        summary: AppResult<TodayModel>,
+        plan: AppResult<PlanDay>,
+        stack: AppResult<List<Supplement>>,
+    ): ContentUiState<TodayHighlights> {
         if (summary is AppResult.Failure) return ContentUiState.Error(summary.error.toUserMessage())
-        val plan = getPlanDay(today)
         if (plan is AppResult.Failure) return ContentUiState.Error(plan.error.toUserMessage())
-        val stack = getSupplementStack()
 
         return ContentUiState.Content(
             TodayHighlights(
@@ -115,7 +151,7 @@ class TodayViewModel(
     }
 
     private fun doneSlots(): Set<MealSlot> =
-        (_state.value as? ContentUiState.Content)?.data
+        (state.value as? ContentUiState.Content)?.data
             ?.plan?.slots.orEmpty()
             .filter { it.done }
             .map { it.slot }

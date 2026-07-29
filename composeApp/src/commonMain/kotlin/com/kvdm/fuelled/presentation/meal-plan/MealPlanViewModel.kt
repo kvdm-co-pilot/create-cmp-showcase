@@ -12,7 +12,12 @@ import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.presentation.today.toUserMessage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -34,6 +39,7 @@ const val PLAN_DAYS_AHEAD: Int = 7
  *
  * No `try`/`catch` (ARCH-07): failures arrive as typed [AppResult.Failure] and become copy here.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class MealPlanViewModel(
     private val getPlanDay: GetPlanDayUseCase,
     private val setSlotDone: SetSlotDoneUseCase,
@@ -42,24 +48,44 @@ class MealPlanViewModel(
     private val armReminders: ArmMealRemindersUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ContentUiState<PlanDay>>(ContentUiState.Loading)
-    val state: StateFlow<ContentUiState<PlanDay>> = _state.asStateFlow()
+    /**
+     * The current logical day — the strip's anchor (PLAN-11) — as a STREAM. Held as a value it
+     * anchored the strip to the day the screen was opened on, so a plan left open across 04:00
+     * offered yesterday's nine days and called yesterday "today".
+     */
+    val todayStream: StateFlow<LocalDate> =
+        getPlanDay.currentLogicalDay()
+            .stateIn(viewModelScope, SharingStarted.Eagerly, getPlanDay.currentLogicalDayNow())
 
-    /** The current logical day — the strip's anchor and its initial selection (PLAN-11). */
-    val today: LocalDate = getPlanDay.currentLogicalDay()
+    private val today: LocalDate get() = todayStream.value
 
     /**
      * The nine days the strip offers: one leading yesterday for back-filling a missed meal,
-     * today, and the next seven (PLAN-11). This is the feature's ONLY date selector.
+     * today, and the next seven (PLAN-11). This is the feature's ONLY date selector — and it
+     * re-derives when the day rolls, so the window moves with the calendar.
      */
-    val stripDays: List<LocalDate> =
-        (-1..PLAN_DAYS_AHEAD).map { today.plus(it, DateTimeUnit.DAY) }
+    val stripDays: StateFlow<List<LocalDate>> =
+        todayStream
+            .map { anchor -> (-1..PLAN_DAYS_AHEAD).map { anchor.plus(it, DateTimeUnit.DAY) } }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                (-1..PLAN_DAYS_AHEAD).map { getPlanDay.currentLogicalDayNow().plus(it, DateTimeUnit.DAY) },
+            )
 
-    private val _selectedDate = MutableStateFlow(today)
+    private val _selectedDate = MutableStateFlow(getPlanDay.currentLogicalDayNow())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
+    /**
+     * The selected day, observed. Switching days re-collects; the day's own writes and the
+     * minute tick re-emit within it. Nothing here reloads.
+     */
+    val state: StateFlow<ContentUiState<PlanDay>> =
+        _selectedDate
+            .flatMapLatest { date -> getPlanDay(date).map { it.toUiState() } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
+
     init {
-        load(today)
         // PLAN-07: re-arm on app open. Alarms do not survive a reboot and the OS can revoke
         // permissions at any time, so the honest moment to reconcile what is armed with what
         // is stored is every time the user actually opens the feature.
@@ -68,43 +94,32 @@ class MealPlanViewModel(
 
     fun select(date: LocalDate) {
         _selectedDate.value = date
-        load(date)
-    }
-
-    fun load(date: LocalDate = _selectedDate.value) {
-        viewModelScope.launch {
-            _state.value = ContentUiState.Loading
-            _state.value = getPlanDay(date).toUiState()
-        }
     }
 
     /**
      * Tick or un-tick a meal container (PLAN-13/PLAN-14).
      *
      * Re-arming afterwards is what cancels that slot's reminder for the day (PLAN-07) — a meal
-     * already eaten is never announced — and it reads the day's done set back out of the reload
-     * rather than trusting the tap, so an un-tick correctly restores the reminder.
+     * already eaten is never announced — and it reads the day's done set back out of the
+     * OBSERVED state rather than trusting the tap, so an un-tick correctly restores the
+     * reminder. The state has already carried the write back by then: Room emits before the
+     * write call returns.
      */
     fun setDone(slot: MealSlot, done: Boolean) {
         viewModelScope.launch {
-            when (val result = setSlotDone(_selectedDate.value, slot, done)) {
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-                is AppResult.Success -> {
-                    reload()
+            when (setSlotDone(_selectedDate.value, slot, done)) {
+                is AppResult.Failure -> _writeError.value = true
+                is AppResult.Success ->
                     // Only today's ticks affect today's reminders. Ticking a container on a
                     // day being planned ahead says nothing about what should ring tonight.
                     if (_selectedDate.value == today) armReminders(currentDoneSlots())
-                }
             }
         }
     }
 
     fun setWater(index: Int, done: Boolean) {
         viewModelScope.launch {
-            when (val result = setWaterDone(_selectedDate.value, index, done)) {
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-                is AppResult.Success -> reload()
-            }
+            if (setWaterDone(_selectedDate.value, index, done) is AppResult.Failure) _writeError.value = true
         }
     }
 
@@ -115,21 +130,23 @@ class MealPlanViewModel(
      */
     fun copyForward(days: Int) {
         viewModelScope.launch {
-            when (val result = copyDayForward(_selectedDate.value, days)) {
-                is AppResult.Failure -> _state.value = ContentUiState.Error(result.error.toUserMessage())
-                is AppResult.Success -> reload()
-            }
+            if (copyDayForward(_selectedDate.value, days) is AppResult.Failure) _writeError.value = true
         }
     }
 
-    /** Re-read without flashing Loading — a tick is not a page load, and blanking the day for a
-     *  frame would make the fastest interaction in the app look like the slowest. */
-    private suspend fun reload() {
-        _state.value = getPlanDay(_selectedDate.value).toUiState()
-    }
+    /**
+     * A failed WRITE is its own transient fact, kept OFF the read stream: putting it in `state`
+     * used to throw the whole day away on one failed tick, and now that state is observed the
+     * next emission would silently swallow it a moment later.
+     */
+    private val _writeError = MutableStateFlow(false)
+    val writeFailed: StateFlow<Boolean> = _writeError.asStateFlow()
+
+    fun clearWriteError() { _writeError.value = false }
+
 
     private fun currentDoneSlots(): Set<MealSlot> =
-        (_state.value as? ContentUiState.Content)?.data
+        (state.value as? ContentUiState.Content)?.data
             ?.slots.orEmpty()
             .filter { it.done }
             .map { it.slot }

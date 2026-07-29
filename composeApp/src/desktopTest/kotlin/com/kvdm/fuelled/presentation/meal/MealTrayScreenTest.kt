@@ -26,6 +26,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
  * Durable screen tests for the add-to-meal tray — first-party Compose UI Test, spec-cited,

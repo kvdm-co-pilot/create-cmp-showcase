@@ -5,6 +5,7 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.NewLogEntry
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 
 // Domain-facing contract for the Today dashboard and the meal-log write path. Presentation
@@ -12,8 +13,21 @@ import kotlinx.datetime.LocalDate
 // AppResult — it never throws (ARCH-06): failures cross the boundary as typed DomainError
 // values, translated inside the data implementation.
 interface TodayRepository {
-    /** The day's aggregated summary — calories + macros against goal, plus the log by slot. */
-    suspend fun getTodaySummary(): AppResult<TodayModel>
+    /**
+     * The day's aggregated summary as a STREAM — calories + macros against goal, plus the log
+     * by slot — re-emitted whenever the answer changes, for either reason it can change:
+     *
+     * - **the log changed** — a meal added in the tray, an entry deleted, a slot ticked done.
+     *   Room's invalidation tracker drives this; the dashboard follows a write made on another
+     *   screen with no reload and no lifecycle callback.
+     * - **the logical day changed** — 04:00 arrived, or the app came back to the foreground
+     *   after the device slept. The day is re-derived from the clock signal, so an app left
+     *   open overnight speaks for the new day rather than the one it launched in.
+     *
+     * Collect this; never hold the value. A one-shot read is exactly how both of those went
+     * stale (observed on-device 2026-07-28).
+     */
+    fun observeTodaySummary(): Flow<AppResult<TodayModel>>
 
     /**
      * Write [entries] to one target — [date], [slot], [status] — in a SINGLE transaction

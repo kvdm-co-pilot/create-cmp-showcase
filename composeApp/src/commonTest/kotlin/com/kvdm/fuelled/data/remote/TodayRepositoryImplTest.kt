@@ -23,6 +23,11 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import app.cash.turbine.test
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 
 /**
  * The Today data-layer test. [TodayRepositoryImpl] is Room-backed via [TodayDao]; here it runs
@@ -48,16 +53,44 @@ class TodayRepositoryImplTest {
     private fun repository(
         dao: TodayDao = FakeTodayDao(),
         at: kotlin.time.Instant = noon,
-    ) = TodayRepositoryImpl(dao, FixedClock(at), zone, DEFAULT_DAY_START_HOUR)
+    ) = TodayRepositoryImpl(dao, FakeTimeSignal(at), zone, DEFAULT_DAY_START_HOUR)
 
     private suspend fun TodayRepositoryImpl.summary(): TodayModel =
-        when (val result = getTodaySummary()) {
+        when (val result = observeTodaySummary().first()) {
             is AppResult.Success -> result.value
             is AppResult.Failure -> fail("seeded source should succeed, got $result")
         }
 
     private fun tray(vararg ids: String) = ids.map { id ->
         NewLogEntry(id, "Food $id", "1 serving", kcal = 100, proteinG = 10, carbsG = 5, fatG = 2)
+    }
+
+    // SPEC: RS-01
+    @Test
+    fun `the observed summary re-emits on a write - the log carries its own change back`() = runTest {
+        val dao = FakeTodayDao()
+        val repository = repository(dao)
+
+        repository.observeTodaySummary().test {
+            val before = assertIs<AppResult.Success<TodayModel>>(awaitItem()).value
+            assertTrue(before.meals.isEmpty(), "a fresh day starts empty")
+
+            repository.addEntries(tray("e1"), dayInView, MealSlot.LUNCH, LogStatus.LOGGED)
+
+            // No reload call anywhere: the DAO's invalidation (the fake's version bump; Room's
+            // invalidation tracker in production) re-emits the re-derived summary to the
+            // collector that was ALREADY listening — which is what carries a tray add straight
+            // onto the dashboard without the screen asking. One invalidation can re-emit each
+            // combined source (goal, entries) in turn, so consume until the write's rows land —
+            // the assertion is that they ARRIVE with no reload, not how many frames it takes.
+            var after = assertIs<AppResult.Success<TodayModel>>(awaitItem()).value
+            while (after.meals.isEmpty()) {
+                // Turbine's own timeout fails the test if the write's emission never lands.
+                after = assertIs<AppResult.Success<TodayModel>>(awaitItem()).value
+            }
+            assertEquals(100, after.consumedKcal, "the write's own emission carries the new total")
+            assertEquals(listOf(MealSlot.LUNCH), after.meals.map { it.slot })
+        }
     }
 
     // SPEC: PLAN-03
@@ -255,15 +288,18 @@ class TodayRepositoryImplTest {
     // SPEC: TODAY-05
     @Test
     fun `translates a thrown source error into a typed Failure - never lets it escape`() = runTest {
-        val result = repository(ThrowingTodayDao()).getTodaySummary()
+        val result = repository(ThrowingTodayDao()).observeTodaySummary().first()
         assertIs<AppResult.Failure>(result)
     }
 
     /** A DAO whose reads fail — proves the repository translates infrastructure errors (never throws). */
     private class ThrowingTodayDao : TodayDao {
         override suspend fun goal(): TodayGoalEntity? = throw IllegalStateException("db unavailable")
+        override fun goalStream(): Flow<TodayGoalEntity?> = flow { throw IllegalStateException("db unavailable") }
         override suspend fun entries(logicalDate: String): List<LogEntryEntity> =
             throw IllegalStateException("db unavailable")
+        override fun entriesStream(logicalDate: String): Flow<List<LogEntryEntity>> =
+            flow { throw IllegalStateException("db unavailable") }
         override suspend fun maxEntryOrder(logicalDate: String, slot: String): Int =
             throw IllegalStateException("db unavailable")
         override suspend fun goalCount(): Int = 1 // non-zero so the repo skips seeding and hits goal()

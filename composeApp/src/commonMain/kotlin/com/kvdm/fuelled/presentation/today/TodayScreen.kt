@@ -200,7 +200,9 @@ fun TodayRoute(
     onOpenSupplements: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ContentStateContainer(state = state, screenTag = "today", onRetry = viewModel::load) { model ->
+    // No onRetry: the state is observed, so a transient failure recovers on the next
+    // emission rather than waiting for a human to press a button.
+    ContentStateContainer(state = state, screenTag = "today") { model ->
         TodayScreen(
             model = model,
             actions = TodayActions(

@@ -15,6 +15,7 @@ import com.kvdm.fuelled.testing.fakes.FixedClock
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 
 /**
  * The instant every Today/plan test freezes at unless it says otherwise: **2026-07-22 12:45
@@ -41,12 +42,12 @@ val TEST_ZONE: TimeZone = TimeZone.UTC
  */
 fun todayViewModel(
     today: FakeTodayRepository = FakeTodayRepository(),
-    plan: FakeMealPlanRepository = FakeMealPlanRepository(),
+    plan: FakeMealPlanRepository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE),
     supplements: FakeSupplementRepository = FakeSupplementRepository(),
     scheduler: FakeReminderScheduler = FakeReminderScheduler(),
     clock: Clock = FixedClock(TEST_NOW),
 ): TodayViewModel {
-    val getPlanDay = GetPlanDayUseCase(plan, clock = clock, zone = TEST_ZONE)
+    val getPlanDay = GetPlanDayUseCase(plan, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
     return TodayViewModel(
         getTodaySummary = GetTodaySummaryUseCase(today),
         getPlanDay = getPlanDay,

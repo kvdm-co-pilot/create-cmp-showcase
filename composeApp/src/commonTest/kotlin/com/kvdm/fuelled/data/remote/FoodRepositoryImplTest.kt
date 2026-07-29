@@ -8,6 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.first
 
 /**
  * The exemplar data-layer test. [FoodRepositoryImpl] is Room-backed via [FoodDao]; here it

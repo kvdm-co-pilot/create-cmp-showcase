@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.kvdm.fuelled.testing.keepCollecting
 
 /**
  * The Profile ViewModel test — mirrors TodayViewModelTest: Turbine over the [ContentUiState]
@@ -72,6 +73,7 @@ class ProfileViewModelTest {
     fun `reload after failure clears the error and loads the profile`() = runTest(dispatcher) {
         repository.failure = DomainError.Network
         val viewModel = viewModel()
+        keepCollecting(viewModel.state)
 
         viewModel.state.test {
             assertEquals(ContentUiState.Loading, awaitItem())
