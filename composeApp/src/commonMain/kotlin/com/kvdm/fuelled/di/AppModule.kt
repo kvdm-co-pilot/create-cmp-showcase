@@ -17,6 +17,7 @@ import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.GetWeekReviewUseCase
 import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
@@ -39,6 +40,7 @@ import com.kvdm.fuelled.presentation.mealplan.MealTimesViewModel
 import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
+import com.kvdm.fuelled.presentation.week.WeekReviewViewModel
 // cmp:anchor di-imports
 import kotlinx.datetime.LocalDate
 import org.koin.core.module.dsl.viewModel
@@ -94,6 +96,9 @@ val useCaseModule = module {
     // NoOpReminderScheduler (brief decision 9 — iOS notifications are deliberately unpromised).
     factory { ArmMealRemindersUseCase(get(), get()) }
     factory { SetMealTimeUseCase(get(), get()) }
+    // The week in review (JRN-01): composed from the two observed reads above — no new
+    // repository, deliberately (TODAY-13's no-second-path discipline).
+    factory { GetWeekReviewUseCase(get(), get()) }
     // cmp:anchor di-usecases
 }
 
@@ -114,6 +119,7 @@ val viewModelModule = module {
         MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get())
     }
     viewModelOf(::MealTimesViewModel)
+    viewModelOf(::WeekReviewViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
     // graph. Tests construct it directly with a FixedClock (MEAL-10).

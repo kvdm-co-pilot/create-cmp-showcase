@@ -231,6 +231,15 @@ class MealPlanUseCaseTest {
         assertEquals(12, scheduler.armed.size, "six meals + six waters")
         assertTrue(scheduler.armed.all { it.mode == ReminderMode.EXACT })
 
+        // The prep lead (daily-journeys decision 1): a meal reminder fires 30 minutes BEFORE
+        // its slot, carrying the slot time as the moment it announces; water takes no lead —
+        // there is nothing to prep about a glass of water.
+        val breakfast = scheduler.armed.single { it.target == ReminderTarget.Meal(MealSlot.BREAKFAST) }
+        assertEquals(LocalTime(6, 30), breakfast.time, "fires at the prep lead, not the slot")
+        assertEquals(LocalTime(7, 0), breakfast.eventTime, "announces the meal's actual moment")
+        val firstWater = scheduler.armed.first { it.target is ReminderTarget.Water }
+        assertEquals(firstWater.eventTime, firstWater.time, "water keeps its midpoint — no lead")
+
         // A meal already eaten is never announced — and water is untouched by a meal tick.
         assertIs<AppResult.Success<*>>(arm(doneSlots = setOf(MealSlot.BREAKFAST)))
         assertEquals(11, scheduler.armed.size)
@@ -277,7 +286,8 @@ class MealPlanUseCaseTest {
         assertIs<AppResult.Success<*>>(setTime(MealSlot.LUNCH, LocalTime(13, 0)))
 
         val lunch = scheduler.armed.single { it.target == ReminderTarget.Meal(MealSlot.LUNCH) }
-        assertEquals(LocalTime(13, 0), lunch.time, "the slot's reminder moved with its time")
+        assertEquals(LocalTime(12, 30), lunch.time, "the slot's reminder moved with its time — at its prep lead")
+        assertEquals(LocalTime(13, 0), lunch.eventTime, "and still announces the new slot moment")
 
         // PLAN-09: the water either side moved too — nobody computed which ones, because water
         // times are midpoints of the meal times and were never stored separately.
@@ -286,7 +296,7 @@ class MealPlanUseCaseTest {
         assertEquals(LocalTime(11, 15), waterAfter[1]) // 09:30 → 13:00
         assertEquals(LocalTime(13, 45), waterAfter[2]) // 13:00 → 14:30
         // And no other MEAL time moved (PLAN-06).
-        assertEquals(LocalTime(7, 0), scheduler.armed.single { it.target == ReminderTarget.Meal(MealSlot.BREAKFAST) }.time)
+        assertEquals(LocalTime(6, 30), scheduler.armed.single { it.target == ReminderTarget.Meal(MealSlot.BREAKFAST) }.time)
     }
 
     // SPEC: PLAN-06

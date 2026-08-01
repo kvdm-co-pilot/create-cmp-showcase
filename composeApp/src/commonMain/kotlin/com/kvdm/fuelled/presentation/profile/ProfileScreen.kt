@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.presentation.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,10 +77,11 @@ private val settingsItems = listOf(
 @Composable
 fun ProfileRoute(
     viewModel: ProfileViewModel = koinViewModel(),
+    onOpenWeek: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "profile", onRetry = viewModel::load) { profile ->
-        ProfileScreen(profile = profile)
+        ProfileScreen(profile = profile, onOpenWeek = onOpenWeek)
     }
 }
 
@@ -93,6 +95,7 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     profile: Profile = sampleProfile,
+    onOpenWeek: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -105,7 +108,7 @@ fun ProfileScreen(
         Spacer(Modifier.height(8.dp))
         IdentityHeader(profile.identity)
         GoalsCard(profile.goals)
-        StatsRow(profile.weeklyStats)
+        StatsRow(profile.weeklyStats, onOpenWeek)
         SettingsList()
         Spacer(Modifier.height(8.dp))
     }
@@ -170,9 +173,19 @@ private fun GoalRow(label: String, value: String, tag: String) {
     }
 }
 
+// JRN-02: the stats row is a REAL control — it opens the Week in review, the surface that
+// makes its streak/avg-protein claims verifiable. The tap exists because the destination
+// does (UX-04's rule, satisfied in the other direction).
 @Composable
-private fun StatsRow(stats: WeeklyStats) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClickLabel = "Open week in review", onClick = onOpenWeek)
+            .semantics { testTag = "profile_week_link" },
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         StatTile(stats.streakDays.toString(), "day streak", Modifier.weight(1f))
         StatTile("${stats.avgProteinG}g", "avg protein", Modifier.weight(1f))
         StatTile(fixed(stats.weightKg, 1), "kg", Modifier.weight(1f))

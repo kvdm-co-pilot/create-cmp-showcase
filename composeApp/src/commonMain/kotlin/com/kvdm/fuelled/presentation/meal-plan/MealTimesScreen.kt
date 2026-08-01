@@ -94,6 +94,15 @@ fun MealTimesScreen(
             }
         }
         Spacer(Modifier.height(FuelledTokens.GapCard))
+        // PLAN-07: the sheet states the prep lead — the reminder arriving half an hour
+        // "early" must read as designed, not broken.
+        Text(
+            text = "Meal reminders arrive 30 minutes before each meal — time to prep.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "meal_times_prep_note" },
+        )
+        Spacer(Modifier.height(FuelledTokens.GapCard))
         Text(
             text = "Water reminders follow your meal times — one 500 ml reminder at the midpoint " +
                 "between meals. Change a meal time and its water reminders move with it.",

@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     data object MealTray : Screen(Routes.MEAL_TRAY)
     data object MealPlan : Screen(Routes.MEAL_PLAN)
     data object MealTimes : Screen(Routes.MEAL_TIMES)
+    data object Week : Screen(Routes.WEEK)
     // cmp:anchor screen-objects
 }
 
@@ -20,6 +21,8 @@ object Routes {
     const val MEAL_TRAY   = "meal/{date}/{slot}"
     const val MEAL_PLAN   = "plan/{date}"
     const val MEAL_TIMES  = "plan/times"
+    /** The week in review (JRN-01/JRN-02) — no arguments: the window is always the last 7 days. */
+    const val WEEK        = "week"
     // cmp:anchor route-consts
     fun foodDetail(foodId: String) = "food/$foodId"
 

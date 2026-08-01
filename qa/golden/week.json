@@ -1,0 +1,103 @@
+{"children": [
+  {"tag": "week_screen", "children": [
+    {"tag": "week_back", "role": "Button", "children": [
+      {"role": "Image", "contentDescription": "Back"}
+    ]},
+    {"tag": "week_title", "text": "Week in review"},
+    {"tag": "week_caption", "text": "Last 7 days · targets are your current goals"},
+    {"children": [
+      {"tag": "week_summary", "children": [
+        {"text": "4/6"},
+        {"text": "protein days"},
+        {"text": "32/42"},
+        {"text": "meals kept"},
+        {"text": "2085"},
+        {"text": "avg kcal"}
+      ]},
+      {"tag": "week_day_2026-07-16", "children": [
+        {"text": "Thu 16"},
+        {"text": "2350 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "176 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 6/6"},
+        {"text": "WATER"},
+        {"text": " 3.0 L"},
+        {"text": "VEG"},
+        {"text": " 2"}
+      ]},
+      {"tag": "week_day_2026-07-17", "children": [
+        {"text": "Fri 17"},
+        {"text": "2180 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "168 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 5/6"},
+        {"text": "WATER"},
+        {"text": " 2.5 L"},
+        {"text": "VEG"},
+        {"text": " 2"}
+      ]},
+      {"tag": "week_day_2026-07-18", "children": [
+        {"text": "Sat 18"},
+        {"text": "2410 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "181 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 6/6"},
+        {"text": "WATER"},
+        {"text": " 3.0 L"},
+        {"text": "VEG"},
+        {"text": " 3"}
+      ]},
+      {"tag": "week_day_2026-07-19", "children": [
+        {"text": "Sun 19"},
+        {"text": "1580 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "92 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 2/6"},
+        {"text": "WATER"},
+        {"text": " 1.0 L"},
+        {"text": "VEG"},
+        {"text": " 0"}
+      ]},
+      {"tag": "week_day_2026-07-20", "children": [
+        {"text": "Mon 20"},
+        {"text": "2290 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "174 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 6/6"},
+        {"text": "WATER"},
+        {"text": " 2.5 L"},
+        {"text": "VEG"},
+        {"text": " 2"}
+      ]},
+      {"tag": "week_day_2026-07-21", "children": [
+        {"text": "Tue 21"},
+        {"text": "2330 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "179 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 5/6"},
+        {"text": "WATER"},
+        {"text": " 3.0 L"},
+        {"text": "VEG"},
+        {"text": " 2"}
+      ]},
+      {"tag": "week_day_2026-07-22", "children": [
+        {"text": "Today"},
+        {"text": "1461 / 2400 kcal"},
+        {"text": "Protein"},
+        {"text": "121 / 180g"},
+        {"text": "MEALS"},
+        {"text": " 2/6"},
+        {"text": "WATER"},
+        {"text": " 1.0 L"},
+        {"text": "VEG"},
+        {"text": " 1"}
+      ]}
+    ]}
+  ]}
+]}

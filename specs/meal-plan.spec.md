@@ -42,7 +42,12 @@ those slices are built.
   **strictly between its neighbouring slots' times** — the sheet offers no value outside
   that window and the domain coerces one — so the six times are always strictly ascending
   and every derived surface (water midpoints, focus order) stays monotone (decision 15).
-- **PLAN-07** — Given a slot time is set, Then one daily reminder is armed for that slot:
+- **PLAN-07** — Given a slot time is set, Then one daily reminder is armed for that slot,
+  firing at its **prep lead** — 30 minutes before the slot time, clamped at midnight
+  (daily-journeys decision 1: the useful moment is before the meal, when there is still
+  time to prep; the lead is a named constant until the reminders settings surface makes it
+  a choice) — and the reminder names both moments (the meal and its slot time), while
+  **water reminders keep their derived midpoint times unchanged** (nothing to prep):
   **exact** when the platform permits exact alarms, otherwise **windowed-inexact** — never
   silently nothing; armed reminders are re-registered on device boot and on app open, so a
   reboot does not eat the day's reminders. When the slot is ticked done before it fires,

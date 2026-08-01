@@ -26,6 +26,7 @@ import com.kvdm.fuelled.presentation.foods.FoodsRoute
 import com.kvdm.fuelled.presentation.meal.MealTrayRoute
 import com.kvdm.fuelled.presentation.mealplan.MealPlanRoute
 import com.kvdm.fuelled.presentation.mealplan.MealTimesRoute
+import com.kvdm.fuelled.presentation.week.WeekReviewRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
@@ -106,7 +107,7 @@ fun AppNavHost() {
                 },
                 foods = { FoodsRoute(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
                 supplements = { SupplementsRoute() },
-                profile = { ProfileRoute() },
+                profile = { ProfileRoute(onOpenWeek = { navController.navigate(Routes.WEEK) }) },
             )
             AppShell(tabs = tabs, selectedIndex = selectedTab, onSelectTab = { selectedTab = it })
         }
@@ -183,6 +184,14 @@ fun AppNavHost() {
         composable(Screen.MealTimes.route) {
             BaseScreen {
                 MealTimesRoute(onBack = { navController.popBackStack() })
+            }
+        }
+        // The week in review (JRN-01/JRN-02) — the holistic look back; entered from Profile's
+        // stats row. BaseScreen: a destination registered directly on the NavHost owns its
+        // insets (SHELL-05).
+        composable(Screen.Week.route) {
+            BaseScreen {
+                WeekReviewRoute(onBack = { navController.popBackStack() })
             }
         }
         // cmp:anchor nav-destinations

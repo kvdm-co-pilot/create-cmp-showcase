@@ -3,66 +3,66 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "8c83f65e055b16307a32e3ac954de5bfb5824858",
+    "sha": "25e5f0a4d324e5fbbf32278146402d163b5976cd",
     "dirty": [
       "CHANGELOG.md",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/AndroidReminderScheduler.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealReminder.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/WeekReview.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetWeekReviewUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/week/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/MealPlanUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/week/",
       "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
       "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
-      "docs/features/usability-pass.md",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/week/",
+      "docs/ARCHITECTURE.md",
+      "docs/features/daily-journeys.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/golden/meal-plan.json",
-      "qa/golden/meal.json",
-      "specs/profile.spec.md",
-      "specs/usability-pass.spec.md"
+      "qa/golden/profile.json",
+      "qa/golden/week.json",
+      "specs/daily-journeys.spec.md",
+      "specs/meal-plan.spec.md"
     ]
   },
   "inputs": {
-    "hash": "0a710a8e72ae9f219df9f2c50fccd4a82dc407c74aa70411dc02ac5a8eafaa61",
-    "fileCount": 304
+    "hash": "1167a6b3097ae23c97fd4edacdc10d33909909d8df4956225e46c086d6f7d0b6",
+    "fileCount": 312
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 42,
+      "durationMs": 54,
       "details": {
-        "clauses": 100,
+        "clauses": 103,
         "withdrawn": 2,
-        "tags": 229,
-        "files": 205
+        "tags": 233,
+        "files": 211
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:usability-pass] Feature brief (docs/features/usability-pass.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:usability-pass\n  [exemplar-feature] Exemplar feature (foods — the file set the stamper clones) — reopened for redesign at 2026-08-01T09:04:07.650Z (reason: usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)) (non-blocking until re-approved). Approve: node qa/approve.mjs exemplar-feature\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.795Z (reason: usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.722Z (reason: usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T09:04:07.571Z (reason: usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile\n  [feature-spec:usability-pass] Feature spec (specs/usability-pass.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:usability-pass",
-      "durationMs": 20,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:daily-journeys] Feature brief (docs/features/daily-journeys.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:daily-journeys\n  [feature-brief:usability-pass] Feature brief (docs/features/usability-pass.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:usability-pass\n  [exemplar-feature] Exemplar feature (foods — the file set the stamper clones) — reopened for redesign at 2026-08-01T09:04:07.650Z (reason: usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)) (non-blocking until re-approved). Approve: node qa/approve.mjs exemplar-feature\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.795Z (reason: usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.722Z (reason: usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-spec:daily-journeys] Feature spec (specs/daily-journeys.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:daily-journeys\n  [feature-spec:meal-plan] Feature spec (specs/meal-plan.spec.md) — reopened for redesign at 2026-08-01T13:54:52.793Z (reason: daily-journeys decision 1: PLAN-07 amended — meal reminders become prep reminders, armed 30 min before the slot time (docs/features/daily-journeys.md J2); water and cancellation semantics unchanged) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal-plan\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T09:04:07.571Z (reason: usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile\n  [feature-spec:usability-pass] Feature spec (specs/usability-pass.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:usability-pass",
+      "durationMs": 18,
       "details": {
         "artifacts": [
           {
             "id": "intent",
             "status": "approved",
             "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
+          },
+          {
+            "id": "feature-brief:daily-journeys",
+            "status": "unreviewed",
+            "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d"
           },
           {
             "id": "feature-brief:meal-plan",
@@ -112,7 +112,7 @@
           {
             "id": "feature-design:meal-plan",
             "status": "reopened",
-            "hash": "21396a21a27104f1823531412995210787121edee8bcd3509a6d8d6520375684"
+            "hash": "9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6"
           },
           {
             "id": "feature-design:meal",
@@ -120,9 +120,14 @@
             "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a"
           },
           {
+            "id": "feature-spec:daily-journeys",
+            "status": "unreviewed",
+            "hash": "a08e2f998a245da4a20d73448c5d9e71428d6897b6555d1fe3224932c0684f89"
+          },
+          {
             "id": "feature-spec:meal-plan",
-            "status": "approved",
-            "hash": "1871d480cb337eb1d9d302e99cba749fe1847569503d9c7c0e9abb098cc0c3b9"
+            "status": "reopened",
+            "hash": "b87946cc94d7b3057429fd636be232174df0892955e85d7d778535061a9a4772"
           },
           {
             "id": "feature-spec:meal",
@@ -160,7 +165,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -171,7 +176,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 8,
+      "durationMs": 7,
       "details": {
         "features": [
           {
@@ -229,6 +234,14 @@
               "TodayRoute",
               "TodayScreen"
             ]
+          },
+          {
+            "name": "week",
+            "reachable": true,
+            "entryComposables": [
+              "WeekReviewRoute",
+              "WeekReviewScreen"
+            ]
           }
         ]
       }
@@ -236,7 +249,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 13,
+      "durationMs": 12,
       "details": {
         "sectionsChecked": 4
       }
@@ -244,19 +257,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 28615
+      "durationMs": 12834
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 251000
+      "durationMs": 167863
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 12769,
+      "durationMs": 13279,
       "details": {
-        "tests": 224,
+        "tests": 228,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -265,23 +278,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3041
+      "durationMs": 2624
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4063
+      "durationMs": 4778
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 278
+      "durationMs": 233
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3877
+      "durationMs": 2985
     },
     {
       "name": "e2eSmoke",
@@ -298,5 +311,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-01T09:29:25.794Z"
+  "generatedAt": "2026-08-01T14:15:40.348Z"
 }

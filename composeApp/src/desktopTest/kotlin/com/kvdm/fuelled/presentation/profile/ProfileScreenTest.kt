@@ -14,6 +14,7 @@ import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeProfileRepository
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 /**
  * Durable screen tests — first-party Compose UI Test, spec-cited, testTag selectors. Each test
@@ -93,6 +94,23 @@ class ProfileScreenTest {
         onNodeWithTag("profile_setting_reminders").assertExists().assertHasNoClickAction()
         onNodeWithTag("profile_setting_connected").assertExists().assertHasNoClickAction()
         onNodeWithTag("profile_setting_account").assertExists().assertHasNoClickAction()
+    }
+
+    // SPEC: JRN-02
+    @Test
+    fun `the stats row is a real control - it opens the week in review`() = runComposeUiTest {
+        repository.profile = FakeProfileRepository.sampleProfile
+        var opened = 0
+
+        setContent {
+            MaterialTheme { ProfileRoute(viewModel = viewModel(), onOpenWeek = { opened++ }) }
+        }
+
+        awaitNode(hasTestTag("profile_screen"))
+        // The tap exists BECAUSE the destination does (UX-04's rule, the other direction):
+        // the streak and avg-protein claims are now verifiable by the surface they open.
+        onNodeWithTag("profile_week_link").assertExists().performClick()
+        assertEquals(1, opened, "the stats row navigates to the week review")
     }
 
     // SPEC: PROF-05

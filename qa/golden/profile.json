@@ -19,17 +19,19 @@
         {"text": "Trains 5×/week"}
       ]}
     ]},
-    {"children": [
-      {"text": "12"},
-      {"text": "day streak"}
-    ]},
-    {"children": [
-      {"text": "172g"},
-      {"text": "avg protein"}
-    ]},
-    {"children": [
-      {"text": "82.4"},
-      {"text": "kg"}
+    {"tag": "profile_week_link", "children": [
+      {"children": [
+        {"text": "12"},
+        {"text": "day streak"}
+      ]},
+      {"children": [
+        {"text": "172g"},
+        {"text": "avg protein"}
+      ]},
+      {"children": [
+        {"text": "82.4"},
+        {"text": "kg"}
+      ]}
     ]},
     {"children": [
       {"tag": "profile_setting_units", "children": [

@@ -142,14 +142,20 @@ class AndroidReminderScheduler(
         )
     }
 
+    // PLAN-07: a meal reminder fires at the prep lead, so its copy names the meal's actual
+    // moment and asks for the prep — "Lunch at 12:00 — time to prep", not a bare "Lunch"
+    // arriving half an hour early with no explanation.
     private fun titleFor(reminder: MealReminder): String = when (val target = reminder.target) {
-        is ReminderTarget.Meal -> mealTitle(target)
+        is ReminderTarget.Meal -> "${mealTitle(target)} at ${reminder.eventTime.clock()} — time to prep"
         is ReminderTarget.Water -> "Water — 500 ml"
     }
 
     private fun mealTitle(target: ReminderTarget.Meal): String = target.slot.name
         .split('_')
         .joinToString(" ") { word -> word.lowercase().replaceFirstChar { it.uppercase() } }
+
+    private fun kotlinx.datetime.LocalTime.clock(): String =
+        "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return

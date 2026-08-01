@@ -6,6 +6,19 @@ versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **The daily-journeys pass — the app judged as days lived, not screens visited**
+  (`docs/features/daily-journeys.md`, `specs/daily-journeys.spec.md` JRN-01..03; PLAN-07
+  amended). Seven journeys walked on the rendered screens; the two that failed are built:
+  - **Prep reminders** (J2, PLAN-07): meal reminders now fire **30 minutes before** the
+    slot — the moment a working user can still cook or fetch the meal — carrying the slot
+    time in the copy ("Lunch at 12:00 — time to prep"). Water keeps its midpoints; a
+    ticked meal still cancels; the times sheet states the lead.
+  - **Week in review** (J6, route `week`): the holistic results surface — headline verdict
+    first (protein days hit at a ≥95%-of-goal tolerance, meals kept, avg kcal), then the
+    last seven logical days with kcal vs target, protein bar, meals /6, water, veg. All
+    derived through the same observed plan-day and summary reads (no second read path).
+    Profile's stats row is now the door (`profile_week_link`) — its streak/avg claims
+    finally open the surface that backs them.
 - **The usability pass — every flow re-judged as a human's day**
   (`docs/features/usability-pass.md`, `specs/usability-pass.spec.md` UX-01..UX-04). The
   walkthrough found the app's real flows sound but three core verbs missing and several
