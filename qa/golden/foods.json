@@ -1,6 +1,9 @@
 {"children": [
   {"tag": "foods_screen", "children": [
     {"tag": "foods_title", "text": "Foods"},
+    {"tag": "foods_add", "role": "Button", "children": [
+      {"text": "New food"}
+    ]},
     {"tag": "foods_search", "children": [
       {"children": [
         {"text": "Search foods"}

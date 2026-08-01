@@ -42,8 +42,8 @@ class AddLogEntriesUseCaseTest {
     )
 
     private val tray = listOf(
-        NewLogEntry("t1", "Chicken breast", "200 g", kcal = 330, proteinG = 62, carbsG = 0, fatG = 7),
-        NewLogEntry("t2", "Basmati rice", "150 g", kcal = 195, proteinG = 4, carbsG = 43, fatG = 1),
+        NewLogEntry(id = "t1", name = "Chicken breast", serving = "200 g", kcal = 330, proteinG = 62, carbsG = 0, fatG = 7),
+        NewLogEntry(id = "t2", name = "Basmati rice", serving = "150 g", kcal = 195, proteinG = 4, carbsG = 43, fatG = 1),
     )
 
     // SPEC: MEAL-08

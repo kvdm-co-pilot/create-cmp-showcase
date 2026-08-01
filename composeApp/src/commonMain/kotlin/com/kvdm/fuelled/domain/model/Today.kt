@@ -40,6 +40,11 @@ data class LogEntry(
     val status: LogStatus = LogStatus.LOGGED,
     /** Whether this entry is a vegetable — the day's "Veg n of 2" counts from it (PLAN-22). */
     val veg: Boolean = false,
+    /**
+     * ENTRY-01: how many servings this row is. [kcal] and [proteinG] are already the TOTAL
+     * (base x servings); this carries the multiple itself so the in-place editor can step it.
+     */
+    val servings: Int = 1,
 )
 
 /**

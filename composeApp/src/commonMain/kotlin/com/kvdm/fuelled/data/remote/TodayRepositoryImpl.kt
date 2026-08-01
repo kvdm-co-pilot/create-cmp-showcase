@@ -4,6 +4,8 @@ import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.data.local.DEFAULT_TODAY_GOAL
 import com.kvdm.fuelled.data.local.LogEntryEntity
+import com.kvdm.fuelled.data.local.toDeleted
+import com.kvdm.fuelled.data.local.toEntity as deletedToEntity
 import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.TodayGoalEntity
 import com.kvdm.fuelled.data.local.logStatus
@@ -11,6 +13,7 @@ import com.kvdm.fuelled.data.local.mealSlot
 import com.kvdm.fuelled.data.local.toDomain
 import com.kvdm.fuelled.data.local.toEntity
 import com.kvdm.fuelled.data.suspendRunCatching
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
@@ -110,9 +113,24 @@ class TodayRepositoryImpl(
         )
     }
 
-    override suspend fun deleteEntry(id: String): AppResult<Unit> = suspendRunCatching {
+    /**
+     * ENTRY-02: read the row, THEN delete it, and hand back what was removed so an undo can
+     * restore it exactly. Reading first is the whole point — after the delete there is
+     * nothing left to describe.
+     */
+    override suspend fun deleteEntry(id: String): AppResult<DeletedEntry> = suspendRunCatching {
+        val row = dao.entry(id) ?: throw NoSuchElementException("no log entry with id '$id'")
         dao.deleteEntry(id)
+        row.toDeleted()
     }
+
+    /** ENTRY-02: put it back exactly — same id, day, slot, order, servings (idempotent). */
+    override suspend fun restoreEntry(entry: DeletedEntry): AppResult<Unit> = suspendRunCatching {
+        dao.upsertEntry(entry.deletedToEntity())
+    }
+
+    override suspend fun setEntryServings(id: String, servings: Int): AppResult<Unit> =
+        suspendRunCatching { dao.setServings(id, servings) }
 
     override suspend fun markEntryLogged(id: String): AppResult<Unit> = suspendRunCatching {
         dao.setStatus(id, LogStatus.LOGGED.name)

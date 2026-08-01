@@ -12,6 +12,7 @@ sealed class Screen(val route: String) {
     data object MealPlan : Screen(Routes.MEAL_PLAN)
     data object MealTimes : Screen(Routes.MEAL_TIMES)
     data object Week : Screen(Routes.WEEK)
+    data object FoodEditor : Screen(Routes.FOOD_EDITOR)
     // cmp:anchor screen-objects
 }
 
@@ -23,8 +24,15 @@ object Routes {
     const val MEAL_TIMES  = "plan/times"
     /** The week in review (JRN-01/JRN-02) — no arguments: the window is always the last 7 days. */
     const val WEEK        = "week"
+    /** CAT-01: the custom-food editor. A blank id is "new"; an id edits that food. */
+    const val FOOD_EDITOR = "food/edit/{foodId}"
     // cmp:anchor route-consts
     fun foodDetail(foodId: String) = "food/$foodId"
+
+    /** CAT-01: `new` is the sentinel for "create" — a route needs a value, and "" cannot ride one. */
+    fun foodEditor(foodId: String = NEW_FOOD) = "food/edit/$foodId"
+
+    const val NEW_FOOD = "new"
 
     /**
      * The structured day (PLAN-11). The date rides the route so a link into a specific day —

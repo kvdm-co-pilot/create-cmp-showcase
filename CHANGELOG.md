@@ -6,6 +6,30 @@ versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **First run, entry editing, and catalog ownership** — the last three named slices
+  (`docs/features/first-run.md`, `docs/features/catalog-and-editing.md`;
+  `specs/first-run.spec.md` START-01/02, `specs/entry-editing.spec.md` ENTRY-01/02,
+  `specs/catalog.spec.md` CAT-01..03). Schema **v10** carries all three.
+  - **T1 First run** (START-01): a fresh install opens on a three-answer interview — name,
+    calorie target, protein goal — writing through the same stores Profile's editors use;
+    skippable, shown once, and gated ABOVE the nav graph so it can't be reached by going
+    back. **First-day framing** (START-02): the app now records when it was first opened
+    (`app_state`), and slots earlier than that read *before you started* — muted, excluded
+    from focus, still back-fillable — instead of MISSED. A tracker shouldn't tell you off
+    for meals it never saw.
+  - **S2 Entry editing** (ENTRY-01/02): every logged entry row carries an in-place serving
+    stepper, and removals now offer **undo** — the delete returns what it removed, so the
+    restore is exact (same id, day, slot, order, servings). Log rows now store per-serving
+    macros plus the multiple, which is what makes an after-the-fact serving edit possible
+    at all.
+  - **S3 Catalog ownership** (CAT-01..03): create, edit and delete your **own foods**
+    (seeded catalog stays read-only reference data); **favourites** pin a food and lead
+    every list from one SQL ordering; **recents** derive from the log's own `foodId`
+    provenance. The Foods tab finally has a job: it's where your foods live.
+  - Fixed two a11y defects found by `audit_a11y` on the new screens before they shipped:
+    text fields labelled only by a sibling Text (invisible to screen readers → moved into
+    M3's own `label` slot), and a bare 52×32 Switch (→ a toggleable row at the 48 dp floor,
+    the tray's mirror pattern).
 - **Personalization — the app becomes yours** (`docs/features/personalization.md`,
   `specs/personalization.spec.md` PERS-01..03; usability-pass S1, first half). The
   calorie target and protein goal are now **editable from Profile** (tap the row), your

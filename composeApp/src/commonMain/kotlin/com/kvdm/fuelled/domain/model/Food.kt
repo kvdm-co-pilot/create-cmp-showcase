@@ -22,4 +22,17 @@ data class Food(
      * flag is a claim to be made deliberately.
      */
     val veg: Boolean = false,
+    /**
+     * CAT-02: pinned by the user. A favourite is a statement about how OFTEN you eat this,
+     * which is why it sorts the tray ahead of everything else — the fastest log is the one
+     * that needs no search.
+     */
+    val favourite: Boolean = false,
+    /**
+     * CAT-01: created by the user, not seeded. Only a custom food is editable: the seeded
+     * catalog's numbers are reference data, and silently editing "Chicken breast" under
+     * everyone's past entries would rewrite what those days claimed (log rows snapshot their
+     * own macros, so history is safe — but the catalog should still say what it means).
+     */
+    val custom: Boolean = false,
 )

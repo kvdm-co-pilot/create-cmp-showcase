@@ -16,4 +16,19 @@ interface FoodRepository {
 
     /** A single catalog entry by id — [AppResult.Failure] with `DomainError.NotFound` if absent. */
     suspend fun getFood(id: String): AppResult<Food>
+
+    /**
+     * CAT-01: create or replace ONE catalog food. The caller owns the id — a new custom food
+     * mints one, an edit reuses it — so this is idempotent, like the log's write path.
+     */
+    suspend fun saveFood(food: Food): AppResult<Unit>
+
+    /** CAT-01: remove a custom food. Log rows snapshot their own macros, so history survives. */
+    suspend fun deleteFood(id: String): AppResult<Unit>
+
+    /** CAT-02: pin or unpin. Favourites lead every list the catalog feeds. */
+    suspend fun setFavourite(id: String, favourite: Boolean): AppResult<Unit>
+
+    /** CAT-03: the foods logged most recently, newest first — the tray's shortcut. */
+    suspend fun recentFoods(limit: Int): AppResult<List<Food>>
 }

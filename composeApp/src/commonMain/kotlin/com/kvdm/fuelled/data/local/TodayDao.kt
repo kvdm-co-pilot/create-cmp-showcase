@@ -62,8 +62,26 @@ interface TodayDao {
         for (entry in entries) upsertEntry(entry)
     }
 
+    /** ENTRY-02: the row as it stands — read BEFORE a delete so undo can put it back. */
+    @Query("SELECT * FROM today_log WHERE id = :id LIMIT 1")
+    suspend fun entry(id: String): LogEntryEntity?
+
     @Query("DELETE FROM today_log WHERE id = :id")
     suspend fun deleteEntry(id: String)
+
+    /** ENTRY-01: change one row's serving multiple; its totals re-derive on read. */
+    @Query("UPDATE today_log SET servings = :servings WHERE id = :id")
+    suspend fun setServings(id: String, servings: Int)
+
+    /**
+     * CAT-03: the catalog foods logged most recently, newest first. Ordered by the LOGICAL
+     * DAY the row belongs to (not insertion), because "recent" means recently eaten.
+     */
+    @Query(
+        "SELECT foodId FROM today_log WHERE foodId != '' GROUP BY foodId " +
+            "ORDER BY MAX(logicalDate) DESC, MAX(entryOrder) DESC LIMIT :limit",
+    )
+    suspend fun recentFoodIds(limit: Int): List<String>
 
     @Query("UPDATE today_log SET status = :status WHERE id = :id")
     suspend fun setStatus(id: String, status: String)

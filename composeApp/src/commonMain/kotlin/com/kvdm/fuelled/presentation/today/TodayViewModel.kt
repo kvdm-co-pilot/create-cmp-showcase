@@ -8,7 +8,10 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.RestoreLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
@@ -50,7 +53,15 @@ class TodayViewModel(
     private val setWaterDone: SetWaterDoneUseCase,
     private val armReminders: ArmMealRemindersUseCase,
     private val deleteLogEntry: DeleteLogEntryUseCase,
+    private val setEntryServings: SetEntryServingsUseCase,
+    private val restoreLogEntry: RestoreLogEntryUseCase,
 ) : ViewModel() {
+
+    /** ENTRY-02: the last removal, held for the undo bar (same shape as the plan screen's). */
+    private val _lastDeleted = MutableStateFlow<DeletedEntry?>(null)
+    val lastDeleted: StateFlow<DeletedEntry?> = _lastDeleted.asStateFlow()
+
+    fun clearUndo() { _lastDeleted.value = null }
 
     /**
      * The logical day Today speaks for, as a STREAM — it advances at 04:00 and on every wake,
@@ -123,7 +134,29 @@ class TodayViewModel(
      */
     fun deleteEntry(id: String) {
         viewModelScope.launch {
-            if (deleteLogEntry(id) is AppResult.Failure) _writeError.value = true
+            when (val result = deleteLogEntry(id)) {
+                is AppResult.Failure -> _writeError.value = true
+                is AppResult.Success -> _lastDeleted.value = result.value
+            }
+        }
+    }
+
+    /** ENTRY-02: restore the last removed entry — the same one write path as the plan's. */
+    fun undoDelete() {
+        val entry = _lastDeleted.value ?: return
+        viewModelScope.launch {
+            if (restoreLogEntry(entry) is AppResult.Failure) _writeError.value = true else _lastDeleted.value = null
+        }
+    }
+
+    /** ENTRY-01: step the focused container's entry servings in place. */
+    fun setServings(id: String, servings: Int) {
+        if (servings < 1) {
+            deleteEntry(id)
+            return
+        }
+        viewModelScope.launch {
+            if (setEntryServings(id, servings) is AppResult.Failure) _writeError.value = true
         }
     }
 

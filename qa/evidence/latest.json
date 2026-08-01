@@ -3,61 +3,106 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "057d071cfc1e448e42810296eb70b83daf73ea72",
+    "sha": "7b6e6c434e07f1aa582daf5e9100844763d8f1b0",
     "dirty": [
       "CHANGELOG.md",
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/9.json",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/10.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/10.json",
       "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/9.json",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/ProfileEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppStateEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodDao.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayDao.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/AppStateRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/MealPlanRepositoryImpl.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/ProfileRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppState.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/DeletedEntry.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Food.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Meal.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/PlanDay.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Today.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/AppStateRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/FoodRepository.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/TodayRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/UpdateGoalsUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/UpdateProfileNameUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileViewModel.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImplTest.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AppStateUseCases.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/CatalogUseCases.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/DeleteLogEntryUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/EntryEditUseCases.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/App.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodEditorScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodEditorViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/onboarding/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/CatalogTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImplTest.kt",
       "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeProfileRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/FirstDayTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/DeleteLogEntryUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/foods/FoodEditorViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/EntryEditingTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/onboarding/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppStateRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeFoodDao.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeFoodRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayDao.kt",
       "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayRepository.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
       "docs/ARCHITECTURE.md",
-      "docs/features/personalization.md",
+      "docs/features/catalog-and-editing.md",
+      "docs/features/first-run.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
       "qa/evidence/latest.json",
-      "qa/golden/profile.json",
-      "specs/personalization.spec.md",
-      "specs/profile.spec.md"
+      "qa/golden/foods.json",
+      "qa/golden/meal-plan.json",
+      "specs/catalog.spec.md",
+      "specs/entry-editing.spec.md",
+      "specs/first-run.spec.md"
     ]
   },
   "inputs": {
-    "hash": "06229088242cebfeed9c700ed68697708a08f4f19b85e13dc55b9f78c67c5cea",
-    "fileCount": 317
+    "hash": "37b7370d022874aae3b9de4ec5eb75e95a69520ec6b577a49cb2338d18f1a04e",
+    "fileCount": 340
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 55,
+      "durationMs": 71,
       "details": {
-        "clauses": 106,
+        "clauses": 113,
         "withdrawn": 2,
-        "tags": 239,
-        "files": 213
+        "tags": 259,
+        "files": 231
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:personalization] Feature brief (docs/features/personalization.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:personalization\n  [feature-spec:personalization] Feature spec (specs/personalization.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:personalization\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T14:59:45.252Z (reason: personalization PERS-02: PROF-02 amended — calorie/protein rows regain their tap because the editor now exists (docs/features/personalization.md decision 4); activity stays read-only) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile",
-      "durationMs": 13,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:catalog-and-editing] Feature brief (docs/features/catalog-and-editing.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:catalog-and-editing\n  [feature-brief:first-run] Feature brief (docs/features/first-run.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:first-run\n  [feature-brief:personalization] Feature brief (docs/features/personalization.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:personalization\n  [exemplar-feature] Exemplar feature (foods — the file set the stamper clones) — reopened for redesign at 2026-08-01T16:16:00.978Z (reason: catalog-and-editing CAT-01/CAT-02/CAT-03: the foods exemplar grows the custom-food editor, favourites, and recents — the file set the stamper clones changes across all its layers) (non-blocking until re-approved). Approve: node qa/approve.mjs exemplar-feature\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T16:17:49.275Z (reason: entry-editing ENTRY-01/02 + first-run START-02: entry rows gain the in-place serving stepper and the undo bar; the card gains the BEFORE_START state. Re-sign on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-spec:catalog] Feature spec (specs/catalog.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:catalog\n  [feature-spec:entry-editing] Feature spec (specs/entry-editing.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:entry-editing\n  [feature-spec:first-run] Feature spec (specs/first-run.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:first-run\n  [feature-spec:personalization] Feature spec (specs/personalization.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:personalization\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T14:59:45.252Z (reason: personalization PERS-02: PROF-02 amended — calorie/protein rows regain their tap because the editor now exists (docs/features/personalization.md decision 4); activity stays read-only) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile",
+      "durationMs": 25,
       "details": {
         "artifacts": [
           {
@@ -66,9 +111,19 @@
             "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
           },
           {
+            "id": "feature-brief:catalog-and-editing",
+            "status": "unreviewed",
+            "hash": "95e7bdf79d7a936518b2ab8d1ece255676a6567e2aca67d9eaffbd5dc50a96fe"
+          },
+          {
             "id": "feature-brief:daily-journeys",
             "status": "approved",
             "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d"
+          },
+          {
+            "id": "feature-brief:first-run",
+            "status": "unreviewed",
+            "hash": "f7f38b1b2ebd072d2ead7972935b4e6646699685b1d54553ad581e7f35c77bc5"
           },
           {
             "id": "feature-brief:meal-plan",
@@ -107,8 +162,8 @@
           },
           {
             "id": "exemplar-feature",
-            "status": "approved",
-            "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896"
+            "status": "reopened",
+            "hash": "0ebcfe3f86dd35a222463472f7e95fb2cfad95b07801eb1c8ce5b71ab0928b9d"
           },
           {
             "id": "design-system",
@@ -122,8 +177,8 @@
           },
           {
             "id": "feature-design:meal-plan",
-            "status": "approved",
-            "hash": "9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6"
+            "status": "reopened",
+            "hash": "687d17c23c37d92f7578829ed09aa5ae1fa087deb8e1fb5dbbe3dfedca8efaba"
           },
           {
             "id": "feature-design:meal",
@@ -131,9 +186,24 @@
             "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a"
           },
           {
+            "id": "feature-spec:catalog",
+            "status": "unreviewed",
+            "hash": "14b29da6dcb34e128904576c2304d1305cca76c3b8550baa9b0e4bdb6d9c3a1d"
+          },
+          {
             "id": "feature-spec:daily-journeys",
             "status": "approved",
             "hash": "a08e2f998a245da4a20d73448c5d9e71428d6897b6555d1fe3224932c0684f89"
+          },
+          {
+            "id": "feature-spec:entry-editing",
+            "status": "unreviewed",
+            "hash": "81c15f1513182e4d7e2f8c282fcb8d17933dce1d01838d0579815852d2e683c4"
+          },
+          {
+            "id": "feature-spec:first-run",
+            "status": "unreviewed",
+            "hash": "53d0276bf95314699988a73a5abbd5bb20be6cb61dfaf95f300eb8949250b166"
           },
           {
             "id": "feature-spec:meal-plan",
@@ -192,7 +262,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 6,
+      "durationMs": 19,
       "details": {
         "features": [
           {
@@ -201,6 +271,8 @@
             "entryComposables": [
               "FoodDetailRoute",
               "FoodDetailScreen",
+              "FoodEditorRoute",
+              "FoodEditorScreen",
               "FoodsRoute",
               "FoodsScreen"
             ]
@@ -226,6 +298,14 @@
             "name": "navigation",
             "reachable": true,
             "entryComposables": []
+          },
+          {
+            "name": "onboarding",
+            "reachable": true,
+            "entryComposables": [
+              "OnboardingRoute",
+              "OnboardingScreen"
+            ]
           },
           {
             "name": "profile",
@@ -265,7 +345,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 10,
+      "durationMs": 15,
       "details": {
         "sectionsChecked": 4
       }
@@ -273,19 +353,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 6671
+      "durationMs": 12527
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1438
+      "durationMs": 2892
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 8367,
+      "durationMs": 11126,
       "details": {
-        "tests": 234,
+        "tests": 254,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -294,23 +374,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1626
+      "durationMs": 3058
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2778
+      "durationMs": 5501
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 19
+      "durationMs": 106
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2231
+      "durationMs": 3782
     },
     {
       "name": "e2eSmoke",
@@ -327,5 +407,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-01T15:00:08.690Z"
+  "generatedAt": "2026-08-01T16:29:45.196Z"
 }

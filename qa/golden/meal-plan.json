@@ -49,6 +49,13 @@
         ]},
         {"text": "Golden oats"},
         {"text": "80 g"},
+        {"tag": "plan_entry_minus_g1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving less of Golden oats"}
+        ]},
+        {"tag": "plan_entry_servings_g1", "text": "1x"},
+        {"tag": "plan_entry_plus_g1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving more of Golden oats"}
+        ]},
         {"text": "430 kcal"},
         {"text": "38g P"},
         {"tag": "plan_entry_delete_g1", "role": "Button", "children": [
@@ -92,6 +99,13 @@
         ]},
         {"text": "Golden chicken"},
         {"text": "200 g"},
+        {"tag": "plan_entry_minus_g2", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving less of Golden chicken"}
+        ]},
+        {"tag": "plan_entry_servings_g2", "text": "1x"},
+        {"tag": "plan_entry_plus_g2", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving more of Golden chicken"}
+        ]},
         {"text": "620 kcal"},
         {"text": "58g P"},
         {"tag": "plan_entry_delete_g2", "role": "Button", "children": [
@@ -99,6 +113,13 @@
         ]},
         {"text": "Golden greens"},
         {"text": "1 bowl"},
+        {"tag": "plan_entry_minus_g3", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving less of Golden greens"}
+        ]},
+        {"tag": "plan_entry_servings_g3", "text": "1x"},
+        {"tag": "plan_entry_plus_g3", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving more of Golden greens"}
+        ]},
         {"text": "90 kcal"},
         {"text": "3g P"},
         {"tag": "plan_entry_delete_g3", "role": "Button", "children": [

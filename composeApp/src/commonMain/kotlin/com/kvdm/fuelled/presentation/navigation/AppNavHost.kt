@@ -22,6 +22,7 @@ import com.kvdm.fuelled.presentation.components.BaseScreen
 import org.koin.compose.koinInject
 import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 import com.kvdm.fuelled.presentation.foods.FoodDetailRoute
+import com.kvdm.fuelled.presentation.foods.FoodEditorRoute
 import com.kvdm.fuelled.presentation.foods.FoodsRoute
 import com.kvdm.fuelled.presentation.meal.MealTrayRoute
 import com.kvdm.fuelled.presentation.mealplan.MealPlanRoute
@@ -105,7 +106,13 @@ fun AppNavHost() {
                         onOpenSupplements = { selectedTab = SUPPLEMENTS_TAB },
                     )
                 },
-                foods = { FoodsRoute(onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) }) },
+                foods = {
+                    FoodsRoute(
+                        onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) },
+                        // CAT-01: the Foods tab's new job — your own catalog entries.
+                        onAddFood = { navController.navigate(Routes.foodEditor()) },
+                    )
+                },
                 supplements = { SupplementsRoute() },
                 profile = { ProfileRoute(onOpenWeek = { navController.navigate(Routes.WEEK) }) },
             )
@@ -117,7 +124,11 @@ fun AppNavHost() {
             arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val foodId = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
-            FoodDetailRoute(foodId = foodId, onBack = { navController.popBackStack() })
+            FoodDetailRoute(
+                foodId = foodId,
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(Routes.foodEditor(it)) },
+            )
         }
 
         // The add-to-meal tray, ALREADY TARGETED (TODAY-07/TODAY-08). The target rides the
@@ -192,6 +203,22 @@ fun AppNavHost() {
         composable(Screen.Week.route) {
             BaseScreen {
                 WeekReviewRoute(onBack = { navController.popBackStack() })
+            }
+        }
+        // CAT-01: the custom-food editor. `new` mints an id here rather than in the ViewModel,
+        // so a rotation mid-typing keeps the same identity and cannot create a twin on save.
+        composable(
+            route = Screen.FoodEditor.route,
+            arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val arg = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
+            val editing = if (arg == Routes.NEW_FOOD) "" else arg
+            BaseScreen {
+                FoodEditorRoute(
+                    foodId = editing,
+                    newId = "custom-" + backStackEntry.id,
+                    onDone = { navController.popBackStack() },
+                )
             }
         }
         // cmp:anchor nav-destinations

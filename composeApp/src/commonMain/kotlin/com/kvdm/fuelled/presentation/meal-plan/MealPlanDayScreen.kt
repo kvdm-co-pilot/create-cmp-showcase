@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,7 +51,15 @@ import com.kvdm.fuelled.presentation.theme.FuelledTokens
 // build step, after the spec.
 
 /** One entry row. [id] is the log entry's own id — the remove control (UX-02) addresses it. */
-data class PlanEntryUi(val id: String, val name: String, val serving: String, val kcal: Int, val proteinG: Int)
+data class PlanEntryUi(
+    val id: String,
+    val name: String,
+    val serving: String,
+    val kcal: Int,
+    val proteinG: Int,
+    /** ENTRY-01: the row's serving multiple — the in-place stepper's current value. */
+    val servings: Int = 1,
+)
 
 /**
  * DONE, FOCUSED ("next"), FOCUSED_LATE, MISSED, UPCOMING. MISSED (PLAN-19, decision 14) is
@@ -58,7 +67,7 @@ data class PlanEntryUi(val id: String, val name: String, val serving: String, va
  * purpose: missing a meal is routine in this method, and alarm styling belongs only to the
  * one slot you can still act on in time (the focused one).
  */
-enum class PlanSlotState { DONE, FOCUSED, FOCUSED_LATE, MISSED, UPCOMING }
+enum class PlanSlotState { DONE, FOCUSED, FOCUSED_LATE, MISSED, UPCOMING, BEFORE_START }
 
 data class PlanMealUi(
     val key: String,
@@ -181,6 +190,8 @@ data class PlanDayActions(
     val onOpenTimes: () -> Unit,
     /** UX-02: remove one entry by its id — the ledger's one delete path (MEAL-06), surfaced. */
     val onDeleteEntry: (String) -> Unit = {},
+    /** ENTRY-01: change one entry's serving multiple, in place. */
+    val onEntryServings: (String, Int) -> Unit = { _, _ -> },
 ) {
     companion object {
         /** Inert actions for gallery renders and golden trees: the structure, without wiring. */
@@ -193,10 +204,14 @@ data class PlanDayActions(
  * ViewModel. Decision 13: this is its OWN routed screen (`plan/{date}`), not Today's body —
  * Today shows the highlights projection ([TodayHighlightsScreen]) and links here.
  */
+/** ENTRY-02: what the undo bar says and does, or null when nothing was just removed. */
+data class UndoState(val name: String, val onUndo: () -> Unit)
+
 @Composable
 fun MealPlanDayScreen(
     day: PlanDayUi = samplePlanMidday,
     actions: PlanDayActions = PlanDayActions.None,
+    undo: UndoState? = null,
 ) {
     ScreenColumn(screenTag = "meal_plan") {
         AppHeader(
@@ -228,6 +243,10 @@ fun MealPlanDayScreen(
                 modifier = Modifier.semantics { testTag = "plan_veg_total" },
             )
         }
+        undo?.let {
+            Spacer(Modifier.height(6.dp))
+            UndoBar(name = it.name, onUndo = it.onUndo)
+        }
         Spacer(Modifier.height(FuelledTokens.GapCard))
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -239,6 +258,7 @@ fun MealPlanDayScreen(
                     onToggleDone = { actions.onToggleDone(meal.key, !meal.done) },
                     onAddFood = { actions.onAddFood(meal.key) },
                     onDeleteEntry = actions.onDeleteEntry,
+                    onEntryServings = actions.onEntryServings,
                 )
                 day.waters.getOrNull(i)?.let { water ->
                     WaterRow(
@@ -305,6 +325,7 @@ internal fun PlanMealCard(
     onToggleDone: () -> Unit = {},
     onAddFood: () -> Unit = {},
     onDeleteEntry: (String) -> Unit = {},
+    onEntryServings: (String, Int) -> Unit = { _, _ -> },
     // The card is shared with Today (decision 13 — Today renders the plan's projection), and
     // each surface names its own tags: `plan_add_lunch` there, `today_add_lunch` here
     // (TODAY-07). One composable, so the two can never drift visually; two tag namespaces, so
@@ -343,6 +364,9 @@ internal fun PlanMealCard(
                 // Muted, deliberately: the day moved on (PLAN-19). The tick and add stay
                 // live below — a missed meal is back-fillable, not closed.
                 PlanSlotState.MISSED -> Tag("MISSED", "", MaterialTheme.colorScheme.onSurfaceVariant)
+                // START-02: before this app existed. NOT missed — the app has no standing to
+                // say you skipped a meal it never saw (journey J3). Still back-fillable.
+                PlanSlotState.BEFORE_START -> Tag("BEFORE YOU STARTED", "", MaterialTheme.colorScheme.onSurfaceVariant)
                 PlanSlotState.UPCOMING -> {}
             }
             Spacer(Modifier.width(6.dp))
@@ -371,7 +395,12 @@ internal fun PlanMealCard(
         }
         when {
             meal.entries.isNotEmpty() -> meal.entries.forEach {
-                PlanEntryRow(it, onDelete = { onDeleteEntry(it.id) }, tagPrefix = tagPrefix)
+                PlanEntryRow(
+                    entry = it,
+                    onDelete = { onDeleteEntry(it.id) },
+                    onServings = { n -> onEntryServings(it.id, n) },
+                    tagPrefix = tagPrefix,
+                )
             }
             meal.tickedEmpty -> Text(
                 "Eaten off-plan",
@@ -397,11 +426,41 @@ internal fun PlanMealCard(
  * action a screen reader cannot find is not a control (UX-04's standing rule).
  */
 @Composable
-private fun PlanEntryRow(entry: PlanEntryUi, onDelete: () -> Unit, tagPrefix: String = "plan") {
+private fun PlanEntryRow(
+    entry: PlanEntryUi,
+    onDelete: () -> Unit,
+    onServings: (Int) -> Unit,
+    tagPrefix: String = "plan",
+) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(entry.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Text(entry.serving, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // ENTRY-01: the serving is editable WHERE IT IS. Fixing "I actually had two" was
+            // delete-and-re-add before this — four taps and a trip to the tray for a number
+            // already on screen.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIconButton(
+                    icon = Icons.Filled.Remove,
+                    contentDescription = "One serving less of ${entry.name}",
+                    onClick = { onServings(entry.servings - 1) },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_minus_${entry.id}" },
+                )
+                Text(
+                    "${entry.servings}x",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_servings_${entry.id}" },
+                )
+                AppIconButton(
+                    icon = Icons.Filled.Add,
+                    contentDescription = "One serving more of ${entry.name}",
+                    onClick = { onServings(entry.servings + 1) },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_plus_${entry.id}" },
+                )
+            }
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
@@ -414,6 +473,37 @@ private fun PlanEntryRow(entry: PlanEntryUi, onDelete: () -> Unit, tagPrefix: St
             onClick = onDelete,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_delete_${entry.id}" },
+        )
+    }
+}
+
+/**
+ * ENTRY-02: the undo bar. It appears where the removal happened, states WHAT went, and puts
+ * it back on one tap. Chosen over a floating snackbar deliberately: these screens are plain
+ * scrolling columns with no Scaffold, and an undo you have to catch before it fades is worse
+ * than one that waits until you act.
+ */
+@Composable
+internal fun UndoBar(name: String, onUndo: () -> Unit, tagPrefix: String = "plan") {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .semantics { testTag = "${tagPrefix}_undo" },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Removed $name",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        AppTextButton(
+            text = "Undo",
+            onClick = onUndo,
+            modifier = Modifier.semantics { testTag = "${tagPrefix}_undo_action" },
         )
     }
 }

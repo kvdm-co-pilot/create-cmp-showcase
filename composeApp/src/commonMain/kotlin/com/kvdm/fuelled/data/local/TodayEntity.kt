@@ -2,6 +2,7 @@ package com.kvdm.fuelled.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MealSlot
@@ -65,11 +66,24 @@ data class LogEntryEntity(
     val status: String,
     val entryOrder: Int,
     val name: String,
+    /** The base serving label ("100 g") — the MULTIPLE is [servings], never baked in here. */
     val serving: String,
+    // The macros are PER SERVING (schema v10, ENTRY-01): the row stores the base and the
+    // multiple separately so a serving can be edited in place afterwards. Storing pre-
+    // multiplied totals made "2 x" unrecoverable — you cannot divide back out without
+    // knowing what was multiplied. `toDomain()` does the multiplication on read.
     val kcal: Int,
     val proteinG: Int,
     val carbsG: Int,
     val fatG: Int,
+    /** ENTRY-01: how many servings of [serving] this row is. Editable after the fact. */
+    val servings: Int = 1,
+    /**
+     * CAT-03: which catalog food this came from, for recents. Empty for rows written before
+     * the column existed (and for anything never sourced from the catalog) — recents simply
+     * skip those rather than inventing a provenance.
+     */
+    val foodId: String = "",
     /**
      * Snapshotted off the catalog food at write time (PLAN-22) — the day's veg count is a fact
      * about what was eaten that day, so re-flagging a catalog entry must not retroactively
@@ -92,11 +106,14 @@ val LogEntryEntity.logStatus: LogStatus get() = LogStatus.valueOf(status)
 fun LogEntryEntity.toDomain(): LogEntry = LogEntry(
     id = id,
     name = name,
-    serving = serving,
-    kcal = kcal,
-    proteinG = proteinG,
+    // The rendered serving states the multiple: "2 x 100 g". One place builds this label, so
+    // the tray, the plan screen, and an in-place serving edit can never phrase it differently.
+    serving = if (servings == 1) serving else "$servings x $serving",
+    kcal = kcal * servings,
+    proteinG = proteinG * servings,
     status = logStatus,
     veg = veg,
+    servings = servings,
 )
 
 /** Map a tray line to the row it becomes, stamped with the confirm's target (MEAL-05). */
@@ -117,5 +134,43 @@ fun NewLogEntry.toEntity(
     proteinG = proteinG,
     carbsG = carbsG,
     fatG = fatG,
+    servings = servings,
+    foodId = foodId,
+    veg = veg,
+)
+
+/** ENTRY-02: the row as the domain's undo record, read the moment before it is deleted. */
+fun LogEntryEntity.toDeleted(): DeletedEntry = DeletedEntry(
+    id = id,
+    foodId = foodId,
+    date = LocalDate.parse(logicalDate),
+    slot = mealSlot,
+    status = logStatus,
+    entryOrder = entryOrder,
+    name = name,
+    serving = serving,
+    kcal = kcal,
+    proteinG = proteinG,
+    carbsG = carbsG,
+    fatG = fatG,
+    servings = servings,
+    veg = veg,
+)
+
+/** ENTRY-02: the undo record back as the row it was — same id, so the restore is idempotent. */
+fun DeletedEntry.toEntity(): LogEntryEntity = LogEntryEntity(
+    id = id,
+    logicalDate = date.toString(),
+    slot = slot.name,
+    status = status.name,
+    entryOrder = entryOrder,
+    name = name,
+    serving = serving,
+    kcal = kcal,
+    proteinG = proteinG,
+    carbsG = carbsG,
+    fatG = fatG,
+    servings = servings,
+    foodId = foodId,
     veg = veg,
 )

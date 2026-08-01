@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.domain.repository
 
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.NewLogEntry
@@ -45,8 +46,19 @@ interface TodayRepository {
         status: LogStatus,
     ): AppResult<Unit>
 
-    /** Remove the entry with [id] from its day (MEAL-06); the day's totals recompute on read. */
-    suspend fun deleteEntry(id: String): AppResult<Unit>
+    /**
+     * Remove the entry with [id] from its day (MEAL-06); the day's totals recompute on read.
+     * Returns what was removed (ENTRY-02) so an undo can put it back exactly — including its
+     * day, slot, order and serving multiple. A delete that returned Unit made undo impossible
+     * to build without a second read racing the delete.
+     */
+    suspend fun deleteEntry(id: String): AppResult<DeletedEntry>
+
+    /** ENTRY-02: put a removed entry back, unchanged, where it was. */
+    suspend fun restoreEntry(entry: DeletedEntry): AppResult<Unit>
+
+    /** ENTRY-01: change one logged entry's serving multiple; its totals re-derive. */
+    suspend fun setEntryServings(id: String, servings: Int): AppResult<Unit>
 
     /** Flip the entry with [id] to `LOGGED` (MEAL-07); no other entry is touched. */
     suspend fun markEntryLogged(id: String): AppResult<Unit>

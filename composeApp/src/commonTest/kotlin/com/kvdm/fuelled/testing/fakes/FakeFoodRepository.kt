@@ -51,4 +51,34 @@ class FakeFoodRepository : FoodRepository {
         val match = foods.firstOrNull { it.id == id }
         return if (match != null) AppResult.Success(match) else AppResult.Failure(DomainError.NotFound)
     }
+
+    /** CAT-01/CAT-02/CAT-03: catalog ownership, recorded and applied. */
+    val savedFoods: MutableList<Food> = mutableListOf()
+    val deletedFoodIds: MutableList<String> = mutableListOf()
+    var recents: List<Food> = emptyList()
+
+    override suspend fun saveFood(food: Food): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        savedFoods += food
+        foods = foods.filterNot { it.id == food.id } + food
+        return AppResult.Success(Unit)
+    }
+
+    override suspend fun deleteFood(id: String): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        deletedFoodIds += id
+        foods = foods.filterNot { it.id == id }
+        return AppResult.Success(Unit)
+    }
+
+    override suspend fun setFavourite(id: String, favourite: Boolean): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        foods = foods.map { if (it.id == id) it.copy(favourite = favourite) else it }
+        return AppResult.Success(Unit)
+    }
+
+    override suspend fun recentFoods(limit: Int): AppResult<List<Food>> {
+        failure?.let { return AppResult.Failure(it) }
+        return AppResult.Success(recents.take(limit))
+    }
 }

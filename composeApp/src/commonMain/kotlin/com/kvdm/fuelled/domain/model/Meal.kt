@@ -48,6 +48,8 @@ enum class LogStatus { LOGGED, PLANNED }
  */
 data class NewLogEntry(
     val id: String,
+    /** CAT-03: the catalog food this came from — recents are derived from these. */
+    val foodId: String = "",
     val name: String,
     val serving: String,
     val kcal: Int,
@@ -61,6 +63,8 @@ data class NewLogEntry(
      * not silently rewrite what last Tuesday's veg count was.
      */
     val veg: Boolean = false,
+    /** ENTRY-01: how many servings. Macros above are PER SERVING; the row stores both. */
+    val servings: Int = 1,
 )
 
 // `slotForLocalTime` lived here: the tray's time-of-day slot preselect (MEAL-04, withdrawn).

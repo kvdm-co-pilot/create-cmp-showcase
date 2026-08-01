@@ -7,7 +7,10 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.RestoreLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -49,7 +52,18 @@ class MealPlanViewModel(
     private val copyDayForward: CopyDayForwardUseCase,
     private val armReminders: ArmMealRemindersUseCase,
     private val deleteLogEntry: DeleteLogEntryUseCase,
+    private val setEntryServings: SetEntryServingsUseCase,
+    private val restoreLogEntry: RestoreLogEntryUseCase,
 ) : ViewModel() {
+
+    /**
+     * ENTRY-02: what the last delete removed, held until it is undone or superseded. It is
+     * presentation state, not a read: the day itself already re-derived without the row.
+     */
+    private val _lastDeleted = MutableStateFlow<DeletedEntry?>(null)
+    val lastDeleted: StateFlow<DeletedEntry?> = _lastDeleted.asStateFlow()
+
+    fun clearUndo() { _lastDeleted.value = null }
 
     /**
      * The current logical day — the strip's anchor (PLAN-11) — as a STREAM. Held as a value it
@@ -144,7 +158,31 @@ class MealPlanViewModel(
      */
     fun deleteEntry(id: String) {
         viewModelScope.launch {
-            if (deleteLogEntry(id) is AppResult.Failure) _writeError.value = true
+            when (val result = deleteLogEntry(id)) {
+                is AppResult.Failure -> _writeError.value = true
+                // Holding what was removed is what makes the undo bar honest: it names the
+                // food and can put back the exact row, not an approximation of it.
+                is AppResult.Success -> _lastDeleted.value = result.value
+            }
+        }
+    }
+
+    /** ENTRY-02: put the last removed entry back exactly, and retire the bar. */
+    fun undoDelete() {
+        val entry = _lastDeleted.value ?: return
+        viewModelScope.launch {
+            if (restoreLogEntry(entry) is AppResult.Failure) _writeError.value = true else _lastDeleted.value = null
+        }
+    }
+
+    /** ENTRY-01: step one entry's servings; at zero it is a removal, undo bar and all. */
+    fun setServings(id: String, servings: Int) {
+        if (servings < 1) {
+            deleteEntry(id)
+            return
+        }
+        viewModelScope.launch {
+            if (setEntryServings(id, servings) is AppResult.Failure) _writeError.value = true
         }
     }
 

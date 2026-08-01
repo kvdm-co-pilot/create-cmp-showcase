@@ -11,6 +11,8 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.RestoreLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -78,6 +80,8 @@ class MealPlanGoldenTreeTest {
             copyDayForward = CopyDayForwardUseCase(repository),
             armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler()),
             deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
+            setEntryServings = SetEntryServingsUseCase(FakeTodayRepository()),
+            restoreLogEntry = RestoreLogEntryUseCase(FakeTodayRepository()),
         )
 
         setContent {

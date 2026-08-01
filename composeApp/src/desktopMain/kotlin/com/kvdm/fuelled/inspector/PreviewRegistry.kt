@@ -22,6 +22,8 @@ import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
 import com.kvdm.fuelled.presentation.week.WeekReviewScreen
+import com.kvdm.fuelled.presentation.onboarding.OnboardingScreen
+import com.kvdm.fuelled.presentation.foods.FoodEditorScreen
 
 /**
  * One previewable screen: a stable [id] (the `-Pscreen=` selector and output directory
@@ -73,6 +75,10 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     // JRN-01: the week in review — the holistic results surface.
     ScreenPreview("week", "Week in review — last 7 days") { TabHost { WeekReviewScreen() } },
+    // START-01: the app's first words.
+    ScreenPreview("onboarding", "First run — the three answers") { OnboardingScreen() },
+    // CAT-01: your own catalog entries.
+    ScreenPreview("food-editor", "New food — custom catalog entry") { TabHost { FoodEditorScreen() } },
     // UX-03: the catalog-first log with its slot picker open — the aim step, rendered.
     ScreenPreview("food-detail@log", "Food detail — slot picker open (UX-03)") {
         TabHost { FoodDetailScreen(logPickerInitiallyOpen = true) }

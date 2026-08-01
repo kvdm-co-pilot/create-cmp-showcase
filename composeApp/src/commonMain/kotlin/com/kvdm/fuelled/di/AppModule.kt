@@ -20,6 +20,16 @@ import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetWeekReviewUseCase
 import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
 import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
+import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
+import com.kvdm.fuelled.domain.usecase.RestoreLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.SaveFoodUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteFoodUseCase
+import com.kvdm.fuelled.domain.usecase.SetFavouriteUseCase
+import com.kvdm.fuelled.domain.usecase.GetRecentFoodsUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
+import com.kvdm.fuelled.domain.usecase.CompleteOnboardingUseCase
+import com.kvdm.fuelled.domain.repository.AppStateRepository
+import com.kvdm.fuelled.data.remote.AppStateRepositoryImpl
 import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
@@ -43,6 +53,8 @@ import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 import com.kvdm.fuelled.presentation.week.WeekReviewViewModel
+import com.kvdm.fuelled.presentation.onboarding.OnboardingViewModel
+import com.kvdm.fuelled.presentation.foods.FoodEditorViewModel
 // cmp:anchor di-imports
 import kotlinx.datetime.LocalDate
 import org.koin.core.module.dsl.viewModel
@@ -59,9 +71,11 @@ val repositoryModule = module {
     // wearing a fix — every screen ticking on its own minute timer, none of them woken.
     single<TimeSignal> { RealTimeSignal() }
 
-    single<FoodRepository> { FoodRepositoryImpl(get<AppDatabase>().foodDao()) }
+    single<FoodRepository> { FoodRepositoryImpl(get<AppDatabase>().foodDao(), get<AppDatabase>().todayDao()) }
     // The Room-backed Today source: the TodayDao comes off the same platform-bound AppDatabase.
     single<TodayRepository> { TodayRepositoryImpl(get<AppDatabase>().todayDao(), get()) }
+    // START-01/START-02: the app's own state — onboarding + the first-open instant.
+    single<AppStateRepository> { AppStateRepositoryImpl(get<AppDatabase>().appStateDao(), get()) }
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao(), get()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
@@ -72,7 +86,7 @@ val repositoryModule = module {
     // The structured day. It takes BOTH daos: the plan's own stored state (times, ticks) and
     // the log rows the containers are filled from — one day is one read across both.
     single<MealPlanRepository> {
-        MealPlanRepositoryImpl(get<AppDatabase>().mealPlanDao(), get<AppDatabase>().todayDao(), get())
+        MealPlanRepositoryImpl(get<AppDatabase>().mealPlanDao(), get<AppDatabase>().todayDao(), get(), appStateDao = get<AppDatabase>().appStateDao())
     }
     // cmp:anchor di-repositories
 }
@@ -106,6 +120,14 @@ val useCaseModule = module {
     factory { GetWeekReviewUseCase(get(), get()) }
     factory { UpdateGoalsUseCase(get()) }
     factory { UpdateProfileNameUseCase(get()) }
+    factory { SetEntryServingsUseCase(get()) }
+    factory { RestoreLogEntryUseCase(get()) }
+    factory { SaveFoodUseCase(get()) }
+    factory { DeleteFoodUseCase(get()) }
+    factory { SetFavouriteUseCase(get()) }
+    factory { GetRecentFoodsUseCase(get()) }
+    factory { ObserveAppStateUseCase(get()) }
+    factory { CompleteOnboardingUseCase(get()) }
     // cmp:anchor di-usecases
 }
 
@@ -114,7 +136,7 @@ val viewModelModule = module {
     // The detail's log path (UX-03) takes its clock/zone/dayStartHour from production
     // defaults, so it is wired by hand like the tray — viewModelOf would try to resolve
     // those three from the graph. Tests construct it directly with a FixedClock.
-    viewModel { FoodDetailViewModel(get(), get()) }
+    viewModel { FoodDetailViewModel(get(), get(), get()) }
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::ProfileViewModel)
@@ -123,10 +145,12 @@ val viewModelModule = module {
     // first frame and nothing re-aims it afterwards (PLAN-24). Required for the same reason —
     // the nav layer never composes the plan without a resolved date.
     viewModel { params ->
-        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get())
+        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
     }
     viewModelOf(::MealTimesViewModel)
     viewModelOf(::WeekReviewViewModel)
+    viewModelOf(::OnboardingViewModel)
+    viewModelOf(::FoodEditorViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
     // graph. Tests construct it directly with a FixedClock (MEAL-10).

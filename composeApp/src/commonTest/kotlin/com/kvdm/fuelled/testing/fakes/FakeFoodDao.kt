@@ -13,7 +13,8 @@ class FakeFoodDao : FoodDao {
 
     private val rows = mutableListOf<FoodEntity>()
 
-    override suspend fun getAll(): List<FoodEntity> = rows.sortedBy { it.name }
+    // CAT-02: favourites lead, mirroring the DAO's `ORDER BY favourite DESC, name`.
+    override suspend fun getAll(): List<FoodEntity> = rows.sortedWith(compareByDescending<FoodEntity> { it.favourite }.thenBy { it.name })
 
     override suspend fun search(query: String): List<FoodEntity> =
         rows.filter {
@@ -29,6 +30,15 @@ class FakeFoodDao : FoodDao {
             rows.removeAll { it.id == food.id }
             rows.add(food)
         }
+    }
+
+    override suspend fun upsert(food: FoodEntity) {
+        rows.removeAll { it.id == food.id }
+        rows += food
+    }
+
+    override suspend fun delete(id: String) {
+        rows.removeAll { it.id == id }
     }
 
     override suspend fun clear() = rows.clear()

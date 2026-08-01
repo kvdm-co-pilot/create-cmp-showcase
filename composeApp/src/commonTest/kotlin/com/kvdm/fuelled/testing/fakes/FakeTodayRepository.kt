@@ -2,6 +2,7 @@ package com.kvdm.fuelled.testing.fakes
 
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.LogEntry
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.domain.model.MealGroup
@@ -75,8 +76,44 @@ class FakeTodayRepository : TodayRepository {
         return AppResult.Success(Unit)
     }
 
-    override suspend fun deleteEntry(id: String): AppResult<Unit> {
+    override suspend fun deleteEntry(id: String): AppResult<DeletedEntry> {
         deletedIds += id
+        failure?.let { return AppResult.Failure(it) }
+        // ENTRY-02: hand back a faithful undo record so a test can prove the restore path.
+        return AppResult.Success(
+            DeletedEntry(
+                id = id,
+                foodId = "",
+                date = LocalDate(2026, 7, 22),
+                slot = MealSlot.LUNCH,
+                status = LogStatus.LOGGED,
+                entryOrder = 0,
+                name = "Removed food",
+                serving = "100 g",
+                kcal = 100,
+                proteinG = 10,
+                carbsG = 5,
+                fatG = 2,
+                servings = 1,
+                veg = false,
+            ),
+        )
+    }
+
+    /** ENTRY-02: recorded restores, so a test can assert the undo reached the ledger. */
+    val restoredIds: MutableList<String> = mutableListOf()
+
+    override suspend fun restoreEntry(entry: DeletedEntry): AppResult<Unit> {
+        restoredIds += entry.id
+        failure?.let { return AppResult.Failure(it) }
+        return AppResult.Success(Unit)
+    }
+
+    /** ENTRY-01: recorded serving edits — (id, servings). */
+    val servingEdits: MutableList<Pair<String, Int>> = mutableListOf()
+
+    override suspend fun setEntryServings(id: String, servings: Int): AppResult<Unit> {
+        servingEdits += id to servings
         failure?.let { return AppResult.Failure(it) }
         return AppResult.Success(Unit)
     }

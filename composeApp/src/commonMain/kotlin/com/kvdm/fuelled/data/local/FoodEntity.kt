@@ -19,6 +19,10 @@ data class FoodEntity(
     val fatG: Int,
     /** PLAN-22: does this food count toward "veg with at least two meals"? */
     val veg: Boolean = false,
+    /** CAT-02: pinned by the user — favourites lead the tray's list. */
+    val favourite: Boolean = false,
+    /** CAT-01: created by the user rather than seeded — only these are editable. */
+    val custom: Boolean = false,
 )
 
 fun FoodEntity.toDomain(): Food = Food(
@@ -31,6 +35,8 @@ fun FoodEntity.toDomain(): Food = Food(
     carbsG = carbsG,
     fatG = fatG,
     veg = veg,
+    favourite = favourite,
+    custom = custom,
 )
 
 fun Food.toEntity(): FoodEntity = FoodEntity(
@@ -43,4 +49,6 @@ fun Food.toEntity(): FoodEntity = FoodEntity(
     carbsG = carbsG,
     fatG = fatG,
     veg = veg,
+    favourite = favourite,
+    custom = custom,
 )

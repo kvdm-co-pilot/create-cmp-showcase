@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +38,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
+import com.kvdm.fuelled.presentation.components.AppIconButton
+import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
@@ -59,6 +64,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun FoodDetailRoute(
     foodId: String,
     onBack: () -> Unit,
+    onEdit: (String) -> Unit = {},
     viewModel: FoodDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(foodId) { viewModel.load(foodId) }
@@ -76,6 +82,8 @@ fun FoodDetailRoute(
                 onBack = onBack,
                 logState = logState,
                 onLogSlot = viewModel::log,
+                onToggleFavourite = viewModel::toggleFavourite,
+                onEdit = if (food.custom) ({ onEdit(food.id) }) else null,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -99,6 +107,8 @@ fun FoodDetailScreen(
     logState: FoodLogState = FoodLogState.Idle,
     onLogSlot: (MealSlot) -> Unit = {},
     logPickerInitiallyOpen: Boolean = false,
+    onToggleFavourite: () -> Unit = {},
+    onEdit: (() -> Unit)? = null,
 ) {
     BaseScreen { innerPadding ->
         FoodDetailContent(
@@ -107,6 +117,8 @@ fun FoodDetailScreen(
             logState = logState,
             onLogSlot = onLogSlot,
             logPickerInitiallyOpen = logPickerInitiallyOpen,
+            onToggleFavourite = onToggleFavourite,
+            onEdit = onEdit,
             modifier = Modifier.padding(innerPadding),
         )
     }
@@ -120,6 +132,8 @@ private fun FoodDetailContent(
     onLogSlot: (MealSlot) -> Unit,
     modifier: Modifier = Modifier,
     logPickerInitiallyOpen: Boolean = false,
+    onToggleFavourite: () -> Unit = {},
+    onEdit: (() -> Unit)? = null,
 ) {
     val pKcal = food.proteinG * 4
     val cKcal = food.carbsG * 4
@@ -133,7 +147,31 @@ private fun FoodDetailContent(
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        AppHeader(title = food.name, screenTag = "food_detail", onBack = onBack)
+        AppHeader(
+            title = food.name,
+            screenTag = "food_detail",
+            onBack = onBack,
+            actions = {
+                // CAT-02: one tap to pin. A favourite leads every list this catalog feeds,
+                // which is the difference between searching for your whey every day and not.
+                AppIconButton(
+                    icon = if (food.favourite) Icons.Filled.Star else Icons.Filled.StarBorder,
+                    contentDescription = if (food.favourite) "Remove from favourites" else "Add to favourites",
+                    onClick = onToggleFavourite,
+                    tint = if (food.favourite) FuelledColors.Primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "food_favourite" },
+                )
+                // CAT-01: only a food YOU made is editable — the seeded catalog is reference
+                // data, and this is why the control appears for one and not the other.
+                onEdit?.let {
+                    AppTextButton(
+                        text = "Edit",
+                        onClick = it,
+                        modifier = Modifier.semantics { testTag = "food_edit" },
+                    )
+                }
+            },
+        )
 
         Text(
             text = "${food.brand} · ${food.serving}",

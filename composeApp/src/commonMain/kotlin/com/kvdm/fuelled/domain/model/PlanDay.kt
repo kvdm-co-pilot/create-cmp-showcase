@@ -45,6 +45,13 @@ data class PlanSlotView(
      * claim here it is false on any day but the current one (PLAN-23).
      */
     val due: Boolean = false,
+    /**
+     * START-02: this slot's time is before the app was first opened, on the first day. It is
+     * not missed and never was: the meal happened (or didn't) before this app existed, and a
+     * tracker that greets a new user with MISSED tags for breakfasts it never saw is telling
+     * them off for its own absence (journey J3). Still fully back-fillable, like any slot.
+     */
+    val beforeStart: Boolean = false,
 ) {
     /**
      * PLAN-14: ticked with nothing in it — eaten off-plan, or skipped and closed out. A real
@@ -106,11 +113,25 @@ fun buildPlanDay(
     entriesBySlot: Map<MealSlot, List<LogEntry>>,
     doneSlots: Set<MealSlot>,
     waterTicks: Set<Int>,
+    /**
+     * START-02: the local time this install was first opened, when [date] IS that first day —
+     * null on every other day. Slots earlier than it are [PlanSlotView.beforeStart]: not
+     * missed, not focusable, just not this app's to judge.
+     */
+    startedAt: LocalTime? = null,
 ): PlanDay {
+    // START-02: the slots the app was not yet installed for. Excluded from missed-ness and
+    // from focus below, so a mid-day first open lands on the meal you can still eat.
+    val beforeStart = if (isCurrentDay && startedAt != null) {
+        MealSlot.entries.filter { times[it] < startedAt && it !in doneSlots }.toSet()
+    } else {
+        emptySet()
+    }
     // Punctuality is a property of *now*, so it is derived once for the current day and simply
     // never asked for on any other (PLAN-23).
-    val missed = if (isCurrentDay) missedSlots(doneSlots, now, times) else emptySet()
-    val focus = if (isCurrentDay) focusFor(doneSlots, now, times) else null
+    val missed = if (isCurrentDay) missedSlots(doneSlots, now, times) - beforeStart else emptySet()
+    // Focus skips the pre-start slots the same way it skips done ones: they are settled.
+    val focus = if (isCurrentDay) focusFor(doneSlots + beforeStart, now, times) else null
     val focusedSlot = (focus as? DayFocus.Slot)
 
     return PlanDay(
@@ -128,6 +149,7 @@ fun buildPlanDay(
                 late = focusedSlot?.slot == slot && focusedSlot.late,
                 missed = slot in missed,
                 due = isCurrentDay && now >= times[slot],
+                beforeStart = slot in beforeStart,
             )
         },
         water = waterSchedule(times).map { container ->

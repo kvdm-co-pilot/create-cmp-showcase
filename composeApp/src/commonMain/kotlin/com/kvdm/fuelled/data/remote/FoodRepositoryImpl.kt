@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.data.remote
 
 import com.kvdm.fuelled.data.local.FoodDao
+import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.toDomain
 import com.kvdm.fuelled.data.local.toEntity
 import com.kvdm.fuelled.data.suspendRunCatching
@@ -22,6 +23,10 @@ import com.kvdm.fuelled.domain.result.AppResult
  */
 class FoodRepositoryImpl(
     private val dao: FoodDao,
+    // CAT-03: recents are a fact about the LOG, not the catalog — the catalog only resolves
+    // the ids back to foods. Reading the log dao here keeps that derivation in one place
+    // instead of asking every caller to join two repositories.
+    private val todayDao: TodayDao,
 ) : FoodRepository {
 
     override suspend fun getFoods(): AppResult<List<Food>> = suspendRunCatching {
@@ -43,6 +48,34 @@ class FoodRepositoryImpl(
     ) {
         ensureSeeded()
         dao.getById(id)?.toDomain() ?: throw NoSuchEntryException(id)
+    }
+
+    override suspend fun saveFood(food: Food): AppResult<Unit> = suspendRunCatching {
+        ensureSeeded()
+        dao.upsert(food.toEntity())
+    }
+
+    override suspend fun deleteFood(id: String): AppResult<Unit> = suspendRunCatching {
+        dao.delete(id)
+    }
+
+    override suspend fun setFavourite(id: String, favourite: Boolean): AppResult<Unit> =
+        suspendRunCatching {
+            ensureSeeded()
+            val row = dao.getById(id) ?: throw NoSuchEntryException(id)
+            dao.upsert(row.copy(favourite = favourite))
+        }
+
+    /**
+     * CAT-03: resolve the recently-logged food ids back to catalog foods, KEEPING the
+     * recency order (the `IN` query returns rows in table order, not id order) and dropping
+     * any id whose food has since been deleted — a recent that no longer exists is not an
+     * error, it is simply no longer offered.
+     */
+    override suspend fun recentFoods(limit: Int): AppResult<List<Food>> = suspendRunCatching {
+        ensureSeeded()
+        val ids = todayDao.recentFoodIds(limit)
+        ids.mapNotNull { id -> dao.getById(id)?.toDomain() }
     }
 
     /** Seed the catalog on first run so the app ships with content offline (idempotent). */

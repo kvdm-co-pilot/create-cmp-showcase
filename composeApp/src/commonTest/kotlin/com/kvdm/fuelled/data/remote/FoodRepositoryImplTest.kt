@@ -3,6 +3,7 @@ package com.kvdm.fuelled.data.remote
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.testing.fakes.FakeFoodDao
+import com.kvdm.fuelled.testing.fakes.FakeTodayDao
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,7 +19,7 @@ import kotlinx.coroutines.flow.first
  */
 class FoodRepositoryImplTest {
 
-    private fun repository() = FoodRepositoryImpl(FakeFoodDao())
+    private fun repository() = FoodRepositoryImpl(FakeFoodDao(), FakeTodayDao())
 
     // SPEC: FOODS-01
     @Test

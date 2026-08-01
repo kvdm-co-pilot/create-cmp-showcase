@@ -8,6 +8,8 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.RestoreLogEntryUseCase
+import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -77,6 +79,8 @@ class TodayWritePathTest {
         copyDayForward = CopyDayForwardUseCase(repo),
         armReminders = ArmMealRemindersUseCase(repo, FakeReminderScheduler()),
         deleteLogEntry = DeleteLogEntryUseCase(todayRepo),
+            setEntryServings = SetEntryServingsUseCase(todayRepo),
+            restoreLogEntry = RestoreLogEntryUseCase(todayRepo),
     )
 
     // SPEC: UX-02

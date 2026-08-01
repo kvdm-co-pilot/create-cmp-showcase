@@ -51,6 +51,8 @@ import com.kvdm.fuelled.presentation.mealplan.PlanEntryUi
 import com.kvdm.fuelled.presentation.mealplan.PlanMealCard
 import com.kvdm.fuelled.presentation.mealplan.PlanMealUi
 import com.kvdm.fuelled.presentation.mealplan.PlanWaterUi
+import com.kvdm.fuelled.presentation.mealplan.UndoBar
+import com.kvdm.fuelled.presentation.mealplan.UndoState
 import com.kvdm.fuelled.presentation.mealplan.WaterRow
 import com.kvdm.fuelled.presentation.mealplan.clockLabel
 import com.kvdm.fuelled.presentation.mealplan.litresLabel
@@ -200,6 +202,7 @@ fun TodayRoute(
     onOpenSupplements: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lastDeleted by viewModel.lastDeleted.collectAsStateWithLifecycle()
     // No onRetry: the state is observed, so a transient failure recovers on the next
     // emission rather than waiting for a human to press a button.
     ContentStateContainer(state = state, screenTag = "today") { model ->
@@ -212,7 +215,9 @@ fun TodayRoute(
                 onOpenPlan = { onOpenPlan(model.plan.date) },
                 onOpenSupplements = onOpenSupplements,
                 onDeleteEntry = viewModel::deleteEntry,
+                onEntryServings = viewModel::setServings,
             ),
+            undo = lastDeleted?.let { UndoState(it.name, viewModel::undoDelete) },
         )
     }
 }
@@ -229,6 +234,8 @@ data class TodayActions(
     val onOpenSupplements: () -> Unit = {},
     /** UX-02: remove an entry from the focused container — the same delete as the plan's. */
     val onDeleteEntry: (String) -> Unit = {},
+    /** ENTRY-01: step an entry's servings in place, without leaving the dashboard. */
+    val onEntryServings: (String, Int) -> Unit = { _, _ -> },
 )
 
 /**
@@ -248,6 +255,7 @@ data class TodayActions(
 fun TodayScreen(
     model: TodayHighlights = sampleHighlights,
     actions: TodayActions = TodayActions(),
+    undo: UndoState? = null,
 ) {
     Column(
         modifier = Modifier
@@ -317,6 +325,9 @@ fun TodayScreen(
 
         // TODAY-10: the next water not yet ticked. Absent once all six are done — six ticked
         // containers and nothing left to prompt is a finished goal, not an empty row.
+        // ENTRY-02: the undo sits directly under the container it was removed from.
+        undo?.let { UndoBar(name = it.name, onUndo = it.onUndo, tagPrefix = "today") }
+
         model.nextWater?.let { water ->
             WaterRow(
                 water = PlanWaterUi(index = water.index, time = water.time.clockLabel(), done = water.done),
@@ -372,7 +383,7 @@ private fun PlanSlotView.toUi(): PlanMealUi = PlanMealUi(
     label = slot.label,
     time = time.clockLabel(),
     state = uiState(),
-    entries = entries.map { PlanEntryUi(it.id, it.name, it.serving, it.kcal, it.proteinG) },
+    entries = entries.map { PlanEntryUi(it.id, it.name, it.serving, it.kcal, it.proteinG, it.servings) },
     tickedEmpty = tickedEmpty,
     // PLAN-25. Carried, not defaulted: this mapper and the plan's are two hands on the same
     // card, and a field only one of them fills is a field the two surfaces disagree about —

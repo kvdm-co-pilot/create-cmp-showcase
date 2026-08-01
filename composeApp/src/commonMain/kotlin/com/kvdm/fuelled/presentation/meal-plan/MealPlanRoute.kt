@@ -44,6 +44,9 @@ internal fun LocalDate.stripLabel(today: LocalDate): String =
  */
 internal fun PlanSlotView.uiState(): PlanSlotState = when {
     done -> PlanSlotState.DONE
+    // START-02 sits ABOVE missed in the priority order for the same reason done does: a slot
+    // that predates the install was never this app's to judge, so nothing else may label it.
+    beforeStart -> PlanSlotState.BEFORE_START
     missed -> PlanSlotState.MISSED
     focused && late -> PlanSlotState.FOCUSED_LATE
     focused -> PlanSlotState.FOCUSED
@@ -84,6 +87,7 @@ internal fun PlanDay.toUi(stripDays: List<LocalDate>, today: LocalDate): PlanDay
                     },
                     kcal = entry.kcal,
                     proteinG = entry.proteinG,
+                    servings = entry.servings,
                 )
             },
             tickedEmpty = view.tickedEmpty,
@@ -111,6 +115,7 @@ fun MealPlanRoute(
     viewModel: MealPlanViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lastDeleted by viewModel.lastDeleted.collectAsStateWithLifecycle()
 
     // The strip window and the anchor day are observed too — a plan left open across 04:00
     // re-centres instead of offering yesterday's nine days.
@@ -136,7 +141,9 @@ fun MealPlanRoute(
                 // UX-02: the observed state re-derives the day after the delete (RS-01) —
                 // totals, focus, and the veg count follow without a reload.
                 onDeleteEntry = viewModel::deleteEntry,
+                onEntryServings = viewModel::setServings,
             ),
+            undo = lastDeleted?.let { UndoState(it.name, viewModel::undoDelete) },
         )
     }
 }

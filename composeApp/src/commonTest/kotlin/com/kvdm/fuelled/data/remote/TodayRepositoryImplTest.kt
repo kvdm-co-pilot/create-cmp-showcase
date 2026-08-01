@@ -62,7 +62,7 @@ class TodayRepositoryImplTest {
         }
 
     private fun tray(vararg ids: String) = ids.map { id ->
-        NewLogEntry(id, "Food $id", "1 serving", kcal = 100, proteinG = 10, carbsG = 5, fatG = 2)
+        NewLogEntry(id = id, name = "Food $id", serving = "1 serving", kcal = 100, proteinG = 10, carbsG = 5, fatG = 2)
     }
 
     // SPEC: PERS-01
@@ -323,6 +323,9 @@ class TodayRepositoryImplTest {
         override suspend fun goalCount(): Int = 1 // non-zero so the repo skips seeding and hits goal()
         override suspend fun upsertGoal(goal: TodayGoalEntity) = Unit
         override suspend fun upsertEntry(entry: LogEntryEntity) = Unit
+        override suspend fun entry(id: String): LogEntryEntity? = throw IllegalStateException("db unavailable")
+        override suspend fun setServings(id: String, servings: Int) = Unit
+        override suspend fun recentFoodIds(limit: Int): List<String> = emptyList()
         override suspend fun upsertEntries(entries: List<LogEntryEntity>) = Unit
         override suspend fun deleteEntry(id: String) = Unit
         override suspend fun setStatus(id: String, status: String) = Unit

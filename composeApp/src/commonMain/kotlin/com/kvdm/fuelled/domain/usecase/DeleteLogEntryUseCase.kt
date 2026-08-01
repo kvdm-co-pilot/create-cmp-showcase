@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.result.AppResult
 
@@ -10,5 +11,5 @@ import com.kvdm.fuelled.domain.result.AppResult
 class DeleteLogEntryUseCase(
     private val repository: TodayRepository,
 ) {
-    suspend operator fun invoke(id: String): AppResult<Unit> = repository.deleteEntry(id)
+    suspend operator fun invoke(id: String): AppResult<DeletedEntry> = repository.deleteEntry(id)
 }

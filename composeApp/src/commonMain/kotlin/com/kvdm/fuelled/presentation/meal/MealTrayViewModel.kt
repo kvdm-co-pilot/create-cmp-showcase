@@ -264,13 +264,17 @@ class MealTrayViewModel(
         lines.map { line ->
             NewLogEntry(
                 id = "${target.date}_${target.slot.name}_${line.food.id}",
+                foodId = line.food.id,
                 name = line.food.name,
-                serving = if (line.servings == 1) line.food.serving
-                else "${line.servings} × ${line.food.serving}",
-                kcal = line.kcal,
-                proteinG = line.proteinG,
-                carbsG = line.carbsG,
-                fatG = line.fatG,
+                // The BASE serving and BASE macros, with the multiple carried separately
+                // (ENTRY-01): the row stores both so the serving stays editable afterwards,
+                // and one place — the entity mapper — renders "2 x 100 g".
+                serving = line.food.serving,
+                kcal = line.food.kcal,
+                proteinG = line.food.proteinG,
+                carbsG = line.food.carbsG,
+                fatG = line.food.fatG,
+                servings = line.servings,
                 // PLAN-22: snapshotted off the catalog food at write time, so re-flagging a
                 // food later cannot rewrite what a past day's veg count was.
                 veg = line.food.veg,

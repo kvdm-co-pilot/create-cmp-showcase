@@ -10,6 +10,7 @@ import com.kvdm.fuelled.domain.model.NewLogEntry
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodUseCase
+import com.kvdm.fuelled.domain.usecase.SetFavouriteUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,7 @@ sealed interface FoodLogState {
 class FoodDetailViewModel(
     private val getFood: GetFoodUseCase,
     private val addLogEntries: AddLogEntriesUseCase,
+    private val setFavourite: SetFavouriteUseCase,
     private val clock: Clock = Clock.System,
     private val zone: TimeZone = TimeZone.currentSystemDefault(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
@@ -64,6 +66,14 @@ class FoodDetailViewModel(
         }
     }
 
+    /** CAT-02: pin or unpin, then re-read so the star reflects what was stored. */
+    fun toggleFavourite() {
+        val food = (_state.value as? ContentUiState.Content)?.data ?: return
+        viewModelScope.launch {
+            if (setFavourite(food.id, !food.favourite) is AppResult.Success) load(food.id)
+        }
+    }
+
     /**
      * Write the resolved food to [slot] of the current logical day, one serving, `LOGGED`
      * (UX-03). Guarded like the tray's confirm (MEAL-11's stance): no resolved food or an
@@ -79,6 +89,7 @@ class FoodDetailViewModel(
             val today = logicalDate(clock.now(), dayStartHour, zone)
             val entry = NewLogEntry(
                 id = "${today}_${slot.name}_${food.id}",
+                foodId = food.id,
                 name = food.name,
                 serving = food.serving,
                 kcal = food.kcal,

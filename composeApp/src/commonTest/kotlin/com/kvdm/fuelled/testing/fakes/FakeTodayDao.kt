@@ -95,6 +95,25 @@ class FakeTodayDao : TodayDao {
         }
     }
 
+    override suspend fun entry(id: String): LogEntryEntity? = logRows.firstOrNull { it.id == id }
+
+    override suspend fun setServings(id: String, servings: Int) {
+        val i = logRows.indexOfFirst { it.id == id }
+        if (i >= 0) {
+            logRows[i] = logRows[i].copy(servings = servings)
+            version.value += 1
+        }
+    }
+
+    /** CAT-03: newest logical day first, mirroring the DAO's GROUP BY/ORDER semantics. */
+    override suspend fun recentFoodIds(limit: Int): List<String> =
+        logRows.filter { it.foodId.isNotEmpty() }
+            .groupBy { it.foodId }
+            .entries
+            .sortedByDescending { (_, rows) -> rows.maxOf { it.logicalDate } }
+            .take(limit)
+            .map { it.key }
+
     override suspend fun deleteEntry(id: String) {
         logRows.removeAll { it.id == id }
         bump()

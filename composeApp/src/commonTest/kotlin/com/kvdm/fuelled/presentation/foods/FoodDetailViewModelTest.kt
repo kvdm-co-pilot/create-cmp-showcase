@@ -8,6 +8,7 @@ import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.GetFoodUseCase
+import com.kvdm.fuelled.domain.usecase.SetFavouriteUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
@@ -55,6 +56,7 @@ class FoodDetailViewModelTest {
             TEST_ZONE,
             DEFAULT_DAY_START_HOUR,
         ),
+        setFavourite = SetFavouriteUseCase(repository),
         clock = FixedClock(TEST_NOW),
         zone = TEST_ZONE,
         dayStartHour = DEFAULT_DAY_START_HOUR,

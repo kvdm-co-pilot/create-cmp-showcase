@@ -1,6 +1,10 @@
 package com.kvdm.fuelled.data.remote
 
 import com.kvdm.fuelled.data.local.LogEntryEntity
+import com.kvdm.fuelled.data.local.AppStateDao
+import kotlin.time.Instant
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
 import com.kvdm.fuelled.data.local.MealPlanDao
 import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.localTime
@@ -45,7 +49,22 @@ class MealPlanRepositoryImpl(
     private val time: TimeSignal = RealTimeSignal(),
     private val zone: TimeZone = TimeZone.currentSystemDefault(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
+    // START-02: the instant this install was first opened, or null when it is unknown (the
+    // desktop/dev wiring). Only consulted for the FIRST logical day — see `startedTimeFor`.
+    private val appStateDao: AppStateDao? = null,
 ) : MealPlanRepository {
+
+    /**
+     * START-02: the local time to treat as "before this app existed", for [date] — non-null
+     * ONLY when [date] is the logical day the install was first opened on. Every other day
+     * predates nothing (a day before the install has no plan at all) or comes after it.
+     */
+    private suspend fun startedTimeFor(date: LocalDate): LocalTime? {
+        val startedAtMs = appStateDao?.get()?.startedAtEpochMs ?: return null
+        val startedAt = Instant.fromEpochMilliseconds(startedAtMs)
+        if (logicalDate(startedAt, dayStartHour, zone) != date) return null
+        return startedAt.toLocalDateTime(zone).time
+    }
 
     /**
      * The observable twin of [planDay]. Five streams, one derivation.
@@ -58,7 +77,10 @@ class MealPlanRepositoryImpl(
      */
     override fun observePlanDay(date: LocalDate): Flow<AppResult<PlanDay>> {
         val key = date.toString()
-        return combine(
+        // START-02 is read once per collection, not per emission: the first-open instant is
+        // immutable, so re-reading it on every tick would be a query per minute for a constant.
+        return flow { emit(startedTimeFor(date)) }.flatMapLatest { startedAt ->
+        combine(
             todayDao.entriesStream(key),
             planDao.doneSlotsStream(key),
             planDao.waterTicksStream(key),
@@ -76,7 +98,9 @@ class MealPlanRepositoryImpl(
                 entriesBySlot = entries.groupBy({ it.mealSlot }, { it.toDomain() }),
                 doneSlots = done.map { MealSlot.valueOf(it.slot) }.toSet(),
                 waterTicks = water.map { it.waterIndex }.toSet(),
+                startedAt = startedAt,
             )
+        }
         }.asAppResult()
     }
 
@@ -112,6 +136,7 @@ class MealPlanRepositoryImpl(
                 entriesBySlot = entries.groupBy({ it.mealSlot }, { it.toDomain() }),
                 doneSlots = planDao.doneSlots(key).map { MealSlot.valueOf(it.slot) }.toSet(),
                 waterTicks = planDao.waterTicks(key).map { it.waterIndex }.toSet(),
+                startedAt = startedTimeFor(date),
             )
         }
 

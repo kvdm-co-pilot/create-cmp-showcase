@@ -129,26 +129,30 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6",
-      "approvedAt": "2026-08-01T14:38:18.522Z",
-      "via": "console"
-    },
-    {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
-      "approvedAt": "2026-08-01T14:38:20.092Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-spec:profile",
       "status": "reopened",
       "hash": "aa3368a722e7923781a1eddb9eef96af46d54664943faaa41c0ab9b3cdf7b13c",
       "approvedAt": "2026-08-01T14:38:08.905Z",
       "reopenedAt": "2026-08-01T14:59:45.252Z",
       "reason": "personalization PERS-02: PROF-02 amended — calorie/protein rows regain their tap because the editor now exists (docs/features/personalization.md decision 4); activity stays read-only",
+      "via": "cli"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "reopened",
+      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
+      "approvedAt": "2026-08-01T14:38:20.092Z",
+      "reopenedAt": "2026-08-01T16:16:00.978Z",
+      "reason": "catalog-and-editing CAT-01/CAT-02/CAT-03: the foods exemplar grows the custom-food editor, favourites, and recents — the file set the stamper clones changes across all its layers",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "reopened",
+      "hash": "9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6",
+      "approvedAt": "2026-08-01T14:38:18.522Z",
+      "reopenedAt": "2026-08-01T16:17:49.275Z",
+      "reason": "entry-editing ENTRY-01/02 + first-run START-02: entry rows gain the in-place serving stepper and the undo bar; the card gains the BEFORE_START state. Re-sign on rendered output.",
       "via": "cli"
     }
   ],

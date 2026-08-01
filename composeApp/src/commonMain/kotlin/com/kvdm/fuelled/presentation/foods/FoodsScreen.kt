@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.Tag
@@ -67,13 +68,26 @@ val sampleFoods = listOf(
 @Composable
 fun FoodsRoute(
     onFoodClick: (Food) -> Unit,
+    onAddFood: () -> Unit = {},
     viewModel: FoodsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
 
     ScreenColumn(screenTag = "foods") {
-        AppHeader(title = "Foods", screenTag = "foods")
+        AppHeader(
+            title = "Foods",
+            screenTag = "foods",
+            actions = {
+                // CAT-01: the catalog stops being closed. This is the Foods tab's real job
+                // now that logging is the tray's — it is where YOUR foods live.
+                AppTextButton(
+                    text = "New food",
+                    onClick = onAddFood,
+                    modifier = Modifier.semantics { testTag = "foods_add" },
+                )
+            },
+        )
         FoodSearchField(query = query, onQueryChange = viewModel::onQueryChange)
         Spacer(Modifier.height(16.dp))
         ContentStateContainer(state = state, screenTag = "foods", onRetry = viewModel::load) { foods ->
