@@ -21,7 +21,8 @@ import androidx.room.RoomDatabaseConstructor
     // row lost its `taken` flag. Destructive migration, as everything here is (DatabaseBuilder):
     // every table is seeded or user-entered on device, and a stale `taken` column is precisely
     // what this version exists to drop.
-    version = 8,
+    // 9: profile lost its duplicate goal columns (PERS-01 — one goal store; usability-pass F5).
+    version = 9,
     exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)

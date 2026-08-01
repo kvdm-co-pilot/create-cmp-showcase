@@ -65,6 +65,24 @@ class TodayRepositoryImplTest {
         NewLogEntry(id, "Food $id", "1 serving", kcal = 100, proteinG = 10, carbsG = 5, fatG = 2)
     }
 
+    // SPEC: PERS-01
+    @Test
+    fun `updating the goals re-targets the observed summary and touches no eaten value`() = runTest {
+        val dao = FakeTodayDao()
+        val repository = repository(dao)
+        repository.addEntries(tray("a"), dayInView, MealSlot.LUNCH, LogStatus.LOGGED)
+        val before = repository.summary()
+
+        repository.updateGoals(targetKcal = 3000, proteinTargetG = 200)
+
+        val after = repository.summary()
+        assertEquals(3000, after.targetKcal, "the yardstick moved")
+        assertEquals(200, after.protein.target)
+        assertEquals(before.consumedKcal, after.consumedKcal, "what was eaten is history, untouched")
+        assertEquals(before.carbs.target, after.carbs.target, "carbs/fat targets keep their values")
+        assertEquals(before.fat.target, after.fat.target)
+    }
+
     // SPEC: RS-01
     @Test
     fun `the observed summary re-emits on a write - the log carries its own change back`() = runTest {

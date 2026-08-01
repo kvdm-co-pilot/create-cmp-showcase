@@ -18,6 +18,8 @@ import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetWeekReviewUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
@@ -63,7 +65,10 @@ val repositoryModule = module {
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao(), get()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
-    single<ProfileRepository> { ProfileRepositoryImpl(get<AppDatabase>().profileDao()) }
+    // Profile joins the ONE goal store's targets (PERS-01), so it reads both DAOs.
+    single<ProfileRepository> {
+        ProfileRepositoryImpl(get<AppDatabase>().profileDao(), get<AppDatabase>().todayDao())
+    }
     // The structured day. It takes BOTH daos: the plan's own stored state (times, ticks) and
     // the log rows the containers are filled from — one day is one read across both.
     single<MealPlanRepository> {
@@ -99,6 +104,8 @@ val useCaseModule = module {
     // The week in review (JRN-01): composed from the two observed reads above — no new
     // repository, deliberately (TODAY-13's no-second-path discipline).
     factory { GetWeekReviewUseCase(get(), get()) }
+    factory { UpdateGoalsUseCase(get()) }
+    factory { UpdateProfileNameUseCase(get()) }
     // cmp:anchor di-usecases
 }
 

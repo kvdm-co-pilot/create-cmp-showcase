@@ -28,6 +28,16 @@ class FakeProfileRepository : ProfileRepository {
         return AppResult.Success(profile)
     }
 
+    /** PERS-03: recorded and applied, so a reload sees the new name. */
+    val nameUpdates: MutableList<String> = mutableListOf()
+
+    override suspend fun updateName(name: String): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        nameUpdates += name
+        profile = profile.copy(identity = profile.identity.copy(name = name))
+        return AppResult.Success(Unit)
+    }
+
     companion object {
         val sampleProfile = Profile(
             identity = ProfileIdentity(name = "Karel", planLabel = "Cutting", calorieTarget = 2400),

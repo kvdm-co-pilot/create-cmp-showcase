@@ -2,6 +2,7 @@ package com.kvdm.fuelled.data.remote
 
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
+import com.kvdm.fuelled.data.local.DEFAULT_TODAY_GOAL
 import com.kvdm.fuelled.data.local.LogEntryEntity
 import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.TodayGoalEntity
@@ -117,6 +118,17 @@ class TodayRepositoryImpl(
         dao.setStatus(id, LogStatus.LOGGED.name)
     }
 
+    /**
+     * PERS-01: edit the yardstick, never the history. Writes the ONE goal store; carbs/fat
+     * keep their stored values (their editors are S5's). Room's goal stream then re-targets
+     * the ring, the macros, the week review, and Profile's goal rows — every reader, one row.
+     */
+    override suspend fun updateGoals(targetKcal: Int, proteinTargetG: Int): AppResult<Unit> =
+        suspendRunCatching {
+            val current = dao.goal() ?: DEFAULT_TODAY_GOAL
+            dao.upsertGoal(current.copy(targetKcal = targetKcal, proteinTargetG = proteinTargetG))
+        }
+
     /** The logical day right now — a one-shot for WRITES only; reads observe (MEAL-02). */
     private fun currentLogicalDay(): LocalDate = logicalDate(time.now(), dayStartHour, zone)
 
@@ -156,24 +168,15 @@ class TodayRepositoryImpl(
      */
     private suspend fun ensureSeeded() {
         if (dao.goalCount() == 0) {
-            dao.upsertGoal(SEED_GOAL)
+            dao.upsertGoal(DEFAULT_TODAY_GOAL)
         }
     }
 
-    private companion object {
-        // The starter day, seeded once into Room. Lives in the data layer (the source owns its
-        // seed data, ARCH-09); the presentation layer keeps its own preview fixture separately.
-        val SEED_GOAL = TodayGoalEntity(
-            id = "current",
-            targetKcal = 2400,
-            proteinTargetG = 180,
-            carbsTargetG = 260,
-            fatTargetG = 70,
-        )
-
-        // `seedEntries` lived here: a starter day of six logged foods, written on first run.
-        // PLAN-03 removes it — every day now begins empty, with its six containers waiting to
-        // be planned. The FOODS catalog seed stays (the tray needs foods to pick from); what
-        // went is the pretence that the user had already eaten.
-    }
+    // `SEED_GOAL` lived here as this impl's own constant; it is now the SHARED
+    // [DEFAULT_TODAY_GOAL] (TodayEntity.kt) so no second copy of the numbers exists (PERS-01).
+    //
+    // `seedEntries` lived here: a starter day of six logged foods, written on first run.
+    // PLAN-03 removes it — every day now begins empty, with its six containers waiting to
+    // be planned. The FOODS catalog seed stays (the tray needs foods to pick from); what
+    // went is the pretence that the user had already eaten.
 }

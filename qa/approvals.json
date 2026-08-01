@@ -87,48 +87,68 @@
       "via": "console"
     },
     {
-      "artifact": "feature-spec:profile",
-      "status": "reopened",
-      "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8",
-      "approvedAt": "2026-07-23T21:01:48.945Z",
-      "reopenedAt": "2026-08-01T09:04:07.571Z",
-      "reason": "usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)",
-      "via": "cli"
+      "artifact": "feature-brief:daily-journeys",
+      "status": "approved",
+      "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
+      "approvedAt": "2026-08-01T14:37:41.422Z",
+      "via": "console"
     },
     {
-      "artifact": "exemplar-feature",
-      "status": "reopened",
-      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
-      "approvedAt": "2026-07-29T06:28:56.324Z",
-      "reopenedAt": "2026-08-01T09:04:07.650Z",
-      "reason": "usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)",
-      "via": "cli"
+      "artifact": "feature-brief:usability-pass",
+      "status": "approved",
+      "hash": "cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791",
+      "approvedAt": "2026-08-01T14:37:49.222Z",
+      "via": "console"
     },
     {
-      "artifact": "feature-design:meal",
-      "status": "reopened",
-      "hash": "c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6",
-      "approvedAt": "2026-07-29T09:10:19.543Z",
-      "reopenedAt": "2026-08-01T09:04:07.722Z",
-      "reason": "usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output",
-      "via": "cli"
+      "artifact": "feature-spec:daily-journeys",
+      "status": "approved",
+      "hash": "a08e2f998a245da4a20d73448c5d9e71428d6897b6555d1fe3224932c0684f89",
+      "approvedAt": "2026-08-01T14:37:53.340Z",
+      "via": "console"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "reopened",
-      "hash": "92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c",
-      "approvedAt": "2026-07-29T09:10:14.177Z",
-      "reopenedAt": "2026-08-01T09:04:07.795Z",
-      "reason": "usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output",
-      "via": "cli"
+      "artifact": "feature-spec:usability-pass",
+      "status": "approved",
+      "hash": "8239113a404f5af3b85f78b24f6c7dc1a2d8752674ec6466590a26494d201928",
+      "approvedAt": "2026-08-01T14:38:00.389Z",
+      "via": "console"
     },
     {
       "artifact": "feature-spec:meal-plan",
+      "status": "approved",
+      "hash": "b87946cc94d7b3057429fd636be232174df0892955e85d7d778535061a9a4772",
+      "approvedAt": "2026-08-01T14:38:11.155Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "approved",
+      "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a",
+      "approvedAt": "2026-08-01T14:38:14.638Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6",
+      "approvedAt": "2026-08-01T14:38:18.522Z",
+      "via": "console"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "approved",
+      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
+      "approvedAt": "2026-08-01T14:38:20.092Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:profile",
       "status": "reopened",
-      "hash": "1871d480cb337eb1d9d302e99cba749fe1847569503d9c7c0e9abb098cc0c3b9",
-      "approvedAt": "2026-07-29T10:01:35.937Z",
-      "reopenedAt": "2026-08-01T13:54:52.793Z",
-      "reason": "daily-journeys decision 1: PLAN-07 amended — meal reminders become prep reminders, armed 30 min before the slot time (docs/features/daily-journeys.md J2); water and cancellation semantics unchanged",
+      "hash": "aa3368a722e7923781a1eddb9eef96af46d54664943faaa41c0ab9b3cdf7b13c",
+      "approvedAt": "2026-08-01T14:38:08.905Z",
+      "reopenedAt": "2026-08-01T14:59:45.252Z",
+      "reason": "personalization PERS-02: PROF-02 amended — calorie/protein rows regain their tap because the editor now exists (docs/features/personalization.md decision 4); activity stays read-only",
       "via": "cli"
     }
   ],

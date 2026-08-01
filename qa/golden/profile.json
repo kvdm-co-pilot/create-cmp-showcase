@@ -1,10 +1,12 @@
 {"children": [
   {"tag": "profile_screen", "children": [
-    {"children": [
-      {"text": "GU"}
+    {"tag": "profile_edit_name", "children": [
+      {"children": [
+        {"text": "GU"}
+      ]},
+      {"tag": "profile_title", "text": "Golden User"},
+      {"text": "Cutting · 2,400 kcal target"}
     ]},
-    {"tag": "profile_title", "text": "Golden User"},
-    {"text": "Cutting · 2,400 kcal target"},
     {"children": [
       {"tag": "profile_goal_calories", "children": [
         {"text": "Calorie target"},

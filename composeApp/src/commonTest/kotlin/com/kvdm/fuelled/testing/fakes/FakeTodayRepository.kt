@@ -87,6 +87,19 @@ class FakeTodayRepository : TodayRepository {
         return AppResult.Success(Unit)
     }
 
+    /** PERS-01: recorded and APPLIED to the observed summary — the fake re-emits like Room. */
+    val goalUpdates: MutableList<Pair<Int, Int>> = mutableListOf()
+
+    override suspend fun updateGoals(targetKcal: Int, proteinTargetG: Int): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        goalUpdates += targetKcal to proteinTargetG
+        summary = summary.copy(
+            targetKcal = targetKcal,
+            protein = summary.protein.copy(target = proteinTargetG),
+        )
+        return AppResult.Success(Unit)
+    }
+
     companion object {
         /** The logical day these fixtures are dated with — a real Wednesday, so labels read true. */
         val fixtureDate = LocalDate(2026, 7, 22)

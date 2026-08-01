@@ -3,7 +3,10 @@ package com.kvdm.fuelled.presentation.profile
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -11,8 +14,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeProfileRepository
+import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -26,7 +32,9 @@ class ProfileScreenTest {
 
     private val repository = FakeProfileRepository()
 
-    private fun viewModel() = ProfileViewModel(GetProfileUseCase(repository))
+    private val todayRepository = FakeTodayRepository()
+
+    private fun viewModel() = ProfileViewModel(GetProfileUseCase(repository), UpdateGoalsUseCase(todayRepository), UpdateProfileNameUseCase(repository))
 
     // SPEC: PROF-01
     @Test
@@ -47,7 +55,7 @@ class ProfileScreenTest {
     // SPEC: PROF-02
     // SPEC: UX-04
     @Test
-    fun `shows the daily goals as read-only value rows - no tap affordance until an editor exists`() = runComposeUiTest {
+    fun `goal rows carry the tap exactly where an editor exists - and only there`() = runComposeUiTest {
         repository.profile = FakeProfileRepository.sampleProfile
 
         setContent {
@@ -55,13 +63,78 @@ class ProfileScreenTest {
         }
 
         awaitNode(hasTestTag("profile_screen"))
-        // UX-04: the values are shown, and the rows promise nothing — a row that accepted a
-        // tap and did nothing was the defect this amendment removed.
-        onNodeWithTag("profile_goal_calories").assertExists().assertHasNoClickAction()
-        onNodeWithTag("profile_goal_protein").assertExists().assertHasNoClickAction()
+        // UX-04, both directions: calorie and protein have editors (PERS-02), so they are
+        // controls; activity has none yet (S5), so it promises nothing.
+        onNodeWithTag("profile_goal_calories").assertExists().assertHasClickAction()
+        onNodeWithTag("profile_goal_protein").assertExists().assertHasClickAction()
         onNodeWithTag("profile_goal_activity").assertExists().assertHasNoClickAction()
         onAllNodesWithText("180 g").assertCountEquals(1)
         onAllNodesWithText("Trains 5×/week").assertCountEquals(1)
+    }
+
+    // SPEC: PERS-02
+    @Test
+    fun `editing the protein goal writes through the one goal store and re-renders`() = runComposeUiTest {
+        repository.profile = FakeProfileRepository.sampleProfile
+
+        setContent {
+            MaterialTheme { ProfileRoute(viewModel = viewModel()) }
+        }
+        awaitNode(hasTestTag("profile_screen"))
+
+        onNodeWithTag("profile_goal_protein").performClick()
+        awaitNode(hasTestTag("profile_goal_input"))
+        onNodeWithTag("profile_goal_input").performTextClearance()
+        onNodeWithTag("profile_goal_input").performTextInput("200")
+        onNodeWithTag("profile_goal_save").performClick()
+        waitForIdle()
+
+        assertEquals(
+            listOf(2400 to 200),
+            todayRepository.goalUpdates,
+            "the edited protein and the unedited calorie target reach the ONE goal store",
+        )
+    }
+
+    // SPEC: PERS-02
+    @Test
+    fun `junk input in the goal editor reaches no write`() = runComposeUiTest {
+        repository.profile = FakeProfileRepository.sampleProfile
+
+        setContent {
+            MaterialTheme { ProfileRoute(viewModel = viewModel()) }
+        }
+        awaitNode(hasTestTag("profile_screen"))
+
+        onNodeWithTag("profile_goal_calories").performClick()
+        awaitNode(hasTestTag("profile_goal_input"))
+        onNodeWithTag("profile_goal_input").performTextClearance()
+        onNodeWithTag("profile_goal_input").performTextInput("lots")
+        onNodeWithTag("profile_goal_save").performClick()
+        waitForIdle()
+
+        assertEquals(0, todayRepository.goalUpdates.size, "a non-numeric goal must attempt no write")
+    }
+
+    // SPEC: PERS-03
+    @Test
+    fun `renaming from the identity header persists and re-renders the header`() = runComposeUiTest {
+        repository.profile = FakeProfileRepository.sampleProfile
+
+        setContent {
+            MaterialTheme { ProfileRoute(viewModel = viewModel()) }
+        }
+        awaitNode(hasTestTag("profile_screen"))
+
+        onNodeWithTag("profile_edit_name").performClick()
+        awaitNode(hasTestTag("profile_name_input"))
+        onNodeWithTag("profile_name_input").performTextClearance()
+        onNodeWithTag("profile_name_input").performTextInput("Alex")
+        onNodeWithTag("profile_name_save").performClick()
+        waitForIdle()
+
+        assertEquals(listOf("Alex"), repository.nameUpdates)
+        onAllNodesWithText("Alex").assertCountEquals(1)
     }
 
     // SPEC: PROF-03

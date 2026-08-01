@@ -16,10 +16,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,22 +86,34 @@ fun ProfileRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "profile", onRetry = viewModel::load) { profile ->
-        ProfileScreen(profile = profile, onOpenWeek = onOpenWeek)
+        ProfileScreen(
+            profile = profile,
+            onOpenWeek = onOpenWeek,
+            onSaveGoals = viewModel::saveGoals,
+            onSaveName = viewModel::saveName,
+        )
     }
 }
 
 /**
  * The stateless profile — the preview/UI-first seam. Renders a [Profile]; defaults to a sample so
  * the preview registry can render it without a VM or Koin. The production path is [ProfileRoute] +
- * [ProfileViewModel]. Goal rows (PROF-02) and settings rows (PROF-04) are READ-ONLY values
- * until their editors exist (UX-04): the tap affordance returns with the personalization and
- * settings slices (usability-pass S1/S5), together with the destinations it promises.
+ * [ProfileViewModel]. Calorie/protein rows and the identity header carry their editors
+ * (PERS-02/PERS-03 — the affordance arrived WITH the capability, UX-04); the activity and
+ * settings rows stay read-only until theirs exist (usability-pass S5).
  */
+/** Which editor is open (PERS-02/PERS-03) — one at a time, none by default. */
+private enum class ProfileEdit { CALORIES, PROTEIN, NAME }
+
 @Composable
 fun ProfileScreen(
     profile: Profile = sampleProfile,
     onOpenWeek: () -> Unit = {},
+    onSaveGoals: (targetKcal: Int, proteinGoalG: Int) -> Unit = { _, _ -> },
+    onSaveName: (String) -> Unit = {},
 ) {
+    var editing by remember { mutableStateOf<ProfileEdit?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -106,17 +123,110 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Spacer(Modifier.height(8.dp))
-        IdentityHeader(profile.identity)
-        GoalsCard(profile.goals)
+        IdentityHeader(profile.identity, onEdit = { editing = ProfileEdit.NAME })
+        GoalsCard(
+            goals = profile.goals,
+            onEditCalories = { editing = ProfileEdit.CALORIES },
+            onEditProtein = { editing = ProfileEdit.PROTEIN },
+        )
         StatsRow(profile.weeklyStats, onOpenWeek)
         SettingsList()
         Spacer(Modifier.height(8.dp))
     }
+
+    when (editing) {
+        ProfileEdit.CALORIES -> ValueEditorDialog(
+            title = "Calorie target",
+            initial = profile.goals.calorieTarget.toString(),
+            suffix = "kcal / day",
+            inputTag = "profile_goal_input",
+            saveTag = "profile_goal_save",
+            onDismiss = { editing = null },
+            onSave = { text ->
+                text.toIntOrNull()?.let { onSaveGoals(it, profile.goals.proteinGoalG) }
+                editing = null
+            },
+        )
+        ProfileEdit.PROTEIN -> ValueEditorDialog(
+            title = "Protein goal",
+            initial = profile.goals.proteinGoalG.toString(),
+            suffix = "g / day",
+            inputTag = "profile_goal_input",
+            saveTag = "profile_goal_save",
+            onDismiss = { editing = null },
+            onSave = { text ->
+                text.toIntOrNull()?.let { onSaveGoals(profile.goals.calorieTarget, it) }
+                editing = null
+            },
+        )
+        ProfileEdit.NAME -> ValueEditorDialog(
+            title = "Your name",
+            initial = profile.identity.name,
+            suffix = null,
+            inputTag = "profile_name_input",
+            saveTag = "profile_name_save",
+            onDismiss = { editing = null },
+            onSave = { text ->
+                onSaveName(text)
+                editing = null
+            },
+        )
+        null -> {}
+    }
+}
+
+/**
+ * One editor for one value (PERS-02/PERS-03) — a dialog, deliberately: the edit is a single
+ * field, and a whole screen for one number adds a navigation for nothing. The VM re-guards
+ * every save (a dialog cannot be the refusal), so a junk parse here simply closes without
+ * writing.
+ */
+@Composable
+private fun ValueEditorDialog(
+    title: String,
+    initial: String,
+    suffix: String?,
+    inputTag: String,
+    saveTag: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var text by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.semantics { testTag = "profile_goal_editor" },
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                singleLine = true,
+                supportingText = suffix?.let { { Text(it) } },
+                modifier = Modifier.semantics { testTag = inputTag },
+            )
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                onClick = { onSave(text) },
+                modifier = Modifier.semantics { testTag = saveTag },
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 @Composable
-private fun IdentityHeader(identity: ProfileIdentity) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun IdentityHeader(identity: ProfileIdentity, onEdit: () -> Unit) {
+    // PERS-03: the header IS the name's editor door — tap to rename.
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClickLabel = "Edit your name", onClick = onEdit)
+            .semantics { testTag = "profile_edit_name" },
+    ) {
         Box(
             Modifier.size(64.dp).clip(CircleShape).background(FuelledColors.Primary),
             contentAlignment = Alignment.Center,
@@ -141,29 +251,30 @@ private fun IdentityHeader(identity: ProfileIdentity) {
 }
 
 @Composable
-private fun GoalsCard(goals: ProfileGoals) {
+private fun GoalsCard(goals: ProfileGoals, onEditCalories: () -> Unit, onEditProtein: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface),
     ) {
-        GoalRow("Calorie target", "${goals.calorieTarget.grouped()} kcal", "profile_goal_calories")
+        GoalRow("Calorie target", "${goals.calorieTarget.grouped()} kcal", "profile_goal_calories", onEditCalories)
         Divider()
-        GoalRow("Protein goal", "${goals.proteinGoalG} g", "profile_goal_protein")
+        GoalRow("Protein goal", "${goals.proteinGoalG} g", "profile_goal_protein", onEditProtein)
         Divider()
         GoalRow("Activity", goals.activity, "profile_goal_activity")
     }
 }
 
-// UX-04: a VALUE row, deliberately not clickable and with no chevron — the affordance
-// returns with the editor it promises (usability-pass S1). Until then the row says what is
-// true and suggests nothing it cannot do.
+// UX-04, both directions: a row with an editor carries the tap (PERS-02 — calories,
+// protein); a row without one stays a plain value (activity, until S5). The affordance
+// and the capability arrive together, never apart.
 @Composable
-private fun GoalRow(label: String, value: String, tag: String) {
+private fun GoalRow(label: String, value: String, tag: String, onEdit: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .let { if (onEdit != null) it.clickable(onClickLabel = "Edit $label", onClick = onEdit) else it }
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = tag },
         verticalAlignment = Alignment.CenterVertically,

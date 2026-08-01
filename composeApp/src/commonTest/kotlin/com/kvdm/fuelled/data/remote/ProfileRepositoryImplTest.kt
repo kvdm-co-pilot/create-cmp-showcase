@@ -4,6 +4,7 @@ import com.kvdm.fuelled.data.local.ProfileDao
 import com.kvdm.fuelled.data.local.ProfileEntity
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.testing.fakes.FakeProfileDao
+import com.kvdm.fuelled.testing.fakes.FakeTodayDao
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -19,7 +20,7 @@ import kotlinx.coroutines.test.runTest
  */
 class ProfileRepositoryImplTest {
 
-    private fun repository() = ProfileRepositoryImpl(FakeProfileDao())
+    private fun repository() = ProfileRepositoryImpl(FakeProfileDao(), FakeTodayDao())
 
     // SPEC: PROF-01
     @Test
@@ -40,7 +41,7 @@ class ProfileRepositoryImplTest {
     @Test
     fun `seeding is idempotent - a second read does not duplicate the profile`() = runTest {
         val dao = FakeProfileDao()
-        val repository = ProfileRepositoryImpl(dao)
+        val repository = ProfileRepositoryImpl(dao, FakeTodayDao())
 
         repository.getProfile()
         repository.getProfile()
@@ -51,8 +52,48 @@ class ProfileRepositoryImplTest {
     // SPEC: PROF-05
     @Test
     fun `translates a thrown source error into a typed Failure - never lets it escape`() = runTest {
-        val result = ProfileRepositoryImpl(ThrowingProfileDao()).getProfile()
+        val result = ProfileRepositoryImpl(ThrowingProfileDao(), FakeTodayDao()).getProfile()
         assertIs<AppResult.Failure>(result)
+    }
+
+    // SPEC: PERS-01
+    @Test
+    fun `profile goals ARE the goal store - an update there is what profile reads back`() = runTest {
+        val profileDao = FakeProfileDao()
+        val todayDao = FakeTodayDao()
+        val todayRepository = TodayRepositoryImpl(todayDao)
+        val profileRepository = ProfileRepositoryImpl(profileDao, todayDao)
+
+        todayRepository.updateGoals(targetKcal = 3000, proteinTargetG = 200)
+
+        val profile = when (val result = profileRepository.getProfile()) {
+            is AppResult.Success -> result.value
+            is AppResult.Failure -> fail("expected Success, got $result")
+        }
+        assertEquals(3000, profile.goals.calorieTarget, "one goal store, no second copy (F5)")
+        assertEquals(200, profile.goals.proteinGoalG)
+        assertEquals(3000, profile.identity.calorieTarget, "the identity line reads the same row")
+    }
+
+    // SPEC: PERS-03
+    @Test
+    fun `updateName renames the identity and nothing else`() = runTest {
+        val dao = FakeProfileDao()
+        val repository = ProfileRepositoryImpl(dao, FakeTodayDao())
+        val before = when (val r = repository.getProfile()) {
+            is AppResult.Success -> r.value
+            is AppResult.Failure -> fail("expected Success, got $r")
+        }
+
+        repository.updateName("Alex")
+
+        val after = when (val r = repository.getProfile()) {
+            is AppResult.Success -> r.value
+            is AppResult.Failure -> fail("expected Success, got $r")
+        }
+        assertEquals("Alex", after.identity.name)
+        assertEquals(before.goals, after.goals, "a rename must not touch the goals")
+        assertEquals(before.weeklyStats, after.weeklyStats, "nor the stats")
     }
 
     /** A DAO whose reads fail — proves the repository translates infrastructure errors (never throws). */

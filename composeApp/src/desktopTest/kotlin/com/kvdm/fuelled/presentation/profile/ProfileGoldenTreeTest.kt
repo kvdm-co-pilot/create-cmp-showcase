@@ -10,9 +10,12 @@ import com.kvdm.fuelled.domain.model.ProfileGoals
 import com.kvdm.fuelled.domain.model.ProfileIdentity
 import com.kvdm.fuelled.domain.model.WeeklyStats
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.testing.StructuralTree
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeProfileRepository
+import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
@@ -45,7 +48,7 @@ class ProfileGoldenTreeTest {
     @Test
     fun `profile structure matches the committed golden tree`() = runComposeUiTest {
         val repository = FakeProfileRepository().apply { profile = goldenProfile }
-        val viewModel = ProfileViewModel(GetProfileUseCase(repository))
+        val viewModel = ProfileViewModel(GetProfileUseCase(repository), UpdateGoalsUseCase(FakeTodayRepository()), UpdateProfileNameUseCase(repository))
 
         setContent {
             MaterialTheme {

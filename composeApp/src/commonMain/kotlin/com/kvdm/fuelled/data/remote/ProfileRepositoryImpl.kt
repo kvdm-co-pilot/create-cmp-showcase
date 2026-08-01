@@ -1,7 +1,9 @@
 package com.kvdm.fuelled.data.remote
 
+import com.kvdm.fuelled.data.local.DEFAULT_TODAY_GOAL
 import com.kvdm.fuelled.data.local.ProfileDao
 import com.kvdm.fuelled.data.local.ProfileEntity
+import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.toDomain
 import com.kvdm.fuelled.data.suspendRunCatching
 import com.kvdm.fuelled.domain.model.Profile
@@ -9,9 +11,10 @@ import com.kvdm.fuelled.domain.repository.ProfileRepository
 import com.kvdm.fuelled.domain.result.AppResult
 
 /**
- * The Room-backed Profile source — the fully-wired data source. Reads the flat [ProfileDao] row
- * and maps it into the domain [Profile]. Seeds one realistic profile on first run so the app has
- * content offline from install (idempotent).
+ * The Room-backed Profile source — the fully-wired data source. Reads the flat [ProfileDao]
+ * identity/stats row, joins the ONE goal store's targets ([TodayDao] — PERS-01: the profile
+ * row deliberately holds no goal columns since schema v9), and maps both into the domain
+ * [Profile]. Seeds on first run so the app has content offline from install (idempotent).
  *
  * The repository is the ONLY exception-translation point: every DAO call runs inside
  * suspendRunCatching (data/AppResultCatching.kt), which maps infrastructure exceptions to typed
@@ -20,27 +23,37 @@ import com.kvdm.fuelled.domain.result.AppResult
  */
 class ProfileRepositoryImpl(
     private val dao: ProfileDao,
+    private val todayDao: TodayDao,
 ) : ProfileRepository {
 
     override suspend fun getProfile(): AppResult<Profile> = suspendRunCatching {
         ensureSeeded()
-        (dao.get() ?: error("profile row missing after seeding")).toDomain()
+        val goal = todayDao.goal() ?: DEFAULT_TODAY_GOAL
+        (dao.get() ?: error("profile row missing after seeding")).toDomain(goal)
+    }
+
+    override suspend fun updateName(name: String): AppResult<Unit> = suspendRunCatching {
+        ensureSeeded()
+        val current = dao.get() ?: error("profile row missing after seeding")
+        dao.upsert(current.copy(name = name))
     }
 
     /** Seed a realistic profile on first run so the screen ships with content offline (idempotent). */
     private suspend fun ensureSeeded() {
         if (dao.count() == 0) dao.upsert(SEED)
+        // The goal row may not exist yet if Profile is the first surface ever opened — seed
+        // the SHARED default (PERS-01), the same row Today's read would have seeded.
+        if (todayDao.goalCount() == 0) todayDao.upsertGoal(DEFAULT_TODAY_GOAL)
     }
 
     private companion object {
-        // The starter profile, seeded once into Room. Lives in the data layer (the source owns its
-        // seed data, ARCH-09); the presentation layer keeps its own preview fixture separately.
+        // The starter profile, seeded once into Room. Lives in the data layer (the source owns
+        // its seed data, ARCH-09). Identity and stats ONLY — the goal numbers live in the one
+        // goal store (PERS-01), never here.
         val SEED = ProfileEntity(
             id = "current",
             name = "Karel",
             planLabel = "Cutting",
-            calorieTarget = 2400,
-            proteinGoalG = 180,
             activity = "Trains 5×/week",
             streakDays = 12,
             avgProteinG = 172,

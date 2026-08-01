@@ -4,8 +4,11 @@ import app.cash.turbine.test
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Profile
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.testing.fakes.FakeProfileRepository
+import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -41,7 +44,9 @@ class ProfileViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = ProfileViewModel(GetProfileUseCase(repository))
+    private val todayRepository = FakeTodayRepository()
+
+    private fun viewModel() = ProfileViewModel(GetProfileUseCase(repository), UpdateGoalsUseCase(todayRepository), UpdateProfileNameUseCase(repository))
 
     // SPEC: PROF-01
     @Test

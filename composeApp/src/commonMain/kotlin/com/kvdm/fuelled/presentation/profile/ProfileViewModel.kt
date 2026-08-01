@@ -6,6 +6,8 @@ import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Profile
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.GetProfileUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
+import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +27,8 @@ import kotlinx.coroutines.launch
  */
 class ProfileViewModel(
     private val getProfile: GetProfileUseCase,
+    private val updateGoals: UpdateGoalsUseCase,
+    private val updateName: UpdateProfileNameUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ContentUiState<Profile>>(ContentUiState.Loading)
@@ -38,6 +42,27 @@ class ProfileViewModel(
         viewModelScope.launch {
             _state.value = ContentUiState.Loading
             _state.value = getProfile().toUiState()
+        }
+    }
+
+    /**
+     * PERS-02: save an edited goal into the one goal store, then re-read. The refusal lives
+     * HERE, before the coroutine and before the use case (MEAL-11's stance): a non-positive
+     * target must reach no write from any caller — a zero-target ring is a division no
+     * screen should meet. The unedited goal keeps its current value.
+     */
+    fun saveGoals(targetKcal: Int, proteinGoalG: Int) {
+        if (targetKcal <= 0 || proteinGoalG <= 0) return
+        viewModelScope.launch {
+            if (updateGoals(targetKcal, proteinGoalG) is AppResult.Success) load()
+        }
+    }
+
+    /** PERS-03: rename. Blank names reach no write; the header re-renders from the re-read. */
+    fun saveName(name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            if (updateName(name.trim()) is AppResult.Success) load()
         }
     }
 

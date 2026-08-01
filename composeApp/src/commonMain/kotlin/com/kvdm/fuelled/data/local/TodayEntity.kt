@@ -30,6 +30,20 @@ data class TodayGoalEntity(
 )
 
 /**
+ * The day-zero targets, seeded once into the ONE goal store (PERS-01) — shared by
+ * [com.kvdm.fuelled.data.remote.TodayRepositoryImpl] and
+ * [com.kvdm.fuelled.data.remote.ProfileRepositoryImpl], whichever reads first, so neither
+ * carries its own copy of these numbers (a second seed constant is how F5 happened).
+ */
+val DEFAULT_TODAY_GOAL = TodayGoalEntity(
+    id = "current",
+    targetKcal = 2400,
+    proteinTargetG = 180,
+    carbsTargetG = 260,
+    fatTargetG = 70,
+)
+
+/**
  * One log row. Carries the macros the aggregate sums (protein/carbs/fat) even though the
  * screen only renders protein per row — the repository needs them to compute each macro's
  * current-vs-target.

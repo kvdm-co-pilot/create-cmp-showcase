@@ -50,4 +50,11 @@ interface TodayRepository {
 
     /** Flip the entry with [id] to `LOGGED` (MEAL-07); no other entry is touched. */
     suspend fun markEntryLogged(id: String): AppResult<Unit>
+
+    /**
+     * PERS-01: update the daily targets in the ONE goal store. Every observed reader — the
+     * ring, the macros, the week review, Profile's goal rows — re-targets on its existing
+     * stream; what was eaten is never touched. Carbs/fat targets keep their stored values.
+     */
+    suspend fun updateGoals(targetKcal: Int, proteinTargetG: Int): AppResult<Unit>
 }

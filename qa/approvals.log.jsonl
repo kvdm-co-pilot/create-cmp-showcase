@@ -20,3 +20,13 @@
 {"at":"2026-08-01T09:04:07.724Z","verb":"reopen","artifact":"feature-design:meal","reason":"usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output","via":"cli"}
 {"at":"2026-08-01T09:04:07.796Z","verb":"reopen","artifact":"feature-design:meal-plan","reason":"usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output","via":"cli"}
 {"at":"2026-08-01T13:54:52.796Z","verb":"reopen","artifact":"feature-spec:meal-plan","reason":"daily-journeys decision 1: PLAN-07 amended — meal reminders become prep reminders, armed 30 min before the slot time (docs/features/daily-journeys.md J2); water and cancellation semantics unchanged","via":"cli"}
+{"at":"2026-08-01T14:37:41.425Z","verb":"approve","artifact":"feature-brief:daily-journeys","hash":"cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d","via":"console"}
+{"at":"2026-08-01T14:37:49.222Z","verb":"approve","artifact":"feature-brief:usability-pass","hash":"cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791","via":"console"}
+{"at":"2026-08-01T14:37:53.341Z","verb":"approve","artifact":"feature-spec:daily-journeys","hash":"a08e2f998a245da4a20d73448c5d9e71428d6897b6555d1fe3224932c0684f89","via":"console"}
+{"at":"2026-08-01T14:38:00.390Z","verb":"approve","artifact":"feature-spec:usability-pass","hash":"8239113a404f5af3b85f78b24f6c7dc1a2d8752674ec6466590a26494d201928","via":"console"}
+{"at":"2026-08-01T14:38:08.905Z","verb":"approve","artifact":"feature-spec:profile","hash":"aa3368a722e7923781a1eddb9eef96af46d54664943faaa41c0ab9b3cdf7b13c","via":"console"}
+{"at":"2026-08-01T14:38:11.155Z","verb":"approve","artifact":"feature-spec:meal-plan","hash":"b87946cc94d7b3057429fd636be232174df0892955e85d7d778535061a9a4772","via":"console"}
+{"at":"2026-08-01T14:38:14.638Z","verb":"approve","artifact":"feature-design:meal","hash":"dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a","via":"console"}
+{"at":"2026-08-01T14:38:18.523Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"9d3b28dc869446158485033523e51cefe75fa69b73dbd503142d8c42f84e80d6","via":"console"}
+{"at":"2026-08-01T14:38:20.092Z","verb":"approve","artifact":"exemplar-feature","hash":"0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896","via":"console"}
+{"at":"2026-08-01T14:59:45.255Z","verb":"reopen","artifact":"feature-spec:profile","reason":"personalization PERS-02: PROF-02 amended — calorie/protein rows regain their tap because the editor now exists (docs/features/personalization.md decision 4); activity stays read-only","via":"cli"}

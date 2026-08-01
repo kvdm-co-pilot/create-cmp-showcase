@@ -6,6 +6,15 @@ versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Personalization — the app becomes yours** (`docs/features/personalization.md`,
+  `specs/personalization.spec.md` PERS-01..03; usability-pass S1, first half). The
+  calorie target and protein goal are now **editable from Profile** (tap the row), your
+  **name is editable** (tap the identity header), and — the structural fix behind it —
+  the two goal stores the usability pass flagged (F5) are **one**: the profile table lost
+  its duplicate goal columns (schema v9, destructive dev migration) and every surface —
+  ring, macros, week review, Profile — reads and writes the single goal row. Editing a
+  goal re-targets every observed surface with no reload and never touches what was eaten.
+  Non-positive and blank inputs are refused before any write.
 - **The daily-journeys pass — the app judged as days lived, not screens visited**
   (`docs/features/daily-journeys.md`, `specs/daily-journeys.spec.md` JRN-01..03; PLAN-07
   amended). Seven journeys walked on the rendered screens; the two that failed are built:
