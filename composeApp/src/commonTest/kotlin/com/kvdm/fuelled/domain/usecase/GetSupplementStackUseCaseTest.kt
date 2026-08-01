@@ -2,6 +2,7 @@ package com.kvdm.fuelled.domain.usecase
 
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
 import kotlin.test.Test
@@ -22,8 +23,8 @@ class GetSupplementStackUseCaseTest {
     @Test
     fun `returns the repository's stack as Success`() = runTest {
         val expected = listOf(
-            Supplement("1", "Creatine", "5 g", "Morning", taken = true),
-            Supplement("2", "Caffeine", "200 mg", "Pre-workout", taken = false),
+            Supplement("1", "Creatine", "5 g", SupplementTiming.MORNING, taken = true),
+            Supplement("2", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false),
         )
         repository.stack = expected
 

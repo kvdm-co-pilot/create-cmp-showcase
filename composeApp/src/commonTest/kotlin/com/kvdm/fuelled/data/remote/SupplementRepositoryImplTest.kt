@@ -126,6 +126,8 @@ class SupplementRepositoryImplTest {
         override suspend fun clearTaken(logicalDate: String, id: String) = Unit
         override suspend fun count(): Int = 1 // non-zero so the repo skips seeding and hits getAll()
         override suspend fun upsertAll(supplements: List<SupplementEntity>) = Unit
+        override suspend fun upsert(supplement: SupplementEntity) = Unit
+        override suspend fun deleteById(id: String) = Unit
         override suspend fun clear() = Unit
     }
 }

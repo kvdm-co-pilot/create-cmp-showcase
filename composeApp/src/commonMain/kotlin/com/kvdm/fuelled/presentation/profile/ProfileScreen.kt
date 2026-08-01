@@ -60,16 +60,19 @@ val sampleProfile = Profile(
     weeklyStats = WeeklyStats(streakDays = 12, avgProteinG = 172, weightKg = 82.4),
 )
 
-// The static settings rows (PROF-04, as amended by UX-04): a stable testTag, READ-ONLY —
-// no clickable until a destination exists. A row that accepted the tap and did nothing was
-// a broken promise, not a placeholder. Labels are presentation, never persisted domain data.
-private data class SettingsItem(val label: String, val tag: String)
+// The settings rows (PROF-04). UX-04 took the tap OFF every one of them because none had a
+// destination; SET-01 gives three of them one, and the tap comes back WITH it — never before.
+// [opens] is the whole rule, encoded: a row is a control exactly when it goes somewhere.
+// Labels are presentation, never persisted domain data.
+private data class SettingsItem(val label: String, val tag: String, val opens: Boolean)
 
 private val settingsItems = listOf(
-    SettingsItem("Units & measurements", "profile_setting_units"),
-    SettingsItem("Reminders", "profile_setting_reminders"),
-    SettingsItem("Connected apps", "profile_setting_connected"),
-    SettingsItem("Account", "profile_setting_account"),
+    SettingsItem("Units & measurements", "profile_setting_units", opens = true),
+    SettingsItem("Supplement stack", "profile_setting_stack", opens = true),
+    SettingsItem("Reminders", "profile_setting_reminders", opens = true),
+    // Still nothing behind these, so still no tap.
+    SettingsItem("Connected apps", "profile_setting_connected", opens = false),
+    SettingsItem("Account", "profile_setting_account", opens = false),
 )
 
 /**
@@ -83,12 +86,14 @@ private val settingsItems = listOf(
 fun ProfileRoute(
     viewModel: ProfileViewModel = koinViewModel(),
     onOpenWeek: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "profile", onRetry = viewModel::load) { profile ->
         ProfileScreen(
             profile = profile,
             onOpenWeek = onOpenWeek,
+            onOpenSettings = onOpenSettings,
             onSaveGoals = viewModel::saveGoals,
             onSaveName = viewModel::saveName,
         )
@@ -109,6 +114,7 @@ private enum class ProfileEdit { CALORIES, PROTEIN, NAME }
 fun ProfileScreen(
     profile: Profile = sampleProfile,
     onOpenWeek: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     onSaveGoals: (targetKcal: Int, proteinGoalG: Int) -> Unit = { _, _ -> },
     onSaveName: (String) -> Unit = {},
 ) {
@@ -130,7 +136,7 @@ fun ProfileScreen(
             onEditProtein = { editing = ProfileEdit.PROTEIN },
         )
         StatsRow(profile.weeklyStats, onOpenWeek)
-        SettingsList()
+        SettingsList(onOpenSettings)
         Spacer(Modifier.height(8.dp))
     }
 
@@ -284,7 +290,7 @@ private fun GoalRow(label: String, value: String, tag: String, onEdit: (() -> Un
     }
 }
 
-// JRN-02: the stats row is a REAL control — it opens the Week in review, the surface that
+// JRN-02: the stats row is a REAL control — it opens Progress, the surface that
 // makes its streak/avg-protein claims verifiable. The tap exists because the destination
 // does (UX-04's rule, satisfied in the other direction).
 @Composable
@@ -293,8 +299,8 @@ private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClickLabel = "Open week in review", onClick = onOpenWeek)
-            .semantics { testTag = "profile_week_link" },
+            .clickable(onClickLabel = "Open progress", onClick = onOpenWeek)
+            .semantics { testTag = "profile_progress_link" },
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         StatTile(stats.streakDays.toString(), "day streak", Modifier.weight(1f))
@@ -304,7 +310,7 @@ private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit) {
 }
 
 @Composable
-private fun SettingsList() {
+private fun SettingsList(onOpenSettings: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -312,23 +318,42 @@ private fun SettingsList() {
             .background(MaterialTheme.colorScheme.surface),
     ) {
         settingsItems.forEachIndexed { i, item ->
-            SettingsRow(item)
+            SettingsRow(item, onOpenSettings)
             if (i < settingsItems.lastIndex) Divider()
         }
     }
 }
 
-// UX-04: read-only, like GoalRow — no clickable, no chevron, no false promise.
+/**
+ * SET-01/UX-04: a control when it opens something, a labelled value when it does not. The
+ * three that now open Settings carry a chevron and a tap; the two that still go nowhere carry
+ * neither, because a row that accepts a tap and does nothing is a broken promise, not a
+ * placeholder.
+ */
 @Composable
-private fun SettingsRow(item: SettingsItem) {
+private fun SettingsRow(item: SettingsItem, onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .let {
+                if (item.opens) {
+                    it.clickable(onClickLabel = "Open ${item.label}", onClick = onOpenSettings)
+                } else {
+                    it
+                }
+            }
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = item.tag },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(item.label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        if (item.opens) {
+            Text(
+                text = "›",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

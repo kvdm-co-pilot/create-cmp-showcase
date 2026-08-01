@@ -6,6 +6,70 @@ versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Progress — the app grows a memory longer than a week** (`docs/features/history.md`,
+  `specs/history.spec.md` HIST-01..08; usability-pass S4). The `week` route becomes
+  **`progress`**: verdict → four-week trend → weight → the seven day cards. One surface, not
+  two — a user should never have to know whether "how am I doing?" lives under Week or under
+  History.
+  - **Day cards are doors** (HIST-02). The week review could tell you Sunday was 1580 kcal and
+    92 g protein and then offered *nothing*. Tapping a card opens that logical day's plan —
+    the plan screen, not a read-only viewer, because the reason you open Sunday is usually to
+    back-fill the meal you forgot to log.
+  - **The day strip anchors on the day you are looking at** (HIST-03, PLAN-11 amended). It was
+    a fixed today-relative window, and `selectedDay` derives as
+    `indexOf(date).coerceAtLeast(0)` — so any day outside it silently highlighted the *first*
+    chip. Building the door turned that latent bug live: 1 July's meals under a chip reading
+    "Tue 21". Anchoring on the selection kills it at the source.
+  - **Copy-forward disappears on a past day** (HIST-04, PLAN-20 amended). Pointed backwards it
+    would duplicate a day over days already lived, overwriting real logged history, from a
+    control whose label promises a planning convenience. No confirm dialog: the operation has
+    no legitimate backwards meaning to confirm.
+  - **A four-week trend** (HIST-05), and `GetWeekReviewUseCase` generalised to
+    **`GetHistoryUseCase`** — the seven-day verdict and the trend are now two projections of
+    ONE composed stream. A separate aggregate query would have been faster and would have been
+    a second source of truth for numbers the day cards already state. A week with nothing
+    logged reads *no data*, never a bar at zero: "you averaged 0 kcal" is a false statement
+    about a week the app was not installed for.
+  - **Weight** (HIST-06..08) — the outcome variable, and the only stored thing on the surface.
+    One row per logical day (the primary key, so weighing twice corrects rather than appends),
+    stored in kilograms whatever the display unit. With nothing recorded it says so and offers
+    the control: no chart, no zero, no empty axes.
+- **Settings that settle something** (`docs/features/settings.md`, `specs/settings.spec.md`
+  SET-01..08; usability-pass S5). UX-04 took the tap OFF Profile's settings rows because none
+  had a destination; three of them now have one, and the tap comes back **with** it.
+  - **Units** (SET-02/SET-03): one metric/imperial choice, applied to weight and water. It
+    deliberately does **not** touch a food's serving — `"1 bowl"`, `"200 g · 150 g"` is text
+    the user chose, not a measurement, and a gram→ounce pass over it would mangle the compound
+    ones and turn a label into a number the app guessed. Stated in `Units.kt`, in the spec, and
+    on the screen itself, because it is the rule most likely to be "fixed" later.
+  - **The supplement stack is yours** (SET-04..06): add, edit, remove, re-time. `timing` became
+    the closed `SupplementTiming` set whose ordinal drives the existing `timingOrder` column —
+    safe as free text only while nobody could type it, and two groups named `Morning` and
+    `morning` the moment they could. Removing a supplement leaves past doses alone.
+  - **The prep lead is a choice** (SET-07/SET-08), which PLAN-07's own text always said it
+    would become. 0–120 minutes from a closed set (a minutes field invites `-15` and `9999`);
+    zero means *at the meal time*. Changing it **re-arms every reminder at once** — a setting
+    that waits for tomorrow looks broken tonight.
+  - Settings ride the existing `app_state` row as typed columns (schema **v11**), not a table
+    each and not a key-value bag: one observed stream, so a unit change re-renders every
+    surface with no reload.
+- Fixed a defect shipped in the previous slice: Today's focused container passed
+  `onDeleteEntry` to its meal card but **not** `onEntryServings` — the ViewModel wired the
+  stepper and the card defaulted it to a no-op, so stepping servings from Today did nothing.
+  Exactly the affordance-is-a-promise class the usability pass exists to catch.
+
+### Changed
+- **The entry editor is disclosed, not always-on** (`specs/entry-editing.spec.md` ENTRY-01
+  amended, **ENTRY-03** added). Six containers × two entries × (stepper + remove) turned the
+  plan into a wall of controls for a screen people mostly READ. The row is now a labelled tap
+  target that reveals its stepper and remove together — one row at a time, accordion-style.
+  What the collapsed row never hides is the FACT: the serving label still states the multiple
+  ("2 x 100 g"). The reveal is a tap on the row, never a swipe, and the expanded controls stay
+  labelled 48 dp targets. New preview variant `meal-plan@editing` — without it the editor
+  would be a control no gallery, golden tree or human review ever sees.
+- Declared golden drift, regenerated: `meal-plan` (entry rows now nest under
+  `plan_entry_<id>`), `profile` (settings rows gained chevrons and taps), and `week.json` →
+  **`progress.json`** (the surface's new sections).
 - **First run, entry editing, and catalog ownership** — the last three named slices
   (`docs/features/first-run.md`, `docs/features/catalog-and-editing.md`;
   `specs/first-run.spec.md` START-01/02, `specs/entry-editing.spec.md` ENTRY-01/02,

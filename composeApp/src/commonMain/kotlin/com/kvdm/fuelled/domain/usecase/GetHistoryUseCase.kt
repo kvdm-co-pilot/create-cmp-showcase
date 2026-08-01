@@ -1,9 +1,9 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.domain.model.History
 import com.kvdm.fuelled.domain.model.PlanDay
+import com.kvdm.fuelled.domain.model.TREND_DAYS
 import com.kvdm.fuelled.domain.model.TodayModel
-import com.kvdm.fuelled.domain.model.WEEK_REVIEW_DAYS
-import com.kvdm.fuelled.domain.model.WeekReview
 import com.kvdm.fuelled.domain.model.weekDayOf
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,28 +15,32 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 
 /**
- * The week in review, OBSERVED (JRN-01): the last [WEEK_REVIEW_DAYS] logical days ending
- * with the current one, each folded from the same [PlanDay] derivation the plan screen and
- * Today read, with targets from the same observed summary the ring reads.
+ * The look back, OBSERVED (HIST-01) — [TREND_DAYS] logical days ending with the current one,
+ * each folded from the same [PlanDay] derivation the plan screen and Today read, with targets
+ * from the same observed summary the ring reads.
  *
- * Composed from the existing use cases rather than a new repository read — the week is a
- * projection over data other contracts already own, and a second read path is exactly what
- * TODAY-13 exists to forbid. The outer `flatMapLatest` on the logical day means the window
- * itself rolls at the day boundary (RS-02): a review left open across 04:00 re-derives as
- * the new week, not yesterday's.
+ * **One stream, two projections.** This replaced `GetWeekReviewUseCase` rather than sitting
+ * beside it: the seven-day verdict is now `History.week` and the four-week trend is
+ * `History.weeks`, both folds of this one list. A separate aggregate query for the trend
+ * would have been faster and would have been a second source of truth for numbers the day
+ * cards already state — and when two such sources disagree, nothing in the app can say which
+ * one is lying (history decision D5, TODAY-13's no-second-path discipline).
  *
- * Any failing source fails the whole week with its own error — a review with silently
- * missing days would read as "you didn't log", which is worse than an honest error
- * (the observed stream heals it on the next emission, RS-01).
+ * The outer `flatMapLatest` on the logical day means the window itself rolls at the day
+ * boundary (RS-02): a Progress screen left open across 04:00 re-derives as the new window.
+ *
+ * Any failing source fails the whole history with its own error — silently missing days would
+ * read as "you didn't log", which is worse than an honest error (the observed stream heals it
+ * on the next emission, RS-01).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetWeekReviewUseCase(
+class GetHistoryUseCase(
     private val getPlanDay: GetPlanDayUseCase,
     private val getTodaySummary: GetTodaySummaryUseCase,
 ) {
-    operator fun invoke(): Flow<AppResult<WeekReview>> =
+    operator fun invoke(days: Int = TREND_DAYS): Flow<AppResult<History>> =
         getPlanDay.currentLogicalDay().flatMapLatest { today ->
-            val dates = ((WEEK_REVIEW_DAYS - 1) downTo 0).map { today.minus(it, DateTimeUnit.DAY) }
+            val dates = ((days - 1) downTo 0).map { today.minus(it, DateTimeUnit.DAY) }
             val dayFlows = dates.map { getPlanDay(it) }
             combine(dayFlows + listOf(getTodaySummary())) { results ->
                 fold(dates, today, results)
@@ -47,8 +51,8 @@ class GetWeekReviewUseCase(
         dates: List<LocalDate>,
         today: LocalDate,
         results: Array<*>,
-    ): AppResult<WeekReview> {
-        // Any source's failure is the week's failure — never a silently short week.
+    ): AppResult<History> {
+        // Any source's failure is the history's failure — never a silently short window.
         results.filterIsInstance<AppResult.Failure>().firstOrNull()?.let { return it }
 
         @Suppress("UNCHECKED_CAST")
@@ -56,7 +60,7 @@ class GetWeekReviewUseCase(
         val summary = (results.last() as AppResult.Success<TodayModel>).value
 
         return AppResult.Success(
-            WeekReview(
+            History(
                 days = days.mapIndexed { i, plan ->
                     weekDayOf(
                         plan = plan,

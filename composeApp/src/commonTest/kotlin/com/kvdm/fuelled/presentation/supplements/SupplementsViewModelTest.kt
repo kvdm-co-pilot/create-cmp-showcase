@@ -3,6 +3,7 @@ package com.kvdm.fuelled.presentation.supplements
 import app.cash.turbine.test
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -45,9 +46,9 @@ class SupplementsViewModelTest {
     private fun viewModel() =
         SupplementsViewModel(GetSupplementStackUseCase(repository), SetSupplementTakenUseCase(repository))
 
-    private val creatine = Supplement("1", "Creatine", "5 g", "Morning", taken = true)
-    private val omega = Supplement("2", "Omega-3", "1 g", "Morning", taken = false)
-    private val caffeine = Supplement("3", "Caffeine", "200 mg", "Pre-workout", taken = false)
+    private val creatine = Supplement("1", "Creatine", "5 g", SupplementTiming.MORNING, taken = true)
+    private val omega = Supplement("2", "Omega-3", "1 g", SupplementTiming.MORNING, taken = false)
+    private val caffeine = Supplement("3", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false)
 
     // SPEC: SUPP-01
     @Test

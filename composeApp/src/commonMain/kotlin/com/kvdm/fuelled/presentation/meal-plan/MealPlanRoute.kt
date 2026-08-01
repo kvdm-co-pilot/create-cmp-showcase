@@ -120,6 +120,8 @@ fun MealPlanRoute(
     // The strip window and the anchor day are observed too — a plan left open across 04:00
     // re-centres instead of offering yesterday's nine days.
     val stripDays by viewModel.stripDays.collectAsStateWithLifecycle()
+    // HIST-04: withheld on a past day, where it would overwrite lived history.
+    val canCopyForward by viewModel.canCopyForward.collectAsStateWithLifecycle()
     val anchorDay by viewModel.todayStream.collectAsStateWithLifecycle()
 
     // No onRetry: the state is observed, so a transient failure recovers on the next emission.
@@ -128,7 +130,7 @@ fun MealPlanRoute(
         screenTag = "meal_plan",
     ) { day ->
         MealPlanDayScreen(
-            day = day.toUi(stripDays, anchorDay),
+            day = day.toUi(stripDays, anchorDay).copy(canCopyForward = canCopyForward),
             actions = PlanDayActions(
                 onSelectDay = { index -> stripDays.getOrNull(index)?.let(viewModel::select) },
                 onToggleDone = { key, done -> mealSlotForKey(key)?.let { viewModel.setDone(it, done) } },

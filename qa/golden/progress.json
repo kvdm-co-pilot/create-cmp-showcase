@@ -3,7 +3,7 @@
     {"tag": "week_back", "role": "Button", "children": [
       {"role": "Image", "contentDescription": "Back"}
     ]},
-    {"tag": "week_title", "text": "Week in review"},
+    {"tag": "week_title", "text": "Progress"},
     {"tag": "week_caption", "text": "Last 7 days · targets are your current goals"},
     {"children": [
       {"tag": "week_summary", "children": [
@@ -14,6 +14,40 @@
         {"text": "2085"},
         {"text": "avg kcal"}
       ]},
+      {"tag": "trend_label", "text": "THE LAST 4 WEEKS"},
+      {"tag": "trend_card", "children": [
+        {"tag": "trend_week_2026-06-25", "children": [
+          {"text": "25 Jun"},
+          {"text": "no data"}
+        ]},
+        {"tag": "trend_week_2026-07-02", "children": [
+          {"text": "2 Jul"},
+          {"text": "2014 kcal avg"},
+          {"text": "vs 2400"},
+          {"text": "1/7 protein · 32/42 meals"}
+        ]},
+        {"tag": "trend_week_2026-07-09", "children": [
+          {"text": "9 Jul"},
+          {"text": "2310 kcal avg"},
+          {"text": "vs 2400"},
+          {"text": "6/7 protein · 40/42 meals"}
+        ]},
+        {"tag": "trend_week_2026-07-16", "children": [
+          {"text": "This week"},
+          {"text": "2085 kcal avg"},
+          {"text": "vs 2400"},
+          {"text": "4/6 protein · 32/42 meals"}
+        ]}
+      ]},
+      {"tag": "weight_label", "text": "WEIGHT"},
+      {"tag": "weight_card", "children": [
+        {"tag": "weight_latest", "text": "82.8 kg"},
+        {"tag": "weight_change", "text": "−1.4 kg in 4 weeks"},
+        {"tag": "weight_add", "role": "Button", "children": [
+          {"text": "Record today's weight"}
+        ]}
+      ]},
+      {"tag": "week_days_label", "text": "THE LAST SEVEN DAYS"},
       {"tag": "week_day_2026-07-16", "children": [
         {"text": "Thu 16"},
         {"text": "2350 / 2400 kcal"},

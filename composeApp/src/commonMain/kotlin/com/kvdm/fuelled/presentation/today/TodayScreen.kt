@@ -23,6 +23,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -256,7 +259,10 @@ fun TodayScreen(
     model: TodayHighlights = sampleHighlights,
     actions: TodayActions = TodayActions(),
     undo: UndoState? = null,
+    /** ENTRY-03: which entry row's editor starts open — see [MealPlanDayScreen]. */
+    initialExpandedEntryId: String? = null,
 ) {
+    var expandedEntryId by rememberSaveable { mutableStateOf(initialExpandedEntryId) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -312,6 +318,9 @@ fun TodayScreen(
                 onToggleDone = { actions.onToggleFocusDone(focus.slot, !focus.done) },
                 onAddFood = { actions.onAddToMeal(model.plan.date, focus.slot) },
                 onDeleteEntry = actions.onDeleteEntry,
+                onEntryServings = actions.onEntryServings,
+                expandedEntryId = expandedEntryId,
+                onToggleEntryExpanded = { id -> expandedEntryId = if (expandedEntryId == id) null else id },
                 // TODAY-07 names this surface's add control `today_add_<slot>`; the same
                 // composable on the plan screen tags itself `plan_add_<slot>`.
                 tagPrefix = "today",

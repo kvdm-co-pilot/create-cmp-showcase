@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -28,6 +29,7 @@ import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.fakes.FixedClock
@@ -52,6 +54,9 @@ class MealPlanScreenTest {
     private val today = LocalDate(2026, 7, 22)
     private val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
 
+    /** The day a freshly-built ViewModel is aimed at — HIST-03's "it owns its own day". */
+    private fun vmSelected(on: LocalDate): LocalDate = viewModel(on = on).selectedDate.value
+
     private fun viewModel(on: LocalDate = today): MealPlanViewModel {
         val getPlanDay = GetPlanDayUseCase(repository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
         return MealPlanViewModel(
@@ -60,7 +65,7 @@ class MealPlanScreenTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler()),
+            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository()),
             deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
             setEntryServings = SetEntryServingsUseCase(FakeTodayRepository()),
             restoreLogEntry = RestoreLogEntryUseCase(FakeTodayRepository()),
@@ -231,6 +236,76 @@ class MealPlanScreenTest {
         assertEquals(today, repository.copyCalls.single().from)
         assertEquals(6, repository.copyCalls.single().to.size, "the rest of the week")
     }
+
+    // SPEC: HIST-03
+    @Test
+    fun `a day far outside this week still owns the selected chip - the strip anchors on it`() =
+        runComposeUiTest {
+            // The kind of day the Progress surface now opens: three weeks back, nowhere near
+            // the old today-relative window.
+            val longAgo = LocalDate(2026, 7, 1)
+            setContent { MaterialTheme { MealPlanRoute({ _, _ -> }, {}, viewModel(on = longAgo)) } }
+
+            awaitNode(hasTestTag("plan_days"))
+            // Index 1 is the selected slot in a [-1 .. +7] window. Before HIST-03 the window
+            // was built around TODAY, `indexOf` returned -1, and `coerceAtLeast(0)` silently
+            // highlighted chip 0 — a screen showing 1 July's meals under a chip reading
+            // "Tue 21".
+            onNodeWithTag("plan_day_1", useUnmergedTree = true).assertExists()
+            onAllNodesWithText("1 Jul").assertCountEquals(0) // labels are day-of-week + day
+            assertEquals(longAgo, vmSelected(longAgo), "the ViewModel still owns the day it opened on")
+        }
+
+    // SPEC: HIST-04
+    @Test
+    fun `copy-forward is withheld on a day already lived and offered on the current one`() =
+        runComposeUiTest {
+            setContent { MaterialTheme { MealPlanRoute({ _, _ -> }, {}, viewModel(on = LocalDate(2026, 7, 15))) } }
+            awaitNode(hasTestTag("plan_days"))
+            // Pointed backwards this would duplicate a past day over days already lived —
+            // overwriting real logged history from a control whose label promises convenience.
+            onAllNodesWithTag("plan_copy_forward").assertCountEquals(0)
+        }
+
+    // SPEC: HIST-04
+    @Test
+    fun `copy-forward is offered on the current day`() = runComposeUiTest {
+        setContent { MaterialTheme { MealPlanRoute({ _, _ -> }, {}, viewModel()) } }
+        awaitNode(hasTestTag("plan_copy_forward"))
+        onNodeWithTag("plan_copy_forward").assertExists()
+    }
+
+    // SPEC: ENTRY-03
+    @Test
+    fun `an entry's editor is closed until the row is tapped, and the amount is readable either way`() =
+        runComposeUiTest {
+            val entryId = "b1"
+            repository.entries[today] = mapOf(
+                MealSlot.BREAKFAST to listOf(LogEntry(entryId, "Rolled oats", "80 g", 430, 38)),
+            )
+            setContent { MaterialTheme { MealPlanRoute({ _, _ -> }, {}, viewModel()) } }
+
+            awaitNode(hasTestTag("plan_entry_$entryId"))
+
+            // Reading state: the row is there, its controls are not. This is what a day of six
+            // containers looks like when you are only looking at it.
+            onAllNodesWithTag("plan_entry_minus_$entryId").assertCountEquals(0)
+            onAllNodesWithTag("plan_entry_delete_$entryId").assertCountEquals(0)
+
+            onNodeWithTag("plan_entry_$entryId").performScrollTo().performClick()
+            waitForIdle()
+
+            // Editing state, on request.
+            awaitNode(hasTestTag("plan_entry_minus_$entryId"))
+            onNodeWithTag("plan_entry_plus_$entryId").assertExists()
+            onNodeWithTag("plan_entry_delete_$entryId").assertExists()
+
+            // And closing it puts the row back the way it was — the disclosure is a toggle,
+            // not a one-way door into a screen full of open editors.
+            onNodeWithTag("plan_entry_$entryId").performClick()
+            waitForIdle()
+            onAllNodesWithTag("plan_entry_minus_$entryId").assertCountEquals(0)
+        }
 
     // SPEC: PLAN-24
     @Test

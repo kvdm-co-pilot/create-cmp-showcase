@@ -9,6 +9,7 @@ import com.kvdm.fuelled.data.local.SupplementDao
 import com.kvdm.fuelled.data.local.SupplementEntity
 import com.kvdm.fuelled.data.local.supplementTakenEntity
 import com.kvdm.fuelled.data.local.toDomain
+import com.kvdm.fuelled.data.local.toEntity
 import com.kvdm.fuelled.data.asAppResult
 import com.kvdm.fuelled.data.suspendRunCatching
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.datetime.TimeZone
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.repository.SupplementRepository
 import com.kvdm.fuelled.domain.result.AppResult
 
@@ -80,6 +82,14 @@ class SupplementRepositoryImpl(
         else dao.clearTaken(today.toString(), id)
     }
 
+    override suspend fun save(supplement: Supplement): AppResult<Unit> = suspendRunCatching {
+        dao.upsert(supplement.toEntity())
+    }
+
+    override suspend fun delete(id: String): AppResult<Unit> = suspendRunCatching {
+        dao.deleteById(id)
+    }
+
     /** Seed the stack on first run so the app ships with content offline (idempotent). */
     private suspend fun ensureSeeded() {
         if (dao.count() == 0) dao.upsertAll(SEED_STACK)
@@ -93,12 +103,12 @@ class SupplementRepositoryImpl(
         // something they did not — the same pretence the meal seed was purged of (PLAN-03), and
         // the reason the doses live in their own table where a fresh install simply has none.
         val SEED_STACK = listOf(
-            SupplementEntity("1", "Creatine", "5 g", "Morning", 0),
-            SupplementEntity("2", "Vitamin D3", "2000 IU", "Morning", 0),
-            SupplementEntity("3", "Omega-3", "1 g", "Morning", 0),
-            SupplementEntity("4", "Caffeine", "200 mg", "Pre-workout", 1),
-            SupplementEntity("5", "Beta-alanine", "3 g", "Pre-workout", 1),
-            SupplementEntity("6", "Magnesium", "400 mg", "Evening", 2),
+            SupplementEntity("1", "Creatine", "5 g", SupplementTiming.MORNING.name, SupplementTiming.MORNING.ordinal),
+            SupplementEntity("2", "Vitamin D3", "2000 IU", SupplementTiming.MORNING.name, SupplementTiming.MORNING.ordinal),
+            SupplementEntity("3", "Omega-3", "1 g", SupplementTiming.MORNING.name, SupplementTiming.MORNING.ordinal),
+            SupplementEntity("4", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT.name, SupplementTiming.PRE_WORKOUT.ordinal),
+            SupplementEntity("5", "Beta-alanine", "3 g", SupplementTiming.PRE_WORKOUT.name, SupplementTiming.PRE_WORKOUT.ordinal),
+            SupplementEntity("6", "Magnesium", "400 mg", SupplementTiming.EVENING.name, SupplementTiming.EVENING.ordinal),
         )
     }
 }

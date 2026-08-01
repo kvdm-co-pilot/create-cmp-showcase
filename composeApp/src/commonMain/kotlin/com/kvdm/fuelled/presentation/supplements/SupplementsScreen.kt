@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.theme.FuelledColors
@@ -53,21 +54,21 @@ val sampleSupplementStack = SupplementStackUi(
         SupplementGroup(
             "Morning",
             listOf(
-                Supplement("1", "Creatine", "5 g", "Morning", taken = true),
-                Supplement("2", "Vitamin D3", "2000 IU", "Morning", taken = true),
-                Supplement("3", "Omega-3", "1 g", "Morning", taken = false),
+                Supplement("1", "Creatine", "5 g", SupplementTiming.MORNING, taken = true),
+                Supplement("2", "Vitamin D3", "2000 IU", SupplementTiming.MORNING, taken = true),
+                Supplement("3", "Omega-3", "1 g", SupplementTiming.MORNING, taken = false),
             ),
         ),
         SupplementGroup(
             "Pre-workout",
             listOf(
-                Supplement("4", "Caffeine", "200 mg", "Pre-workout", taken = false),
-                Supplement("5", "Beta-alanine", "3 g", "Pre-workout", taken = false),
+                Supplement("4", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false),
+                Supplement("5", "Beta-alanine", "3 g", SupplementTiming.PRE_WORKOUT, taken = false),
             ),
         ),
         SupplementGroup(
             "Evening",
-            listOf(Supplement("6", "Magnesium", "400 mg", "Evening", taken = false)),
+            listOf(Supplement("6", "Magnesium", "400 mg", SupplementTiming.EVENING, taken = false)),
         ),
     ),
     takenCount = 2,

@@ -21,7 +21,13 @@ import com.kvdm.fuelled.presentation.meal.TrayContents
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
-import com.kvdm.fuelled.presentation.week.WeekReviewScreen
+import com.kvdm.fuelled.presentation.progress.ProgressScreen
+import com.kvdm.fuelled.presentation.progress.ProgressUi
+import com.kvdm.fuelled.presentation.settings.SettingsScreen
+import com.kvdm.fuelled.presentation.settings.SettingsUi
+import com.kvdm.fuelled.domain.model.AppSettings
+import com.kvdm.fuelled.domain.model.UnitSystem
+import com.kvdm.fuelled.domain.model.WeightLog
 import com.kvdm.fuelled.presentation.onboarding.OnboardingScreen
 import com.kvdm.fuelled.presentation.foods.FoodEditorScreen
 
@@ -73,8 +79,8 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     },
     ScreenPreview("foods", "Foods tab") { TabHost { FoodsScreen() } },
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
-    // JRN-01: the week in review — the holistic results surface.
-    ScreenPreview("week", "Week in review — last 7 days") { TabHost { WeekReviewScreen() } },
+    // JRN-01/HIST-01: Progress — the holistic results surface (verdict, trend, weight, days).
+    ScreenPreview("progress", "Progress — verdict, 4-week trend, weight, days") { TabHost { ProgressScreen() } },
     // START-01: the app's first words.
     ScreenPreview("onboarding", "First run — the three answers") { OnboardingScreen() },
     // CAT-01: your own catalog entries.
@@ -94,6 +100,12 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("meal-plan", "Meal plan — mid-day (lunch focused, late)") { TabHost { MealPlanDayScreen() } },
     ScreenPreview("meal-plan@empty", "Meal plan — fresh day (containers always render)") { TabHost { MealPlanDayScreen(samplePlanEmpty) } },
     ScreenPreview("meal-plan@planned", "Meal plan — tomorrow, planned ahead") { TabHost { MealPlanDayScreen(samplePlanTomorrow) } },
+    // ENTRY-03: the disclosed state. The collapsed row is the default everywhere else, so this
+    // is the only render that shows what the tap reveals — without it the editor would be a
+    // control no gallery, golden tree or human review ever sees.
+    ScreenPreview("meal-plan@editing", "Meal plan — one row's editor open (ENTRY-03)") {
+        TabHost { MealPlanDayScreen(initialExpandedEntryId = "s-l1") }
+    },
     ScreenPreview("meal-times", "Meal times — set-once alarms") { TabHost { MealTimesScreen() } },
     ScreenPreview("meal-times@no-reminders", "Meal times — notifications denied (PLAN-07)") {
         TabHost {
@@ -104,6 +116,17 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
                 ),
             )
         }
+    },
+    // HIST-07: the state a real user has for their first month — no chart, no zero, no empty
+    // axes. Registered because an empty state nobody renders is an empty state nobody reviews.
+    ScreenPreview("progress@no-weight", "Progress — no weigh-ins yet (HIST-07)") {
+        TabHost { ProgressScreen(ProgressUi(weight = WeightLog(emptyList()))) }
+    },
+    // SET-01..08: units, the stack, the lead.
+    ScreenPreview("settings", "Settings — units, stack, reminder lead") { TabHost { SettingsScreen() } },
+    // SET-04: the add/edit form, disclosed. Same composable for both, so one render covers it.
+    ScreenPreview("settings@imperial", "Settings — imperial units (SET-02)") {
+        TabHost { SettingsScreen(ui = SettingsUi(settings = AppSettings(unitSystem = UnitSystem.IMPERIAL, prepLeadMinutes = 60))) }
     },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()

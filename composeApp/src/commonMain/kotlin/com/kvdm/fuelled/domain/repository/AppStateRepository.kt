@@ -1,6 +1,8 @@
 package com.kvdm.fuelled.domain.repository
 
 import com.kvdm.fuelled.domain.model.AppState
+import com.kvdm.fuelled.domain.model.PREP_LEAD_RANGE
+import com.kvdm.fuelled.domain.model.UnitSystem
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.flow.Flow
 
@@ -21,4 +23,10 @@ interface AppStateRepository {
 
     /** START-01: the interview is done; the shell takes over. */
     suspend fun markOnboarded(): AppResult<Unit>
+
+    /** SET-02: the unit system. Display only — nothing stored is ever re-expressed. */
+    suspend fun setUnitSystem(system: UnitSystem): AppResult<Unit>
+
+    /** SET-07: the reminder prep lead, in minutes. Values outside [PREP_LEAD_RANGE] are refused. */
+    suspend fun setPrepLeadMinutes(minutes: Int): AppResult<Unit>
 }

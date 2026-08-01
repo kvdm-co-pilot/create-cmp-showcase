@@ -27,7 +27,8 @@ import com.kvdm.fuelled.presentation.foods.FoodsRoute
 import com.kvdm.fuelled.presentation.meal.MealTrayRoute
 import com.kvdm.fuelled.presentation.mealplan.MealPlanRoute
 import com.kvdm.fuelled.presentation.mealplan.MealTimesRoute
-import com.kvdm.fuelled.presentation.week.WeekReviewRoute
+import com.kvdm.fuelled.presentation.progress.ProgressRoute
+import com.kvdm.fuelled.presentation.settings.SettingsRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
@@ -114,7 +115,12 @@ fun AppNavHost() {
                     )
                 },
                 supplements = { SupplementsRoute() },
-                profile = { ProfileRoute(onOpenWeek = { navController.navigate(Routes.WEEK) }) },
+                profile = {
+                    ProfileRoute(
+                        onOpenWeek = { navController.navigate(Routes.PROGRESS) },
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                    )
+                },
             )
             AppShell(tabs = tabs, selectedIndex = selectedTab, onSelectTab = { selectedTab = it })
         }
@@ -197,12 +203,24 @@ fun AppNavHost() {
                 MealTimesRoute(onBack = { navController.popBackStack() })
             }
         }
-        // The week in review (JRN-01/JRN-02) — the holistic look back; entered from Profile's
+        // Progress (JRN-01/JRN-02, HIST-01) — the holistic look back; entered from Profile's
         // stats row. BaseScreen: a destination registered directly on the NavHost owns its
         // insets (SHELL-05).
-        composable(Screen.Week.route) {
+        composable(Screen.Progress.route) {
             BaseScreen {
-                WeekReviewRoute(onBack = { navController.popBackStack() })
+                ProgressRoute(
+                    onBack = { navController.popBackStack() },
+                    // HIST-02: the day card is a door. It opens the PLAN for that day rather
+                    // than a read-only viewer — the reason you open Sunday is usually to fix
+                    // it, and the plan screen already edits any date.
+                    onOpenDay = { date -> navController.navigate(Routes.mealPlan(date)) },
+                )
+            }
+        }
+        // SET-01: the settings UX-04 stopped pretending about, entered from Profile.
+        composable(Screen.Settings.route) {
+            BaseScreen {
+                SettingsRoute(onBack = { navController.popBackStack() })
             }
         }
         // CAT-01: the custom-food editor. `new` mints an id here rather than in the ViewModel,

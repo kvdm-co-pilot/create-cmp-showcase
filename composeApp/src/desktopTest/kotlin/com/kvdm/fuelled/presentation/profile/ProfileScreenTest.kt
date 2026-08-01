@@ -154,24 +154,36 @@ class ProfileScreenTest {
 
     // SPEC: PROF-04
     // SPEC: UX-04
+    // SPEC: SET-01
     @Test
-    fun `shows the settings list as read-only rows - the tap ships with the destination`() = runComposeUiTest {
+    fun `a settings row is a control exactly when it has a destination`() = runComposeUiTest {
         repository.profile = FakeProfileRepository.sampleProfile
+        var opened = 0
 
         setContent {
-            MaterialTheme { ProfileRoute(viewModel = viewModel()) }
+            MaterialTheme { ProfileRoute(viewModel = viewModel(), onOpenSettings = { opened++ }) }
         }
 
         awaitNode(hasTestTag("profile_screen"))
-        onNodeWithTag("profile_setting_units").assertExists().assertHasNoClickAction()
-        onNodeWithTag("profile_setting_reminders").assertExists().assertHasNoClickAction()
+        // SET-01 built the destination, so the tap UX-04 removed comes back — with it, and
+        // not before. This is the same rule the assertions below enforce in the other
+        // direction, which is why both halves live in one test: they are one rule.
+        onNodeWithTag("profile_setting_units").assertExists().performClick()
+        assertEquals(1, opened, "units opens Settings")
+        onNodeWithTag("profile_setting_stack").assertExists().performClick()
+        assertEquals(2, opened, "so does the supplement stack")
+        onNodeWithTag("profile_setting_reminders").assertExists().performClick()
+        assertEquals(3, opened, "and reminders")
+
+        // Still nothing behind these two, so still no tap. A row that accepts a tap and does
+        // nothing is a broken promise, not a placeholder.
         onNodeWithTag("profile_setting_connected").assertExists().assertHasNoClickAction()
         onNodeWithTag("profile_setting_account").assertExists().assertHasNoClickAction()
     }
 
     // SPEC: JRN-02
     @Test
-    fun `the stats row is a real control - it opens the week in review`() = runComposeUiTest {
+    fun `the stats row is a real control - it opens Progress`() = runComposeUiTest {
         repository.profile = FakeProfileRepository.sampleProfile
         var opened = 0
 
@@ -182,8 +194,8 @@ class ProfileScreenTest {
         awaitNode(hasTestTag("profile_screen"))
         // The tap exists BECAUSE the destination does (UX-04's rule, the other direction):
         // the streak and avg-protein claims are now verifiable by the surface they open.
-        onNodeWithTag("profile_week_link").assertExists().performClick()
-        assertEquals(1, opened, "the stats row navigates to the week review")
+        onNodeWithTag("profile_progress_link").assertExists().performClick()
+        assertEquals(1, opened, "the stats row navigates to Progress")
     }
 
     // SPEC: PROF-05

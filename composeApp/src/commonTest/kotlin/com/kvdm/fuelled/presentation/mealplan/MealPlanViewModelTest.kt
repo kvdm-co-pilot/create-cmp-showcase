@@ -16,6 +16,7 @@ import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.presentation.today.toUserMessage
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
@@ -65,7 +66,7 @@ class MealPlanViewModelTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, scheduler),
+            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository()),
             deleteLogEntry = DeleteLogEntryUseCase(todayRepository),
             setEntryServings = SetEntryServingsUseCase(todayRepository),
             restoreLogEntry = RestoreLogEntryUseCase(todayRepository),

@@ -18,6 +18,7 @@ import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.presentation.today.toUserMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -77,20 +78,6 @@ class MealPlanViewModel(
     private val today: LocalDate get() = todayStream.value
 
     /**
-     * The nine days the strip offers: one leading yesterday for back-filling a missed meal,
-     * today, and the next seven (PLAN-11). This is the feature's ONLY date selector — and it
-     * re-derives when the day rolls, so the window moves with the calendar.
-     */
-    val stripDays: StateFlow<List<LocalDate>> =
-        todayStream
-            .map { anchor -> (-1..PLAN_DAYS_AHEAD).map { anchor.plus(it, DateTimeUnit.DAY) } }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.Eagerly,
-                (-1..PLAN_DAYS_AHEAD).map { getPlanDay.currentLogicalDayNow().plus(it, DateTimeUnit.DAY) },
-            )
-
-    /**
      * The day on screen. Seeded from the route's date ONCE, at construction, and owned by this
      * ViewModel from then on (PLAN-24).
      *
@@ -103,6 +90,38 @@ class MealPlanViewModel(
      */
     private val _selectedDate = MutableStateFlow(initialDate)
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    /**
+     * The nine days the strip offers: one leading day for back-filling a missed meal, the
+     * selected day, and the next seven (PLAN-11).
+     *
+     * HIST-03: the window follows the SELECTED day, not today. It was today-relative, which
+     * was invisible only for as long as nothing could reach a day older than yesterday —
+     * `toUi` derives the highlighted chip as `stripDays.indexOf(date).coerceAtLeast(0)`, so a
+     * day outside the window silently highlighted the FIRST chip. The moment the Progress
+     * surface became a door into any past day (HIST-02), that was a screen confidently
+     * showing Sunday's meals under a chip reading "Tue 21". Anchoring on the selection kills
+     * it at the source: there is no window the selected day can fall outside of.
+     */
+    val stripDays: StateFlow<List<LocalDate>> =
+        combine(todayStream, _selectedDate) { _, selected -> selected }
+            .map { anchor -> (-1..PLAN_DAYS_AHEAD).map { anchor.plus(it, DateTimeUnit.DAY) } }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                (-1..PLAN_DAYS_AHEAD).map { initialDate.plus(it, DateTimeUnit.DAY) },
+            )
+
+    /**
+     * HIST-04: copy-forward is offered on the current day and future ones only. Pointed
+     * backwards it would duplicate a past day's entries over days that have already been
+     * lived — overwriting real logged history, silently, from a control whose label promises
+     * a planning convenience. There is no confirm dialog because there is no legitimate
+     * meaning to confirm.
+     */
+    val canCopyForward: StateFlow<Boolean> =
+        combine(todayStream, _selectedDate) { today, selected -> selected >= today }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     /**
      * The selected day, observed. Switching days re-collects; the day's own writes and the

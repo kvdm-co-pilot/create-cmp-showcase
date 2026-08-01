@@ -64,5 +64,18 @@ class FakeSupplementDao : SupplementDao {
         bump()
     }
 
+    /** SET-04: write-through by id, like the DAO's REPLACE — a re-save corrects, never twins. */
+    override suspend fun upsert(supplement: SupplementEntity) {
+        rows.removeAll { it.id == supplement.id }
+        rows.add(supplement)
+        bump()
+    }
+
+    /** SET-05: the catalog row goes; `taken` rows are deliberately left alone (history stands). */
+    override suspend fun deleteById(id: String) {
+        rows.removeAll { it.id == id }
+        bump()
+    }
+
     override suspend fun clear() = rows.clear()
 }

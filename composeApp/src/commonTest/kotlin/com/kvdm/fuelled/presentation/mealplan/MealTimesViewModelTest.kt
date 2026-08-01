@@ -8,6 +8,7 @@ import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import kotlin.test.AfterTest
@@ -43,8 +44,8 @@ class MealTimesViewModelTest {
     private fun viewModel(scheduler: FakeReminderScheduler = FakeReminderScheduler()) =
         MealTimesViewModel(
             getMealTimes = GetMealTimesUseCase(repository),
-            setMealTime = SetMealTimeUseCase(repository, ArmMealRemindersUseCase(repository, scheduler)),
-            armReminders = ArmMealRemindersUseCase(repository, scheduler),
+            setMealTime = SetMealTimeUseCase(repository, ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository())),
+            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository()),
             scheduler = scheduler,
         )
 

@@ -21,7 +21,7 @@
         {"text": "Trains 5×/week"}
       ]}
     ]},
-    {"tag": "profile_week_link", "children": [
+    {"tag": "profile_progress_link", "children": [
       {"children": [
         {"text": "12"},
         {"text": "day streak"}
@@ -37,10 +37,16 @@
     ]},
     {"children": [
       {"tag": "profile_setting_units", "children": [
-        {"text": "Units & measurements"}
+        {"text": "Units & measurements"},
+        {"text": "›"}
+      ]},
+      {"tag": "profile_setting_stack", "children": [
+        {"text": "Supplement stack"},
+        {"text": "›"}
       ]},
       {"tag": "profile_setting_reminders", "children": [
-        {"text": "Reminders"}
+        {"text": "Reminders"},
+        {"text": "›"}
       ]},
       {"tag": "profile_setting_connected", "children": [
         {"text": "Connected apps"}

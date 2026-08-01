@@ -10,6 +10,7 @@ import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.presentation.today.TodayViewModel
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
@@ -57,7 +58,7 @@ fun todayViewModel(
         getSupplementStack = GetSupplementStackUseCase(supplements),
         setSlotDone = SetSlotDoneUseCase(plan),
         setWaterDone = SetWaterDoneUseCase(plan),
-        armReminders = ArmMealRemindersUseCase(plan, scheduler),
+        armReminders = ArmMealRemindersUseCase(plan, scheduler, FakeAppStateRepository()),
         deleteLogEntry = DeleteLogEntryUseCase(today),
             setEntryServings = SetEntryServingsUseCase(today),
             restoreLogEntry = RestoreLogEntryUseCase(today),

@@ -60,10 +60,12 @@ sealed interface ReminderTarget {
 /**
  * The prep lead (PLAN-07, daily-journeys decision 1): a meal reminder fires this many
  * minutes BEFORE its slot time — the moment a working user can still cook or fetch the
- * meal, not the moment it is already due. A named constant until the reminders settings
- * surface (usability-pass S5) makes it a per-user choice; water takes no lead.
+ * meal, not the moment it is already due. Water takes no lead: there is nothing to prep.
+ *
+ * SET-07 made it the per-user choice PLAN-07 always said it would become; the default lives
+ * on [AppSettings] and travels in as an argument, so this policy stays pure and testable at
+ * any lead including zero.
  */
-const val PREP_LEAD_MINUTES: Int = 30
 
 /**
  * One armed daily reminder. [key] is stable across re-arms — derived from the target, never
@@ -87,9 +89,9 @@ data class MealReminder(
         }
 }
 
-/** [PREP_LEAD_MINUTES] before a slot time, clamped at midnight — never wrapped to yesterday. */
-internal fun LocalTime.minusPrepLead(): LocalTime =
-    LocalTime.fromSecondOfDay((toSecondOfDay() - PREP_LEAD_MINUTES * 60).coerceAtLeast(0))
+/** [leadMinutes] before a slot time, clamped at midnight — never wrapped to yesterday. */
+internal fun LocalTime.minusPrepLead(leadMinutes: Int): LocalTime =
+    LocalTime.fromSecondOfDay((toSecondOfDay() - leadMinutes * 60).coerceAtLeast(0))
 
 /**
  * The reminders that should currently be armed (PLAN-07).
@@ -110,14 +112,19 @@ fun remindersFor(
     times: MealTimes,
     doneSlots: Set<MealSlot>,
     capability: ReminderCapability,
+    leadMinutes: Int = DEFAULT_PREP_LEAD_MINUTES,
 ): List<MealReminder> {
     val mode = capability.mode
+    // SET-07: a lead outside the offered range can only arrive from a corrupted row or a
+    // caller that skipped the guard. Clamping beats trusting it — a negative lead would arm
+    // reminders AFTER the meal, which is the one thing this policy exists to prevent.
+    val lead = leadMinutes.coerceIn(PREP_LEAD_RANGE)
     val meals = MealSlot.entries
         .filter { it !in doneSlots }
         .map {
             MealReminder(
                 target = ReminderTarget.Meal(it),
-                time = times[it].minusPrepLead(),
+                time = times[it].minusPrepLead(lead),
                 mode = mode,
                 eventTime = times[it],
             )

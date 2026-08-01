@@ -33,6 +33,20 @@ interface SupplementDao {
     @Query("DELETE FROM supplement_taken WHERE logicalDate = :logicalDate AND supplementId = :id")
     suspend fun clearTaken(logicalDate: String, id: String)
 
+    // ── The stack is the user's (SET-04/SET-05) ──────────────────────────────────────────
+
+    /** Add or correct one supplement. REPLACE makes a re-save of the same id idempotent. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(supplement: SupplementEntity)
+
+    /**
+     * SET-05: drop it from the stack. Past `supplement_taken` rows are deliberately NOT
+     * cascaded — you stopped taking it, you did not stop having taken it (CAT-01's stance on
+     * deleting a food that past log entries still reference).
+     */
+    @Query("DELETE FROM supplements WHERE id = :id")
+    suspend fun deleteById(id: String)
+
     @Query("SELECT COUNT(*) FROM supplements")
     suspend fun count(): Int
 

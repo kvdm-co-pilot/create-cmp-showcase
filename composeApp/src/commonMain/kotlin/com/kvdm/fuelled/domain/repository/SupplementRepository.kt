@@ -20,4 +20,17 @@ interface SupplementRepository {
      * the point of the feature (SUPP-03). [AppResult.Success] of Unit on success.
      */
     suspend fun setTaken(id: String, taken: Boolean): AppResult<Unit>
+
+    /**
+     * SET-04/SET-05: add a supplement or correct an existing one. Idempotent on the id, so a
+     * double-tapped save replaces the row rather than creating a twin (the tray's reasoning
+     * for client-minted ids, MEAL-05).
+     */
+    suspend fun save(supplement: Supplement): AppResult<Unit>
+
+    /**
+     * SET-05: drop it from the stack. Past doses are left alone — you stopped taking it, you
+     * did not stop having taken it.
+     */
+    suspend fun delete(id: String): AppResult<Unit>
 }

@@ -1,4 +1,4 @@
-package com.kvdm.fuelled.presentation.week
+package com.kvdm.fuelled.presentation.progress
 
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.LogStatus
@@ -6,11 +6,16 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.WEEK_REVIEW_DAYS
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
-import com.kvdm.fuelled.domain.usecase.GetWeekReviewUseCase
+import com.kvdm.fuelled.domain.usecase.GetHistoryUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
+import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
+import com.kvdm.fuelled.testing.fakes.FakeWeightRepository
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.keepCollecting
@@ -29,12 +34,13 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
 
 /**
- * The week in review, derived through the SAME plan-day derivation and observed reads every
- * other surface uses (JRN-01) — seven rows, ascending, today last; LOGGED-only totals; a day
- * with nothing logged is zeros, never an error.
+ * The Progress surface (JRN-01, HIST-01) — the week section derived through the SAME plan-day
+ * derivation and observed reads every other surface uses: seven rows, ascending, today last;
+ * LOGGED-only totals; a day with nothing logged is zeros, never an error. HIST-05..08 cover
+ * the trend and the weight built on the same stream.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class WeekReviewViewModelTest {
+class ProgressViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val planRepository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
@@ -47,11 +53,20 @@ class WeekReviewViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel() = WeekReviewViewModel(
-        GetWeekReviewUseCase(
-            getPlanDay = GetPlanDayUseCase(planRepository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
+    private val weightRepository = FakeWeightRepository()
+    private val appState = FakeAppStateRepository()
+
+    private fun getPlanDay() =
+        GetPlanDayUseCase(planRepository, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
+
+    private fun viewModel() = ProgressViewModel(
+        getHistory = GetHistoryUseCase(
+            getPlanDay = getPlanDay(),
             getTodaySummary = GetTodaySummaryUseCase(todayRepository),
         ),
+        observeWeight = ObserveWeightLogUseCase(weightRepository, getPlanDay()),
+        observeAppState = ObserveAppStateUseCase(appState),
+        recordWeight = RecordWeightUseCase(weightRepository, getPlanDay()),
     )
 
     // SPEC: JRN-01
@@ -72,7 +87,7 @@ class WeekReviewViewModelTest {
             keepCollecting(vm.state)
             advanceUntilIdle()
 
-            val week = assertIs<ContentUiState.Content<com.kvdm.fuelled.domain.model.WeekReview>>(vm.state.value).data
+            val week = assertIs<ContentUiState.Content<ProgressUi>>(vm.state.value).data.history.week
             assertEquals(WEEK_REVIEW_DAYS, week.days.size)
             assertEquals(LocalDate(2026, 7, 16), week.days.first().date, "window starts six days back")
             assertEquals(today, week.days.last().date, "today is the last row")
@@ -101,14 +116,14 @@ class WeekReviewViewModelTest {
             val vm = viewModel()
             keepCollecting(vm.state)
             advanceUntilIdle()
-            val before = assertIs<ContentUiState.Content<com.kvdm.fuelled.domain.model.WeekReview>>(vm.state.value).data
+            val before = assertIs<ContentUiState.Content<ProgressUi>>(vm.state.value).data.history.week
             assertEquals(0, before.days.last().slotsDone)
 
             // The same write path every surface uses; the fake re-emits like Room would (RS-01).
             planRepository.setSlotDone(today, MealSlot.BREAKFAST, true)
             advanceUntilIdle()
 
-            val after = assertIs<ContentUiState.Content<com.kvdm.fuelled.domain.model.WeekReview>>(vm.state.value).data
+            val after = assertIs<ContentUiState.Content<ProgressUi>>(vm.state.value).data.history.week
             assertEquals(1, after.days.last().slotsDone, "the tick reached the week with no reload call")
         }
 }

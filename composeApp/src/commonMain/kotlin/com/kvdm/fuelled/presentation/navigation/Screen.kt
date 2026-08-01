@@ -11,8 +11,9 @@ sealed class Screen(val route: String) {
     data object MealTray : Screen(Routes.MEAL_TRAY)
     data object MealPlan : Screen(Routes.MEAL_PLAN)
     data object MealTimes : Screen(Routes.MEAL_TIMES)
-    data object Week : Screen(Routes.WEEK)
+    data object Progress : Screen(Routes.PROGRESS)
     data object FoodEditor : Screen(Routes.FOOD_EDITOR)
+    data object Settings : Screen(Routes.SETTINGS)
     // cmp:anchor screen-objects
 }
 
@@ -22,10 +23,15 @@ object Routes {
     const val MEAL_TRAY   = "meal/{date}/{slot}"
     const val MEAL_PLAN   = "plan/{date}"
     const val MEAL_TIMES  = "plan/times"
-    /** The week in review (JRN-01/JRN-02) — no arguments: the window is always the last 7 days. */
-    const val WEEK        = "week"
+    /**
+     * The Progress surface (JRN-01/JRN-02, HIST-01) — no arguments: the window is always the
+     * last [TREND_DAYS] days, anchored on the current logical day.
+     */
+    const val PROGRESS    = "progress"
     /** CAT-01: the custom-food editor. A blank id is "new"; an id edits that food. */
     const val FOOD_EDITOR = "food/edit/{foodId}"
+    /** SET-01: units, the supplement stack, and the reminder lead. */
+    const val SETTINGS    = "settings"
     // cmp:anchor route-consts
     fun foodDetail(foodId: String) = "food/$foodId"
 

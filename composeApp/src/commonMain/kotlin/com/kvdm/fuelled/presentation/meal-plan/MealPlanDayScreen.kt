@@ -2,6 +2,7 @@ package com.kvdm.fuelled.presentation.mealplan
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +27,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,6 +102,11 @@ data class PlanDayUi(
     val vegGoal: Int,
     val meals: List<PlanMealUi>,
     val waters: List<PlanWaterUi>,
+    /**
+     * HIST-04: whether copy-forward is offered. False on a day already lived — copying a past
+     * day over the days after it would overwrite real logged history.
+     */
+    val canCopyForward: Boolean = true,
 )
 
 // PREVIEW/DEMO fixtures — fixed dates and times, never a clock read (ARCH-12; renders must be
@@ -212,7 +223,11 @@ fun MealPlanDayScreen(
     day: PlanDayUi = samplePlanMidday,
     actions: PlanDayActions = PlanDayActions.None,
     undo: UndoState? = null,
+    // ENTRY-03: which row's editor starts open. Ephemeral view state — it never round-trips
+    // the domain — but seeded from a parameter so the registry can render the editing state.
+    initialExpandedEntryId: String? = null,
 ) {
+    var expandedEntryId by rememberSaveable { mutableStateOf(initialExpandedEntryId) }
     ScreenColumn(screenTag = "meal_plan") {
         AppHeader(
             title = "Meal plan",
@@ -259,6 +274,8 @@ fun MealPlanDayScreen(
                     onAddFood = { actions.onAddFood(meal.key) },
                     onDeleteEntry = actions.onDeleteEntry,
                     onEntryServings = actions.onEntryServings,
+                    expandedEntryId = expandedEntryId,
+                    onToggleEntryExpanded = { id -> expandedEntryId = if (expandedEntryId == id) null else id },
                 )
                 day.waters.getOrNull(i)?.let { water ->
                     WaterRow(
@@ -270,11 +287,13 @@ fun MealPlanDayScreen(
             // PLAN-20: the affordance that makes a planned week survivable. It sits at the
             // BOTTOM, after the day it copies — you reach it having just built the thing it
             // repeats, which is the only moment the offer makes sense.
-            AppTextButton(
-                text = "Copy this day to the rest of the week",
-                onClick = actions.onCopyForward,
-                modifier = Modifier.semantics { testTag = "plan_copy_forward" },
-            )
+            if (day.canCopyForward) {
+                AppTextButton(
+                    text = "Copy this day to the rest of the week",
+                    onClick = actions.onCopyForward,
+                    modifier = Modifier.semantics { testTag = "plan_copy_forward" },
+                )
+            }
             Spacer(Modifier.height(8.dp))
         }
     }
@@ -326,6 +345,12 @@ internal fun PlanMealCard(
     onAddFood: () -> Unit = {},
     onDeleteEntry: (String) -> Unit = {},
     onEntryServings: (String, Int) -> Unit = { _, _ -> },
+    // ENTRY-03: which row's editor is open, hoisted so this card stays a pure function of its
+    // arguments — the registry can render the open state and the golden tree can hold it.
+    // At most ONE id, so opening a second row closes the first: you correct one thing at a
+    // time, and an accordion never leaves a column of half-open editors behind you.
+    expandedEntryId: String? = null,
+    onToggleEntryExpanded: (String) -> Unit = {},
     // The card is shared with Today (decision 13 — Today renders the plan's projection), and
     // each surface names its own tags: `plan_add_lunch` there, `today_add_lunch` here
     // (TODAY-07). One composable, so the two can never drift visually; two tag namespaces, so
@@ -397,6 +422,8 @@ internal fun PlanMealCard(
             meal.entries.isNotEmpty() -> meal.entries.forEach {
                 PlanEntryRow(
                     entry = it,
+                    expanded = it.id == expandedEntryId,
+                    onToggleExpanded = { onToggleEntryExpanded(it.id) },
                     onDelete = { onDeleteEntry(it.id) },
                     onServings = { n -> onEntryServings(it.id, n) },
                     tagPrefix = tagPrefix,
@@ -419,27 +446,67 @@ internal fun PlanMealCard(
 }
 
 /**
- * One logged (or planned) entry, with its remove control (UX-02). The remove is quiet —
- * onSurfaceVariant, no confirm dialog: one mis-tapped row is undone in one tap, and the
- * category norm for a single list row is immediate removal (the undo snackbar is S2's
- * slice). It is a labeled 48 dp [AppIconButton], not an invisible swipe — a destructive
- * action a screen reader cannot find is not a control (UX-04's standing rule).
+ * One logged (or planned) entry (UX-02, ENTRY-01/03).
+ *
+ * ENTRY-03 — progressive disclosure. The row reads as a ledger line by default and becomes an
+ * editor when you ask: the tap reveals the serving stepper and the remove. A day is six
+ * containers; rendering a stepper and an X on every entry of every one of them turned the
+ * plan into a wall of controls for a screen people mostly READ. What the collapsed row must
+ * never hide is the FACT — the serving label states the multiple ("2 x 100 g") whether the
+ * editor is open or not.
+ *
+ * The reveal is a labelled tap on the row itself, never a swipe: a hidden gesture is not an
+ * affordance, and a destructive action a screen reader cannot reach is not a control
+ * (UX-04's standing rule). Expanded, both controls are labelled 48 dp [AppIconButton]s.
  */
 @Composable
 private fun PlanEntryRow(
     entry: PlanEntryUi,
+    expanded: Boolean,
+    onToggleExpanded: () -> Unit,
     onDelete: () -> Unit,
     onServings: (Int) -> Unit,
     tagPrefix: String = "plan",
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(entry.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Text(entry.serving, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                // Two lines of text measure 39 dp — under the floor. Making the ROW the tap
+                // target is what makes the reveal discoverable, so the row has to earn a real
+                // target rather than the text's natural height.
+                .heightIn(min = AppButtonDefaults.MinTouchTarget)
+                .clickable(
+                    onClickLabel = if (expanded) "Hide edit controls" else "Edit ${entry.name}",
+                    onClick = onToggleExpanded,
+                )
+                .semantics { testTag = "${tagPrefix}_entry_${entry.id}" },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(entry.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(entry.serving, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Protein)
+            }
+        }
+        if (expanded) {
             // ENTRY-01: the serving is editable WHERE IT IS. Fixing "I actually had two" was
             // delete-and-re-add before this — four taps and a trip to the tray for a number
             // already on screen.
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Tinted so the editor reads as belonging to the row above it. Untinted it
+                    // floated between two entries, and in a container of several rows "which
+                    // one am I editing?" is the only question the disclosure must never raise.
+                    .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 AppIconButton(
                     icon = Icons.Filled.Remove,
                     contentDescription = "One serving less of ${entry.name}",
@@ -460,20 +527,20 @@ private fun PlanEntryRow(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_plus_${entry.id}" },
                 )
+                Spacer(Modifier.weight(1f))
+                // The remove travels WITH the stepper: "change this row" is one intent, and
+                // splitting its two halves — one always on screen, one behind a tap — would
+                // be the incoherent version of this disclosure. The undo bar (ENTRY-02) is
+                // what makes an immediate, dialog-free removal safe.
+                AppIconButton(
+                    icon = Icons.Filled.Close,
+                    contentDescription = "Remove ${entry.name}",
+                    onClick = onDelete,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_delete_${entry.id}" },
+                )
             }
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-            Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Protein)
-        }
-        Spacer(Modifier.width(6.dp))
-        AppIconButton(
-            icon = Icons.Filled.Close,
-            contentDescription = "Remove ${entry.name}",
-            onClick = onDelete,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_delete_${entry.id}" },
-        )
     }
 }
 

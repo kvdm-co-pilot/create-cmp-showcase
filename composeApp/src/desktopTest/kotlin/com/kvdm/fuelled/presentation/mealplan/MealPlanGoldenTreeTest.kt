@@ -20,6 +20,7 @@ import com.kvdm.fuelled.testing.StructuralTree
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.awaitNode
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
@@ -78,7 +79,7 @@ class MealPlanGoldenTreeTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler()),
+            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository()),
             deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
             setEntryServings = SetEntryServingsUseCase(FakeTodayRepository()),
             restoreLogEntry = RestoreLogEntryUseCase(FakeTodayRepository()),

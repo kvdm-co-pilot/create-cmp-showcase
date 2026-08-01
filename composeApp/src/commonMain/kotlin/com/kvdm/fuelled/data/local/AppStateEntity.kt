@@ -8,19 +8,26 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 
 /**
- * The app's own state — not the user's data and not a setting: the two facts the app knows
- * about ITSELF (schema v10, START-01/START-02).
+ * The app's own state, and its owner's settings, in one row (schema v11, START-01/START-02,
+ * SET-02/SET-07).
  *
  * [onboarded] gates the first-run interview. [startedAtEpochMs] is the instant the app was
  * first opened, which is what lets a first day distinguish "you skipped breakfast" from
  * "breakfast happened before this app existed" — the framing defect journey J3 found.
  * One row, fixed key, like the profile and the goal.
+ *
+ * [unitSystem] and [prepLeadMinutes] join them rather than each getting a table (settings
+ * decision D8): typed columns beat a key-value bag — four columns cannot hold a malformed
+ * value, and every read is already parsed — and sharing the row means one observed stream
+ * re-renders every surface when any of it changes.
  */
 @Entity(tableName = "app_state")
 data class AppStateEntity(
     @PrimaryKey val id: String,
     val onboarded: Boolean,
     val startedAtEpochMs: Long,
+    val unitSystem: String,
+    val prepLeadMinutes: Int,
 )
 
 @Dao

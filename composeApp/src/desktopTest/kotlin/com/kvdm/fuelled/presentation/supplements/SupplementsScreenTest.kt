@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.testing.awaitNode
@@ -31,9 +32,9 @@ class SupplementsScreenTest {
         SupplementsViewModel(GetSupplementStackUseCase(repository), SetSupplementTakenUseCase(repository))
 
     private val stack = listOf(
-        Supplement("1", "Creatine", "5 g", "Morning", taken = true),
-        Supplement("2", "Omega-3", "1 g", "Morning", taken = false),
-        Supplement("3", "Caffeine", "200 mg", "Pre-workout", taken = false),
+        Supplement("1", "Creatine", "5 g", SupplementTiming.MORNING, taken = true),
+        Supplement("2", "Omega-3", "1 g", SupplementTiming.MORNING, taken = false),
+        Supplement("3", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false),
     )
 
     // SPEC: SUPP-01

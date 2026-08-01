@@ -70,7 +70,9 @@ class SupplementsViewModel(
     /** Group the ordered stack by timing (first-seen order preserved) and total the taken count. */
     private fun List<Supplement>.toStackUi(): ContentUiState<SupplementStackUi> {
         if (isEmpty()) return ContentUiState.Empty
-        val groups = groupBy { it.timing }.map { (timing, items) -> SupplementGroup(timing, items) }
+        // SET-06: the group's NAME is the timing's display label — one fact, so the
+        // bucket a supplement lands in and the heading above it cannot disagree.
+        val groups = groupBy { it.timing }.map { (timing, items) -> SupplementGroup(timing.label, items) }
         return ContentUiState.Content(
             SupplementStackUi(groups = groups, takenCount = count { it.taken }, total = size),
         )

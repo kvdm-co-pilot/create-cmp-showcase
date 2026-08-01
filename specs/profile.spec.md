@@ -13,10 +13,11 @@
   read from the one goal store (PERS-01), never from a second profile-owned copy.
 - **PROF-03** — Given the profile is loaded, Then the weekly stats are shown: day streak,
   average protein, and current weight.
-- **PROF-04** — Given the profile is loaded, Then the settings list is shown (units &
-  measurements, reminders, connected apps, account), each as a labeled, **read-only** row
-  (UX-04 — destinations are the settings slice, usability-pass S5; the rows regain their tap
-  when their destinations exist).
+- **PROF-04** — Given the profile is loaded, Then the settings list is shown. The rows whose
+  destination now exists — units & measurements, supplements, reminders — are live controls
+  opening the Settings surface (`profile_settings_link`, SET-01): UX-04's rule satisfied in
+  the other direction, the tap returning WITH the destination. Rows whose destination does not
+  exist (connected apps, account) stay labeled, **read-only** values.
 - **PROF-05** — Given the source fails, When loading completes, Then a mapped error
   (`profile_error`) with a retry control (`profile_retry`) is shown from the failure's
   `DomainError` kind; retry after the source recovers renders the profile.

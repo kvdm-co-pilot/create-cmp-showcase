@@ -6,6 +6,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.testing.StructuralTree
@@ -34,9 +35,9 @@ class SupplementsGoldenTreeTest {
 
     // Fixed dataset — golden renders must be deterministic; never use live/random data here.
     private val goldenStack = listOf(
-        Supplement("1", "Golden creatine", "5 g", "Morning", taken = true),
-        Supplement("2", "Golden omega", "1 g", "Morning", taken = false),
-        Supplement("3", "Golden caffeine", "200 mg", "Pre-workout", taken = false),
+        Supplement("1", "Golden creatine", "5 g", SupplementTiming.MORNING, taken = true),
+        Supplement("2", "Golden omega", "1 g", SupplementTiming.MORNING, taken = false),
+        Supplement("3", "Golden caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false),
     )
 
     // SPEC: SUPP-06

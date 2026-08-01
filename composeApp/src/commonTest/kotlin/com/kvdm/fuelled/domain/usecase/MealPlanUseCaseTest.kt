@@ -9,6 +9,7 @@ import com.kvdm.fuelled.domain.model.ReminderTarget
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FixedClock
@@ -225,7 +226,7 @@ class MealPlanUseCaseTest {
     fun `reminders are armed for every slot and water, and a ticked slot's is cancelled`() = runTest {
         val repo = FakeMealPlanRepository(time, TEST_ZONE)
         val scheduler = FakeReminderScheduler()
-        val arm = ArmMealRemindersUseCase(repo, scheduler)
+        val arm = ArmMealRemindersUseCase(repo, scheduler, FakeAppStateRepository())
 
         assertIs<AppResult.Success<*>>(arm())
         assertEquals(12, scheduler.armed.size, "six meals + six waters")
@@ -258,7 +259,7 @@ class MealPlanUseCaseTest {
             val windowed = FakeReminderScheduler(
                 ReminderCapability(notificationsAllowed = true, exactAlarmsAllowed = false),
             )
-            ArmMealRemindersUseCase(repo, windowed)()
+            ArmMealRemindersUseCase(repo, windowed, FakeAppStateRepository())()
             assertEquals(12, windowed.armed.size)
             assertTrue(windowed.armed.all { it.mode == ReminderMode.WINDOWED_INEXACT })
 
@@ -268,7 +269,7 @@ class MealPlanUseCaseTest {
             val denied = FakeReminderScheduler(
                 ReminderCapability(notificationsAllowed = false, exactAlarmsAllowed = false),
             )
-            ArmMealRemindersUseCase(repo, denied)()
+            ArmMealRemindersUseCase(repo, denied, FakeAppStateRepository())()
             assertEquals(12, denied.armed.size)
             assertTrue(denied.armed.all { it.mode == ReminderMode.UNAVAILABLE })
         }
@@ -278,9 +279,9 @@ class MealPlanUseCaseTest {
     fun `changing a slot time re-arms that slot and moves the water either side of it`() = runTest {
         val repo = FakeMealPlanRepository(time, TEST_ZONE)
         val scheduler = FakeReminderScheduler()
-        val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, scheduler))
+        val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, scheduler, FakeAppStateRepository()))
 
-        ArmMealRemindersUseCase(repo, scheduler)()
+        ArmMealRemindersUseCase(repo, scheduler, FakeAppStateRepository())()
         val waterBefore = scheduler.armed.filter { it.target is ReminderTarget.Water }.map { it.time }
 
         assertIs<AppResult.Success<*>>(setTime(MealSlot.LUNCH, LocalTime(13, 0)))
@@ -303,7 +304,7 @@ class MealPlanUseCaseTest {
     @Test
     fun `a write that would invert the timetable is coerced, not stored verbatim`() = runTest {
         val repo = FakeMealPlanRepository(time, TEST_ZONE)
-        val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, FakeReminderScheduler()))
+        val setTime = SetMealTimeUseCase(repo, ArmMealRemindersUseCase(repo, FakeReminderScheduler(), FakeAppStateRepository()))
 
         // The shift-worker case: dinner before breakfast. Every derivation downstream assumes
         // the day runs forwards, so the domain clamps rather than accepting it.

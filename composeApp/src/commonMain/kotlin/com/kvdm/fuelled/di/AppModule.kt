@@ -17,7 +17,16 @@ import com.kvdm.fuelled.domain.usecase.AddLogEntriesUseCase
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
-import com.kvdm.fuelled.domain.usecase.GetWeekReviewUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteSupplementUseCase
+import com.kvdm.fuelled.domain.usecase.GetHistoryUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
+import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
+import com.kvdm.fuelled.domain.usecase.SaveSupplementUseCase
+import com.kvdm.fuelled.domain.usecase.SetPrepLeadUseCase
+import com.kvdm.fuelled.domain.usecase.SetUnitSystemUseCase
+import com.kvdm.fuelled.domain.repository.WeightRepository
+import com.kvdm.fuelled.data.remote.WeightRepositoryImpl
+import com.kvdm.fuelled.presentation.settings.SettingsViewModel
 import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
 import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
@@ -52,7 +61,7 @@ import com.kvdm.fuelled.presentation.mealplan.MealTimesViewModel
 import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
-import com.kvdm.fuelled.presentation.week.WeekReviewViewModel
+import com.kvdm.fuelled.presentation.progress.ProgressViewModel
 import com.kvdm.fuelled.presentation.onboarding.OnboardingViewModel
 import com.kvdm.fuelled.presentation.foods.FoodEditorViewModel
 // cmp:anchor di-imports
@@ -76,6 +85,8 @@ val repositoryModule = module {
     single<TodayRepository> { TodayRepositoryImpl(get<AppDatabase>().todayDao(), get()) }
     // START-01/START-02: the app's own state — onboarding + the first-open instant.
     single<AppStateRepository> { AppStateRepositoryImpl(get<AppDatabase>().appStateDao(), get()) }
+    // HIST-06: the weigh-in log, off the same AppDatabase.
+    single<WeightRepository> { WeightRepositoryImpl(get<AppDatabase>().weightDao()) }
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao(), get()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
@@ -113,11 +124,20 @@ val useCaseModule = module {
     factory { CopyDayForwardUseCase(get()) }
     // The ReminderScheduler is PLATFORM-bound: Android arms real alarms, desktop and iOS bind
     // NoOpReminderScheduler (brief decision 9 — iOS notifications are deliberately unpromised).
-    factory { ArmMealRemindersUseCase(get(), get()) }
+    factory { ArmMealRemindersUseCase(get(), get(), get()) }
     factory { SetMealTimeUseCase(get(), get()) }
     // The week in review (JRN-01): composed from the two observed reads above — no new
     // repository, deliberately (TODAY-13's no-second-path discipline).
-    factory { GetWeekReviewUseCase(get(), get()) }
+    factory { GetHistoryUseCase(get(), get()) }
+    // HIST-06..08: the weigh-in log — the one stored thing on the Progress surface.
+    factory { ObserveWeightLogUseCase(get(), get()) }
+    factory { RecordWeightUseCase(get(), get()) }
+    // SET-02/SET-07: the settings writes. SetPrepLead re-arms as part of the write (SET-08).
+    factory { SetUnitSystemUseCase(get()) }
+    factory { SetPrepLeadUseCase(get(), get()) }
+    // SET-04/SET-05: the stack becomes the user's.
+    factory { SaveSupplementUseCase(get()) }
+    factory { DeleteSupplementUseCase(get()) }
     factory { UpdateGoalsUseCase(get()) }
     factory { UpdateProfileNameUseCase(get()) }
     factory { SetEntryServingsUseCase(get()) }
@@ -139,6 +159,7 @@ val viewModelModule = module {
     viewModel { FoodDetailViewModel(get(), get(), get()) }
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
+    viewModelOf(::SettingsViewModel)
     viewModelOf(::ProfileViewModel)
     // Like the tray below, the plan's opening day comes from the CALL SITE: the nav destination
     // passes `plan/{date}`'s date as a Koin parameter, so the ViewModel is aimed before its
@@ -148,7 +169,7 @@ val viewModelModule = module {
         MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
     }
     viewModelOf(::MealTimesViewModel)
-    viewModelOf(::WeekReviewViewModel)
+    viewModelOf(::ProgressViewModel)
     viewModelOf(::OnboardingViewModel)
     viewModelOf(::FoodEditorViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired

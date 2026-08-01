@@ -6,7 +6,11 @@ import com.kvdm.fuelled.data.asAppResult
 import com.kvdm.fuelled.data.local.AppStateDao
 import com.kvdm.fuelled.data.local.AppStateEntity
 import com.kvdm.fuelled.data.suspendRunCatching
+import com.kvdm.fuelled.domain.model.AppSettings
 import com.kvdm.fuelled.domain.model.AppState
+import com.kvdm.fuelled.domain.model.DEFAULT_PREP_LEAD_MINUTES
+import com.kvdm.fuelled.domain.model.PREP_LEAD_RANGE
+import com.kvdm.fuelled.domain.model.UnitSystem
 import com.kvdm.fuelled.domain.repository.AppStateRepository
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlin.time.Instant
@@ -44,9 +48,30 @@ class AppStateRepositoryImpl(
         dao.upsert(row.copy(onboarded = true))
     }
 
+    override suspend fun setUnitSystem(system: UnitSystem): AppResult<Unit> = suspendRunCatching {
+        val row = ensureSeededRow()
+        dao.upsert(row.copy(unitSystem = system.name))
+    }
+
+    override suspend fun setPrepLeadMinutes(minutes: Int): AppResult<Unit> = suspendRunCatching {
+        // SET-07: refused, not clamped. A caller that asks for a 9999-minute lead has a bug,
+        // and silently storing 120 would hide it behind a setting that looks like it took.
+        require(minutes in PREP_LEAD_RANGE) { "prep lead $minutes is outside $PREP_LEAD_RANGE" }
+        val row = ensureSeededRow()
+        dao.upsert(row.copy(prepLeadMinutes = minutes))
+    }
+
     private suspend fun ensureSeeded() {
         if (dao.get() == null) {
-            dao.upsert(AppStateEntity(id = ID, onboarded = false, startedAtEpochMs = time.now().toEpochMilliseconds()))
+            dao.upsert(
+                AppStateEntity(
+                    id = ID,
+                    onboarded = false,
+                    startedAtEpochMs = time.now().toEpochMilliseconds(),
+                    unitSystem = UnitSystem.METRIC.name,
+                    prepLeadMinutes = DEFAULT_PREP_LEAD_MINUTES,
+                ),
+            )
         }
     }
 
@@ -58,6 +83,12 @@ class AppStateRepositoryImpl(
     private fun AppStateEntity.toDomain() = AppState(
         onboarded = onboarded,
         startedAt = Instant.fromEpochMilliseconds(startedAtEpochMs),
+        settings = AppSettings(
+            // A row written by an older build, or one holding a value this build no longer
+            // knows, reads as the default rather than crashing the app it configures.
+            unitSystem = UnitSystem.entries.firstOrNull { it.name == unitSystem } ?: UnitSystem.METRIC,
+            prepLeadMinutes = prepLeadMinutes.takeIf { it in PREP_LEAD_RANGE } ?: DEFAULT_PREP_LEAD_MINUTES,
+        ),
     )
 
     private companion object {

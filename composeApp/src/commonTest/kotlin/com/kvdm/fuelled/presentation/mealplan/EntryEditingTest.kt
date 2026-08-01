@@ -11,6 +11,7 @@ import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
@@ -53,7 +54,7 @@ class EntryEditingTest {
         setSlotDone = SetSlotDoneUseCase(plan),
         setWaterDone = SetWaterDoneUseCase(plan),
         copyDayForward = CopyDayForwardUseCase(plan),
-        armReminders = ArmMealRemindersUseCase(plan, FakeReminderScheduler()),
+        armReminders = ArmMealRemindersUseCase(plan, FakeReminderScheduler(), FakeAppStateRepository()),
         deleteLogEntry = DeleteLogEntryUseCase(today),
         setEntryServings = SetEntryServingsUseCase(today),
         restoreLogEntry = RestoreLogEntryUseCase(today),

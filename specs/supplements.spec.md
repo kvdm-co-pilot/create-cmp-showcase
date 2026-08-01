@@ -4,8 +4,10 @@
 > persists. Data-backed. Every clause id is cited by a durable test (`// SPEC: SUPP-NN`).
 
 - **SUPP-01** — Given the Supplements screen opens, When the stack is loading, Then a loading
-  indicator is shown; and when it completes the supplements are grouped by timing (e.g.
-  Morning, Pre-workout, Evening) in a stable order, each showing name and dose, with no error.
+  indicator is shown; and when it completes the supplements are grouped by timing (the closed
+  `SupplementTiming` set — Morning, Pre-workout, Post-workout, Evening — SET-06) in a stable
+  order derived from that same value, each showing name and dose, with no error. The stack is
+  the USER's (SET-04/05): seeded on a fresh install, editable from Settings thereafter.
 - **SUPP-02** — Given the stack is loaded, Then a summary shows the count taken of the total
   and a progress bar of taken ÷ total.
 - **SUPP-03** — Given a supplement is shown, When the user taps its take control, Then its

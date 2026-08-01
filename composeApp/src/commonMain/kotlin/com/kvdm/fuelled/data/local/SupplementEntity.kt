@@ -3,6 +3,7 @@ package com.kvdm.fuelled.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import kotlinx.datetime.LocalDate
 
 // ── Room entities for the supplement stack — the on-device SSOT the repository reads/writes ──
@@ -43,8 +44,25 @@ fun SupplementEntity.toDomain(takenToday: Set<String>): Supplement = Supplement(
     id = id,
     name = name,
     dose = dose,
-    timing = timing,
+    // SET-06: an unrecognised stored value reads as MORNING rather than throwing — a row
+    // written by an older build must not be able to crash the stack it belongs to.
+    timing = SupplementTiming.of(timing),
     taken = id in takenToday,
+)
+
+/**
+ * Map a supplement back to its row (SET-04/SET-05).
+ *
+ * `timingOrder` is written from the SAME enum the `timing` column holds, so the ordering the
+ * DAO sorts by and the group the screen buckets on are one fact expressed twice — they cannot
+ * drift, which is the whole reason SET-06 closed the set.
+ */
+fun Supplement.toEntity(): SupplementEntity = SupplementEntity(
+    id = id,
+    name = name,
+    dose = dose,
+    timing = timing.name,
+    timingOrder = timing.ordinal,
 )
 
 /** Map a dose into its row. */

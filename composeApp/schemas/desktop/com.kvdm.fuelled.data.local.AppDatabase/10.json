@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "fa5daae3a44f946dfc32209e412cfd9e",
+    "identityHash": "289f4736148c74e01855bde6b432b3b2",
     "entities": [
       {
         "tableName": "foods",
@@ -417,7 +417,7 @@
       },
       {
         "tableName": "app_state",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `onboarded` INTEGER NOT NULL, `startedAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `onboarded` INTEGER NOT NULL, `startedAtEpochMs` INTEGER NOT NULL, `unitSystem` TEXT NOT NULL, `prepLeadMinutes` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -436,6 +436,18 @@
             "columnName": "startedAtEpochMs",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "unitSystem",
+            "columnName": "unitSystem",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prepLeadMinutes",
+            "columnName": "prepLeadMinutes",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -448,7 +460,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fa5daae3a44f946dfc32209e412cfd9e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '289f4736148c74e01855bde6b432b3b2')"
     ]
   }
 }

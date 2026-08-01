@@ -1,8 +1,10 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.domain.model.DEFAULT_PREP_LEAD_MINUTES
 import com.kvdm.fuelled.domain.model.MealReminder
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.remindersFor
+import com.kvdm.fuelled.domain.repository.AppStateRepository
 import com.kvdm.fuelled.domain.repository.MealPlanRepository
 import com.kvdm.fuelled.domain.notification.ReminderScheduler
 import com.kvdm.fuelled.domain.result.AppResult
@@ -24,6 +26,7 @@ import com.kvdm.fuelled.domain.result.AppResult
 class ArmMealRemindersUseCase(
     private val repository: MealPlanRepository,
     private val scheduler: ReminderScheduler,
+    private val appState: AppStateRepository,
 ) {
     /**
      * @param doneSlots slots already ticked on the current logical day — their reminders are
@@ -37,7 +40,12 @@ class ArmMealRemindersUseCase(
             // storage error would quietly ring at times the user had changed months ago.
             is AppResult.Failure -> times
             is AppResult.Success -> {
-                val reminders = remindersFor(times.value, doneSlots, scheduler.capability())
+                // SET-07: the user's lead. A failure to read it falls back to the DEFAULT
+                // rather than failing the arm — reminders at 30 minutes are a far better
+                // outcome than a day with no reminders because one setting would not load.
+                val lead = (appState.current() as? AppResult.Success)?.value?.settings?.prepLeadMinutes
+                    ?: DEFAULT_PREP_LEAD_MINUTES
+                val reminders = remindersFor(times.value, doneSlots, scheduler.capability(), lead)
                 scheduler.arm(reminders)
                 AppResult.Success(reminders)
             }

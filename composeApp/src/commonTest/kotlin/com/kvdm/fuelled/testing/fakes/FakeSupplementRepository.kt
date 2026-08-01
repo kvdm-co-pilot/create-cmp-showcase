@@ -38,6 +38,30 @@ class FakeSupplementRepository : SupplementRepository {
     override fun observeStack(): Flow<AppResult<List<Supplement>>> =
         revision.map { failure?.let { AppResult.Failure(it) } ?: AppResult.Success(stack) }
 
+    /** SET-04/SET-05: every save and delete ATTEMPT, recorded before `failure` is applied. */
+    val saves: MutableList<Supplement> = mutableListOf()
+    val deletes: MutableList<String> = mutableListOf()
+
+    override suspend fun save(supplement: Supplement): AppResult<Unit> {
+        saves += supplement
+        failure?.let { return AppResult.Failure(it) }
+        // Write-through, like the DAO's REPLACE: a re-save of the same id corrects the row
+        // rather than appending a twin (SET-04).
+        stack = if (stack.any { it.id == supplement.id }) {
+            stack.map { if (it.id == supplement.id) supplement.copy(taken = it.taken) else it }
+        } else {
+            stack + supplement
+        }
+        return AppResult.Success(Unit)
+    }
+
+    override suspend fun delete(id: String): AppResult<Unit> {
+        deletes += id
+        failure?.let { return AppResult.Failure(it) }
+        stack = stack.filterNot { it.id == id }
+        return AppResult.Success(Unit)
+    }
+
     override suspend fun setTaken(id: String, taken: Boolean): AppResult<Unit> {
         lastSetTaken = id to taken
         failure?.let { return AppResult.Failure(it) }

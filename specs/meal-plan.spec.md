@@ -43,10 +43,11 @@ those slices are built.
   that window and the domain coerces one — so the six times are always strictly ascending
   and every derived surface (water midpoints, focus order) stays monotone (decision 15).
 - **PLAN-07** — Given a slot time is set, Then one daily reminder is armed for that slot,
-  firing at its **prep lead** — 30 minutes before the slot time, clamped at midnight
-  (daily-journeys decision 1: the useful moment is before the meal, when there is still
-  time to prep; the lead is a named constant until the reminders settings surface makes it
-  a choice) — and the reminder names both moments (the meal and its slot time), while
+  firing at its **prep lead** — the user's configured lead ahead of the slot time, clamped
+  at midnight, defaulting to 30 minutes (daily-journeys decision 1: the useful moment is
+  before the meal, when there is still time to prep; SET-07 made the lead the choice this
+  clause always said it would become) — and the reminder names both moments (the meal and
+  its slot time), while
   **water reminders keep their derived midpoint times unchanged** (nothing to prep):
   **exact** when the platform permits exact alarms, otherwise **windowed-inexact** — never
   silently nothing; armed reminders are re-registered on device boot and on app open, so a
@@ -72,10 +73,12 @@ those slices are built.
 
 ## Planning ahead and ticking off (brief decisions 6, 8)
 
-- **PLAN-11** — Given the plan screen, Then its day strip (`plan_days`) offers the previous
-  logical day, the current logical day, and the next seven — nine days, the current day
-  selected on open — and selecting a day renders that day's containers; the strip is the
-  only date selector in the feature.
+- **PLAN-11** — Given the plan screen opened on any logical day, Then its day strip
+  (`plan_days`) spans that day − 1 through that day + 7 — nine days, the opened day selected
+  — and selecting a day renders that day's containers; the strip is the only date selector in
+  the feature. The window follows the SELECTED day rather than the current one (HIST-03) so
+  that a day reached from the Progress surface, however far back, always has its own chip to
+  be selected in; a today-relative window left any older day highlighting the wrong chip.
 - **PLAN-12** — Given a meal container on a future logical day, When food is added to it,
   Then the entries are written `PLANNED` (MEAL-08) and are not counted in any day's consumed
   total until they are logged (TODAY-03).
@@ -113,7 +116,9 @@ those slices are built.
 - **PLAN-20** — Given a day holding planned meals, When it is **copied forward**, Then its
   planned entries are duplicated onto the chosen following day(s) as `PLANNED` entries
   (MEAL-08) with fresh identities — a prepped week is one day built by hand and one copy,
-  never 42 taps — and the source day is unchanged.
+  never 42 taps — and the source day is unchanged. The control is offered on the current day
+  and future ones only (HIST-04): pointed backwards it would overwrite days that have already
+  been lived, and copying over real logged history is not an operation this app performs.
 - **PLAN-21** — Given a `PLANNED` entry on a logical day that has ended without being
   logged, Then it renders as *planned, not eaten* — muted, never counted in any total
   (TODAY-03) — and remains back-fillable from the day strip: ticking that slot logs it like

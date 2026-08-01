@@ -18,6 +18,7 @@ import com.kvdm.fuelled.domain.model.MealGroup
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
 import com.kvdm.fuelled.testing.todayViewModel
@@ -253,9 +254,9 @@ class TodayScreenTest {
         runComposeUiTest {
             val supplements = FakeSupplementRepository().apply {
                 stack = listOf(
-                    Supplement("s1", "Multivitamin", "1 tab", "Morning", taken = true),
-                    Supplement("s2", "Omega-3", "2 caps", "Morning", taken = false),
-                    Supplement("s3", "Magnesium", "1 tab", "Evening", taken = false),
+                    Supplement("s1", "Multivitamin", "1 tab", SupplementTiming.MORNING, taken = true),
+                    Supplement("s2", "Omega-3", "2 caps", SupplementTiming.MORNING, taken = false),
+                    Supplement("s3", "Magnesium", "1 tab", SupplementTiming.EVENING, taken = false),
                 )
             }
             var openedSupplements = false

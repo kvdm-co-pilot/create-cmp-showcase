@@ -57,7 +57,7 @@ fun List<Supplement>.currentBucket(): SupplementBucket? {
     val chosen = buckets.entries.firstOrNull { (_, items) -> items.any { !it.taken } }
         ?: buckets.entries.last()
     return SupplementBucket(
-        name = chosen.key,
+        name = chosen.key.label,
         taken = chosen.value.count { it.taken },
         total = chosen.value.size,
     )

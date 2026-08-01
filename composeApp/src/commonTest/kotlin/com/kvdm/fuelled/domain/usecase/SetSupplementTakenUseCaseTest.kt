@@ -2,6 +2,7 @@ package com.kvdm.fuelled.domain.usecase
 
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
 import kotlin.test.Test
@@ -20,7 +21,7 @@ class SetSupplementTakenUseCaseTest {
     // SPEC: SUPP-03
     @Test
     fun `persists the taken state through the repository and returns Success`() = runTest {
-        repository.stack = listOf(Supplement("3", "Omega-3", "1 g", "Morning", taken = false))
+        repository.stack = listOf(Supplement("3", "Omega-3", "1 g", SupplementTiming.MORNING, taken = false))
 
         assertEquals(AppResult.Success(Unit), setTaken("3", true))
         assertEquals("3" to true, repository.lastSetTaken)
