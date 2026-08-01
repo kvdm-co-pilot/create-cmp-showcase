@@ -67,7 +67,9 @@
       "status": "approved",
       "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76",
       "approvedAt": "2026-07-29T08:51:29.347Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-07-29T10:39:53.650Z"
     },
     {
       "artifact": "feature-spec:reactive-state",
