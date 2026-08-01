@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -124,6 +127,7 @@ fun MealTrayRoute(
         confirmState = confirmState,
         onQueryChange = viewModel::onQueryChange,
         onFoodToggled = viewModel::onFoodToggled,
+        onServingsChanged = viewModel::onServingsChanged,
         onConfirm = viewModel::confirm,
         onRetry = viewModel::load,
     )
@@ -148,6 +152,7 @@ fun MealTrayScreen(
     confirmState: TrayConfirmState = TrayConfirmState.Idle,
     onQueryChange: (String) -> Unit = {},
     onFoodToggled: (Food) -> Unit = {},
+    onServingsChanged: (String, Int) -> Unit = { _, _ -> },
     onConfirm: () -> Unit = {},
     onRetry: () -> Unit = {},
 ) {
@@ -181,8 +186,10 @@ fun MealTrayScreen(
                     items(foods, key = { it.id }) { food ->
                         TrayFoodRow(
                             food = food,
-                            checked = tray.holds(food.id),
+                            // The line, when checked — its servings drive the stepper (UX-01).
+                            line = tray.lines.firstOrNull { it.food.id == food.id },
                             onToggle = { onFoodToggled(food) },
+                            onServingsChanged = { onServingsChanged(food.id, it) },
                         )
                     }
                 }
@@ -247,9 +254,20 @@ private fun TraySearchField(query: String, onQueryChange: (String) -> Unit) {
  * clickable inside the row was a 24x24 hit target — half the 48 dp floor — that announced
  * nothing to a screen reader, since a testTag is a test hook and not an accessibility label.
  * As a mirror it inherits the card's target and the card's name; one control per row.
+ *
+ * A CHECKED row grows the serving stepper (UX-01): −/count/+, selection first and quantity
+ * second — steppers on all eight search rows would be noise for the seven not being logged.
+ * The stepper's buttons are real controls (labeled, 48 dp — [AppIconButton]), unlike the
+ * mirror checkbox: they do something the card tap does not. Minus at 1× removes the line —
+ * the same take-it-back-out the card tap offers, so the stepper never strands a zero line.
  */
 @Composable
-private fun TrayFoodRow(food: Food, checked: Boolean, onToggle: () -> Unit) {
+private fun TrayFoodRow(
+    food: Food,
+    line: TrayLine?,
+    onToggle: () -> Unit,
+    onServingsChanged: (Int) -> Unit,
+) {
     ListItemCard(
         title = food.name,
         subtitle = "${food.brand} · ${food.serving}",
@@ -260,9 +278,18 @@ private fun TrayFoodRow(food: Food, checked: Boolean, onToggle: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
             ) {
+                if (line != null) {
+                    ServingStepper(
+                        foodId = food.id,
+                        servings = line.servings,
+                        onServingsChanged = onServingsChanged,
+                    )
+                }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = food.kcal.toString(),
+                        // The checked row's kcal follows its servings — the row agrees with
+                        // the total bar it feeds (MEAL-09).
+                        text = (line?.kcal ?: food.kcal).toString(),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
@@ -274,13 +301,39 @@ private fun TrayFoodRow(food: Food, checked: Boolean, onToggle: () -> Unit) {
                     )
                 }
                 Checkbox(
-                    checked = checked,
+                    checked = line != null,
                     onCheckedChange = null,
                     modifier = Modifier.semantics { testTag = "meal_tray_check_${food.id}" },
                 )
             }
         },
     )
+}
+
+/** The checked row's −/count/+ (UX-01). Whole servings only; fractions are S2's decision. */
+@Composable
+private fun ServingStepper(foodId: String, servings: Int, onServingsChanged: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AppIconButton(
+            icon = Icons.Filled.Remove,
+            contentDescription = "One serving less",
+            onClick = { onServingsChanged(servings - 1) },
+            modifier = Modifier.semantics { testTag = "meal_tray_minus_$foodId" },
+        )
+        Text(
+            text = "${servings}×",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.semantics { testTag = "meal_tray_servings_$foodId" },
+        )
+        AppIconButton(
+            icon = Icons.Filled.Add,
+            contentDescription = "One serving more",
+            onClick = { onServingsChanged(servings + 1) },
+            modifier = Modifier.semantics { testTag = "meal_tray_plus_$foodId" },
+        )
+    }
 }
 
 /**

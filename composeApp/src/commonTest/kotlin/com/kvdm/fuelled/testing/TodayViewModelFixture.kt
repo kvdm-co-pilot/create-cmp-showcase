@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.testing
 
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
@@ -55,5 +56,6 @@ fun todayViewModel(
         setSlotDone = SetSlotDoneUseCase(plan),
         setWaterDone = SetWaterDoneUseCase(plan),
         armReminders = ArmMealRemindersUseCase(plan, scheduler),
+        deleteLogEntry = DeleteLogEntryUseCase(today),
     )
 }

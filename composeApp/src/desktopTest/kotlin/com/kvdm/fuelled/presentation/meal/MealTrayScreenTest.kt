@@ -129,6 +129,46 @@ class MealTrayScreenTest {
         assertTrue(todayRepository.addCalls.isEmpty(), "an empty tray must attempt no write")
     }
 
+    // SPEC: UX-01
+    @Test
+    fun `a checked row grows the serving stepper and the total follows it`() = runComposeUiTest {
+        setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel()) } }
+        awaitNode(hasTestTag("meal_tray_item_1"))
+
+        // Unchecked: selection is the row's only job — no stepper competing for the tap.
+        onNodeWithTag("meal_tray_plus_1").assertDoesNotExist()
+
+        onNodeWithTag("meal_tray_item_1").performClick()
+        // The stepper's buttons are their own semantics nodes (clickable); the servings text
+        // merges into the card, so it is awaited via the button and read unmerged.
+        awaitNode(hasTestTag("meal_tray_plus_1"))
+        onNodeWithTag("meal_tray_servings_1", useUnmergedTree = true).assertTextEquals("1×")
+
+        onNodeWithTag("meal_tray_plus_1").performClick()
+        waitForIdle()
+        onNodeWithTag("meal_tray_servings_1", useUnmergedTree = true).assertTextEquals("2×")
+        onNodeWithTag("meal_tray_total", useUnmergedTree = true)
+            .assertTextEquals("1 item · 330 kcal")
+    }
+
+    // SPEC: UX-01
+    @Test
+    fun `minus at one serving takes the food back out`() = runComposeUiTest {
+        setContent { MaterialTheme { MealTrayRoute(viewModel = viewModel()) } }
+        awaitNode(hasTestTag("meal_tray_item_1"))
+
+        onNodeWithTag("meal_tray_item_1").performClick()
+        awaitNode(hasTestTag("meal_tray_minus_1"))
+        onNodeWithTag("meal_tray_minus_1").performClick()
+        waitForIdle()
+
+        // The line is gone: stepper collapsed, total back to empty, confirm re-disabled.
+        onNodeWithTag("meal_tray_servings_1").assertDoesNotExist()
+        onNodeWithTag("meal_tray_total", useUnmergedTree = true)
+            .assertTextEquals("0 items · 0 kcal")
+        onNodeWithTag("meal_tray_add").assertIsNotEnabled()
+    }
+
     // SPEC: MEAL-10
     @Test
     fun `confirming writes to the target the tray was AIMED at, not one chosen inside it`() = runComposeUiTest {

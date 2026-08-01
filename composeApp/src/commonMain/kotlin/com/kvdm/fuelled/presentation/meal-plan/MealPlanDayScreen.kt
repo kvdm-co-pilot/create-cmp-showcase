@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,7 +49,8 @@ import com.kvdm.fuelled.presentation.theme.FuelledTokens
 // models below are presentation-only stand-ins — the domain grows its real shapes in the
 // build step, after the spec.
 
-data class PlanEntryUi(val name: String, val serving: String, val kcal: Int, val proteinG: Int)
+/** One entry row. [id] is the log entry's own id — the remove control (UX-02) addresses it. */
+data class PlanEntryUi(val id: String, val name: String, val serving: String, val kcal: Int, val proteinG: Int)
 
 /**
  * DONE, FOCUSED ("next"), FOCUSED_LATE, MISSED, UPCOMING. MISSED (PLAN-19, decision 14) is
@@ -108,15 +110,15 @@ val samplePlanMidday = PlanDayUi(
         // meant to be eaten, muted, still back-fillable (PLAN-19/PLAN-21).
         PlanMealUi(
             "breakfast", "Breakfast", "07:00", PlanSlotState.MISSED,
-            listOf(PlanEntryUi("Rolled oats & whey", "80 g · 1 scoop", 430, 38), PlanEntryUi("Banana", "1 medium", 105, 1)),
+            listOf(PlanEntryUi("s-b1", "Rolled oats & whey", "80 g · 1 scoop", 430, 38), PlanEntryUi("s-b2", "Banana", "1 medium", 105, 1)),
         ),
         PlanMealUi("morning_snack", "Snack", "09:30", PlanSlotState.DONE, emptyList(), tickedEmpty = true),
         PlanMealUi(
             "lunch", "Lunch", "12:00", PlanSlotState.FOCUSED_LATE,
-            listOf(PlanEntryUi("Chicken breast & rice", "200 g · 150 g", 620, 58), PlanEntryUi("Mixed greens", "1 bowl", 90, 3)),
+            listOf(PlanEntryUi("s-l1", "Chicken breast & rice", "200 g · 150 g", 620, 58), PlanEntryUi("s-l2", "Mixed greens", "1 bowl", 90, 3)),
         ),
-        PlanMealUi("afternoon_snack", "Snack", "14:30", PlanSlotState.UPCOMING, listOf(PlanEntryUi("Greek yogurt 0%", "170 g", 100, 17))),
-        PlanMealUi("dinner", "Dinner", "17:00", PlanSlotState.UPCOMING, listOf(PlanEntryUi("Salmon & sweet potato", "180 g · 200 g", 610, 45))),
+        PlanMealUi("afternoon_snack", "Snack", "14:30", PlanSlotState.UPCOMING, listOf(PlanEntryUi("s-s1", "Greek yogurt 0%", "170 g", 100, 17))),
+        PlanMealUi("dinner", "Dinner", "17:00", PlanSlotState.UPCOMING, listOf(PlanEntryUi("s-d1", "Salmon & sweet potato", "180 g · 200 g", 610, 45))),
         PlanMealUi("evening_snack", "Snack", "19:30", PlanSlotState.UPCOMING, emptyList()),
     ),
     waters = listOf(
@@ -158,7 +160,7 @@ val samplePlanTomorrow = samplePlanMidday.copy(
         it.copy(
             state = PlanSlotState.UPCOMING,
             tickedEmpty = false,
-            entries = if (it.key == "morning_snack") listOf(PlanEntryUi("Almonds", "20 g", 116, 4)) else it.entries,
+            entries = if (it.key == "morning_snack") listOf(PlanEntryUi("s-ms1", "Almonds", "20 g", 116, 4)) else it.entries,
         )
     },
     waters = samplePlanMidday.waters.map { it.copy(done = false) },
@@ -177,6 +179,8 @@ data class PlanDayActions(
     val onAddFood: (String) -> Unit,
     val onCopyForward: () -> Unit,
     val onOpenTimes: () -> Unit,
+    /** UX-02: remove one entry by its id — the ledger's one delete path (MEAL-06), surfaced. */
+    val onDeleteEntry: (String) -> Unit = {},
 ) {
     companion object {
         /** Inert actions for gallery renders and golden trees: the structure, without wiring. */
@@ -234,6 +238,7 @@ fun MealPlanDayScreen(
                     meal = meal,
                     onToggleDone = { actions.onToggleDone(meal.key, !meal.done) },
                     onAddFood = { actions.onAddFood(meal.key) },
+                    onDeleteEntry = actions.onDeleteEntry,
                 )
                 day.waters.getOrNull(i)?.let { water ->
                     WaterRow(
@@ -299,6 +304,7 @@ internal fun PlanMealCard(
     meal: PlanMealUi,
     onToggleDone: () -> Unit = {},
     onAddFood: () -> Unit = {},
+    onDeleteEntry: (String) -> Unit = {},
     // The card is shared with Today (decision 13 — Today renders the plan's projection), and
     // each surface names its own tags: `plan_add_lunch` there, `today_add_lunch` here
     // (TODAY-07). One composable, so the two can never drift visually; two tag namespaces, so
@@ -364,7 +370,9 @@ internal fun PlanMealCard(
             }
         }
         when {
-            meal.entries.isNotEmpty() -> meal.entries.forEach { PlanEntryRow(it) }
+            meal.entries.isNotEmpty() -> meal.entries.forEach {
+                PlanEntryRow(it, onDelete = { onDeleteEntry(it.id) }, tagPrefix = tagPrefix)
+            }
             meal.tickedEmpty -> Text(
                 "Eaten off-plan",
                 style = MaterialTheme.typography.bodyMedium,
@@ -381,8 +389,15 @@ internal fun PlanMealCard(
     }
 }
 
+/**
+ * One logged (or planned) entry, with its remove control (UX-02). The remove is quiet —
+ * onSurfaceVariant, no confirm dialog: one mis-tapped row is undone in one tap, and the
+ * category norm for a single list row is immediate removal (the undo snackbar is S2's
+ * slice). It is a labeled 48 dp [AppIconButton], not an invisible swipe — a destructive
+ * action a screen reader cannot find is not a control (UX-04's standing rule).
+ */
 @Composable
-private fun PlanEntryRow(entry: PlanEntryUi) {
+private fun PlanEntryRow(entry: PlanEntryUi, onDelete: () -> Unit, tagPrefix: String = "plan") {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(entry.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
@@ -392,6 +407,14 @@ private fun PlanEntryRow(entry: PlanEntryUi) {
             Text("${entry.kcal} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Protein)
         }
+        Spacer(Modifier.width(6.dp))
+        AppIconButton(
+            icon = Icons.Filled.Close,
+            contentDescription = "Remove ${entry.name}",
+            onClick = onDelete,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "${tagPrefix}_entry_delete_${entry.id}" },
+        )
     }
 }
 

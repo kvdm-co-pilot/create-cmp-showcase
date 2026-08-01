@@ -7,6 +7,7 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -65,14 +66,36 @@ class TodayWritePathTest {
         )
     }
 
-    private fun planViewModel(repo: FakeMealPlanRepository) = MealPlanViewModel(
+    private fun planViewModel(
+        repo: FakeMealPlanRepository,
+        todayRepo: FakeTodayRepository = FakeTodayRepository(),
+    ) = MealPlanViewModel(
         initialDate = today,
         getPlanDay = GetPlanDayUseCase(repo, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE),
         setSlotDone = SetSlotDoneUseCase(repo),
         setWaterDone = SetWaterDoneUseCase(repo),
         copyDayForward = CopyDayForwardUseCase(repo),
         armReminders = ArmMealRemindersUseCase(repo, FakeReminderScheduler()),
+        deleteLogEntry = DeleteLogEntryUseCase(todayRepo),
     )
+
+    // SPEC: UX-02
+    @Test
+    fun `deleting from Today and deleting from the plan screen is the same delete`() =
+        runTest(dispatcher) {
+            // One delete path (MEAL-06), two surfaces (TODAY-13's discipline applied to
+            // removal): both ViewModels must land the same id on the same repository call.
+            val fromToday = FakeTodayRepository()
+            todayViewModel(today = fromToday).also { advanceUntilIdle() }.deleteEntry("l1")
+            advanceUntilIdle()
+
+            val fromPlan = FakeTodayRepository()
+            planViewModel(seededRepository(), fromPlan).also { advanceUntilIdle() }.deleteEntry("l1")
+            advanceUntilIdle()
+
+            assertEquals(fromToday.deletedIds, fromPlan.deletedIds, "one verb, not two write paths")
+            assertEquals(listOf("l1"), fromToday.deletedIds)
+        }
 
     // SPEC: TODAY-13
     @Test

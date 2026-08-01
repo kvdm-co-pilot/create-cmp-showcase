@@ -210,14 +210,16 @@ class MealTrayViewModel(
     }
 
     /**
-     * MEAL-09: adjust a line's serving multiple; the total is recomputed by [TrayContents].
-     * Below one serving is a removal, not a zero line — a tray line that contributes nothing
-     * is the confusing state this coercion exists to avoid.
+     * MEAL-09/UX-01: adjust a line's serving multiple; the total is recomputed by
+     * [TrayContents]. Below one serving is a REMOVAL, not a zero line — a tray line that
+     * contributes nothing is the confusing state this branch exists to avoid, and it is what
+     * makes the stepper's minus at "1×" mean what a human expects: take it back out.
      */
     fun onServingsChanged(foodId: String, servings: Int) {
         _tray.value = TrayContents(
-            _tray.value.lines.map {
-                if (it.food.id == foodId) it.copy(servings = servings.coerceAtLeast(1)) else it
+            if (servings < 1) _tray.value.lines.filterNot { it.food.id == foodId }
+            else _tray.value.lines.map {
+                if (it.food.id == foodId) it.copy(servings = servings) else it
             },
         )
         _confirmState.value = TrayConfirmState.Idle

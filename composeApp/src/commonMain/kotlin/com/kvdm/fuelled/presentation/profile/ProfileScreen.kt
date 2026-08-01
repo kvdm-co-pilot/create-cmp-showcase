@@ -1,7 +1,6 @@
 package com.kvdm.fuelled.presentation.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,9 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,8 +43,8 @@ import org.koin.compose.viewmodel.koinViewModel
 //   • ProfileRoute  — the VM-backed tab the nav graph hosts: Loading/Content/Error are driven
 //     by ProfileViewModel through ContentStateContainer.
 // The settings-list labels (units, reminders, connected apps, account) are STATIC presentation —
-// not persisted domain data (PROF-04). Their destinations are out of scope for this spec, so
-// each row is present and tappable with a no-op callback.
+// not persisted domain data (PROF-04). Their destinations do not exist yet, so the rows are
+// READ-ONLY (UX-04): the tap affordance ships with the destination, never before it.
 
 // PREVIEW/DEMO fixture — the screen's preview seam. Not production data: the Room-backed
 // ProfileRepositoryImpl seeds its own realistic profile for the VM-backed ProfileRoute.
@@ -58,8 +54,9 @@ val sampleProfile = Profile(
     weeklyStats = WeeklyStats(streakDays = 12, avgProteinG = 172, weightKg = 82.4),
 )
 
-// The static settings rows (PROF-04): a stable testTag + a no-op onClick — present and
-// actionable, destinations out of scope. Labels are presentation, never persisted domain data.
+// The static settings rows (PROF-04, as amended by UX-04): a stable testTag, READ-ONLY —
+// no clickable until a destination exists. A row that accepted the tap and did nothing was
+// a broken promise, not a placeholder. Labels are presentation, never persisted domain data.
 private data class SettingsItem(val label: String, val tag: String)
 
 private val settingsItems = listOf(
@@ -89,14 +86,13 @@ fun ProfileRoute(
 /**
  * The stateless profile — the preview/UI-first seam. Renders a [Profile]; defaults to a sample so
  * the preview registry can render it without a VM or Koin. The production path is [ProfileRoute] +
- * [ProfileViewModel]. Goal rows (PROF-02) and settings rows (PROF-04) are present and tappable;
- * their destinations are out of scope, so each onClick is a no-op here.
+ * [ProfileViewModel]. Goal rows (PROF-02) and settings rows (PROF-04) are READ-ONLY values
+ * until their editors exist (UX-04): the tap affordance returns with the personalization and
+ * settings slices (usability-pass S1/S5), together with the destinations it promises.
  */
 @Composable
 fun ProfileScreen(
     profile: Profile = sampleProfile,
-    onGoalClick: () -> Unit = {},
-    onSettingClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -108,9 +104,9 @@ fun ProfileScreen(
     ) {
         Spacer(Modifier.height(8.dp))
         IdentityHeader(profile.identity)
-        GoalsCard(profile.goals, onGoalClick)
+        GoalsCard(profile.goals)
         StatsRow(profile.weeklyStats)
-        SettingsList(onSettingClick)
+        SettingsList()
         Spacer(Modifier.height(8.dp))
     }
 }
@@ -142,35 +138,35 @@ private fun IdentityHeader(identity: ProfileIdentity) {
 }
 
 @Composable
-private fun GoalsCard(goals: ProfileGoals, onGoalClick: () -> Unit) {
+private fun GoalsCard(goals: ProfileGoals) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface),
     ) {
-        GoalRow("Calorie target", "${goals.calorieTarget.grouped()} kcal", "profile_goal_calories", onGoalClick)
+        GoalRow("Calorie target", "${goals.calorieTarget.grouped()} kcal", "profile_goal_calories")
         Divider()
-        GoalRow("Protein goal", "${goals.proteinGoalG} g", "profile_goal_protein", onGoalClick)
+        GoalRow("Protein goal", "${goals.proteinGoalG} g", "profile_goal_protein")
         Divider()
-        GoalRow("Activity", goals.activity, "profile_goal_activity", onGoalClick)
+        GoalRow("Activity", goals.activity, "profile_goal_activity")
     }
 }
 
+// UX-04: a VALUE row, deliberately not clickable and with no chevron — the affordance
+// returns with the editor it promises (usability-pass S1). Until then the row says what is
+// true and suggests nothing it cannot do.
 @Composable
-private fun GoalRow(label: String, value: String, tag: String, onClick: () -> Unit) {
+private fun GoalRow(label: String, value: String, tag: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = tag },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.titleMedium, color = FuelledColors.Primary)
-        Spacer(Modifier.size(8.dp))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -184,7 +180,7 @@ private fun StatsRow(stats: WeeklyStats) {
 }
 
 @Composable
-private fun SettingsList(onSettingClick: () -> Unit) {
+private fun SettingsList() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -192,24 +188,23 @@ private fun SettingsList(onSettingClick: () -> Unit) {
             .background(MaterialTheme.colorScheme.surface),
     ) {
         settingsItems.forEachIndexed { i, item ->
-            SettingsRow(item, onSettingClick)
+            SettingsRow(item)
             if (i < settingsItems.lastIndex) Divider()
         }
     }
 }
 
+// UX-04: read-only, like GoalRow — no clickable, no chevron, no false promise.
 @Composable
-private fun SettingsRow(item: SettingsItem, onClick: () -> Unit) {
+private fun SettingsRow(item: SettingsItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = item.tag },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(item.label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

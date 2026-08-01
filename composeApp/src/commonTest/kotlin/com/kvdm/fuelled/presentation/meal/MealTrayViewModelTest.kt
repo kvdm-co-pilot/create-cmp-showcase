@@ -165,6 +165,23 @@ class MealTrayViewModelTest {
         )
     }
 
+    // SPEC: UX-01
+    @Test
+    fun `stepping below one serving removes the line - never a zero line`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        keepCollecting(viewModel.state)
+        viewModel.onFoodToggled(chicken)
+
+        viewModel.onServingsChanged(chicken.id, servings = 0)
+
+        assertEquals(
+            TrayTotal.Empty,
+            viewModel.tray.value.total,
+            "minus at 1x takes the food back out; a line contributing nothing may not linger",
+        )
+        assertEquals(false, viewModel.tray.value.holds(chicken.id), "the line itself is gone")
+    }
+
     // SPEC: MEAL-10
     @Test
     fun `changing the slot retargets the same tray and keeps its contents`() = runTest(dispatcher) {

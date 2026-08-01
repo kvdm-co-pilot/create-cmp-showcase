@@ -20,12 +20,6 @@
       "approvedAt": "2026-07-23T20:41:20.107Z"
     },
     {
-      "artifact": "feature-spec:profile",
-      "status": "approved",
-      "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8",
-      "approvedAt": "2026-07-23T21:01:48.945Z"
-    },
-    {
       "artifact": "architecture",
       "status": "approved",
       "hash": "6478649ec66d4187b320bcb4091f6fc3b69ceabae794cd2bf2f534639892789d",
@@ -56,13 +50,6 @@
       "acceptedAt": "2026-07-28T17:44:01.801Z"
     },
     {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
-      "approvedAt": "2026-07-29T06:28:56.324Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:reactive-state",
       "status": "approved",
       "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76",
@@ -76,20 +63,6 @@
       "status": "approved",
       "hash": "6f3c138ff97dbe1ba00e8b0788fa3b126cdd4600dd5d8988493f5bc8c618e06e",
       "approvedAt": "2026-07-29T08:51:50.748Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c",
-      "approvedAt": "2026-07-29T09:10:14.177Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-design:meal",
-      "status": "approved",
-      "hash": "c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6",
-      "approvedAt": "2026-07-29T09:10:19.543Z",
       "via": "console"
     },
     {
@@ -119,6 +92,42 @@
       "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
       "approvedAt": "2026-07-29T10:02:20.031Z",
       "via": "console"
+    },
+    {
+      "artifact": "feature-spec:profile",
+      "status": "reopened",
+      "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8",
+      "approvedAt": "2026-07-23T21:01:48.945Z",
+      "reopenedAt": "2026-08-01T09:04:07.571Z",
+      "reason": "usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)",
+      "via": "cli"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "reopened",
+      "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896",
+      "approvedAt": "2026-07-29T06:28:56.324Z",
+      "reopenedAt": "2026-08-01T09:04:07.650Z",
+      "reason": "usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "reopened",
+      "hash": "c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6",
+      "approvedAt": "2026-07-29T09:10:19.543Z",
+      "reopenedAt": "2026-08-01T09:04:07.722Z",
+      "reason": "usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "reopened",
+      "hash": "92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c",
+      "approvedAt": "2026-07-29T09:10:14.177Z",
+      "reopenedAt": "2026-08-01T09:04:07.795Z",
+      "reason": "usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output",
+      "via": "cli"
     }
   ],
   "exemplarFeature": "foods"

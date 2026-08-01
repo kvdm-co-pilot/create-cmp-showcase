@@ -211,6 +211,7 @@ fun TodayRoute(
                 onToggleWater = viewModel::setWaterDone,
                 onOpenPlan = { onOpenPlan(model.plan.date) },
                 onOpenSupplements = onOpenSupplements,
+                onDeleteEntry = viewModel::deleteEntry,
             ),
         )
     }
@@ -226,6 +227,8 @@ data class TodayActions(
     val onToggleWater: (Int, Boolean) -> Unit = { _, _ -> },
     val onOpenPlan: () -> Unit = {},
     val onOpenSupplements: () -> Unit = {},
+    /** UX-02: remove an entry from the focused container — the same delete as the plan's. */
+    val onDeleteEntry: (String) -> Unit = {},
 )
 
 /**
@@ -300,6 +303,7 @@ fun TodayScreen(
                 meal = focus.toUi(),
                 onToggleDone = { actions.onToggleFocusDone(focus.slot, !focus.done) },
                 onAddFood = { actions.onAddToMeal(model.plan.date, focus.slot) },
+                onDeleteEntry = actions.onDeleteEntry,
                 // TODAY-07 names this surface's add control `today_add_<slot>`; the same
                 // composable on the plan screen tags itself `plan_add_<slot>`.
                 tagPrefix = "today",
@@ -368,7 +372,7 @@ private fun PlanSlotView.toUi(): PlanMealUi = PlanMealUi(
     label = slot.label,
     time = time.clockLabel(),
     state = uiState(),
-    entries = entries.map { PlanEntryUi(it.name, it.serving, it.kcal, it.proteinG) },
+    entries = entries.map { PlanEntryUi(it.id, it.name, it.serving, it.kcal, it.proteinG) },
     tickedEmpty = tickedEmpty,
     // PLAN-25. Carried, not defaulted: this mapper and the plan's are two hands on the same
     // card, and a field only one of them fills is a field the two surfaces disagree about —

@@ -99,7 +99,10 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     viewModelOf(::FoodsViewModel)
-    viewModelOf(::FoodDetailViewModel)
+    // The detail's log path (UX-03) takes its clock/zone/dayStartHour from production
+    // defaults, so it is wired by hand like the tray — viewModelOf would try to resolve
+    // those three from the graph. Tests construct it directly with a FixedClock.
+    viewModel { FoodDetailViewModel(get(), get()) }
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::ProfileViewModel)
@@ -108,7 +111,7 @@ val viewModelModule = module {
     // first frame and nothing re-aims it afterwards (PLAN-24). Required for the same reason —
     // the nav layer never composes the plan without a resolved date.
     viewModel { params ->
-        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get())
+        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get())
     }
     viewModelOf(::MealTimesViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired

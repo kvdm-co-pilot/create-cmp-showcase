@@ -11,6 +11,13 @@
       {"tag": "meal_tray_item_1", "children": [
         {"text": "Chicken breast"},
         {"text": "Raw · skinless · 100 g"},
+        {"tag": "meal_tray_minus_1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving less"}
+        ]},
+        {"tag": "meal_tray_servings_1", "text": "1×"},
+        {"tag": "meal_tray_plus_1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "One serving more"}
+        ]},
         {"text": "165"},
         {"text": "kcal"},
         {"tag": "meal_tray_check_1"}

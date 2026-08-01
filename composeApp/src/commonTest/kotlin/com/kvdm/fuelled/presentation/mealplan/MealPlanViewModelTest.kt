@@ -6,6 +6,7 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -15,6 +16,7 @@ import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
+import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.fakes.FixedClock
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -43,6 +45,7 @@ class MealPlanViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repository = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
+    private val todayRepository = FakeTodayRepository()
     private val scheduler = FakeReminderScheduler()
     private val today = LocalDate(2026, 7, 22)
 
@@ -61,8 +64,27 @@ class MealPlanViewModelTest {
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
             armReminders = ArmMealRemindersUseCase(repository, scheduler),
+            deleteLogEntry = DeleteLogEntryUseCase(todayRepository),
         )
     }
+
+    // SPEC: UX-02
+    @Test
+    fun `deleting an entry goes through the one delete path - and a failure raises the write flag`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            keepCollecting(vm.state)
+
+            vm.deleteEntry("l1")
+            advanceUntilIdle()
+            assertEquals(listOf("l1"), todayRepository.deletedIds, "the ledger's own delete (MEAL-06)")
+            assertEquals(false, vm.writeFailed.value)
+
+            todayRepository.failure = DomainError.Unexpected()
+            vm.deleteEntry("l2")
+            advanceUntilIdle()
+            assertEquals(true, vm.writeFailed.value, "a failed delete is a write failure (RS-04), not a destroyed day")
+        }
 
     // SPEC: PLAN-11
     @Test

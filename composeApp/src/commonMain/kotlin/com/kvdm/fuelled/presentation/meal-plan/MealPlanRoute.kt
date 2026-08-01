@@ -73,6 +73,7 @@ internal fun PlanDay.toUi(stripDays: List<LocalDate>, today: LocalDate): PlanDay
             state = view.uiState(),
             entries = view.entries.map { entry ->
                 PlanEntryUi(
+                    id = entry.id,
                     name = entry.name,
                     // PLAN-21: a plan the day moved past without logging says so on its own
                     // row. It is history, not an outstanding promise — and never counted.
@@ -132,6 +133,9 @@ fun MealPlanRoute(
                 // week" means for a day strip that only ever shows seven ahead (PLAN-11/PLAN-20).
                 onCopyForward = { viewModel.copyForward(days = 6) },
                 onOpenTimes = onOpenTimes,
+                // UX-02: the observed state re-derives the day after the delete (RS-01) —
+                // totals, focus, and the veg count follow without a reload.
+                onDeleteEntry = viewModel::deleteEntry,
             ),
         )
     }

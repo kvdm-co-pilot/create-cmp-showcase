@@ -7,6 +7,7 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -47,6 +48,7 @@ class MealPlanViewModel(
     private val setWaterDone: SetWaterDoneUseCase,
     private val copyDayForward: CopyDayForwardUseCase,
     private val armReminders: ArmMealRemindersUseCase,
+    private val deleteLogEntry: DeleteLogEntryUseCase,
 ) : ViewModel() {
 
     /**
@@ -132,6 +134,17 @@ class MealPlanViewModel(
     fun setWater(index: Int, done: Boolean) {
         viewModelScope.launch {
             if (setWaterDone(_selectedDate.value, index, done) is AppResult.Failure) _writeError.value = true
+        }
+    }
+
+    /**
+     * Remove one entry from its container (UX-02, MEAL-06's one delete path). No reload and no
+     * hand-patched state: the observed day re-derives without the row (RS-01), and a failure
+     * goes to the write channel like every other write (RS-04).
+     */
+    fun deleteEntry(id: String) {
+        viewModelScope.launch {
+            if (deleteLogEntry(id) is AppResult.Failure) _writeError.value = true
         }
     }
 

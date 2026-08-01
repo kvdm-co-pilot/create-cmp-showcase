@@ -15,3 +15,7 @@
 {"at":"2026-07-29T10:02:06.665Z","verb":"approve","artifact":"feature-spec:supplements","hash":"cf510ff6d349ab26c205c45d338650c411f5916d83f0a5e7b8ed7acec4c9b7ea","via":"console"}
 {"at":"2026-07-29T10:02:20.032Z","verb":"approve","artifact":"feature-spec:today","hash":"fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16","via":"console"}
 {"at":"2026-07-29T10:39:53.651Z","verb":"accept","artifact":"feature-brief:reactive-state"}
+{"at":"2026-08-01T09:04:07.576Z","verb":"reopen","artifact":"feature-spec:profile","reason":"usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)","via":"cli"}
+{"at":"2026-08-01T09:04:07.651Z","verb":"reopen","artifact":"exemplar-feature","reason":"usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)","via":"cli"}
+{"at":"2026-08-01T09:04:07.724Z","verb":"reopen","artifact":"feature-design:meal","reason":"usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output","via":"cli"}
+{"at":"2026-08-01T09:04:07.796Z","verb":"reopen","artifact":"feature-design:meal-plan","reason":"usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output","via":"cli"}

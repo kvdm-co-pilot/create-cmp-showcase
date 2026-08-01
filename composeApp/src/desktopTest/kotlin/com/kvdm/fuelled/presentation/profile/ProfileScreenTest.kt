@@ -3,6 +3,7 @@ package com.kvdm.fuelled.presentation.profile
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -43,8 +44,9 @@ class ProfileScreenTest {
     }
 
     // SPEC: PROF-02
+    // SPEC: UX-04
     @Test
-    fun `shows the daily goals - calorie target, protein goal and activity - each a tappable row`() = runComposeUiTest {
+    fun `shows the daily goals as read-only value rows - no tap affordance until an editor exists`() = runComposeUiTest {
         repository.profile = FakeProfileRepository.sampleProfile
 
         setContent {
@@ -52,10 +54,11 @@ class ProfileScreenTest {
         }
 
         awaitNode(hasTestTag("profile_screen"))
-        // Each goal is a present, actionable row (destinations are out of scope — tapping is a no-op).
-        onNodeWithTag("profile_goal_calories").assertExists().performClick()
-        onNodeWithTag("profile_goal_protein").assertExists().performClick()
-        onNodeWithTag("profile_goal_activity").assertExists().performClick()
+        // UX-04: the values are shown, and the rows promise nothing — a row that accepted a
+        // tap and did nothing was the defect this amendment removed.
+        onNodeWithTag("profile_goal_calories").assertExists().assertHasNoClickAction()
+        onNodeWithTag("profile_goal_protein").assertExists().assertHasNoClickAction()
+        onNodeWithTag("profile_goal_activity").assertExists().assertHasNoClickAction()
         onAllNodesWithText("180 g").assertCountEquals(1)
         onAllNodesWithText("Trains 5×/week").assertCountEquals(1)
     }
@@ -76,8 +79,9 @@ class ProfileScreenTest {
     }
 
     // SPEC: PROF-04
+    // SPEC: UX-04
     @Test
-    fun `shows the settings list - each a present and tappable row`() = runComposeUiTest {
+    fun `shows the settings list as read-only rows - the tap ships with the destination`() = runComposeUiTest {
         repository.profile = FakeProfileRepository.sampleProfile
 
         setContent {
@@ -85,10 +89,10 @@ class ProfileScreenTest {
         }
 
         awaitNode(hasTestTag("profile_screen"))
-        onNodeWithTag("profile_setting_units").assertExists().performClick()
-        onNodeWithTag("profile_setting_reminders").assertExists().performClick()
-        onNodeWithTag("profile_setting_connected").assertExists().performClick()
-        onNodeWithTag("profile_setting_account").assertExists().performClick()
+        onNodeWithTag("profile_setting_units").assertExists().assertHasNoClickAction()
+        onNodeWithTag("profile_setting_reminders").assertExists().assertHasNoClickAction()
+        onNodeWithTag("profile_setting_connected").assertExists().assertHasNoClickAction()
+        onNodeWithTag("profile_setting_account").assertExists().assertHasNoClickAction()
     }
 
     // SPEC: PROF-05

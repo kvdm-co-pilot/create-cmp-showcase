@@ -5,6 +5,29 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **The usability pass — every flow re-judged as a human's day**
+  (`docs/features/usability-pass.md`, `specs/usability-pass.spec.md` UX-01..UX-04). The
+  walkthrough found the app's real flows sound but three core verbs missing and several
+  controls wired to nothing; this pass ships the verbs and the honesty rule:
+  - **Serving quantities in the tray** (UX-01): a checked row grows a −/count/+ stepper
+    (`meal_tray_minus/servings/plus_<id>`); the running total follows; minus at 1× removes
+    the line. `MealTrayViewModel.onServingsChanged` now removes below one serving — its doc
+    always said removal; the code held the line at 1×.
+  - **Entry deletion** (UX-02): every entry row in a meal container — plan screen and
+    Today's focused container — carries a remove control (`plan/today_entry_delete_<id>`)
+    writing through `DeleteLogEntryUseCase` (MEAL-06's one path); observed reads re-derive
+    the day (RS-01). `PlanEntryUi` now carries the entry id.
+  - **Catalog-first logging** (UX-03): Food detail's "Log this food" — previously rendered
+    but wired to nothing — now opens a six-slot picker (`food_log_slot_<slot>`) for the
+    current logical day and writes one `LOGGED` serving through `AddLogEntriesUseCase`, the
+    same write path as the tray. New preview variant `food-detail@log`.
+  - **Affordance honesty on Profile** (UX-04, PROF-02/PROF-04 amended): goal and settings
+    rows are read-only values — no `clickable`, no chevron — until their editors exist.
+  The brief also documents the exhaustive per-screen use-case inventory, the findings
+  against industry heuristics (including the latent two-goal-source divergence, F5), and
+  the ordered next slices (personalization S1 → settings S5).
+
 ### Fixed
 - **Screens outside the shell are now visible to on-device automation.**
   `Modifier.exposeTestTagsForAutomation()` — the modifier that surfaces Compose testTags as

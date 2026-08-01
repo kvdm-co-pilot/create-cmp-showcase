@@ -70,6 +70,10 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     },
     ScreenPreview("foods", "Foods tab") { TabHost { FoodsScreen() } },
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
+    // UX-03: the catalog-first log with its slot picker open — the aim step, rendered.
+    ScreenPreview("food-detail@log", "Food detail — slot picker open (UX-03)") {
+        TabHost { FoodDetailScreen(logPickerInitiallyOpen = true) }
+    },
     ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
     ScreenPreview("profile", "Profile tab") { TabHost { ProfileScreen() } },
     ScreenPreview("meal-tray", "Meal tray — add to Lunch (3 ticked)") { TabHost { MealTrayScreen() } },

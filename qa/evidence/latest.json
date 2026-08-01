@@ -3,36 +3,60 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "327a96b4084a9d99fba1f41e3a93bd7f16c21483",
+    "sha": "8c83f65e055b16307a32e3ac954de5bfb5824858",
     "dirty": [
-      "composeApp/build.gradle.kts",
-      "composeApp/proguard-rules.pro",
+      "CHANGELOG.md",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreenTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
+      "docs/features/usability-pass.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/evidence/latest.json",
-      "qa/verify.mjs"
+      "qa/golden/meal-plan.json",
+      "qa/golden/meal.json",
+      "specs/profile.spec.md",
+      "specs/usability-pass.spec.md"
     ]
   },
   "inputs": {
-    "hash": "98a708a3b81f3e48c93572ec20a823b64ebe000c83fe784a23160dbc4a7b707c",
-    "fileCount": 302
+    "hash": "0a710a8e72ae9f219df9f2c50fccd4a82dc407c74aa70411dc02ac5a8eafaa61",
+    "fileCount": 304
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 128,
+      "durationMs": 42,
       "details": {
-        "clauses": 96,
+        "clauses": 100,
         "withdrawn": 2,
-        "tags": 219,
+        "tags": 229,
         "files": 205
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 21,
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:usability-pass] Feature brief (docs/features/usability-pass.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:usability-pass\n  [exemplar-feature] Exemplar feature (foods — the file set the stamper clones) — reopened for redesign at 2026-08-01T09:04:07.650Z (reason: usability-pass F1/UX-03: Food detail's dead 'Log this food' CTA becomes a real slot-picker write path (decision 4)) (non-blocking until re-approved). Approve: node qa/approve.mjs exemplar-feature\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.795Z (reason: usability-pass F3/UX-02: container entry rows gain the remove control (decision 3); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T09:04:07.722Z (reason: usability-pass F2/UX-01: tray checked rows gain the servings stepper MEAL-09 promised (decision 2); re-sign on rendered output) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T09:04:07.571Z (reason: usability-pass F4/UX-04: PROF-02/PROF-04 claim rows are tappable; rows become honestly read-only until editors land (docs/features/usability-pass.md decision 5)) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile\n  [feature-spec:usability-pass] Feature spec (specs/usability-pass.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:usability-pass",
+      "durationMs": 20,
       "details": {
         "artifacts": [
           {
@@ -56,6 +80,11 @@
             "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76"
           },
           {
+            "id": "feature-brief:usability-pass",
+            "status": "unreviewed",
+            "hash": "cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791"
+          },
+          {
             "id": "architecture",
             "status": "approved",
             "hash": "6478649ec66d4187b320bcb4091f6fc3b69ceabae794cd2bf2f534639892789d"
@@ -67,7 +96,7 @@
           },
           {
             "id": "exemplar-feature",
-            "status": "approved",
+            "status": "reopened",
             "hash": "0bfb9150732965382c40bb6d4db99b6a7fe62b4b716651e9d6c5e3272c91e896"
           },
           {
@@ -82,13 +111,13 @@
           },
           {
             "id": "feature-design:meal-plan",
-            "status": "approved",
-            "hash": "92e98d262d70cbc1ecff47d2264a8fe462c463718d1af00fb420f568f91b0d8c"
+            "status": "reopened",
+            "hash": "21396a21a27104f1823531412995210787121edee8bcd3509a6d8d6520375684"
           },
           {
             "id": "feature-design:meal",
-            "status": "approved",
-            "hash": "c1cef6cc1e99136b548917f18dd44fb5271a0cc6f204e9092036adb7573f24f6"
+            "status": "reopened",
+            "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a"
           },
           {
             "id": "feature-spec:meal-plan",
@@ -102,8 +131,8 @@
           },
           {
             "id": "feature-spec:profile",
-            "status": "approved",
-            "hash": "62068d7a6d78500b33b3c1d9eba8d87b8aabff4af586ef67f349d3722d9bbda8"
+            "status": "reopened",
+            "hash": "aa3368a722e7923781a1eddb9eef96af46d54664943faaa41c0ab9b3cdf7b13c"
           },
           {
             "id": "feature-spec:reactive-state",
@@ -119,6 +148,11 @@
             "id": "feature-spec:today",
             "status": "approved",
             "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16"
+          },
+          {
+            "id": "feature-spec:usability-pass",
+            "status": "unreviewed",
+            "hash": "8239113a404f5af3b85f78b24f6c7dc1a2d8752674ec6466590a26494d201928"
           }
         ]
       }
@@ -126,7 +160,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -137,7 +171,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 9,
+      "durationMs": 8,
       "details": {
         "features": [
           {
@@ -202,7 +236,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 15,
+      "durationMs": 13,
       "details": {
         "sectionsChecked": 4
       }
@@ -210,19 +244,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2029
+      "durationMs": 28615
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 2290
+      "durationMs": 251000
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 11202,
+      "durationMs": 12769,
       "details": {
-        "tests": 216,
+        "tests": 224,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -231,43 +265,38 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3400
+      "durationMs": 3041
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 6155
+      "durationMs": 4063
     },
     {
       "name": "tokenDrift",
-      "verdict": "PASS",
-      "durationMs": 120,
-      "details": {
-        "checked": 7,
-        "drifted": 0
-      }
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
+      "durationMs": 278
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 5247
+      "durationMs": 3877
     },
     {
       "name": "e2eSmoke",
-      "verdict": "PASS",
-      "durationMs": 83262
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb)",
+      "durationMs": 0
     }
   ],
   "strength": {
-    "onDeviceSteps": [
-      "tokenDrift",
-      "e2eSmoke"
-    ]
+    "onDeviceSteps": []
   },
   "artifacts": [],
   "toolVersions": {
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-07-29T10:36:07.210Z"
+  "generatedAt": "2026-08-01T09:29:25.794Z"
 }

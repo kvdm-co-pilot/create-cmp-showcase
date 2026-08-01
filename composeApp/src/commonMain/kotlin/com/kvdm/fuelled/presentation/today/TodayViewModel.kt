@@ -8,6 +8,7 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
@@ -48,6 +49,7 @@ class TodayViewModel(
     private val setSlotDone: SetSlotDoneUseCase,
     private val setWaterDone: SetWaterDoneUseCase,
     private val armReminders: ArmMealRemindersUseCase,
+    private val deleteLogEntry: DeleteLogEntryUseCase,
 ) : ViewModel() {
 
     /**
@@ -111,6 +113,17 @@ class TodayViewModel(
     fun setWaterDone(index: Int, done: Boolean) {
         viewModelScope.launch {
             if (setWaterDone(today, index, done) is AppResult.Failure) _writeError.value = true
+        }
+    }
+
+    /**
+     * Remove an entry from the focused container (UX-02) — the same one delete path the plan
+     * screen writes through (TODAY-13's discipline: never a second write path). The observed
+     * summary and plan re-derive without the row (RS-01).
+     */
+    fun deleteEntry(id: String) {
+        viewModelScope.launch {
+            if (deleteLogEntry(id) is AppResult.Failure) _writeError.value = true
         }
     }
 

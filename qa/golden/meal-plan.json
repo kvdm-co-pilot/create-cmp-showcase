@@ -50,7 +50,10 @@
         {"text": "Golden oats"},
         {"text": "80 g"},
         {"text": "430 kcal"},
-        {"text": "38g P"}
+        {"text": "38g P"},
+        {"tag": "plan_entry_delete_g1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Remove Golden oats"}
+        ]}
       ]},
       {"tag": "plan_water_1", "children": [
         {"text": "Water"},
@@ -91,10 +94,16 @@
         {"text": "200 g"},
         {"text": "620 kcal"},
         {"text": "58g P"},
+        {"tag": "plan_entry_delete_g2", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Remove Golden chicken"}
+        ]},
         {"text": "Golden greens"},
         {"text": "1 bowl"},
         {"text": "90 kcal"},
-        {"text": "3g P"}
+        {"text": "3g P"},
+        {"tag": "plan_entry_delete_g3", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Remove Golden greens"}
+        ]}
       ]},
       {"tag": "plan_water_3", "children": [
         {"text": "Water"},

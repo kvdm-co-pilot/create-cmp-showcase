@@ -10,6 +10,7 @@ import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
+import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -19,6 +20,7 @@ import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
+import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.fakes.FixedClock
 import java.io.File
 import kotlin.test.Test
@@ -75,6 +77,7 @@ class MealPlanGoldenTreeTest {
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
             armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler()),
+            deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
         )
 
         setContent {
