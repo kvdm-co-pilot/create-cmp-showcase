@@ -3,7 +3,11 @@
 All notable changes to Fuelled. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] — the usable app
+
+First build published as an installable APK. Everything below landed in this release: the
+usability pass, the daily-journeys pass, personalization, first run, entry editing, catalog
+ownership, Progress, and Settings.
 
 ### Added
 - **Progress — the app grows a memory longer than a week** (`docs/features/history.md`,

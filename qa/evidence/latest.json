@@ -3,103 +3,21 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "076e6463b21179af133082dc8d317a8f06c4dd48",
+    "sha": "3d682d2af4ab3d55f6924fd289326da20115c9c8",
     "dirty": [
       "CHANGELOG.md",
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/11.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/10.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/11.json",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppStateEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/WeightEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/AppStateRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/WeightRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppState.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/History.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealReminder.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Supplement.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Units.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Weight.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/AppStateRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/SupplementRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/WeightRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AppStateUseCases.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetHistoryUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetWeekReviewUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SupplementEditUseCases.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/WeightUseCases.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayHighlights.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/week/WeekReviewScreen.kt -> composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/week/WeekReviewViewModel.kt -> composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModel.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/UnitsTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/GetSupplementStackUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/MealPlanUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/SetSupplementTakenUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/EntryEditingTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealTimesViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/HistoryTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/settings/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/week/WeekReviewViewModelTest.kt -> composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppStateRepository.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementDao.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementRepository.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeWeightRepository.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsGoldenTreeTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/week/WeekGoldenTreeTest.kt -> composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressGoldenTreeTest.kt",
-      "docs/ARCHITECTURE.md",
-      "docs/features/history.md",
-      "docs/features/settings.md",
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl",
-      "qa/evidence/latest.json",
-      "qa/golden/meal-plan.json",
-      "qa/golden/profile.json",
-      "qa/golden/week.json -> qa/golden/progress.json",
-      "specs/daily-journeys.spec.md",
-      "specs/entry-editing.spec.md",
-      "specs/history.spec.md",
-      "specs/meal-plan.spec.md",
-      "specs/profile.spec.md",
-      "specs/settings.spec.md",
-      "specs/supplements.spec.md"
+      "composeApp/build.gradle.kts"
     ]
   },
   "inputs": {
-    "hash": "1c7c27ea4e8de7ce02611c9b9ed914ad619ddb37038df06ea1ea90d68e9d9a06",
+    "hash": "064b5517d53b0ddedcf0e504a0a33406738375c150b1c3afae366bb644eef869",
     "fileCount": 359
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 67,
+      "durationMs": 59,
       "details": {
         "clauses": 130,
         "withdrawn": 2,
@@ -111,7 +29,7 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:history] Feature brief (docs/features/history.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:history\n  [feature-brief:settings] Feature brief (docs/features/settings.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:settings\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T20:43:28.921Z (reason: PlanEntryRow collapses to name/serving/macros/remove; the stepper is revealed on row tap. Re-sign on the re-rendered plan and today screens.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — unreviewed. Approve: node qa/approve.mjs feature-design:settings\n  [feature-spec:daily-journeys] Feature spec (specs/daily-journeys.spec.md) — reopened for redesign at 2026-08-01T21:07:47.560Z (reason: S4/HIST-01: the week-in-review surface grows into Progress (verdict, four-week trend, weight, days) and its route becomes 'progress'; JRN-02's Profile link tag is renamed with it. The week section itself and its week_day_<iso> rows are unchanged.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:daily-journeys\n  [feature-spec:entry-editing] Feature spec (specs/entry-editing.spec.md) — reopened for redesign at 2026-08-01T20:43:28.871Z (reason: ENTRY-01 becomes progressive disclosure: the serving stepper is revealed by tapping the row, not rendered on every row. Six containers x two entries of always-on chrome read as busy on the rendered card.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:entry-editing\n  [feature-spec:history] Feature spec (specs/history.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:history\n  [feature-spec:meal-plan] Feature spec (specs/meal-plan.spec.md) — reopened for redesign at 2026-08-01T20:59:45.655Z (reason: S4/HIST-03/04: the day strip anchors on the SELECTED day (PLAN-11 amended from a fixed today-relative window) so a past day can never render another day's chip highlighted, and copy-forward is withheld on past days (PLAN-20) where it would overwrite real logged history. S5/SET-07: PLAN-07's prep lead becomes the stored setting its own text anticipated.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal-plan\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T20:59:45.762Z (reason: S5/SET-01: the settings rows UX-04 made inert become live controls again, now that the destination exists.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile\n  [feature-spec:settings] Feature spec (specs/settings.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:settings\n  [feature-spec:supplements] Feature spec (specs/supplements.spec.md) — reopened for redesign at 2026-08-01T20:59:45.709Z (reason: S5/SET-04..06: the stack becomes user-owned — add, edit, remove, and a closed timing set — where SUPP-01 described seeded reference data.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:supplements",
-      "durationMs": 20,
+      "durationMs": 18,
       "details": {
         "artifacts": [
           {
@@ -285,7 +203,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 2,
       "details": {
         "components": 20,
         "stories": 20,
@@ -394,17 +312,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 5222
+      "durationMs": 13049
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1609
+      "durationMs": 145762
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 8123,
+      "durationMs": 11248,
       "details": {
         "tests": 272,
         "failures": 0,
@@ -415,23 +333,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1900
+      "durationMs": 2575
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3242
+      "durationMs": 3543
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 25
+      "durationMs": 24
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2934
+      "durationMs": 2676
     },
     {
       "name": "e2eSmoke",
@@ -448,5 +366,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-01T21:32:53.517Z"
+  "generatedAt": "2026-08-01T21:38:05.140Z"
 }
