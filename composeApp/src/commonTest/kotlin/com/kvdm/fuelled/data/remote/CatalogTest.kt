@@ -65,11 +65,11 @@ class CatalogTest {
         val today = TodayRepositoryImpl(todayDao)
         // Logged on two different logical days: the later day must lead.
         today.addEntries(
-            listOf(NewLogEntry(id = "e1", foodId = "5", name = "Banana", serving = "1", kcal = 105, proteinG = 1, carbsG = 27, fatG = 0)),
+            listOf(NewLogEntry(id = "e1", foodId = "banana", name = "Banana", serving = "1", kcal = 105, proteinG = 1, carbsG = 27, fatG = 0)),
             LocalDate(2026, 7, 20), MealSlot.LUNCH, LogStatus.LOGGED,
         )
         today.addEntries(
-            listOf(NewLogEntry(id = "e2", foodId = "1", name = "Chicken", serving = "100 g", kcal = 165, proteinG = 31, carbsG = 0, fatG = 4)),
+            listOf(NewLogEntry(id = "e2", foodId = "chicken-breast", name = "Chicken", serving = "100 g", kcal = 165, proteinG = 31, carbsG = 0, fatG = 4)),
             LocalDate(2026, 7, 22), MealSlot.DINNER, LogStatus.LOGGED,
         )
 
@@ -78,7 +78,7 @@ class CatalogTest {
             is AppResult.Failure -> fail("expected Success, got $r")
         }
 
-        assertEquals(listOf("1", "5"), recents.map { it.id }, "most recently eaten leads")
+        assertEquals(listOf("chicken-breast", "banana"), recents.map { it.id }, "most recently eaten leads")
     }
 
     // SPEC: CAT-03

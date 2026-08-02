@@ -54,13 +54,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-spec:meal",
-      "status": "approved",
-      "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1",
-      "approvedAt": "2026-07-29T10:01:48.968Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-spec:today",
       "status": "approved",
       "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
@@ -145,13 +138,6 @@
       "via": "cli"
     },
     {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "0ebcfe3f86dd35a222463472f7e95fb2cfad95b07801eb1c8ce5b71ab0928b9d",
-      "approvedAt": "2026-08-01T18:16:46.706Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:meal",
       "status": "approved",
       "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a",
@@ -215,28 +201,58 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-design:meal-plan",
+      "artifact": "feature-brief:dated-goals",
       "status": "approved",
-      "hash": "a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe",
-      "approvedAt": "2026-08-02T07:24:21.762Z",
+      "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
+      "approvedAt": "2026-08-02T12:15:18.848Z",
       "via": "cli"
     },
     {
-      "artifact": "feature-spec:daily-journeys",
-      "status": "reopened",
-      "hash": "e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2",
-      "approvedAt": "2026-08-02T07:24:21.453Z",
-      "reopenedAt": "2026-08-02T07:27:22.053Z",
-      "reason": "GOAL-03: WeekDay's documented caveat — days judged against the CURRENT goal — is fixed; JRN-01's targets are now the goal that applied on each day.",
+      "artifact": "feature-spec:dated-goals",
+      "status": "approved",
+      "hash": "7338053c395e48d71bce2b17e2c0a0f9a72c7681411477a86949e28ad626350a",
+      "approvedAt": "2026-08-02T12:15:18.936Z",
       "via": "cli"
     },
     {
       "artifact": "feature-spec:history",
-      "status": "reopened",
+      "status": "approved",
       "hash": "7767c17016150cbc9c26dbc891f026ad1fbd471cd87c111d72d3635750a1cb21",
-      "approvedAt": "2026-08-02T07:24:21.063Z",
-      "reopenedAt": "2026-08-02T07:27:22.130Z",
-      "reason": "GOAL-03: the four-week trend is judged per-day against the goal in force then, which is what made the undated caveat a defect rather than a footnote.",
+      "approvedAt": "2026-08-02T12:15:19.014Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:daily-journeys",
+      "status": "approved",
+      "hash": "e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2",
+      "approvedAt": "2026-08-02T12:15:19.095Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:meal",
+      "status": "reopened",
+      "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1",
+      "approvedAt": "2026-07-29T10:01:48.968Z",
+      "reopenedAt": "2026-08-02T17:39:55.477Z",
+      "reason": "BFL-05..08: the tray gains a meal builder that composes protein+carb+veg and applies it across days, writing through the existing one path.",
+      "via": "cli"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "reopened",
+      "hash": "0ebcfe3f86dd35a222463472f7e95fb2cfad95b07801eb1c8ce5b71ab0928b9d",
+      "approvedAt": "2026-08-01T18:16:46.706Z",
+      "reopenedAt": "2026-08-02T17:39:55.528Z",
+      "reason": "BFL-01: the foods exemplar's model gains per-100g macros, category, portion and fdcId.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "reopened",
+      "hash": "a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe",
+      "approvedAt": "2026-08-02T07:24:21.762Z",
+      "reopenedAt": "2026-08-02T18:02:42.097Z",
+      "reason": "BFL-05: the plan header gains a Build control opening the meal builder — the fast path to a planned week belongs on the surface a week is planned from. Re-sign on the re-rendered plan screen.",
       "via": "cli"
     }
   ],

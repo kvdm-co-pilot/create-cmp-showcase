@@ -28,6 +28,8 @@ import com.kvdm.fuelled.domain.usecase.SetUnitSystemUseCase
 import com.kvdm.fuelled.domain.repository.WeightRepository
 import com.kvdm.fuelled.data.remote.WeightRepositoryImpl
 import com.kvdm.fuelled.presentation.settings.SettingsViewModel
+import com.kvdm.fuelled.presentation.builder.MealBuilderViewModel
+import com.kvdm.fuelled.domain.usecase.PlanMealUseCase
 import com.kvdm.fuelled.domain.usecase.UpdateGoalsUseCase
 import com.kvdm.fuelled.domain.usecase.UpdateProfileNameUseCase
 import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
@@ -131,6 +133,8 @@ val useCaseModule = module {
     // repository, deliberately (TODAY-13's no-second-path discipline).
     factory { GetHistoryUseCase(get(), get(), get()) }
     factory { ObserveGoalHistoryUseCase(get()) }
+    // BFL-06: one composed meal into one slot across many days.
+    factory { PlanMealUseCase(get()) }
     // HIST-06..08: the weigh-in log — the one stored thing on the Progress surface.
     factory { ObserveWeightLogUseCase(get(), get()) }
     factory { RecordWeightUseCase(get(), get()) }
@@ -162,6 +166,7 @@ val viewModelModule = module {
     viewModelOf(::TodayViewModel)
     viewModelOf(::SupplementsViewModel)
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::MealBuilderViewModel)
     viewModelOf(::ProfileViewModel)
     // Like the tray below, the plan's opening day comes from the CALL SITE: the nav destination
     // passes `plan/{date}`'s date as a Koin parameter, so the ViewModel is aimed before its

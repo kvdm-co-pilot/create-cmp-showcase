@@ -203,6 +203,8 @@ data class PlanDayActions(
     val onDeleteEntry: (String) -> Unit = {},
     /** ENTRY-01: change one entry's serving multiple, in place. */
     val onEntryServings: (String, Int) -> Unit = { _, _ -> },
+    /** BFL-05: open the meal builder — compose once, plan it across the week. */
+    val onBuildMeal: () -> Unit = {},
 ) {
     companion object {
         /** Inert actions for gallery renders and golden trees: the structure, without wiring. */
@@ -233,6 +235,15 @@ fun MealPlanDayScreen(
             title = "Meal plan",
             screenTag = "meal_plan",
             actions = {
+                // BFL-05: the fast path to a planned week sits ON the surface a week is
+                // planned from. Copy-forward repeats a day you already built by hand; this is
+                // how you build it.
+                AppTextButton(
+                    text = "Build",
+                    onClick = actions.onBuildMeal,
+                    modifier = Modifier.semantics { testTag = "plan_build_meal" },
+                )
+                Spacer(Modifier.width(8.dp))
                 AppTextButton(
                     text = "Times",
                     onClick = actions.onOpenTimes,

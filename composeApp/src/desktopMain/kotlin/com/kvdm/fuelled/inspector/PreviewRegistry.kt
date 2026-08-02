@@ -22,6 +22,13 @@ import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.today.TodayScreen
 import com.kvdm.fuelled.presentation.progress.ProgressScreen
+import com.kvdm.fuelled.presentation.builder.MealBuilderScreen
+import com.kvdm.fuelled.presentation.builder.BuilderUi
+import com.kvdm.fuelled.presentation.builder.sampleCatalog
+import com.kvdm.fuelled.presentation.builder.sampleBuilderWeek
+import com.kvdm.fuelled.domain.model.BflCategory
+import com.kvdm.fuelled.domain.model.ComposedMeal
+import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.presentation.progress.ProgressUi
 import com.kvdm.fuelled.presentation.settings.SettingsScreen
 import com.kvdm.fuelled.presentation.settings.SettingsUi
@@ -127,6 +134,25 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     // SET-04: the add/edit form, disclosed. Same composable for both, so one render covers it.
     ScreenPreview("settings@imperial", "Settings — imperial units (SET-02)") {
         TabHost { SettingsScreen(ui = SettingsUi(settings = AppSettings(unitSystem = UnitSystem.IMPERIAL, prepLeadMinutes = 60))) }
+    },
+    // BFL-05..08: the builder, empty and mid-compose. Two renders because the interesting
+    // state is the SECOND one — an empty builder shows the vocabulary, a filled one shows
+    // what the vocabulary is for.
+    ScreenPreview("builder", "Meal builder — nothing picked yet") { TabHost { MealBuilderScreen() } },
+    ScreenPreview("builder@composed", "Meal builder — chicken, rice & broccoli, all 7 days") {
+        TabHost {
+            MealBuilderScreen(
+                ui = BuilderUi(
+                    meal = ComposedMeal(
+                        protein = sampleCatalog.getValue(BflCategory.PROTEIN)[0],
+                        carb = sampleCatalog.getValue(BflCategory.CARB)[0],
+                        vegetable = sampleCatalog.getValue(BflCategory.VEGETABLE)[0],
+                    ),
+                    slot = MealSlot.LUNCH,
+                    days = sampleBuilderWeek.toSet(),
+                ),
+            )
+        }
     },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()

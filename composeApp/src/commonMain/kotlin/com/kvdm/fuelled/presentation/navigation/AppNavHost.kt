@@ -29,6 +29,7 @@ import com.kvdm.fuelled.presentation.mealplan.MealPlanRoute
 import com.kvdm.fuelled.presentation.mealplan.MealTimesRoute
 import com.kvdm.fuelled.presentation.progress.ProgressRoute
 import com.kvdm.fuelled.presentation.settings.SettingsRoute
+import com.kvdm.fuelled.presentation.builder.MealBuilderRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
@@ -185,6 +186,7 @@ fun AppNavHost() {
             } else {
                 BaseScreen {
                     MealPlanRoute(
+                        onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
                         // PLAN-24: the route's date SEEDS the ViewModel and is never re-applied
                         // — same shape as the tray's target above, and for the same reason.
                         viewModel = koinViewModel { parametersOf(date) },
@@ -215,6 +217,13 @@ fun AppNavHost() {
                     // it, and the plan screen already edits any date.
                     onOpenDay = { date -> navController.navigate(Routes.mealPlan(date)) },
                 )
+            }
+        }
+        // BFL-05: the meal builder — a week planned in a handful of taps, entered from the
+        // plan screen and from Today.
+        composable(Screen.MealBuilder.route) {
+            BaseScreen {
+                MealBuilderRoute(onBack = { navController.popBackStack() })
             }
         }
         // SET-01: the settings UX-04 stopped pretending about, entered from Profile.

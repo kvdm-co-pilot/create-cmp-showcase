@@ -14,6 +14,7 @@ sealed class Screen(val route: String) {
     data object Progress : Screen(Routes.PROGRESS)
     data object FoodEditor : Screen(Routes.FOOD_EDITOR)
     data object Settings : Screen(Routes.SETTINGS)
+    data object MealBuilder : Screen(Routes.MEAL_BUILDER)
     // cmp:anchor screen-objects
 }
 
@@ -32,6 +33,8 @@ object Routes {
     const val FOOD_EDITOR = "food/edit/{foodId}"
     /** SET-01: units, the supplement stack, and the reminder lead. */
     const val SETTINGS    = "settings"
+    /** BFL-05: compose a meal from the catalog's roles and plan it across days. */
+    const val MEAL_BUILDER = "build"
     // cmp:anchor route-consts
     fun foodDetail(foodId: String) = "food/$foodId"
 

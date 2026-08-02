@@ -3,41 +3,40 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "3cfacfc35bb63da043da939c7ec09dda7baf5353",
+    "sha": "25df85d8b29105f2aa5a07973572909152743666",
     "dirty": [
       "CHANGELOG.md",
       "composeApp/build.gradle.kts",
-      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/12.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/11.json",
-      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/12.json",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/13.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/13.json",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayDao.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/TodayEntity.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/FoodEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/FoodRepositoryImpl.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/DatedGoal.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/WeekReview.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/TodayRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetHistoryUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/WeightUseCases.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImplTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/DatedGoalTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/HistoryTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayDao.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeTodayRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Food.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealPreset.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/PlanMealUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/BflCatalogTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/data/remote/CatalogTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/builder/",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
       "docs/ARCHITECTURE.md",
-      "docs/features/dated-goals.md",
+      "docs/features/bfl-catalog.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
       "qa/evidence/latest.json",
-      "specs/dated-goals.spec.md"
+      "qa/golden/meal-plan.json",
+      "specs/bfl-catalog.spec.md"
     ]
   },
   "inputs": {
-    "hash": "3b62b5fe1e325b193f169051687f4598785cb2e741ba60de8b14ae277bf7fe1c",
-    "fileCount": 364
+    "hash": "29241e719ab5c93752942d14d6ee31e34f5686524bc87ded3151784f3b3383d5",
+    "fileCount": 373
   },
   "steps": [
     {
@@ -45,23 +44,28 @@
       "verdict": "PASS",
       "durationMs": 68,
       "details": {
-        "clauses": 134,
+        "clauses": 142,
         "withdrawn": 2,
-        "tags": 283,
-        "files": 248
+        "tags": 294,
+        "files": 254
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:dated-goals] Feature brief (docs/features/dated-goals.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:dated-goals\n  [feature-spec:daily-journeys] Feature spec (specs/daily-journeys.spec.md) — reopened for redesign at 2026-08-02T07:27:22.053Z (reason: GOAL-03: WeekDay's documented caveat — days judged against the CURRENT goal — is fixed; JRN-01's targets are now the goal that applied on each day.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:daily-journeys\n  [feature-spec:dated-goals] Feature spec (specs/dated-goals.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:dated-goals\n  [feature-spec:history] Feature spec (specs/history.spec.md) — reopened for redesign at 2026-08-02T07:27:22.130Z (reason: GOAL-03: the four-week trend is judged per-day against the goal in force then, which is what made the undated caveat a defect rather than a footnote.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:history",
-      "durationMs": 34,
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:bfl-catalog] Feature brief (docs/features/bfl-catalog.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:bfl-catalog\n  [exemplar-feature] Exemplar feature (foods — the file set the stamper clones) — reopened for redesign at 2026-08-02T17:39:55.528Z (reason: BFL-01: the foods exemplar's model gains per-100g macros, category, portion and fdcId.) (non-blocking until re-approved). Approve: node qa/approve.mjs exemplar-feature\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-02T18:02:42.097Z (reason: BFL-05: the plan header gains a Build control opening the meal builder — the fast path to a planned week belongs on the surface a week is planned from. Re-sign on the re-rendered plan screen.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-spec:bfl-catalog] Feature spec (specs/bfl-catalog.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:bfl-catalog\n  [feature-spec:meal] Feature spec (specs/meal.spec.md) — reopened for redesign at 2026-08-02T17:39:55.477Z (reason: BFL-05..08: the tray gains a meal builder that composes protein+carb+veg and applies it across days, writing through the existing one path.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal",
+      "durationMs": 25,
       "details": {
         "artifacts": [
           {
             "id": "intent",
             "status": "approved",
             "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
+          },
+          {
+            "id": "feature-brief:bfl-catalog",
+            "status": "unreviewed",
+            "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d"
           },
           {
             "id": "feature-brief:catalog-and-editing",
@@ -75,7 +79,7 @@
           },
           {
             "id": "feature-brief:dated-goals",
-            "status": "unreviewed",
+            "status": "approved",
             "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa"
           },
           {
@@ -130,8 +134,8 @@
           },
           {
             "id": "exemplar-feature",
-            "status": "approved",
-            "hash": "0ebcfe3f86dd35a222463472f7e95fb2cfad95b07801eb1c8ce5b71ab0928b9d"
+            "status": "reopened",
+            "hash": "6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99"
           },
           {
             "id": "design-system",
@@ -145,8 +149,8 @@
           },
           {
             "id": "feature-design:meal-plan",
-            "status": "approved",
-            "hash": "a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe"
+            "status": "reopened",
+            "hash": "ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b"
           },
           {
             "id": "feature-design:meal",
@@ -159,18 +163,23 @@
             "hash": "6d5bdb22ec905c98f5221bebdf6555c8dee5c4228c8ace62e820d7abfb5d27af"
           },
           {
+            "id": "feature-spec:bfl-catalog",
+            "status": "unreviewed",
+            "hash": "ff6fc84944cb7dd23c86aa1a766c9b29af18bf7d57b12c451b19a84e630792de"
+          },
+          {
             "id": "feature-spec:catalog",
             "status": "approved",
             "hash": "14b29da6dcb34e128904576c2304d1305cca76c3b8550baa9b0e4bdb6d9c3a1d"
           },
           {
             "id": "feature-spec:daily-journeys",
-            "status": "reopened",
+            "status": "approved",
             "hash": "e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2"
           },
           {
             "id": "feature-spec:dated-goals",
-            "status": "unreviewed",
+            "status": "approved",
             "hash": "7338053c395e48d71bce2b17e2c0a0f9a72c7681411477a86949e28ad626350a"
           },
           {
@@ -185,7 +194,7 @@
           },
           {
             "id": "feature-spec:history",
-            "status": "reopened",
+            "status": "approved",
             "hash": "7767c17016150cbc9c26dbc891f026ad1fbd471cd87c111d72d3635750a1cb21"
           },
           {
@@ -195,7 +204,7 @@
           },
           {
             "id": "feature-spec:meal",
-            "status": "approved",
+            "status": "reopened",
             "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1"
           },
           {
@@ -239,7 +248,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 5,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -250,9 +259,17 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 12,
       "details": {
         "features": [
+          {
+            "name": "builder",
+            "reachable": true,
+            "entryComposables": [
+              "MealBuilderRoute",
+              "MealBuilderScreen"
+            ]
+          },
           {
             "name": "foods",
             "reachable": true,
@@ -340,7 +357,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 25,
+      "durationMs": 16,
       "details": {
         "sectionsChecked": 4
       }
@@ -348,19 +365,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 21480
+      "durationMs": 8241
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 241290
+      "durationMs": 3243
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 18533,
+      "durationMs": 15583,
       "details": {
-        "tests": 275,
+        "tests": 283,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -369,23 +386,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3904
+      "durationMs": 4665
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5120
+      "durationMs": 10390
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 23
+      "durationMs": 28
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4452
+      "durationMs": 6120
     },
     {
       "name": "e2eSmoke",
@@ -402,5 +419,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-02T07:51:14.544Z"
+  "generatedAt": "2026-08-02T18:04:57.801Z"
 }

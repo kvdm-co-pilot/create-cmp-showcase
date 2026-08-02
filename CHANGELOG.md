@@ -3,6 +3,43 @@
 All notable changes to Fuelled. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [SemVer](https://semver.org/).
 
+## [0.4.0] — real food, and a week you can actually plan
+
+### Added
+- **The catalog is 59 USDA foods, and every number is real** (`docs/features/bfl-catalog.md`,
+  `specs/bfl-catalog.spec.md` BFL-01..04). The seed was eight invented foods with round-number
+  macros — every total the app had ever shown was arithmetic on fiction. Now: protein,
+  carbohydrate, fat and energy **per 100 g** from **USDA SR Legacy**, each row carrying the
+  FoodData Central id it came from.
+  - **Generated, not typed.** The USDA API rate-limited, so the full SR Legacy CSV release was
+    downloaded, indexed locally, and the seed rows were emitted by a script — nobody retyped
+    59 × 4 values. The generator refuses to emit a food whose FDC record is missing a macro,
+    so a silent zero cannot reach the catalog.
+  - **Verified.** Chicken breast checked against the live USDA API (165 kcal, 31.02 P, 0 C,
+    3.57 F — exact match to the local index); banana cross-checked against an independent
+    USDA-derived source (89 / 1.1 / 22.8 / 0.3 — exact).
+  - **One documented disagreement.** USDA's own datasets differ on oats: SR Legacy *analyses*
+    protein (16.9 g/100 g), the newer Foundation Foods *calculates* it from nitrogen
+    (~13.2 g). The whole catalog uses SR Legacy — one dataset means it cannot contradict
+    itself, and mixing per food is how a catalog starts disagreeing with its own totals.
+  - **Portions are grounded.** Where USDA publishes a portion weight, the catalog uses it —
+    1 medium banana is 118 g because USDA says so. Body-for-LIFE's palm/fist heuristic is the
+    LABEL ("1 palm (120 g)"), so the method's language survives and the arithmetic stays real.
+  - **It ships in the app.** Seeded into Room on first run: offline, no account, no network.
+- **The meal builder — 42 meals without 42 decisions** (BFL-05..08). Body-for-LIFE is six
+  meals a day for seven days, and copy-forward only repeats a day you already built by hand.
+  Pick a protein, pick a carb, optionally a vegetable; the total updates as you pick; choose a
+  slot and the days, and it writes through the same one path everything else does. Eight
+  presets (chicken/rice/broccoli, oats/egg whites, salmon/sweet potato/asparagus …) fill the
+  selection and change nothing else. The method's shape — protein, carb, veg — is **reported,
+  never enforced**: a mid-morning snack is a protein and a piece of fruit, and an app that
+  refuses to compose it in order to be correct is one people stop opening.
+- Fixed before shipping, caught by LOOKING at the render rather than by a test: the builder's
+  total read **0 kcal** under three chosen foods. The cards showed each food's portion macros
+  while the total recomputed from per-100 g — two sources for one number, the same divergence
+  class the two goal stores were collapsed to fix. The total now sums exactly what the cards
+  display.
+
 ## [0.3.0] — dated goals
 
 ### Added

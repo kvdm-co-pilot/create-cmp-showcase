@@ -1,6 +1,9 @@
 {"children": [
   {"tag": "meal_plan_screen", "children": [
     {"tag": "meal_plan_title", "text": "Meal plan"},
+    {"tag": "plan_build_meal", "role": "Button", "children": [
+      {"text": "Build"}
+    ]},
     {"tag": "plan_open_times", "role": "Button", "children": [
       {"text": "Times"}
     ]},

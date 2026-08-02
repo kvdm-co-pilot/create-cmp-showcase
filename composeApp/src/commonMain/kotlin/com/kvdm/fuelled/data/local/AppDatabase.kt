@@ -34,7 +34,10 @@ import androidx.room.RoomDatabaseConstructor
     // 12: `today_goal` is a HISTORY — its primary key is the logical date the goal takes
     // effect from (GOAL-01/GOAL-02), so a target lowered today no longer re-scores the weeks
     // before it. The seeded default is effective from the beginning of time (GOAL-03).
-    version = 12,
+    // 13: foods carry per-100 g macros, their USDA FDC id, a Body-for-LIFE category and a
+    // portion in grams (BFL-01); the seeded catalog is replaced with 59 USDA SR Legacy foods
+    // generated from the published dataset.
+    version = 13,
     exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)

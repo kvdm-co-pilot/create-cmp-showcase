@@ -113,6 +113,8 @@ fun MealPlanRoute(
     onAddToMeal: (LocalDate, MealSlot) -> Unit,
     onOpenTimes: () -> Unit,
     viewModel: MealPlanViewModel = koinViewModel(),
+    /** BFL-05: last and defaulted, so every existing positional call site still compiles. */
+    onBuildMeal: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lastDeleted by viewModel.lastDeleted.collectAsStateWithLifecycle()
@@ -140,6 +142,7 @@ fun MealPlanRoute(
                 // week" means for a day strip that only ever shows seven ahead (PLAN-11/PLAN-20).
                 onCopyForward = { viewModel.copyForward(days = 6) },
                 onOpenTimes = onOpenTimes,
+                onBuildMeal = onBuildMeal,
                 // UX-02: the observed state re-derives the day after the delete (RS-01) —
                 // totals, focus, and the veg count follow without a reload.
                 onDeleteEntry = viewModel::deleteEntry,

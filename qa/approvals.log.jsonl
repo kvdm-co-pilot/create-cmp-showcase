@@ -75,3 +75,10 @@
 {"at":"2026-08-02T07:24:21.763Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe","via":"cli"}
 {"at":"2026-08-02T07:27:22.055Z","verb":"reopen","artifact":"feature-spec:daily-journeys","reason":"GOAL-03: WeekDay's documented caveat — days judged against the CURRENT goal — is fixed; JRN-01's targets are now the goal that applied on each day.","via":"cli"}
 {"at":"2026-08-02T07:27:22.131Z","verb":"reopen","artifact":"feature-spec:history","reason":"GOAL-03: the four-week trend is judged per-day against the goal in force then, which is what made the undated caveat a defect rather than a footnote.","via":"cli"}
+{"at":"2026-08-02T12:15:18.849Z","verb":"approve","artifact":"feature-brief:dated-goals","hash":"3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa","via":"cli"}
+{"at":"2026-08-02T12:15:18.938Z","verb":"approve","artifact":"feature-spec:dated-goals","hash":"7338053c395e48d71bce2b17e2c0a0f9a72c7681411477a86949e28ad626350a","via":"cli"}
+{"at":"2026-08-02T12:15:19.015Z","verb":"approve","artifact":"feature-spec:history","hash":"7767c17016150cbc9c26dbc891f026ad1fbd471cd87c111d72d3635750a1cb21","via":"cli"}
+{"at":"2026-08-02T12:15:19.096Z","verb":"approve","artifact":"feature-spec:daily-journeys","hash":"e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2","via":"cli"}
+{"at":"2026-08-02T17:39:55.479Z","verb":"reopen","artifact":"feature-spec:meal","reason":"BFL-05..08: the tray gains a meal builder that composes protein+carb+veg and applies it across days, writing through the existing one path.","via":"cli"}
+{"at":"2026-08-02T17:39:55.529Z","verb":"reopen","artifact":"exemplar-feature","reason":"BFL-01: the foods exemplar's model gains per-100g macros, category, portion and fdcId.","via":"cli"}
+{"at":"2026-08-02T18:02:42.099Z","verb":"reopen","artifact":"feature-design:meal-plan","reason":"BFL-05: the plan header gains a Build control opening the meal builder — the fast path to a planned week belongs on the surface a week is planned from. Re-sign on the re-rendered plan screen.","via":"cli"}
