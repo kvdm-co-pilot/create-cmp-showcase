@@ -3,21 +3,22 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "3d682d2af4ab3d55f6924fd289326da20115c9c8",
+    "sha": "b9e0e4e0fb88860f9ff51ae4c734cc9e43218039",
     "dirty": [
-      "CHANGELOG.md",
-      "composeApp/build.gradle.kts"
+      ".gitignore",
+      "composeApp/build.gradle.kts",
+      "scripts/"
     ]
   },
   "inputs": {
-    "hash": "064b5517d53b0ddedcf0e504a0a33406738375c150b1c3afae366bb644eef869",
+    "hash": "fe8faf317b7e16db24f4af77458ba2c330205a8895f35963c2b1042135cc2c22",
     "fileCount": 359
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 59,
+      "durationMs": 56,
       "details": {
         "clauses": 130,
         "withdrawn": 2,
@@ -29,7 +30,7 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:history] Feature brief (docs/features/history.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:history\n  [feature-brief:settings] Feature brief (docs/features/settings.md) — unreviewed. Approve: node qa/approve.mjs feature-brief:settings\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-01T20:43:28.921Z (reason: PlanEntryRow collapses to name/serving/macros/remove; the stepper is revealed on row tap. Re-sign on the re-rendered plan and today screens.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — unreviewed. Approve: node qa/approve.mjs feature-design:settings\n  [feature-spec:daily-journeys] Feature spec (specs/daily-journeys.spec.md) — reopened for redesign at 2026-08-01T21:07:47.560Z (reason: S4/HIST-01: the week-in-review surface grows into Progress (verdict, four-week trend, weight, days) and its route becomes 'progress'; JRN-02's Profile link tag is renamed with it. The week section itself and its week_day_<iso> rows are unchanged.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:daily-journeys\n  [feature-spec:entry-editing] Feature spec (specs/entry-editing.spec.md) — reopened for redesign at 2026-08-01T20:43:28.871Z (reason: ENTRY-01 becomes progressive disclosure: the serving stepper is revealed by tapping the row, not rendered on every row. Six containers x two entries of always-on chrome read as busy on the rendered card.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:entry-editing\n  [feature-spec:history] Feature spec (specs/history.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:history\n  [feature-spec:meal-plan] Feature spec (specs/meal-plan.spec.md) — reopened for redesign at 2026-08-01T20:59:45.655Z (reason: S4/HIST-03/04: the day strip anchors on the SELECTED day (PLAN-11 amended from a fixed today-relative window) so a past day can never render another day's chip highlighted, and copy-forward is withheld on past days (PLAN-20) where it would overwrite real logged history. S5/SET-07: PLAN-07's prep lead becomes the stored setting its own text anticipated.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:meal-plan\n  [feature-spec:profile] Feature spec (specs/profile.spec.md) — reopened for redesign at 2026-08-01T20:59:45.762Z (reason: S5/SET-01: the settings rows UX-04 made inert become live controls again, now that the destination exists.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:profile\n  [feature-spec:settings] Feature spec (specs/settings.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:settings\n  [feature-spec:supplements] Feature spec (specs/supplements.spec.md) — reopened for redesign at 2026-08-01T20:59:45.709Z (reason: S5/SET-04..06: the stack becomes user-owned — add, edit, remove, and a closed timing set — where SUPP-01 described seeded reference data.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:supplements",
-      "durationMs": 18,
+      "durationMs": 16,
       "details": {
         "artifacts": [
           {
@@ -304,7 +305,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 11,
+      "durationMs": 12,
       "details": {
         "sectionsChecked": 4
       }
@@ -312,17 +313,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 13049
+      "durationMs": 2459
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 145762
+      "durationMs": 1477
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 11248,
+      "durationMs": 7770,
       "details": {
         "tests": 272,
         "failures": 0,
@@ -333,23 +334,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2575
+      "durationMs": 1823
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3543
+      "durationMs": 2869
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 24
+      "durationMs": 19
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2676
+      "durationMs": 2461
     },
     {
       "name": "e2eSmoke",
@@ -366,5 +367,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-01T21:38:05.140Z"
+  "generatedAt": "2026-08-02T02:26:27.661Z"
 }

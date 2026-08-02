@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.compose.resources.ResourcesExtension
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -166,6 +167,32 @@ android {
         buildConfig = true
     }
 
+    // Release signing, read from an UNCOMMITTED keystore.properties (scripts/generate-signing-key.sh).
+    //
+    // Absent — on CI, on a fresh clone, on any machine that has no business holding the key —
+    // this resolves to null and the release build proceeds UNSIGNED. That is deliberate:
+    // compiling must never require a secret, or every contributor needs the signing key to
+    // check that the app builds. Only PUBLISHING needs it.
+    //
+    // The file is read here rather than passed as -P properties so the passwords never reach
+    // a shell history, a CI log, or the process list.
+    val signingProps = rootProject.file("keystore.properties").takeIf { it.exists() }?.let { file ->
+        // Imported at the top rather than fully qualified: inside `android { }`, `java`
+        // resolves to Gradle's own java extension, so `java.util.Properties` does not.
+        Properties().apply { file.inputStream().use { load(it) } }
+    }
+
+    signingConfigs {
+        if (signingProps != null) {
+            create("release") {
+                storeFile = rootProject.file(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             // Debug builds point GitLive Firebase at the local emulators (see Application/KoinHelper).
@@ -179,6 +206,9 @@ android {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
         getByName("release") {
+            // Null without keystore.properties — an unsigned release apk, which builds fine
+            // and cannot be installed. The asymmetry is the point (see signingConfigs above).
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             // Every field debug declares, release must declare too. BuildConfig is generated

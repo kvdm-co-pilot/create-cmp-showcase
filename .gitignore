@@ -26,3 +26,11 @@ iosApp/*.xcworkspace/
 iosApp/build/
 xcuserdata/
 *.xcuserstate
+
+# Release signing — generated locally by scripts/generate-signing-key.sh, NEVER committed.
+# The keystore IS the app's identity on Android; the properties file holds its passwords.
+# Back both up out-of-band (see the script's header) — a lost signing key cannot be reissued.
+keystore.properties
+keystore/
+*.jks
+*.keystore
