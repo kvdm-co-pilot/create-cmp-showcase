@@ -8,6 +8,7 @@ import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
 import com.kvdm.fuelled.domain.usecase.GetHistoryUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveGoalHistoryUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
 import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -63,6 +64,7 @@ class ProgressViewModelTest {
         getHistory = GetHistoryUseCase(
             getPlanDay = getPlanDay(),
             getTodaySummary = GetTodaySummaryUseCase(todayRepository),
+            goalHistory = ObserveGoalHistoryUseCase(todayRepository),
         ),
         observeWeight = ObserveWeightLogUseCase(weightRepository, getPlanDay()),
         observeAppState = ObserveAppStateUseCase(appState),

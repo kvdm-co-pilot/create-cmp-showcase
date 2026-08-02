@@ -3,6 +3,28 @@
 All notable changes to Fuelled. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [SemVer](https://semver.org/).
 
+## [0.3.0] — dated goals
+
+### Added
+- **Dated goals — a target belongs to the days it applied to** (`docs/features/dated-goals.md`,
+  `specs/dated-goals.spec.md` GOAL-01..04). `WeekDay`'s contract had carried the caveat since
+  the week review shipped: *targets are the CURRENT goals, goals are not yet dated*. Honest
+  while history was seven days long; a defect the moment the trend reached four weeks. Cut
+  your target from 2600 to 2400 and the fortnight you spent deliberately eating 2600 — and
+  hitting it — re-scored overnight as a fortnight you overshot, on the very surface built to
+  tell you whether the change worked.
+  - `today_goal` becomes a **history**, keyed by the logical date a goal takes effect
+    (schema **v12**). The goal for any day is the latest row starting on or before it; the
+    earliest row reaches back to the beginning of time, so no day is ever judged against
+    nothing (`0 / 0 kcal` is its own kind of lie).
+  - Editing writes **today's** row and replaces it on a second edit — a target changes on a
+    day, not at 09:14 — and never rewrites a day already lived. Back-dating is deliberately
+    not offered: it would silently re-score days you had already read.
+  - The trend resolves each day against its own goal from **one** goal-history stream, not a
+    query per day: four weeks costs one read and a pure fold, not twenty-eight reads.
+  - Read-side only. The ring, the macros and the goal editors still read and write "the goal",
+    now defined as the goal for the current logical day — one store, one write path (PERS-01).
+
 ## [0.2.0] — the usable app
 
 First build published as an installable APK. Everything below landed in this release: the

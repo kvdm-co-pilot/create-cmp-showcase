@@ -312,8 +312,9 @@ class TodayRepositoryImplTest {
 
     /** A DAO whose reads fail — proves the repository translates infrastructure errors (never throws). */
     private class ThrowingTodayDao : TodayDao {
-        override suspend fun goal(): TodayGoalEntity? = throw IllegalStateException("db unavailable")
-        override fun goalStream(): Flow<TodayGoalEntity?> = flow { throw IllegalStateException("db unavailable") }
+        override suspend fun goalOn(date: String): TodayGoalEntity? = throw IllegalStateException("db unavailable")
+        override fun goalHistoryStream(): Flow<List<TodayGoalEntity>> = flow { throw IllegalStateException("db unavailable") }
+        override fun goalOnStream(date: String): Flow<TodayGoalEntity?> = flow { throw IllegalStateException("db unavailable") }
         override suspend fun entries(logicalDate: String): List<LogEntryEntity> =
             throw IllegalStateException("db unavailable")
         override fun entriesStream(logicalDate: String): Flow<List<LogEntryEntity>> =

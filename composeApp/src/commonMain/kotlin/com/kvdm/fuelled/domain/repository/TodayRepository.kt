@@ -4,6 +4,7 @@ import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.model.LogStatus
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.NewLogEntry
+import com.kvdm.fuelled.domain.model.DatedGoal
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,16 @@ interface TodayRepository {
      * stale (observed on-device 2026-07-28).
      */
     fun observeTodaySummary(): Flow<AppResult<TodayModel>>
+
+    /**
+     * GOAL-01/GOAL-03: every goal ever set, with the day it took effect.
+     *
+     * ONE stream rather than a query per day: the history spans [TREND_DAYS] days and resolving
+     * each against its goal is a pure fold over this list, so a four-week trend costs one read
+     * and not twenty-eight. Room re-emits it whenever any goal row is written, so changing a
+     * target re-renders the trend with no reload (RS-01).
+     */
+    fun observeGoalHistory(): Flow<AppResult<List<DatedGoal>>>
 
     /**
      * Write [entries] to one target — [date], [slot], [status] — in a SINGLE transaction

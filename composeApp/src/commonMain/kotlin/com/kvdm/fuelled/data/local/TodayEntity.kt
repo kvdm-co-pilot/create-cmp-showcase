@@ -23,7 +23,14 @@ import kotlinx.datetime.LocalDate
  */
 @Entity(tableName = "today_goal")
 data class TodayGoalEntity(
-    @PrimaryKey val id: String,
+    /**
+     * GOAL-01: the logical date this goal takes effect from, ISO-8601, and the PRIMARY KEY.
+     *
+     * The key is the date, which is what makes GOAL-02 free: editing twice in one day
+     * REPLACES the day's row rather than appending, because there is only one row a given
+     * day can have. A target changes on a day, not at 09:14.
+     */
+    @PrimaryKey val effectiveFrom: String,
     val targetKcal: Int,
     val proteinTargetG: Int,
     val carbsTargetG: Int,
@@ -37,12 +44,30 @@ data class TodayGoalEntity(
  * carries its own copy of these numbers (a second seed constant is how F5 happened).
  */
 val DEFAULT_TODAY_GOAL = TodayGoalEntity(
-    id = "current",
+    // GOAL-03: the seeded goal reaches back to the beginning of time, so a day logged before
+    // anyone opened the goal editor is judged against the default rather than against nothing.
+    // A day with no applicable goal renders "0 / 0 kcal", which is its own kind of lie.
+    effectiveFrom = "0000-01-01",
     targetKcal = 2400,
     proteinTargetG = 180,
     carbsTargetG = 260,
     fatTargetG = 70,
 )
+
+/**
+ * GOAL-01: a stored goal row as the domain's dated goal. An unparseable date reads as the
+ * beginning of time rather than throwing — a row this build cannot read must not take down
+ * the trend it belongs to.
+ */
+fun TodayGoalEntity.toDatedGoal(): com.kvdm.fuelled.domain.model.DatedGoal =
+    com.kvdm.fuelled.domain.model.DatedGoal(
+        // parseOrNull, not a catch: ARCH-08 makes suspendRunCatching the data layer's ONE
+        // exception boundary, and an ad-hoc runCatching here would swallow cancellation as
+        // readily as a bad date (the gate caught exactly that, 2026-08-02).
+        effectiveFrom = LocalDate.Formats.ISO.parseOrNull(effectiveFrom) ?: LocalDate(1, 1, 1),
+        targetKcal = targetKcal,
+        proteinGoalG = proteinTargetG,
+    )
 
 /**
  * One log row. Carries the macros the aggregate sums (protein/carbs/fat) even though the

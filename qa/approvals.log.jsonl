@@ -62,3 +62,16 @@
 {"at":"2026-08-01T20:59:45.710Z","verb":"reopen","artifact":"feature-spec:supplements","reason":"S5/SET-04..06: the stack becomes user-owned — add, edit, remove, and a closed timing set — where SUPP-01 described seeded reference data.","via":"cli"}
 {"at":"2026-08-01T20:59:45.763Z","verb":"reopen","artifact":"feature-spec:profile","reason":"S5/SET-01: the settings rows UX-04 made inert become live controls again, now that the destination exists.","via":"cli"}
 {"at":"2026-08-01T21:07:47.563Z","verb":"reopen","artifact":"feature-spec:daily-journeys","reason":"S4/HIST-01: the week-in-review surface grows into Progress (verdict, four-week trend, weight, days) and its route becomes 'progress'; JRN-02's Profile link tag is renamed with it. The week section itself and its week_day_<iso> rows are unchanged.","via":"cli"}
+{"at":"2026-08-02T07:24:20.976Z","verb":"approve","artifact":"feature-brief:history","hash":"806d0c3dfbf2110ce356a803028108158c207878775e0d9113a9234056500f0e","via":"cli"}
+{"at":"2026-08-02T07:24:21.064Z","verb":"approve","artifact":"feature-spec:history","hash":"7767c17016150cbc9c26dbc891f026ad1fbd471cd87c111d72d3635750a1cb21","via":"cli"}
+{"at":"2026-08-02T07:24:21.143Z","verb":"approve","artifact":"feature-brief:settings","hash":"d86fbedcd4bccc7f21bed964f5dc5b01ce8cfac60576af0ab7864307aad3740a","via":"cli"}
+{"at":"2026-08-02T07:24:21.221Z","verb":"approve","artifact":"feature-spec:settings","hash":"1ddf575aece3121d2acb1d5fc2ac6e8fbb479b209c66a781e9595c823e9715aa","via":"cli"}
+{"at":"2026-08-02T07:24:21.300Z","verb":"approve","artifact":"feature-design:settings","hash":"6d5bdb22ec905c98f5221bebdf6555c8dee5c4228c8ace62e820d7abfb5d27af","via":"cli"}
+{"at":"2026-08-02T07:24:21.378Z","verb":"approve","artifact":"feature-spec:entry-editing","hash":"c305c45cc9cefbdf88c46c1733121d0394d58a4469fc7e364ca6a29feaba6387","via":"cli"}
+{"at":"2026-08-02T07:24:21.454Z","verb":"approve","artifact":"feature-spec:daily-journeys","hash":"e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2","via":"cli"}
+{"at":"2026-08-02T07:24:21.530Z","verb":"approve","artifact":"feature-spec:meal-plan","hash":"4267699f358801a0d0908916a8193efc98ff9ee99036f38807d29c75216acb3e","via":"cli"}
+{"at":"2026-08-02T07:24:21.608Z","verb":"approve","artifact":"feature-spec:profile","hash":"3cfae7a49f9cc42605c4a503d49e436cf01726532628aa7777017c324343208d","via":"cli"}
+{"at":"2026-08-02T07:24:21.684Z","verb":"approve","artifact":"feature-spec:supplements","hash":"922bd4d0ae3e440937c479e1669cbe1b3cbe2099b47e54a13af2c0c854b483a1","via":"cli"}
+{"at":"2026-08-02T07:24:21.763Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe","via":"cli"}
+{"at":"2026-08-02T07:27:22.055Z","verb":"reopen","artifact":"feature-spec:daily-journeys","reason":"GOAL-03: WeekDay's documented caveat — days judged against the CURRENT goal — is fixed; JRN-01's targets are now the goal that applied on each day.","via":"cli"}
+{"at":"2026-08-02T07:27:22.131Z","verb":"reopen","artifact":"feature-spec:history","reason":"GOAL-03: the four-week trend is judged per-day against the goal in force then, which is what made the undated caveat a defect rather than a footnote.","via":"cli"}

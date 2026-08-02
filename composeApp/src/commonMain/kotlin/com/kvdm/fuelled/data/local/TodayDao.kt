@@ -9,12 +9,19 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TodayDao {
-    @Query("SELECT * FROM today_goal LIMIT 1")
-    suspend fun goal(): TodayGoalEntity?
+    /**
+     * GOAL-01: the goal in force ON a given day — the latest row starting on or before it.
+     *
+     * Not "the goal": there is no such thing once goals are dated. Every read names the day
+     * it is asking about, which is the whole point — a target lowered today must not re-score
+     * the weeks before it (GOAL-03).
+     */
+    @Query("SELECT * FROM today_goal WHERE effectiveFrom <= :date ORDER BY effectiveFrom DESC LIMIT 1")
+    suspend fun goalOn(date: String): TodayGoalEntity?
 
-    /** The goal as a stream — re-emitted by Room whenever the row is written. */
-    @Query("SELECT * FROM today_goal LIMIT 1")
-    fun goalStream(): Flow<TodayGoalEntity?>
+    /** The same read, observed — Room re-emits whenever ANY goal row is written. */
+    @Query("SELECT * FROM today_goal WHERE effectiveFrom <= :date ORDER BY effectiveFrom DESC LIMIT 1")
+    fun goalOnStream(date: String): Flow<TodayGoalEntity?>
 
     /**
      * One logical day's log, stably ordered within each slot (TODAY-03).
@@ -39,6 +46,10 @@ interface TodayDao {
     /** The highest `entryOrder` in one `(day, slot)`, or -1 when it is empty — the append point. */
     @Query("SELECT COALESCE(MAX(entryOrder), -1) FROM today_log WHERE logicalDate = :logicalDate AND slot = :slot")
     suspend fun maxEntryOrder(logicalDate: String, slot: String): Int
+
+    /** GOAL-03: every goal ever set, oldest first — the trend resolves each day against it. */
+    @Query("SELECT * FROM today_goal ORDER BY effectiveFrom")
+    fun goalHistoryStream(): Flow<List<TodayGoalEntity>>
 
     @Query("SELECT COUNT(*) FROM today_goal")
     suspend fun goalCount(): Int

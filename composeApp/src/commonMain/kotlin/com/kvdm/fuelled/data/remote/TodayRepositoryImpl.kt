@@ -8,6 +8,8 @@ import com.kvdm.fuelled.data.local.toDeleted
 import com.kvdm.fuelled.data.local.toEntity as deletedToEntity
 import com.kvdm.fuelled.data.local.TodayDao
 import com.kvdm.fuelled.data.local.TodayGoalEntity
+import com.kvdm.fuelled.data.local.toDatedGoal
+import com.kvdm.fuelled.domain.model.DatedGoal
 import com.kvdm.fuelled.data.local.logStatus
 import com.kvdm.fuelled.data.local.mealSlot
 import com.kvdm.fuelled.data.local.toDomain
@@ -84,12 +86,21 @@ class TodayRepositoryImpl(
     override fun observeTodaySummary(): Flow<AppResult<TodayModel>> =
         time.days(dayStartHour, zone)
             .flatMapLatest { dayInView ->
-                combine(dao.goalStream(), dao.entriesStream(dayInView.toString())) { goal, rows ->
+                // GOAL-04: the goal in force ON the day in view. Because the day itself is
+                // re-derived by `time.days`, a summary left open across 04:00 also re-reads
+                // the goal for the NEW day — which matters the morning after you change it.
+                combine(dao.goalOnStream(dayInView.toString()), dao.entriesStream(dayInView.toString())) { goal, rows ->
                     goal?.let { aggregate(dayInView, it, rows) }
                 }
             }
             .onStart { ensureSeeded() }
             .map { it ?: throw IllegalStateException("today goal row missing after seeding") }
+            .asAppResult()
+
+    override fun observeGoalHistory(): Flow<AppResult<List<DatedGoal>>> =
+        dao.goalHistoryStream()
+            .onStart { ensureSeeded() }
+            .map { rows -> rows.map { it.toDatedGoal() } }
             .asAppResult()
 
     /**
@@ -143,8 +154,19 @@ class TodayRepositoryImpl(
      */
     override suspend fun updateGoals(targetKcal: Int, proteinTargetG: Int): AppResult<Unit> =
         suspendRunCatching {
-            val current = dao.goal() ?: DEFAULT_TODAY_GOAL
-            dao.upsertGoal(current.copy(targetKcal = targetKcal, proteinTargetG = proteinTargetG))
+            // GOAL-02: effective from TODAY, carrying forward whatever carbs/fat were in force
+            // (their editors are still S5's). The date is the primary key, so editing twice in
+            // one morning corrects the day's row rather than appending a second one — and rows
+            // for earlier days are untouched, because those days were judged against them.
+            val today = currentLogicalDay()
+            val current = dao.goalOn(today.toString()) ?: DEFAULT_TODAY_GOAL
+            dao.upsertGoal(
+                current.copy(
+                    effectiveFrom = today.toString(),
+                    targetKcal = targetKcal,
+                    proteinTargetG = proteinTargetG,
+                ),
+            )
         }
 
     /** The logical day right now — a one-shot for WRITES only; reads observe (MEAL-02). */

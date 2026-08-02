@@ -1,8 +1,10 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.domain.model.DatedGoal
 import com.kvdm.fuelled.domain.model.TREND_DAYS
 import com.kvdm.fuelled.domain.model.WeightEntry
 import com.kvdm.fuelled.domain.model.WeightLog
+import com.kvdm.fuelled.domain.repository.TodayRepository
 import com.kvdm.fuelled.domain.repository.WeightRepository
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,4 +59,16 @@ class RecordWeightUseCase(
         /** A guard against a slipped decimal point, not a judgement about bodies. */
         const val MAX_PLAUSIBLE_KG = 500.0
     }
+}
+
+/**
+ * GOAL-01/GOAL-03: every goal ever set, observed.
+ *
+ * Its own use case rather than a repository call inlined into the history, because the
+ * resolution rule — "the latest goal starting on or before this day" — is domain logic that
+ * the trend, the week verdict and any later surface must all apply identically. One rule,
+ * one place ([goalOn]).
+ */
+class ObserveGoalHistoryUseCase(private val repository: TodayRepository) {
+    operator fun invoke(): Flow<AppResult<List<DatedGoal>>> = repository.observeGoalHistory()
 }

@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.testing.fakes
 
+import com.kvdm.fuelled.domain.model.DatedGoal
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.LogEntry
 import com.kvdm.fuelled.domain.model.DeletedEntry
@@ -65,6 +66,9 @@ class FakeTodayRepository : TodayRepository {
     override fun observeTodaySummary(): Flow<AppResult<TodayModel>> =
         revision.map { failure?.let { AppResult.Failure(it) } ?: AppResult.Success(summary) }
 
+    override fun observeGoalHistory(): Flow<AppResult<List<DatedGoal>>> =
+        revision.map { failure?.let { AppResult.Failure(it) } ?: AppResult.Success(goals) }
+
     override suspend fun addEntries(
         entries: List<NewLogEntry>,
         date: LocalDate,
@@ -124,12 +128,25 @@ class FakeTodayRepository : TodayRepository {
         return AppResult.Success(Unit)
     }
 
+    /**
+     * GOAL-01: the goal history the trend resolves against. Defaults to ONE goal effective
+     * from the beginning of time, which is what a fresh install has — so a test that says
+     * nothing about goals gets the pre-dating behaviour and reads the same as it always did.
+     */
+    var goals: List<DatedGoal> = listOf(
+        DatedGoal(LocalDate(1, 1, 1), populatedDay.targetKcal, populatedDay.protein.target),
+    )
+        set(value) { field = value; revision.value += 1 }
+
     /** PERS-01: recorded and APPLIED to the observed summary — the fake re-emits like Room. */
     val goalUpdates: MutableList<Pair<Int, Int>> = mutableListOf()
 
     override suspend fun updateGoals(targetKcal: Int, proteinTargetG: Int): AppResult<Unit> {
         failure?.let { return AppResult.Failure(it) }
         goalUpdates += targetKcal to proteinTargetG
+        // GOAL-02: effective from today, replacing today's row if one exists.
+        val today = LocalDate(2026, 7, 22)
+        goals = goals.filterNot { it.effectiveFrom == today } + DatedGoal(today, targetKcal, proteinTargetG)
         summary = summary.copy(
             targetKcal = targetKcal,
             protein = summary.protein.copy(target = proteinTargetG),

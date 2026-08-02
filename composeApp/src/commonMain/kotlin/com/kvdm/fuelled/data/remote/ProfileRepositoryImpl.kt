@@ -1,6 +1,12 @@
 package com.kvdm.fuelled.data.remote
 
+import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.data.local.DEFAULT_TODAY_GOAL
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import com.kvdm.fuelled.data.local.ProfileDao
 import com.kvdm.fuelled.data.local.ProfileEntity
 import com.kvdm.fuelled.data.local.TodayDao
@@ -24,11 +30,18 @@ import com.kvdm.fuelled.domain.result.AppResult
 class ProfileRepositoryImpl(
     private val dao: ProfileDao,
     private val todayDao: TodayDao,
+    private val time: TimeSignal = RealTimeSignal(),
+    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ProfileRepository {
+
+    /** The logical day right now (MEAL-01) — which goal row Profile is showing (GOAL-04). */
+    private fun currentLogicalDay(): LocalDate = logicalDate(time.now(), dayStartHour, zone)
 
     override suspend fun getProfile(): AppResult<Profile> = suspendRunCatching {
         ensureSeeded()
-        val goal = todayDao.goal() ?: DEFAULT_TODAY_GOAL
+        // GOAL-04: Profile shows what your goals ARE — the row in force today.
+        val goal = todayDao.goalOn(currentLogicalDay().toString()) ?: DEFAULT_TODAY_GOAL
         (dao.get() ?: error("profile row missing after seeding")).toDomain(goal)
     }
 

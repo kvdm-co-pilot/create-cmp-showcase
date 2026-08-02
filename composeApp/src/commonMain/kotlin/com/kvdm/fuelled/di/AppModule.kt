@@ -19,6 +19,7 @@ import com.kvdm.fuelled.domain.usecase.CopyDayForwardUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteSupplementUseCase
 import com.kvdm.fuelled.domain.usecase.GetHistoryUseCase
+import com.kvdm.fuelled.domain.usecase.ObserveGoalHistoryUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
 import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
 import com.kvdm.fuelled.domain.usecase.SaveSupplementUseCase
@@ -128,7 +129,8 @@ val useCaseModule = module {
     factory { SetMealTimeUseCase(get(), get()) }
     // The week in review (JRN-01): composed from the two observed reads above — no new
     // repository, deliberately (TODAY-13's no-second-path discipline).
-    factory { GetHistoryUseCase(get(), get()) }
+    factory { GetHistoryUseCase(get(), get(), get()) }
+    factory { ObserveGoalHistoryUseCase(get()) }
     // HIST-06..08: the weigh-in log — the one stored thing on the Progress surface.
     factory { ObserveWeightLogUseCase(get(), get()) }
     factory { RecordWeightUseCase(get(), get()) }

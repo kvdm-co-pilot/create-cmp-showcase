@@ -24,7 +24,8 @@ import kotlinx.coroutines.flow.map
  */
 class FakeTodayDao : TodayDao {
 
-    private var goalRow: TodayGoalEntity? = null
+    /** GOAL-01: goals are a HISTORY now — keyed by effective date, like the real table. */
+    private val goalRows: MutableList<TodayGoalEntity> = mutableListOf()
     private val logRows = mutableListOf<LogEntryEntity>()
 
     /** Every persisted log row, in insertion order — the ledger the write-path tests inspect. */
@@ -50,9 +51,20 @@ class FakeTodayDao : TodayDao {
     // re-query pre-write state with no emission ever carrying the write.
     private fun bump() { version.value += 1 }
 
-    override suspend fun goal(): TodayGoalEntity? = goalRow
+    /**
+     * GOAL-01: the same resolution the DAO's SQL performs — the latest row on or before the
+     * day. Implemented rather than shortcut to `goalRow`, so a test asserting that a past day
+     * keeps its old target is asserting the rule the app actually runs.
+     */
+    private fun resolveGoal(date: String): TodayGoalEntity? =
+        goalRows.filter { it.effectiveFrom <= date }.maxByOrNull { it.effectiveFrom }
 
-    override fun goalStream(): Flow<TodayGoalEntity?> = version.map { goalRow }
+    override suspend fun goalOn(date: String): TodayGoalEntity? = resolveGoal(date)
+
+    override fun goalOnStream(date: String): Flow<TodayGoalEntity?> = version.map { resolveGoal(date) }
+
+    override fun goalHistoryStream(): Flow<List<TodayGoalEntity>> =
+        version.map { goalRows.sortedBy { it.effectiveFrom } }
 
     override fun entriesStream(logicalDate: String): Flow<List<LogEntryEntity>> =
         version.map { logRows.filter { it.logicalDate == logicalDate }.sortedBy { it.entryOrder } }
@@ -64,10 +76,12 @@ class FakeTodayDao : TodayDao {
         logRows.filter { it.logicalDate == logicalDate && it.slot == slot }
             .maxOfOrNull { it.entryOrder } ?: -1
 
-    override suspend fun goalCount(): Int = if (goalRow != null) 1 else 0
+    override suspend fun goalCount(): Int = goalRows.size
 
     override suspend fun upsertGoal(goal: TodayGoalEntity) {
-        goalRow = goal
+        // GOAL-02: the effective date is the key — a second write for the same day REPLACES it.
+        goalRows.removeAll { it.effectiveFrom == goal.effectiveFrom }
+        goalRows.add(goal)
         bump()
     }
 

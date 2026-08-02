@@ -1,6 +1,8 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.domain.model.DatedGoal
 import com.kvdm.fuelled.domain.model.History
+import com.kvdm.fuelled.domain.model.goalOn
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.TREND_DAYS
 import com.kvdm.fuelled.domain.model.TodayModel
@@ -37,12 +39,16 @@ import kotlinx.datetime.minus
 class GetHistoryUseCase(
     private val getPlanDay: GetPlanDayUseCase,
     private val getTodaySummary: GetTodaySummaryUseCase,
+    private val goalHistory: ObserveGoalHistoryUseCase,
 ) {
     operator fun invoke(days: Int = TREND_DAYS): Flow<AppResult<History>> =
         getPlanDay.currentLogicalDay().flatMapLatest { today ->
             val dates = ((days - 1) downTo 0).map { today.minus(it, DateTimeUnit.DAY) }
             val dayFlows = dates.map { getPlanDay(it) }
-            combine(dayFlows + listOf(getTodaySummary())) { results ->
+            // GOAL-03: the goal HISTORY, one stream, resolved per day below. Without it every
+            // day in the window was judged against today's target, so lowering a goal
+            // re-scored weeks you had already read.
+            combine(dayFlows + listOf(getTodaySummary(), goalHistory())) { results ->
                 fold(dates, today, results)
             }
         }
@@ -56,17 +62,23 @@ class GetHistoryUseCase(
         results.filterIsInstance<AppResult.Failure>().firstOrNull()?.let { return it }
 
         @Suppress("UNCHECKED_CAST")
-        val days = results.dropLast(1).map { (it as AppResult.Success<PlanDay>).value }
-        val summary = (results.last() as AppResult.Success<TodayModel>).value
+        val days = results.dropLast(2).map { (it as AppResult.Success<PlanDay>).value }
+        val summary = (results[results.size - 2] as AppResult.Success<TodayModel>).value
+        @Suppress("UNCHECKED_CAST")
+        val goals = (results.last() as AppResult.Success<List<DatedGoal>>).value
 
         return AppResult.Success(
             History(
                 days = days.mapIndexed { i, plan ->
+                    // GOAL-01: the goal in force on THAT day. Falling back to today's summary
+                    // only when there is no goal history at all — a state seeding rules out,
+                    // and one where the current target is the only honest answer available.
+                    val goal = goals.goalOn(dates[i])
                     weekDayOf(
                         plan = plan,
                         isToday = dates[i] == today,
-                        targetKcal = summary.targetKcal,
-                        proteinGoalG = summary.protein.target,
+                        targetKcal = goal?.targetKcal ?: summary.targetKcal,
+                        proteinGoalG = goal?.proteinGoalG ?: summary.protein.target,
                     )
                 },
             ),

@@ -25,9 +25,11 @@ const val PROTEIN_DAY_TOLERANCE: Double = 0.95
  * One day's results row. Consumed values count only `LOGGED` entries (TODAY-03) — a
  * `PLANNED` entry on a day that never happened is a stale plan, not food eaten.
  *
- * [targetKcal] and [proteinGoalG] are the CURRENT goals: goals are not yet dated
- * (usability-pass S1 owns that decision), and the contract states it so nobody mistakes a
- * seven-day-constant target for a bug.
+ * [targetKcal] and [proteinGoalG] are the goals that applied ON THIS DAY (GOAL-01/GOAL-03).
+ * They used to be the CURRENT goals, with this comment carrying the caveat — honest while
+ * history was seven days long, a defect the moment the trend reached four weeks: cut a target
+ * and the fortnight you spent deliberately eating the old one re-scored overnight as a
+ * fortnight you overshot.
  */
 data class WeekDay(
     val date: LocalDate,

@@ -31,7 +31,10 @@ import androidx.room.RoomDatabaseConstructor
     // `app_state` gained the unit system and the prep lead (SET-02/SET-07, settings decision
     // D8); supplement `timing` became the closed SupplementTiming set (SET-06), so seeded
     // rows are re-written with enum names rather than display labels.
-    version = 11,
+    // 12: `today_goal` is a HISTORY — its primary key is the logical date the goal takes
+    // effect from (GOAL-01/GOAL-02), so a target lowered today no longer re-scores the weeks
+    // before it. The seeded default is effective from the beginning of time (GOAL-03).
+    version = 12,
     exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)
