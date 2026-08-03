@@ -3,7 +3,7 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "7d5d893a385bbe87e60fa9783f49309f1be5f79f",
+    "sha": "eec3d4946ab70bfb062b64fa1cb09e7e127168ee",
     "dirty": [
       "qa/approvals.json",
       "qa/approvals.log.jsonl"
@@ -17,7 +17,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 36,
+      "durationMs": 33,
       "details": {
         "clauses": 142,
         "withdrawn": 2,
@@ -28,7 +28,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 26,
+      "durationMs": 24,
       "details": {
         "artifacts": [
           {
@@ -222,7 +222,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -233,7 +233,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 14,
+      "durationMs": 13,
       "details": {
         "features": [
           {
@@ -331,7 +331,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 19,
+      "durationMs": 20,
       "details": {
         "sectionsChecked": 4
       }
@@ -339,17 +339,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 19968
+      "durationMs": 10423
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 4361
+      "durationMs": 4114
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 20377,
+      "durationMs": 13745,
       "details": {
         "tests": 283,
         "failures": 0,
@@ -360,23 +360,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 8349
+      "durationMs": 3192
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 11100
+      "durationMs": 5369
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 140
+      "durationMs": 97
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4163
+      "durationMs": 4510
     },
     {
       "name": "e2eSmoke",
@@ -393,5 +393,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-03T12:45:13.352Z"
+  "generatedAt": "2026-08-03T13:08:26.243Z"
 }

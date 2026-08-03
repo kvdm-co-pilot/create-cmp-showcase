@@ -87,3 +87,8 @@
 {"at":"2026-08-03T12:38:55.796Z","verb":"approve","artifact":"feature-spec:meal","hash":"23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1","via":"cli"}
 {"at":"2026-08-03T12:38:55.885Z","verb":"approve","artifact":"exemplar-feature","hash":"6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99","via":"cli"}
 {"at":"2026-08-03T12:38:55.968Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b","via":"cli"}
+{"at":"2026-08-03T13:06:48.822Z","verb":"approve","artifact":"feature-brief:bfl-catalog","hash":"3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d","via":"cli"}
+{"at":"2026-08-03T13:06:48.918Z","verb":"approve","artifact":"feature-spec:bfl-catalog","hash":"ff6fc84944cb7dd23c86aa1a766c9b29af18bf7d57b12c451b19a84e630792de","via":"cli"}
+{"at":"2026-08-03T13:06:49.040Z","verb":"approve","artifact":"feature-spec:meal","hash":"23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1","via":"cli"}
+{"at":"2026-08-03T13:06:49.311Z","verb":"approve","artifact":"exemplar-feature","hash":"6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99","via":"cli"}
+{"at":"2026-08-03T13:06:49.411Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b","via":"cli"}
