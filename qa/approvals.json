@@ -229,30 +229,38 @@
       "via": "cli"
     },
     {
+      "artifact": "feature-brief:bfl-catalog",
+      "status": "approved",
+      "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
+      "approvedAt": "2026-08-03T12:38:55.628Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:bfl-catalog",
+      "status": "approved",
+      "hash": "ff6fc84944cb7dd23c86aa1a766c9b29af18bf7d57b12c451b19a84e630792de",
+      "approvedAt": "2026-08-03T12:38:55.711Z",
+      "via": "cli"
+    },
+    {
       "artifact": "feature-spec:meal",
-      "status": "reopened",
+      "status": "approved",
       "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1",
-      "approvedAt": "2026-07-29T10:01:48.968Z",
-      "reopenedAt": "2026-08-02T17:39:55.477Z",
-      "reason": "BFL-05..08: the tray gains a meal builder that composes protein+carb+veg and applies it across days, writing through the existing one path.",
+      "approvedAt": "2026-08-03T12:38:55.795Z",
       "via": "cli"
     },
     {
       "artifact": "exemplar-feature",
-      "status": "reopened",
-      "hash": "0ebcfe3f86dd35a222463472f7e95fb2cfad95b07801eb1c8ce5b71ab0928b9d",
-      "approvedAt": "2026-08-01T18:16:46.706Z",
-      "reopenedAt": "2026-08-02T17:39:55.528Z",
-      "reason": "BFL-01: the foods exemplar's model gains per-100g macros, category, portion and fdcId.",
+      "status": "approved",
+      "hash": "6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99",
+      "approvedAt": "2026-08-03T12:38:55.884Z",
       "via": "cli"
     },
     {
       "artifact": "feature-design:meal-plan",
-      "status": "reopened",
-      "hash": "a7d32ba86b9ec13e0857bf12abbafd2a32246e212575265d92f66eb6042abefe",
-      "approvedAt": "2026-08-02T07:24:21.762Z",
-      "reopenedAt": "2026-08-02T18:02:42.097Z",
-      "reason": "BFL-05: the plan header gains a Build control opening the meal builder — the fast path to a planned week belongs on the surface a week is planned from. Re-sign on the re-rendered plan screen.",
+      "status": "approved",
+      "hash": "ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b",
+      "approvedAt": "2026-08-03T12:38:55.967Z",
       "via": "cli"
     }
   ],
