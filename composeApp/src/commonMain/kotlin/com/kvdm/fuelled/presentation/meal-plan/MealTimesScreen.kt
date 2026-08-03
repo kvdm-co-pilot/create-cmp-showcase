@@ -35,8 +35,10 @@ data class MealTimeUi(val key: String, val label: String, val time: String)
  * What the sheet says about delivery (PLAN-07). Absent when reminders will be delivered — a
  * working feature does not need a status line. Present when the platform will drop them, which
  * is the plain statement the clause requires instead of six alarm times that will never fire.
+ * [offersSettings] adds NOTIF-03's tap-through to the system's notification settings — the one
+ * sanctioned second chance after a denial, because the app itself never re-prompts (NOTIF-01).
  */
-data class MealTimesNotice(val message: String)
+data class MealTimesNotice(val message: String, val offersSettings: Boolean = false)
 
 val sampleMealTimes = listOf(
     MealTimeUi("breakfast", "Breakfast", "07:00"),
@@ -57,6 +59,7 @@ fun MealTimesScreen(
     notice: MealTimesNotice? = null,
     onBack: () -> Unit = {},
     onChange: (String) -> Unit = {},
+    onOpenNotificationSettings: () -> Unit = {},
 ) {
     ScreenColumn(screenTag = "meal_times") {
         AppHeader(title = "Meal times", screenTag = "meal_times", onBack = onBack)
@@ -69,6 +72,16 @@ fun MealTimesScreen(
                 color = FuelledColors.Warning,
                 modifier = Modifier.semantics { testTag = "meal_times_notice" },
             )
+            // NOTIF-03: after a denial the app never re-prompts, so the way back on is the
+            // system's own switch — offered here, on the surface that just said reminders
+            // are off, not buried where the denial is forgotten.
+            if (it.offersSettings) {
+                AppTextButton(
+                    text = "Open notification settings",
+                    onClick = onOpenNotificationSettings,
+                    modifier = Modifier.semantics { testTag = "meal_times_notice_action" },
+                )
+            }
             Spacer(Modifier.height(FuelledTokens.GapCard))
         }
         Column(verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard)) {

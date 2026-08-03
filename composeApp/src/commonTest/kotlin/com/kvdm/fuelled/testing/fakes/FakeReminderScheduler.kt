@@ -40,4 +40,25 @@ class FakeReminderScheduler(
         armed = emptyList()
         cancelAllCount++
     }
+
+    /** The dialog's scripted answer (NOTIF-01): null = no dialog could be shown. */
+    var permissionAnswer: Boolean? = null
+
+    var requestPermissionCount: Int = 0
+        private set
+
+    var openSettingsCount: Int = 0
+        private set
+
+    override suspend fun requestPermission(): Boolean? {
+        requestPermissionCount++
+        // A granted dialog changes what the OS will allow — mirror that, so a re-arm after
+        // the grant sees the capability the real platform would report (NOTIF-02).
+        if (permissionAnswer == true) capability = capability.copy(notificationsAllowed = true)
+        return permissionAnswer
+    }
+
+    override fun openNotificationSettings() {
+        openSettingsCount++
+    }
 }

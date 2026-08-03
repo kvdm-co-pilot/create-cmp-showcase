@@ -74,6 +74,11 @@ class MealTimesViewModel(
      * between its neighbours, and that is what the sheet then shows — so a user who drags dinner
      * before lunch sees where it actually landed rather than a value that silently did not take.
      */
+    /** NOTIF-03: the notice's tap-through — the OS owns the switch; the app only opens the door. */
+    fun openNotificationSettings() {
+        scheduler.openNotificationSettings()
+    }
+
     fun setTime(slot: MealSlot, time: LocalTime) {
         viewModelScope.launch {
             when (val result = setMealTime(slot, time)) {

@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.kvdm.fuelled.R
 import com.kvdm.fuelled.domain.notification.isStaleDelivery
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -31,11 +32,13 @@ import org.koin.core.component.inject
 class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
 
     private val armReminders: ArmMealRemindersUseCase by inject()
+    private val tomorrowUnplanned: TomorrowUnplannedUseCase by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != AndroidReminderScheduler.ACTION_REMIND) return
         val title = intent.getStringExtra(AndroidReminderScheduler.EXTRA_TITLE) ?: return
         val key = intent.getStringExtra(AndroidReminderScheduler.EXTRA_KEY) ?: return
+        val body = intent.getStringExtra(AndroidReminderScheduler.EXTRA_BODY) ?: "Time to fuel."
 
         // PLAN-26: post only if this alarm is still about now. An alarm the OS held through
         // Doze — or the pile it hands back after a device was off or its clock jumped —
@@ -47,13 +50,19 @@ class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
             intendedAt = Instant.fromEpochMilliseconds(intendedAt),
             deliveredAt = Clock.System.now(),
         )
-        if (!stale) postNotification(context, key, title)
 
         // goAsync keeps the process alive across the suspend boundary; without it the re-arm
         // races the receiver's return and silently loses tomorrow's alarms.
         val pending = goAsync()
         CoroutineScope(Dispatchers.Default).launch {
             try {
+                // NOTIF-06: the nudge's claim is "nothing is planned", and the plan may have
+                // changed since the alarm was armed — ask the emptiness question again at the
+                // moment of delivery, through the same use case the arm path resolves, and
+                // post nothing when the claim stopped being true.
+                val post = !stale &&
+                    (key != AndroidReminderScheduler.PLAN_TOMORROW_KEY || tomorrowUnplanned())
+                if (post) postNotification(context, key, title, body)
                 armReminders()
             } finally {
                 pending.finish()
@@ -61,7 +70,7 @@ class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
         }
     }
 
-    private fun postNotification(context: Context, key: String, title: String) {
+    private fun postNotification(context: Context, key: String, title: String, body: String) {
         // The permission can be revoked between arming and firing — check at post time, not
         // just at arm time, or this throws on Android 13+.
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -76,7 +85,7 @@ class MealReminderReceiver : BroadcastReceiver(), KoinComponent {
             NotificationCompat.Builder(context, AndroidReminderScheduler.CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
-                .setContentText("Time to fuel.")
+                .setContentText(body)
                 .setAutoCancel(true)
                 .build(),
         )

@@ -37,7 +37,9 @@ import androidx.room.RoomDatabaseConstructor
     // 13: foods carry per-100 g macros, their USDA FDC id, a Body-for-LIFE category and a
     // portion in grams (BFL-01); the seeded catalog is replaced with 59 USDA SR Legacy foods
     // generated from the published dataset.
-    version = 13,
+    // 14: `app_state` records whether the notification-permission dialog has ever been shown
+    // (NOTIF-01) — the once-ever ask needs a memory that survives the process.
+    version = 14,
     exportSchema = true,
 )
 @ConstructedBy(AppDatabaseConstructor::class)

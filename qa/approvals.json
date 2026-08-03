@@ -257,10 +257,17 @@
       "via": "cli"
     },
     {
+      "artifact": "feature-brief:notifications",
+      "status": "approved",
+      "hash": "50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c",
+      "approvedAt": "2026-08-03T19:30:47.747Z",
+      "via": "cli"
+    },
+    {
       "artifact": "feature-design:meal-plan",
       "status": "approved",
-      "hash": "ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b",
-      "approvedAt": "2026-08-03T13:06:49.409Z",
+      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
+      "approvedAt": "2026-08-03T20:11:30.530Z",
       "via": "cli"
     }
   ],

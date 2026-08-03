@@ -3,6 +3,23 @@
 All notable changes to Fuelled. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Notifications actually reach the device now** (`docs/features/notifications.md`,
+  `specs/notifications.spec.md` NOTIF-01..07). The meal and water reminders had shipped
+  (PLAN-07/08) but nothing ever *asked* for the Android 13+ notification permission, so every
+  alarm was armed undeliverable. Now: the system permission is requested once — on the first
+  Today open after onboarding — and never again (denied means denied); the times sheet's
+  "reminders are OFF" notice gains an "Open notification settings" tap-through as the one
+  sanctioned second chance (schema v14 records the ask).
+- **End-of-day plan-tomorrow nudge** (NOTIF-04..07). When the next logical day has zero
+  planned entries, one `plan_tomorrow` notification fires 45 minutes after the evening snack
+  (never later than 22:00 — the time derives from your own meal times, like water). Planning
+  anything for tomorrow silences it instantly via the existing re-arm seams, and delivery
+  re-checks emptiness so a nudge about a meanwhile-planned day is never posted. It fires
+  every empty evening — the OS channel is the off switch.
+
 ## [0.4.0] — real food, and a week you can actually plan
 
 ### Added

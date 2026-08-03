@@ -61,6 +61,11 @@ class AppStateRepositoryImpl(
         dao.upsert(row.copy(prepLeadMinutes = minutes))
     }
 
+    override suspend fun markNotifPromptShown(): AppResult<Unit> = suspendRunCatching {
+        val row = ensureSeededRow()
+        dao.upsert(row.copy(notifPromptShown = true))
+    }
+
     private suspend fun ensureSeeded() {
         if (dao.get() == null) {
             dao.upsert(
@@ -70,6 +75,7 @@ class AppStateRepositoryImpl(
                     startedAtEpochMs = time.now().toEpochMilliseconds(),
                     unitSystem = UnitSystem.METRIC.name,
                     prepLeadMinutes = DEFAULT_PREP_LEAD_MINUTES,
+                    notifPromptShown = false,
                 ),
             )
         }
@@ -83,6 +89,7 @@ class AppStateRepositoryImpl(
     private fun AppStateEntity.toDomain() = AppState(
         onboarded = onboarded,
         startedAt = Instant.fromEpochMilliseconds(startedAtEpochMs),
+        notifPromptShown = notifPromptShown,
         settings = AppSettings(
             // A row written by an older build, or one holding a value this build no longer
             // knows, reads as the default rather than crashing the app it configures.

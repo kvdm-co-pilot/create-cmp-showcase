@@ -3,32 +3,73 @@
   "profile": "local",
   "verdict": "PASS",
   "commit": {
-    "sha": "eec3d4946ab70bfb062b64fa1cb09e7e127168ee",
+    "sha": "4bbd60a6f7c0743fff64652f23ca813656afba2e",
     "dirty": [
+      "CHANGELOG.md",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/14.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/14.json",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/MainActivity.kt",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/AndroidReminderScheduler.kt",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/MealReminderReceiver.kt",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/NotificationPermissionBridge.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppStateEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/AppStateRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppState.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealReminder.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/notification/ReminderScheduler.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/AppStateRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/RequestNotificationPermissionUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/TomorrowUnplannedUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/MealPlanUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/PlanTomorrowNudgeTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/RequestNotificationPermissionUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/EntryEditingTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealTimesViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/settings/SettingsViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/TodayWritePathTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppStateRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeReminderScheduler.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/MealPlanScreenTest.kt",
+      "docs/ARCHITECTURE.md",
+      "docs/features/notifications.md",
       "qa/approvals.json",
-      "qa/approvals.log.jsonl"
+      "qa/approvals.log.jsonl",
+      "qa/evidence/latest.json",
+      "specs/notifications.spec.md"
     ]
   },
   "inputs": {
-    "hash": "932ab3cef5d34d8ecc46dea121be1f0fde5b4bb73e31e792059826fc5ddadd91",
-    "fileCount": 373
+    "hash": "1abc4bf375c703c7e2efbcbd8541474edfbee2ba8922f890cf172e0876e20a79",
+    "fileCount": 381
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 33,
+      "durationMs": 36,
       "details": {
-        "clauses": 142,
+        "clauses": 149,
         "withdrawn": 2,
-        "tags": 294,
-        "files": 254
+        "tags": 307,
+        "files": 259
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 24,
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-spec:notifications] Feature spec (specs/notifications.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:notifications",
+      "durationMs": 22,
       "details": {
         "artifacts": [
           {
@@ -75,6 +116,11 @@
             "id": "feature-brief:meal",
             "status": "approved",
             "hash": "e6dfb40b8b5ae0c466532219ab8878e997ea2b9ff7b57997b99d6cc919628b5c"
+          },
+          {
+            "id": "feature-brief:notifications",
+            "status": "approved",
+            "hash": "50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c"
           },
           {
             "id": "feature-brief:personalization",
@@ -124,7 +170,7 @@
           {
             "id": "feature-design:meal-plan",
             "status": "approved",
-            "hash": "ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b"
+            "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b"
           },
           {
             "id": "feature-design:meal",
@@ -180,6 +226,11 @@
             "id": "feature-spec:meal",
             "status": "approved",
             "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1"
+          },
+          {
+            "id": "feature-spec:notifications",
+            "status": "unreviewed",
+            "hash": "e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac"
           },
           {
             "id": "feature-spec:personalization",
@@ -331,7 +382,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 20,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -339,19 +390,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 10423
+      "durationMs": 3339
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 4114
+      "durationMs": 2262
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 13745,
+      "durationMs": 17262,
       "details": {
-        "tests": 283,
+        "tests": 293,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -360,23 +411,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3192
+      "durationMs": 3680
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5369
+      "durationMs": 5591
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 97
+      "durationMs": 28
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4510
+      "durationMs": 4465
     },
     {
       "name": "e2eSmoke",
@@ -393,5 +444,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-03T13:08:26.243Z"
+  "generatedAt": "2026-08-03T20:12:15.964Z"
 }

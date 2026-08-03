@@ -27,6 +27,7 @@ import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.keepCollecting
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /** The meal-times sheet's ViewModel (PLAN-05/PLAN-06/PLAN-07). */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,8 +45,8 @@ class MealTimesViewModelTest {
     private fun viewModel(scheduler: FakeReminderScheduler = FakeReminderScheduler()) =
         MealTimesViewModel(
             getMealTimes = GetMealTimesUseCase(repository),
-            setMealTime = SetMealTimeUseCase(repository, ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository())),
-            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository()),
+            setMealTime = SetMealTimeUseCase(repository, ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository(), TomorrowUnplannedUseCase(repository, FakeTimeSignal(TEST_NOW), TEST_ZONE))),
+            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository(), TomorrowUnplannedUseCase(repository, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
             scheduler = scheduler,
         )
 
@@ -114,6 +115,25 @@ class MealTimesViewModelTest {
             assertIs<ContentUiState.Content<MealTimesUiState>>(awaitItem())
         }
 
-        assertEquals(12, scheduler.armed.size, "six meals + six waters, re-armed on open")
+        assertEquals(13, scheduler.armed.size, "six meals + six waters + the nudge, re-armed on open")
     }
+
+    // SPEC: NOTIF-03
+    @Test
+    fun `the reminders-off notice offers the system settings, and the tap opens them`() =
+        runTest(dispatcher) {
+            val denied = FakeReminderScheduler(
+                ReminderCapability(notificationsAllowed = false, exactAlarmsAllowed = false),
+            )
+            val vm = viewModel(denied)
+
+            // UNAVAILABLE is the ONLY mode whose notice carries the tap-through — the app asked
+            // once and will not ask again (NOTIF-01), so the road back on must be offered here.
+            val notice = ReminderMode.UNAVAILABLE.toNotice()
+            assertEquals(true, notice?.offersSettings)
+            assertEquals(false, ReminderMode.WINDOWED_INEXACT.toNotice()?.offersSettings)
+
+            vm.openNotificationSettings()
+            assertEquals(1, denied.openSettingsCount, "the OS owns the switch; the app only opens the door")
+        }
 }

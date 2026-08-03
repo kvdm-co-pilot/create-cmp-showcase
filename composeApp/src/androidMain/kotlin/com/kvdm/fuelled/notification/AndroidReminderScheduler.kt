@@ -75,6 +75,27 @@ class AndroidReminderScheduler(
         }
     }
 
+    override suspend fun requestPermission(): Boolean? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // The dialog needs an Activity; the bridge holds whichever one is alive. Null when
+            // none is — an ask that could not be shown is not an ask (NOTIF-01).
+            NotificationPermissionBridge.request()
+        } else {
+            // No runtime dialog exists before API 33 — notifications are on unless the user
+            // switched the app off in settings, and THAT road back is NOTIF-03's tap-through.
+            null
+        }
+
+    override fun openNotificationSettings() {
+        // NOTIF-03: the app-level notification settings screen. NEW_TASK because this is
+        // launched from an application context, not an Activity.
+        val intent = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
     private fun notificationsAllowed(): Boolean =
         // POST_NOTIFICATIONS only exists from API 33; before that, notifications are allowed
         // unless the user disabled them for the whole app, which areNotificationsEnabled covers.
@@ -116,6 +137,7 @@ class AndroidReminderScheduler(
             action = ACTION_REMIND
             putExtra(EXTRA_KEY, reminder.key)
             putExtra(EXTRA_TITLE, titleFor(reminder))
+            putExtra(EXTRA_BODY, bodyFor(reminder))
             // PLAN-26: the moment this alarm is FOR, carried to the moment it actually fires.
             // The two are not the same — Doze holds inexact alarms, and a device that was off
             // is handed everything it missed at once — so the receiver needs the intended
@@ -148,6 +170,12 @@ class AndroidReminderScheduler(
     private fun titleFor(reminder: MealReminder): String = when (val target = reminder.target) {
         is ReminderTarget.Meal -> "${mealTitle(target)} at ${reminder.eventTime.clock()} — time to prep"
         is ReminderTarget.Water -> "Water — 500 ml"
+        is ReminderTarget.PlanTomorrow -> "Nothing planned for tomorrow"
+    }
+
+    private fun bodyFor(reminder: MealReminder): String = when (reminder.target) {
+        is ReminderTarget.Meal, is ReminderTarget.Water -> "Time to fuel."
+        is ReminderTarget.PlanTomorrow -> "Take a minute tonight to set up tomorrow's six meals."
     }
 
     private fun mealTitle(target: ReminderTarget.Meal): String = target.slot.name
@@ -179,6 +207,10 @@ class AndroidReminderScheduler(
         const val ACTION_REMIND = "com.kvdm.fuelled.action.MEAL_REMINDER"
         const val EXTRA_KEY = "reminder_key"
         const val EXTRA_TITLE = "reminder_title"
+        const val EXTRA_BODY = "reminder_body"
+
+        /** The nudge's stable key (NOTIF-04) — mirrors [ReminderTarget.PlanTomorrow]'s. */
+        const val PLAN_TOMORROW_KEY = "plan_tomorrow"
 
         /** The wall-clock instant this alarm was armed FOR, in epoch millis (PLAN-26). */
         const val EXTRA_AT = "reminder_at"
@@ -187,12 +219,14 @@ class AndroidReminderScheduler(
         private const val WINDOW_MILLIS = 60L * 60L * 1000L
 
         /**
-         * Every key the app ever arms — six meals and six waters. Enumerated rather than
-         * remembered, so a cancel-all after a process death still finds them all; a stored list
-         * of "what we armed" would be exactly the kind of second truth that goes stale.
+         * Every key the app ever arms — six meals, six waters, and the plan-tomorrow nudge.
+         * Enumerated rather than remembered, so a cancel-all after a process death still finds
+         * them all; a stored list of "what we armed" would be exactly the kind of second truth
+         * that goes stale.
          */
         fun allKeys(): List<String> =
             com.kvdm.fuelled.domain.model.MealSlot.entries.map { "meal_${it.name}" } +
-                (1..6).map { "water_$it" }
+                (1..6).map { "water_$it" } +
+                PLAN_TOMORROW_KEY
     }
 }

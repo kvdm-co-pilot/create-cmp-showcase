@@ -30,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.fail
 import kotlinx.datetime.LocalDate
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * Golden-tree structural baseline for the structured day — SPEC: PLAN-18.
@@ -79,7 +80,7 @@ class MealPlanGoldenTreeTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository()),
+            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository(), TomorrowUnplannedUseCase(repository, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
             deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
             setEntryServings = SetEntryServingsUseCase(FakeTodayRepository()),
             restoreLogEntry = RestoreLogEntryUseCase(FakeTodayRepository()),

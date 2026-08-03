@@ -38,6 +38,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 import com.kvdm.fuelled.testing.keepCollecting
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * TODAY-13 — Today renders a projection of the plan and writes through the SAME use case.
@@ -78,7 +79,7 @@ class TodayWritePathTest {
         setSlotDone = SetSlotDoneUseCase(repo),
         setWaterDone = SetWaterDoneUseCase(repo),
         copyDayForward = CopyDayForwardUseCase(repo),
-        armReminders = ArmMealRemindersUseCase(repo, FakeReminderScheduler(), FakeAppStateRepository()),
+        armReminders = ArmMealRemindersUseCase(repo, FakeReminderScheduler(), FakeAppStateRepository(), TomorrowUnplannedUseCase(repo, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
         deleteLogEntry = DeleteLogEntryUseCase(todayRepo),
             setEntryServings = SetEntryServingsUseCase(todayRepo),
             restoreLogEntry = RestoreLogEntryUseCase(todayRepo),

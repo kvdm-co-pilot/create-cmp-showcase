@@ -29,4 +29,7 @@ interface AppStateRepository {
 
     /** SET-07: the reminder prep lead, in minutes. Values outside [PREP_LEAD_RANGE] are refused. */
     suspend fun setPrepLeadMinutes(minutes: Int): AppResult<Unit>
+
+    /** NOTIF-01: the permission dialog has been shown. One-way — asked once means asked. */
+    suspend fun markNotifPromptShown(): AppResult<Unit>
 }

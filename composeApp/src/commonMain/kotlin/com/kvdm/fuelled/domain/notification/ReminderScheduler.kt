@@ -34,6 +34,22 @@ interface ReminderScheduler {
 
     /** Drop every armed reminder — used when the user turns the feature off wholesale. */
     suspend fun cancelAll()
+
+    /**
+     * Show the OS notification-permission dialog (NOTIF-01). `true`/`false` is the user's
+     * answer; `null` means NO dialog was shown (the platform has none, or no Activity could
+     * host it) — and a dialog that was never shown must not count against the once-ever ask,
+     * so callers record nothing on `null`. WHEN to ask is not decided here — that is
+     * [com.kvdm.fuelled.domain.usecase.RequestNotificationPermissionUseCase]'s policy; this
+     * only shows the dialog.
+     */
+    suspend fun requestPermission(): Boolean?
+
+    /**
+     * Open the system's notification settings for this app (NOTIF-03) — the sanctioned second
+     * chance after a denial, because the app itself never re-prompts (NOTIF-01).
+     */
+    fun openNotificationSettings()
 }
 
 /**
@@ -51,4 +67,9 @@ class NoOpReminderScheduler : ReminderScheduler {
     override suspend fun arm(reminders: List<MealReminder>) = Unit
 
     override suspend fun cancelAll() = Unit
+
+    /** No dialog exists here — nothing was shown, and nothing should be recorded as shown. */
+    override suspend fun requestPermission(): Boolean? = null
+
+    override fun openNotificationSettings() = Unit
 }

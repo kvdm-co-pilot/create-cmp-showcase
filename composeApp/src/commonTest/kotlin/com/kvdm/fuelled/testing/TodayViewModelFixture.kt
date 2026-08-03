@@ -7,8 +7,10 @@ import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.domain.usecase.RequestNotificationPermissionUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
@@ -50,15 +52,23 @@ fun todayViewModel(
     supplements: FakeSupplementRepository = FakeSupplementRepository(),
     scheduler: FakeReminderScheduler = FakeReminderScheduler(),
     clock: Clock = FixedClock(TEST_NOW),
+    appState: FakeAppStateRepository = FakeAppStateRepository(),
 ): TodayViewModel {
     val getPlanDay = GetPlanDayUseCase(plan, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
+    val armReminders = ArmMealRemindersUseCase(
+        plan,
+        scheduler,
+        appState,
+        TomorrowUnplannedUseCase(plan, FakeTimeSignal(TEST_NOW), TEST_ZONE),
+    )
     return TodayViewModel(
         getTodaySummary = GetTodaySummaryUseCase(today),
         getPlanDay = getPlanDay,
         getSupplementStack = GetSupplementStackUseCase(supplements),
         setSlotDone = SetSlotDoneUseCase(plan),
         setWaterDone = SetWaterDoneUseCase(plan),
-        armReminders = ArmMealRemindersUseCase(plan, scheduler, FakeAppStateRepository()),
+        armReminders = armReminders,
+        requestNotificationPermission = RequestNotificationPermissionUseCase(appState, scheduler, armReminders),
         deleteLogEntry = DeleteLogEntryUseCase(today),
             setEntryServings = SetEntryServingsUseCase(today),
             restoreLogEntry = RestoreLogEntryUseCase(today),

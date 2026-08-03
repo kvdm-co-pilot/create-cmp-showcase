@@ -15,6 +15,7 @@ import com.kvdm.fuelled.domain.usecase.SetEntryServingsUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.GetTodaySummaryUseCase
+import com.kvdm.fuelled.domain.usecase.RequestNotificationPermissionUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -52,6 +53,7 @@ class TodayViewModel(
     private val setSlotDone: SetSlotDoneUseCase,
     private val setWaterDone: SetWaterDoneUseCase,
     private val armReminders: ArmMealRemindersUseCase,
+    private val requestNotificationPermission: RequestNotificationPermissionUseCase,
     private val deleteLogEntry: DeleteLogEntryUseCase,
     private val setEntryServings: SetEntryServingsUseCase,
     private val restoreLogEntry: RestoreLogEntryUseCase,
@@ -101,7 +103,13 @@ class TodayViewModel(
     init {
         // PLAN-07: app open is one of the moments the clause names for re-arming, and Today is
         // the screen the app opens on.
-        viewModelScope.launch { armReminders() }
+        viewModelScope.launch {
+            armReminders()
+            // NOTIF-01: and it is therefore also where reminders first MATTER — the one moment
+            // the permission is ever asked for. All the "at most once" lives in the use case's
+            // guards; calling it on every open is the design.
+            requestNotificationPermission()
+        }
     }
 
     /**

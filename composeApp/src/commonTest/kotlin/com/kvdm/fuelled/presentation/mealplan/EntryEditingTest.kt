@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * ENTRY-01/ENTRY-02 — correcting the log where it is read: the in-place serving stepper and
@@ -54,7 +55,7 @@ class EntryEditingTest {
         setSlotDone = SetSlotDoneUseCase(plan),
         setWaterDone = SetWaterDoneUseCase(plan),
         copyDayForward = CopyDayForwardUseCase(plan),
-        armReminders = ArmMealRemindersUseCase(plan, FakeReminderScheduler(), FakeAppStateRepository()),
+        armReminders = ArmMealRemindersUseCase(plan, FakeReminderScheduler(), FakeAppStateRepository(), TomorrowUnplannedUseCase(plan, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
         deleteLogEntry = DeleteLogEntryUseCase(today),
         setEntryServings = SetEntryServingsUseCase(today),
         restoreLogEntry = RestoreLogEntryUseCase(today),

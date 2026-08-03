@@ -3,6 +3,7 @@ package com.kvdm.fuelled.domain.usecase
 import com.kvdm.fuelled.domain.model.DEFAULT_PREP_LEAD_MINUTES
 import com.kvdm.fuelled.domain.model.MealReminder
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.domain.model.planTomorrowNudge
 import com.kvdm.fuelled.domain.model.remindersFor
 import com.kvdm.fuelled.domain.repository.AppStateRepository
 import com.kvdm.fuelled.domain.repository.MealPlanRepository
@@ -27,6 +28,7 @@ class ArmMealRemindersUseCase(
     private val repository: MealPlanRepository,
     private val scheduler: ReminderScheduler,
     private val appState: AppStateRepository,
+    private val tomorrowUnplanned: TomorrowUnplannedUseCase,
 ) {
     /**
      * @param doneSlots slots already ticked on the current logical day — their reminders are
@@ -45,7 +47,13 @@ class ArmMealRemindersUseCase(
                 // outcome than a day with no reminders because one setting would not load.
                 val lead = (appState.current() as? AppResult.Success)?.value?.settings?.prepLeadMinutes
                     ?: DEFAULT_PREP_LEAD_MINUTES
-                val reminders = remindersFor(times.value, doneSlots, scheduler.capability(), lead)
+                val capability = scheduler.capability()
+                // NOTIF-04/NOTIF-05: the evening nudge rides the same replace — so every
+                // trigger that re-arms the meals (a plan write, a tick, boot, app open) also
+                // arms or silences the nudge, and planning tomorrow cancels it at once.
+                val nudge = planTomorrowNudge(times.value, tomorrowUnplanned(), capability)
+                val reminders = remindersFor(times.value, doneSlots, capability, lead) +
+                    listOfNotNull(nudge)
                 scheduler.arm(reminders)
                 AppResult.Success(reminders)
             }

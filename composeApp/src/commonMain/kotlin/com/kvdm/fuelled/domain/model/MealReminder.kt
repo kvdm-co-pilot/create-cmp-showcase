@@ -51,10 +51,14 @@ data class ReminderCapability(
         }
 }
 
-/** What a reminder is for — the two rhythms the day has (PLAN-07/PLAN-08). */
+/**
+ * What a reminder is for — the two rhythms the day has (PLAN-07/PLAN-08), plus the day's
+ * bookend: the evening nudge when tomorrow is still unplanned (NOTIF-04).
+ */
 sealed interface ReminderTarget {
     data class Meal(val slot: MealSlot) : ReminderTarget
     data class Water(val index: Int) : ReminderTarget
+    data object PlanTomorrow : ReminderTarget
 }
 
 /**
@@ -86,6 +90,7 @@ data class MealReminder(
         get() = when (target) {
             is ReminderTarget.Meal -> "meal_${target.slot.name}"
             is ReminderTarget.Water -> "water_${target.index}"
+            is ReminderTarget.PlanTomorrow -> "plan_tomorrow"
         }
 }
 
@@ -132,4 +137,33 @@ fun remindersFor(
     val waters = waterSchedule(times)
         .map { MealReminder(ReminderTarget.Water(it.index), it.time, mode) }
     return (meals + waters).sortedBy { it.time }
+}
+
+/** The nudge's offset after the day's last meal moment (NOTIF-04, brief D4). */
+const val PLAN_NUDGE_OFFSET_MINUTES: Int = 45
+
+/** The nudge's hard ceiling — it never lands later than 22:00 (NOTIF-04, brief D4). */
+val PLAN_NUDGE_LATEST: LocalTime = LocalTime(22, 0)
+
+/**
+ * The end-of-day nudge, when there IS one (NOTIF-04/NOTIF-05).
+ *
+ * Null when tomorrow is planned — including when its plan could not be read, which the caller
+ * folds into `tomorrowUnplanned = false`: a nudge fired on unknown state nags a user who may
+ * have planned the whole week (NOTIF-05). When it exists it fires [PLAN_NUDGE_OFFSET_MINUTES]
+ * after the evening snack, clamped to [PLAN_NUDGE_LATEST] — derived from the user's own times
+ * like the water schedule (PLAN-09's discipline), so there is no eighth time setting to keep
+ * in step. Denied notifications still return it, carrying [ReminderMode.UNAVAILABLE], for the
+ * same honesty [remindersFor] keeps: the list is what the app intends.
+ */
+fun planTomorrowNudge(
+    times: MealTimes,
+    tomorrowUnplanned: Boolean,
+    capability: ReminderCapability,
+): MealReminder? {
+    if (!tomorrowUnplanned) return null
+    val afterLastMeal = times[MealSlot.EVENING_SNACK].toSecondOfDay() +
+        PLAN_NUDGE_OFFSET_MINUTES * 60
+    val time = LocalTime.fromSecondOfDay(minOf(afterLastMeal, PLAN_NUDGE_LATEST.toSecondOfDay()))
+    return MealReminder(target = ReminderTarget.PlanTomorrow, time = time, mode = capability.mode)
 }

@@ -40,6 +40,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * Durable screen tests for the structured day — first-party Compose UI Test, spec-cited,
@@ -65,7 +66,7 @@ class MealPlanScreenTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository()),
+            armReminders = ArmMealRemindersUseCase(repository, FakeReminderScheduler(), FakeAppStateRepository(), TomorrowUnplannedUseCase(repository, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
             deleteLogEntry = DeleteLogEntryUseCase(FakeTodayRepository()),
             setEntryServings = SetEntryServingsUseCase(FakeTodayRepository()),
             restoreLogEntry = RestoreLogEntryUseCase(FakeTodayRepository()),

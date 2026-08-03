@@ -33,6 +33,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * Settings (SET-01..08): the unit system, the user's supplement stack, and the reminder lead
@@ -57,7 +58,7 @@ class SettingsViewModelTest {
         observeAppState = ObserveAppStateUseCase(appState),
         getStack = GetSupplementStackUseCase(supplements),
         setUnitSystem = SetUnitSystemUseCase(appState),
-        setPrepLead = SetPrepLeadUseCase(appState, ArmMealRemindersUseCase(plan, scheduler, appState)),
+        setPrepLead = SetPrepLeadUseCase(appState, ArmMealRemindersUseCase(plan, scheduler, appState, TomorrowUnplannedUseCase(plan, FakeTimeSignal(TEST_NOW), TEST_ZONE))),
         saveSupplement = SaveSupplementUseCase(supplements),
         deleteSupplement = DeleteSupplementUseCase(supplements),
     )

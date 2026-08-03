@@ -38,6 +38,7 @@ import kotlinx.datetime.LocalDate
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 import kotlinx.coroutines.flow.first
 import com.kvdm.fuelled.testing.keepCollecting
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 
 /**
  * The plan screen's ViewModel — Turbine over [ContentUiState], hand-written fakes, a fixed
@@ -66,7 +67,7 @@ class MealPlanViewModelTest {
             setSlotDone = SetSlotDoneUseCase(repository),
             setWaterDone = SetWaterDoneUseCase(repository),
             copyDayForward = CopyDayForwardUseCase(repository),
-            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository()),
+            armReminders = ArmMealRemindersUseCase(repository, scheduler, FakeAppStateRepository(), TomorrowUnplannedUseCase(repository, FakeTimeSignal(TEST_NOW), TEST_ZONE)),
             deleteLogEntry = DeleteLogEntryUseCase(todayRepository),
             setEntryServings = SetEntryServingsUseCase(todayRepository),
             restoreLogEntry = RestoreLogEntryUseCase(todayRepository),

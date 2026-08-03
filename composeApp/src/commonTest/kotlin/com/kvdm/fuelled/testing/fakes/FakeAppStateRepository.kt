@@ -22,6 +22,10 @@ class FakeAppStateRepository : AppStateRepository {
     var onboarded: Boolean = false
         set(value) { field = value; revision.value += 1 }
 
+    /** NOTIF-01: whether the permission dialog has ever been shown. */
+    var notifPromptShown: Boolean = false
+        set(value) { field = value; revision.value += 1 }
+
     var startedAt: Instant = Instant.parse("2026-07-22T12:45:00Z")
     var failure: DomainError? = null
 
@@ -35,12 +39,13 @@ class FakeAppStateRepository : AppStateRepository {
     private val revision = MutableStateFlow(0)
 
     override fun observe(): Flow<AppResult<AppState>> = revision.map {
-        failure?.let { f -> AppResult.Failure(f) } ?: AppResult.Success(AppState(onboarded, startedAt, settings))
+        failure?.let { f -> AppResult.Failure(f) }
+            ?: AppResult.Success(AppState(onboarded, startedAt, settings, notifPromptShown))
     }
 
     override suspend fun current(): AppResult<AppState> {
         failure?.let { return AppResult.Failure(it) }
-        return AppResult.Success(AppState(onboarded, startedAt, settings))
+        return AppResult.Success(AppState(onboarded, startedAt, settings, notifPromptShown))
     }
 
     override suspend fun markOnboarded(): AppResult<Unit> {
@@ -62,6 +67,12 @@ class FakeAppStateRepository : AppStateRepository {
         // rejection is asserting the same behaviour the app ships.
         if (minutes !in PREP_LEAD_RANGE) return AppResult.Failure(DomainError.Unexpected())
         settings = settings.copy(prepLeadMinutes = minutes)
+        return AppResult.Success(Unit)
+    }
+
+    override suspend fun markNotifPromptShown(): AppResult<Unit> {
+        failure?.let { return AppResult.Failure(it) }
+        notifPromptShown = true
         return AppResult.Success(Unit)
     }
 }

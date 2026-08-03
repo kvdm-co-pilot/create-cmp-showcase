@@ -44,6 +44,8 @@ import com.kvdm.fuelled.domain.repository.AppStateRepository
 import com.kvdm.fuelled.data.remote.AppStateRepositoryImpl
 import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
+import com.kvdm.fuelled.domain.usecase.RequestNotificationPermissionUseCase
+import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -127,7 +129,12 @@ val useCaseModule = module {
     factory { CopyDayForwardUseCase(get()) }
     // The ReminderScheduler is PLATFORM-bound: Android arms real alarms, desktop and iOS bind
     // NoOpReminderScheduler (brief decision 9 — iOS notifications are deliberately unpromised).
-    factory { ArmMealRemindersUseCase(get(), get(), get()) }
+    factory { ArmMealRemindersUseCase(get(), get(), get(), get()) }
+    // NOTIF-04/NOTIF-06: the nudge's one emptiness question — the arm path and the Android
+    // delivery re-check both resolve THIS, so "unplanned" cannot drift between the two moments.
+    factory { TomorrowUnplannedUseCase(get(), get()) }
+    // NOTIF-01/NOTIF-02: the once-ever permission ask, called from Today's open.
+    factory { RequestNotificationPermissionUseCase(get(), get(), get()) }
     factory { SetMealTimeUseCase(get(), get()) }
     // The week in review (JRN-01): composed from the two observed reads above — no new
     // repository, deliberately (TODAY-13's no-second-path discipline).

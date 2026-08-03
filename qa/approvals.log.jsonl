@@ -92,3 +92,6 @@
 {"at":"2026-08-03T13:06:49.040Z","verb":"approve","artifact":"feature-spec:meal","hash":"23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1","via":"cli"}
 {"at":"2026-08-03T13:06:49.311Z","verb":"approve","artifact":"exemplar-feature","hash":"6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99","via":"cli"}
 {"at":"2026-08-03T13:06:49.411Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"ee173d410d4486e40fa6dda03b59b4fe71bfba427aefd81d2ed30cd32c8d2e0b","via":"cli"}
+{"at":"2026-08-03T19:30:47.752Z","verb":"approve","artifact":"feature-brief:notifications","hash":"50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c","via":"cli"}
+{"at":"2026-08-03T20:10:26.631Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}
+{"at":"2026-08-03T20:11:30.531Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}

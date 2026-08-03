@@ -46,6 +46,7 @@ fun MealTimesRoute(
             notice = data.reminderMode.toNotice(),
             onBack = onBack,
             onChange = { key -> editing = mealSlotForKey(key) },
+            onOpenNotificationSettings = { viewModel.openNotificationSettings() },
         )
 
         editing?.let { slot ->
@@ -79,9 +80,12 @@ internal fun ReminderMode.toNotice(): MealTimesNotice? = when (this) {
         "Reminders are on, but your device may deliver them up to about 15 minutes late. " +
             "Allow exact alarms in system settings to pin them to these times.",
     )
+    // NOTIF-03: the OFF statement carries the way back on. The app asked once and will not
+    // ask again (NOTIF-01), so this tap-through to the system switch is the second chance.
     ReminderMode.UNAVAILABLE -> MealTimesNotice(
         "Reminders are OFF — notifications are not allowed for Fuelled, so none of these times " +
             "will alert you. Your meal times still drive the plan.",
+        offersSettings = true,
     )
 }
 

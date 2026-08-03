@@ -11,9 +11,11 @@ import com.kvdm.fuelled.presentation.navigation.appTabs
 import com.kvdm.fuelled.presentation.foods.FoodDetailScreen
 import com.kvdm.fuelled.presentation.foods.FoodsScreen
 import com.kvdm.fuelled.presentation.meal.MealTrayScreen
+import com.kvdm.fuelled.domain.model.ReminderMode
 import com.kvdm.fuelled.presentation.mealplan.MealPlanDayScreen
 import com.kvdm.fuelled.presentation.mealplan.MealTimesNotice
 import com.kvdm.fuelled.presentation.mealplan.MealTimesScreen
+import com.kvdm.fuelled.presentation.mealplan.toNotice
 import com.kvdm.fuelled.presentation.today.sampleHighlightsEmpty
 import com.kvdm.fuelled.presentation.mealplan.samplePlanEmpty
 import com.kvdm.fuelled.presentation.mealplan.samplePlanTomorrow
@@ -114,13 +116,12 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
         TabHost { MealPlanDayScreen(initialExpandedEntryId = "s-l1") }
     },
     ScreenPreview("meal-times", "Meal times — set-once alarms") { TabHost { MealTimesScreen() } },
-    ScreenPreview("meal-times@no-reminders", "Meal times — notifications denied (PLAN-07)") {
+    ScreenPreview("meal-times@no-reminders", "Meal times — notifications denied (PLAN-07/NOTIF-03)") {
         TabHost {
+            // Derived through the same mapping the route uses — a hand-built notice here once
+            // hid NOTIF-03's settings tap-through from every render of this state.
             MealTimesScreen(
-                notice = MealTimesNotice(
-                    "Reminders are OFF — notifications are not allowed for Fuelled, so none of " +
-                        "these times will alert you. Your meal times still drive the plan.",
-                ),
+                notice = ReminderMode.UNAVAILABLE.toNotice(),
             )
         }
     },

@@ -28,6 +28,8 @@ data class AppStateEntity(
     val startedAtEpochMs: Long,
     val unitSystem: String,
     val prepLeadMinutes: Int,
+    /** NOTIF-01 (schema v14): the permission dialog has been shown — at most one ask, ever. */
+    val notifPromptShown: Boolean,
 )
 
 @Dao

@@ -19,6 +19,13 @@ data class AppState(
     val onboarded: Boolean,
     val startedAt: Instant,
     val settings: AppSettings = AppSettings(),
+    /**
+     * NOTIF-01: whether the app has EVER shown the system notification-permission dialog.
+     * App state, not a setting — the user never chose it, and it exists only so the ask can
+     * happen at most once: denied means denied, and the second chance is the system settings
+     * screen (NOTIF-03), never a re-prompt.
+     */
+    val notifPromptShown: Boolean = false,
 )
 
 /** The default prep lead (PLAN-07) — what a fresh install reminds you at until you say otherwise. */
