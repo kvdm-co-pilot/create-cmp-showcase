@@ -2,8 +2,19 @@ package com.kvdm.fuelled.presentation.supplements
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.currentDay
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementSchedule
+import com.kvdm.fuelled.domain.model.isDueOn
+import com.kvdm.fuelled.domain.model.nextDueOnOrAfter
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
@@ -33,6 +44,13 @@ import kotlinx.coroutines.launch
 class SupplementsViewModel(
     private val getStack: GetSupplementStackUseCase,
     private val setTaken: SetSupplementTakenUseCase,
+    /**
+     * The clock, injected (never read statically) — due-ness depends on the logical day, so a
+     * test that could not fix "today" could not assert on a Monday-and-Thursday schedule at all.
+     */
+    private val time: TimeSignal = RealTimeSignal(),
+    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 
     /**
@@ -67,14 +85,40 @@ class SupplementsViewModel(
         is AppResult.Failure -> ContentUiState.Error(error.toUserMessage())
     }
 
-    /** Group the ordered stack by timing (first-seen order preserved) and total the taken count. */
+    /**
+     * Split the ordered stack into what is DUE today and what is merely on the stack, group the
+     * due half by timing (first-seen order preserved), and total the taken count (SUPP-09).
+     *
+     * The split is the whole feature. A Monday-and-Thursday injection sitting in Tuesday's
+     * Morning bucket, untaken, is the app claiming a missed dose that was never due — so the
+     * denominator counts only what today actually asks for, and the rest is stated as resting
+     * with the date it next comes round.
+     *
+     * The screen is Empty only when the stack itself is empty. A day where NOTHING is due is
+     * still Content: the resting list is the answer to "did I miss something?", and an empty
+     * state would replace that answer with silence.
+     */
     private fun List<Supplement>.toStackUi(): ContentUiState<SupplementStackUi> {
         if (isEmpty()) return ContentUiState.Empty
+        val today = time.currentDay(dayStartHour, zone)
+        val (due, resting) = partition { it.schedule.isDueOn(today) }
         // SET-06: the group's NAME is the timing's display label — one fact, so the
         // bucket a supplement lands in and the heading above it cannot disagree.
-        val groups = groupBy { it.timing }.map { (timing, items) -> SupplementGroup(timing.label, items) }
+        val groups = due.groupBy { it.timing }.map { (timing, items) -> SupplementGroup(timing.label, items) }
         return ContentUiState.Content(
-            SupplementStackUi(groups = groups, takenCount = count { it.taken }, total = size),
+            SupplementStackUi(
+                groups = groups,
+                takenCount = due.count { it.taken },
+                total = due.size,
+                resting = resting.map { supplement ->
+                    RestingSupplement(
+                        supplement = supplement,
+                        // Tomorrow onward: today is already known not to be a due day.
+                        nextDue = supplement.schedule.nextDueOnOrAfter(today.plus(1, DateTimeUnit.DAY)),
+                    )
+                },
+                today = today,
+            ),
         )
     }
 }
@@ -83,14 +127,28 @@ class SupplementsViewModel(
 data class SupplementGroup(val timing: String, val items: List<Supplement>)
 
 /**
- * The presentation model the Supplements screen renders: the stack grouped by timing plus the
- * summary the header shows. [progress] is derived, never stored, so it cannot drift from the
- * count/total it is computed from.
+ * A supplement that is NOT due today (SUPP-09), and when it next is.
+ *
+ * [nextDue] is null when the schedule never comes round again — an [SupplementSchedule.OnDays]
+ * with no days selected, which the editor can hold mid-edit. The row says so rather than
+ * inventing a date.
+ */
+data class RestingSupplement(
+    val supplement: Supplement,
+    val nextDue: LocalDate?,
+)
+
+/**
+ * The presentation model the Supplements screen renders: today's due stack grouped by timing,
+ * the summary the header shows, and what is resting. [progress] is derived, never stored, so it
+ * cannot drift from the count/total it is computed from.
  */
 data class SupplementStackUi(
     val groups: List<SupplementGroup>,
     val takenCount: Int,
     val total: Int,
+    val resting: List<RestingSupplement> = emptyList(),
+    val today: LocalDate? = null,
 ) {
     val progress: Float get() = if (total <= 0) 0f else takenCount.toFloat() / total
 }

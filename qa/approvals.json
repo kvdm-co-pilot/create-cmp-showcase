@@ -65,14 +65,18 @@
       "status": "approved",
       "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
       "approvedAt": "2026-08-01T14:37:41.422Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:41:35.411Z"
     },
     {
       "artifact": "feature-brief:usability-pass",
       "status": "approved",
       "hash": "cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791",
       "approvedAt": "2026-08-01T14:37:49.222Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:42:11.780Z"
     },
     {
       "artifact": "feature-spec:usability-pass",
@@ -100,7 +104,9 @@
       "status": "approved",
       "hash": "f7f38b1b2ebd072d2ead7972935b4e6646699685b1d54553ad581e7f35c77bc5",
       "approvedAt": "2026-08-01T18:16:43.366Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:41:43.750Z"
     },
     {
       "artifact": "feature-spec:first-run",
@@ -128,7 +134,9 @@
       "status": "approved",
       "hash": "4e254323de473e0953ee5f231da0e0faf15909ade5c6eeeecd682eddd23d586d",
       "approvedAt": "2026-08-01T18:16:43.763Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:42:03.028Z"
     },
     {
       "artifact": "feature-spec:personalization",
@@ -149,14 +157,18 @@
       "status": "approved",
       "hash": "806d0c3dfbf2110ce356a803028108158c207878775e0d9113a9234056500f0e",
       "approvedAt": "2026-08-02T07:24:20.975Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:41:47.182Z"
     },
     {
       "artifact": "feature-brief:settings",
       "status": "approved",
       "hash": "d86fbedcd4bccc7f21bed964f5dc5b01ce8cfac60576af0ab7864307aad3740a",
       "approvedAt": "2026-08-02T07:24:21.141Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:42:09.279Z"
     },
     {
       "artifact": "feature-spec:settings",
@@ -205,7 +217,9 @@
       "status": "approved",
       "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
       "approvedAt": "2026-08-02T12:15:18.848Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:41:41.900Z"
     },
     {
       "artifact": "feature-spec:dated-goals",
@@ -233,7 +247,9 @@
       "status": "approved",
       "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
       "approvedAt": "2026-08-03T13:06:48.821Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:41:26.205Z"
     },
     {
       "artifact": "feature-spec:bfl-catalog",
@@ -261,7 +277,9 @@
       "status": "approved",
       "hash": "50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c",
       "approvedAt": "2026-08-03T19:30:47.747Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-04T19:42:00.124Z"
     },
     {
       "artifact": "feature-design:meal-plan",

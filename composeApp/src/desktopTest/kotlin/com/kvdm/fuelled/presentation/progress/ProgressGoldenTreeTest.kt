@@ -29,6 +29,7 @@ class ProgressGoldenTreeTest {
     private val baseline = File("../qa/golden/progress.json")
 
     // SPEC: JRN-03
+    // SPEC: WORK-09 — the training section and the day cards' TRAINED tag are in this tree.
     @Test
     fun `progress structure matches the committed golden tree`() = runComposeUiTest {
         // The stateless screen with its fixed fixture — deterministic by construction (ARCH-12).

@@ -23,6 +23,7 @@ import com.kvdm.fuelled.domain.usecase.ObserveGoalHistoryUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
 import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
 import com.kvdm.fuelled.domain.usecase.SaveSupplementUseCase
+import com.kvdm.fuelled.domain.usecase.SaveWorkoutDayUseCase
 import com.kvdm.fuelled.domain.usecase.SetPrepLeadUseCase
 import com.kvdm.fuelled.domain.usecase.SetUnitSystemUseCase
 import com.kvdm.fuelled.domain.repository.WeightRepository
@@ -46,6 +47,9 @@ import com.kvdm.fuelled.domain.usecase.GetMealTimesUseCase
 import com.kvdm.fuelled.domain.usecase.GetPlanDayUseCase
 import com.kvdm.fuelled.domain.usecase.RequestNotificationPermissionUseCase
 import com.kvdm.fuelled.domain.usecase.TomorrowUnplannedUseCase
+import com.kvdm.fuelled.domain.usecase.ReminderStillWantedUseCase
+import com.kvdm.fuelled.domain.repository.WorkoutRepository
+import com.kvdm.fuelled.data.remote.WorkoutRepositoryImpl
 import com.kvdm.fuelled.domain.usecase.SetMealTimeUseCase
 import com.kvdm.fuelled.domain.usecase.SetSlotDoneUseCase
 import com.kvdm.fuelled.domain.usecase.SetWaterDoneUseCase
@@ -94,6 +98,8 @@ val repositoryModule = module {
     single<WeightRepository> { WeightRepositoryImpl(get<AppDatabase>().weightDao()) }
     // The Room-backed Supplements source: the SupplementDao comes off the same AppDatabase.
     single<SupplementRepository> { SupplementRepositoryImpl(get<AppDatabase>().supplementDao(), get()) }
+    // WORK-01: the training week and its done-marks, off the same AppDatabase.
+    single<WorkoutRepository> { WorkoutRepositoryImpl(get<AppDatabase>().workoutDao(), get()) }
     // The Room-backed Profile source: the ProfileDao comes off the same platform-bound AppDatabase.
     // Profile joins the ONE goal store's targets (PERS-01), so it reads both DAOs.
     single<ProfileRepository> {
@@ -118,7 +124,8 @@ val useCaseModule = module {
     factory { DeleteLogEntryUseCase(get()) }
     factory { MarkEntryLoggedUseCase(get()) }
     factory { GetSupplementStackUseCase(get()) }
-    factory { SetSupplementTakenUseCase(get()) }
+    // SUPP-12: taking a dose re-arms, so its remaining rungs today are dropped.
+    factory { SetSupplementTakenUseCase(get(), get()) }
     factory { GetProfileUseCase(get()) }
     // The structured day. GetPlanDayUseCase takes its clock/zone/dayStartHour from production
     // defaults, like the tray's write path; tests construct it with a fixed clock (PLAN-23).
@@ -129,7 +136,12 @@ val useCaseModule = module {
     factory { CopyDayForwardUseCase(get()) }
     // The ReminderScheduler is PLATFORM-bound: Android arms real alarms, desktop and iOS bind
     // NoOpReminderScheduler (brief decision 9 — iOS notifications are deliberately unpromised).
-    factory { ArmMealRemindersUseCase(get(), get(), get(), get()) }
+    // Every reminder family rides ONE arm (SUPP-12/WORK-06): the scheduler replaces the whole
+    // armed set, so an arm that did not know about the stack and the week would cancel their
+    // alarms as a side effect of ticking breakfast.
+    factory { ArmMealRemindersUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    // NOTIF-08: the delivery-time re-ask — is this reminder still wanted at the moment it fires?
+    factory { ReminderStillWantedUseCase(get(), get(), get()) }
     // NOTIF-04/NOTIF-06: the nudge's one emptiness question — the arm path and the Android
     // delivery re-check both resolve THIS, so "unplanned" cannot drift between the two moments.
     factory { TomorrowUnplannedUseCase(get(), get()) }
@@ -149,8 +161,11 @@ val useCaseModule = module {
     factory { SetUnitSystemUseCase(get()) }
     factory { SetPrepLeadUseCase(get(), get()) }
     // SET-04/SET-05: the stack becomes the user's.
-    factory { SaveSupplementUseCase(get()) }
-    factory { DeleteSupplementUseCase(get()) }
+    // SUPP-12/WORK-07: every stack and week write re-arms, so a changed schedule, a new time
+    // or a deleted row takes effect immediately rather than at the next app open.
+    factory { SaveSupplementUseCase(get(), get()) }
+    factory { DeleteSupplementUseCase(get(), get()) }
+    factory { SaveWorkoutDayUseCase(get(), get()) }
     factory { UpdateGoalsUseCase(get()) }
     factory { UpdateProfileNameUseCase(get()) }
     factory { SetEntryServingsUseCase(get()) }
@@ -171,7 +186,10 @@ val viewModelModule = module {
     // those three from the graph. Tests construct it directly with a FixedClock.
     viewModel { FoodDetailViewModel(get(), get(), get()) }
     viewModelOf(::TodayViewModel)
-    viewModelOf(::SupplementsViewModel)
+    // SUPP-08: due-ness depends on the logical day, so this one takes a clock/zone/dayStartHour
+    // from production defaults — wired by hand for the same reason the tray is, since
+    // viewModelOf would try to resolve all three from the graph and fail on the zone.
+    viewModel { SupplementsViewModel(get(), get(), get()) }
     viewModelOf(::SettingsViewModel)
     viewModelOf(::MealBuilderViewModel)
     viewModelOf(::ProfileViewModel)
@@ -183,7 +201,9 @@ val viewModelModule = module {
         MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
     }
     viewModelOf(::MealTimesViewModel)
-    viewModelOf(::ProgressViewModel)
+    // WORK-05: same reason as Supplements above — the training window is derived from the
+    // logical day, so the clock/zone/dayStartHour come from production defaults.
+    viewModel { ProgressViewModel(get(), get(), get(), get(), get(), get()) }
     viewModelOf(::OnboardingViewModel)
     viewModelOf(::FoodEditorViewModel)
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired

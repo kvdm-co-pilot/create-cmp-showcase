@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.runComposeUiTest
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.LogEntry
@@ -276,7 +277,12 @@ class TodayScreenTest {
             onAllNodesWithText("Supplements · 1 of 2 taken").assertCountEquals(1)
             onAllNodesWithText("Morning").assertCountEquals(1)
 
-            onNodeWithTag("today_supplements").performClick()
+            // WORK-03 put a training card above this row, so on a phone-height viewport the
+            // bucket now starts below the fold. performClick does NOT scroll — it dispatches at
+            // the node's centre, which off-screen means nothing happens and the assertion below
+            // fails for a control that works perfectly. Scroll first, as the user does (the
+            // Maestro flow already swipes for the same reason).
+            onNodeWithTag("today_supplements").performScrollTo().performClick()
             assertTrue(openedSupplements, "the highlight opens the Supplements tab; Today never edits the stack")
         }
 
@@ -296,7 +302,7 @@ class TodayScreenTest {
             }
 
             awaitNode(hasTestTag("today_plan_link"))
-            onNodeWithTag("today_plan_link").performClick()
+            onNodeWithTag("today_plan_link").performScrollTo().performClick()
             assertEquals("plan/2026-07-22", requested)
             // And Today does NOT render the week itself — there is no day strip here.
             onNodeWithTag("plan_days").assertDoesNotExist()

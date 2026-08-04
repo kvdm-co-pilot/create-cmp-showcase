@@ -28,6 +28,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.History
 import com.kvdm.fuelled.domain.model.TREND_WEEKS
@@ -37,6 +43,9 @@ import com.kvdm.fuelled.domain.model.WeekReview
 import com.kvdm.fuelled.domain.model.WeekTrend
 import com.kvdm.fuelled.domain.model.WeightEntry
 import com.kvdm.fuelled.domain.model.WeightLog
+import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.model.WorkoutDayPlan
+import com.kvdm.fuelled.domain.model.WorkoutDayState
 import com.kvdm.fuelled.domain.model.weightFromKg
 import com.kvdm.fuelled.domain.model.weightToKg
 import com.kvdm.fuelled.presentation.components.AppHeader
@@ -122,6 +131,26 @@ val sampleWeightLog: WeightLog = WeightLog(
 )
 
 /**
+ * PREVIEW fixture: a training week with all four dot states in it (WORK-05).
+ *
+ * Deliberately not a perfect week. A fixture where everything is ticked renders one state and
+ * proves one state; this one carries a done day, a missed day, a rest day and today-pending,
+ * so every arm of the strip is visible in the gallery and pinned by the golden tree.
+ *
+ * The dates end on the same day [sampleHistory]'s week does — the two are ALIGNED reads, and a
+ * fixture that let them drift would be showing a shape production can never produce.
+ */
+val sampleTrainingWeek: List<WorkoutDay> = listOf(
+    WorkoutDay(LocalDate(2026, 7, 16), WorkoutDayPlan("Upper body"), done = true),
+    WorkoutDay(LocalDate(2026, 7, 17), WorkoutDayPlan("Cardio"), done = true),
+    WorkoutDay(LocalDate(2026, 7, 18), WorkoutDayPlan("Lower body"), done = false),
+    WorkoutDay(LocalDate(2026, 7, 19), WorkoutDayPlan(), done = false),
+    WorkoutDay(LocalDate(2026, 7, 20), WorkoutDayPlan("Upper body"), done = true),
+    WorkoutDay(LocalDate(2026, 7, 21), WorkoutDayPlan("Cardio"), done = true),
+    WorkoutDay(LocalDate(2026, 7, 22), WorkoutDayPlan("Lower body"), done = false),
+)
+
+/**
  * The VM-backed Progress destination the nav graph hosts (`progress`, JRN-02/HIST-01). No
  * retry: the state is observed and heals on the source's next emission (RS-01).
  */
@@ -154,6 +183,15 @@ data class ProgressUi(
     val history: History = sampleHistory,
     val weight: WeightLog = sampleWeightLog,
     val units: UnitSystem = UnitSystem.METRIC,
+    /**
+     * WORK-05: the same seven days, as training.
+     *
+     * A third aligned read beside the history and the weight log — anchored on the same
+     * current logical day, so the strip and the day cards cannot be describing different
+     * weeks. Empty when the week could not be read, which renders as no training section at
+     * all rather than as a week of zero sessions.
+     */
+    val training: List<WorkoutDay> = sampleTrainingWeek,
 )
 
 /** "Mon 20", or "Today" for the marked day — the strip's idiom, reused mentally not literally. */
@@ -193,10 +231,21 @@ fun ProgressScreen(
             // "what happened on Sunday?". The day cards are LAST because they are the
             // detail you drill into, not the thing you open the screen for.
             WeekSummaryCard(week)
+            // WORK-05: training joins the verdict, immediately after it — it is a result of
+            // the week, not a detail of a day, and it answers the same "how am I doing?".
+            if (progress.training.any { it.isTraining }) {
+                TrainingSummaryCard(progress.training)
+            }
             TrendSection(progress.history)
             WeightSection(log = progress.weight, units = progress.units, onRecord = onRecordWeight)
             SectionLabel("THE LAST SEVEN DAYS", "week_days_label")
-            week.days.forEach { day -> WeekDayCard(day, onOpen = { onOpenDay(day.date) }) }
+            week.days.forEach { day ->
+                WeekDayCard(
+                    day = day,
+                    training = progress.training.firstOrNull { it.date == day.date },
+                    onOpen = { onOpenDay(day.date) },
+                )
+            }
             Spacer(Modifier.padding(bottom = 8.dp))
         }
     }
@@ -272,7 +321,7 @@ private fun SummaryStat(value: String, label: String, color: androidx.compose.ui
  * Today gets the focused-container border — same signal, same color.
  */
 @Composable
-private fun WeekDayCard(day: WeekDay, onOpen: () -> Unit = {}) {
+private fun WeekDayCard(day: WeekDay, training: WorkoutDay? = null, onOpen: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -313,8 +362,107 @@ private fun WeekDayCard(day: WeekDay, onOpen: () -> Unit = {}) {
             Tag("MEALS", "${day.slotsDone}/${day.slotsTotal}", FuelledColors.Primary)
             Tag("WATER", "${day.waterMl.litresLabel()} L", FuelledColors.Info)
             Tag("VEG", "${day.vegMeals}", FuelledColors.Success)
+            // WORK-05: the training tag exists only on a TRAINING day. A rest day shows no
+            // tag rather than a zero — the day asked nothing, so there is nothing to score.
+            training?.takeIf { it.isTraining }?.let { session ->
+                Tag(
+                    "TRAINED",
+                    if (session.done) "Yes" else "—",
+                    if (session.done) FuelledColors.Success else FuelledColors.Info,
+                )
+            }
             Spacer(Modifier.width(0.dp))
         }
+    }
+}
+
+// ── Training (WORK-05) ───────────────────────────────────────────────────────────────────
+
+/**
+ * The week's training in one card: sessions kept, and the seven days at a glance.
+ *
+ * The dot strip carries FOUR states, not two, because "not done" collapses three different
+ * facts that mean very different things: a rest day asked nothing, today has not happened
+ * yet, and a past training day genuinely went missing. Only the last is a miss.
+ */
+@Composable
+private fun TrainingSummaryCard(days: List<WorkoutDay>) {
+    val today = days.lastOrNull()?.date ?: return
+    val training = days.filter { it.isTraining }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(20.dp)
+            .semantics { testTag = "week_training" },
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                "${training.count { it.done }}",
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                "of ${training.size} workouts this week",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            days.forEach { day -> TrainingDot(day, today) }
+        }
+    }
+}
+
+@Composable
+private fun TrainingDot(day: WorkoutDay, today: LocalDate) {
+    val state = day.state(today)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(
+                    if (state == WorkoutDayState.DONE) FuelledColors.Primary
+                    else MaterialTheme.colorScheme.surface,
+                )
+                .semantics { testTag = "week_training_${day.date}" },
+            contentAlignment = Alignment.Center,
+        ) {
+            when (state) {
+                WorkoutDayState.DONE -> Icon(
+                    Icons.Filled.Check,
+                    contentDescription = "Trained",
+                    tint = FuelledColors.OnPrimary,
+                    modifier = Modifier.size(18.dp),
+                )
+                WorkoutDayState.MISSED -> Text(
+                    "—",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                WorkoutDayState.PENDING -> Box(
+                    Modifier.size(10.dp).clip(CircleShape).background(FuelledColors.Primary),
+                )
+                WorkoutDayState.REST -> Text(
+                    "R",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Text(
+            day.date.dayOfWeek.name.take(1),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

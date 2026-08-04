@@ -4,10 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kvdm.fuelled.domain.model.AppState
 import com.kvdm.fuelled.domain.model.Supplement
-import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.model.UnitSystem
+import com.kvdm.fuelled.domain.model.WorkoutDayPlan
+import com.kvdm.fuelled.domain.model.WorkoutWeek
+import com.kvdm.fuelled.domain.repository.WorkoutRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import com.kvdm.fuelled.domain.usecase.SaveWorkoutDayUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteSupplementUseCase
+import kotlinx.datetime.DayOfWeek
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
 import com.kvdm.fuelled.domain.usecase.SaveSupplementUseCase
@@ -36,10 +40,16 @@ class SettingsViewModel(
     private val setPrepLead: SetPrepLeadUseCase,
     private val saveSupplement: SaveSupplementUseCase,
     private val deleteSupplement: DeleteSupplementUseCase,
+    private val saveWorkoutDay: SaveWorkoutDayUseCase,
+    workouts: WorkoutRepository,
 ) : ViewModel() {
 
     val state: StateFlow<ContentUiState<SettingsUi>> =
-        combine(observeAppState(), getStack()) { appState, stack -> fold(appState, stack) }
+        combine(
+            observeAppState(),
+            getStack(),
+            workouts.observeWeek(),
+        ) { appState, stack, week -> fold(appState, stack, week) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
 
     fun onUnitSystem(system: UnitSystem) {
@@ -51,17 +61,24 @@ class SettingsViewModel(
         viewModelScope.launch { setPrepLead(minutes) }
     }
 
-    fun onSaveSupplement(id: String, name: String, dose: String, timing: SupplementTiming) {
-        viewModelScope.launch { saveSupplement(id, name, dose, timing) }
+    /** SET-04/SUPP-08/SUPP-12: one save carries the whole row — schedule and ladder included. */
+    fun onSaveSupplement(supplement: Supplement) {
+        viewModelScope.launch { saveSupplement(supplement) }
     }
 
     fun onDeleteSupplement(id: String) {
         viewModelScope.launch { deleteSupplement(id) }
     }
 
+    /** WORK-07: the use case re-arms as part of the write, so a new time is live at once. */
+    fun onSaveWorkoutDay(day: DayOfWeek, plan: WorkoutDayPlan) {
+        viewModelScope.launch { saveWorkoutDay(day, plan) }
+    }
+
     private fun fold(
         appState: AppResult<AppState>,
         stack: AppResult<List<Supplement>>,
+        week: AppResult<WorkoutWeek>,
     ): ContentUiState<SettingsUi> = when {
         // Settings ARE the app-state row: without it there is nothing to render or change.
         appState is AppResult.Failure -> ContentUiState.Error(appState.error.toUserMessage())
@@ -72,6 +89,9 @@ class SettingsViewModel(
                 // and the reminder lead down with it — you can still fix your settings while
                 // one source is unhappy (RS-01 heals it on the next emission).
                 stack = (stack as? AppResult.Success)?.value.orEmpty(),
+                // WORK-07: same tolerance — an unreadable week falls back to the seeded split
+                // rather than rendering seven blank rows that look like a wiped setting.
+                week = (week as? AppResult.Success)?.value ?: WorkoutWeek.DEFAULT,
             ),
         )
         else -> ContentUiState.Loading

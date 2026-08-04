@@ -1,39 +1,94 @@
 {
   "schema": "cmp-evidence/1",
   "profile": "local",
-  "verdict": "PASS",
+  "verdict": "FAIL",
   "commit": {
-    "sha": "03ffd3559464446a2c604773f8047a8b476ee7a8",
+    "sha": "0ea49b3990a0f2c96644f90578581a3f86c88f95",
     "dirty": [
-      "CHANGELOG.md",
-      "composeApp/build.gradle.kts",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/onboarding/OnboardingScreen.kt",
+      "composeApp/schemas/android/com.kvdm.fuelled.data.local.AppDatabase/15.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/14.json",
+      "composeApp/schemas/desktop/com.kvdm.fuelled.data.local.AppDatabase/15.json",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/AndroidReminderScheduler.kt",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/notification/MealReminderReceiver.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/time/IsoDate.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/AppDatabase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/SupplementEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/local/WorkoutEntity.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/WorkoutRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/MealReminder.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Supplement.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/Workout.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/notification/ReminderDelivery.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/SupplementRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/WorkoutRepository.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ReminderStillWantedUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SetSupplementTakenUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/SupplementEditUseCases.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayHighlights.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workout/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/ReminderLadderTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/SupplementScheduleTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/WorkoutWeekTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/ReminderStillWantedTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/WorkoutWritePathTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/HistoryTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/settings/SettingsViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/TodayViewModelFixture.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeSupplementRepository.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeWorkoutRepository.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/progress/ProgressGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreenTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayGoldenTreeTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/workout/",
+      "docs/ARCHITECTURE.md",
+      "docs/features/supplement-schedules.md",
+      "docs/features/workouts.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/e2e/smoke.yaml",
-      "qa/evidence/latest.json"
+      "qa/evidence/latest.json",
+      "qa/golden/progress.json",
+      "qa/golden/supplements.json",
+      "qa/golden/today.json",
+      "specs/notifications.spec.md",
+      "specs/supplements.spec.md",
+      "specs/workouts.spec.md"
     ]
   },
   "inputs": {
-    "hash": "dc631e0395564381944121671aaea795f27edfb3e29b9a54362711bbc147e60b",
-    "fileCount": 381
+    "hash": "0bbb56bb4353419e040e87dca41255f234b87d73f8cba49429671bceb7eac8eb",
+    "fileCount": 398
   },
   "steps": [
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 63,
+      "durationMs": 77,
       "details": {
-        "clauses": 149,
+        "clauses": 167,
         "withdrawn": 2,
-        "tags": 309,
-        "files": 259
+        "tags": 352,
+        "files": 273
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 18,
+      "verdict": "FAIL",
+      "reason": "Approval invalidated — a governed artifact changed after sign-off:\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — approved at 6d5bdb22, now 1951ecac. Re-approve: node qa/approve.mjs feature-design:settings\n  [feature-spec:notifications] Feature spec (specs/notifications.spec.md) — approved at e6e8e7ca, now fa8c4184. Re-approve: node qa/approve.mjs feature-spec:notifications\n  [feature-spec:supplements] Feature spec (specs/supplements.spec.md) — approved at 922bd4d0, now 236e4584. Re-approve: node qa/approve.mjs feature-spec:supplements",
+      "durationMs": 25,
       "details": {
         "artifacts": [
           {
@@ -102,9 +157,19 @@
             "hash": "d86fbedcd4bccc7f21bed964f5dc5b01ce8cfac60576af0ab7864307aad3740a"
           },
           {
+            "id": "feature-brief:supplement-schedules",
+            "status": "unreviewed",
+            "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b"
+          },
+          {
             "id": "feature-brief:usability-pass",
             "status": "approved",
             "hash": "cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791"
+          },
+          {
+            "id": "feature-brief:workouts",
+            "status": "unreviewed",
+            "hash": "5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b"
           },
           {
             "id": "architecture",
@@ -143,8 +208,8 @@
           },
           {
             "id": "feature-design:settings",
-            "status": "approved",
-            "hash": "6d5bdb22ec905c98f5221bebdf6555c8dee5c4228c8ace62e820d7abfb5d27af"
+            "status": "changed-since-approval",
+            "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd"
           },
           {
             "id": "feature-spec:bfl-catalog",
@@ -193,8 +258,8 @@
           },
           {
             "id": "feature-spec:notifications",
-            "status": "approved",
-            "hash": "e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac"
+            "status": "changed-since-approval",
+            "hash": "fa8c4184cdf7ce1a208b91ec2c6b716f121ef996d68117f11edf7a369d88a303"
           },
           {
             "id": "feature-spec:personalization",
@@ -218,8 +283,8 @@
           },
           {
             "id": "feature-spec:supplements",
-            "status": "approved",
-            "hash": "922bd4d0ae3e440937c479e1669cbe1b3cbe2099b47e54a13af2c0c854b483a1"
+            "status": "changed-since-approval",
+            "hash": "236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1"
           },
           {
             "id": "feature-spec:today",
@@ -230,6 +295,11 @@
             "id": "feature-spec:usability-pass",
             "status": "approved",
             "hash": "8239113a404f5af3b85f78b24f6c7dc1a2d8752674ec6466590a26494d201928"
+          },
+          {
+            "id": "feature-spec:workouts",
+            "status": "unreviewed",
+            "hash": "eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7"
           }
         ]
       }
@@ -237,7 +307,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "details": {
         "components": 20,
         "stories": 20,
@@ -248,7 +318,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 8,
+      "durationMs": 13,
       "details": {
         "features": [
           {
@@ -346,7 +416,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 12,
+      "durationMs": 18,
       "details": {
         "sectionsChecked": 4
       }
@@ -354,19 +424,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1548
+      "durationMs": 2955
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1641
+      "durationMs": 2110
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 8554,
+      "durationMs": 14043,
       "details": {
-        "tests": 293,
+        "tests": 333,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -375,31 +445,31 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 1969
+      "durationMs": 3505
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3403
+      "durationMs": 4911
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 2428,
+      "durationMs": 203,
       "details": {
-        "checked": 0,
+        "checked": 7,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2999
+      "durationMs": 4346
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 44945
+      "durationMs": 59050
     }
   ],
   "strength": {
@@ -413,5 +483,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-04T19:30:38.553Z"
+  "generatedAt": "2026-08-04T22:30:27.996Z"
 }

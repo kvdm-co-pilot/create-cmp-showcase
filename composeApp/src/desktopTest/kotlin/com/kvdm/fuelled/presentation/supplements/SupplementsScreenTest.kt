@@ -65,7 +65,7 @@ class SupplementsScreenTest {
         }
 
         awaitNode(hasTestTag("supplements_summary"))
-        onAllNodesWithText("of 3 taken").assertCountEquals(1)
+        onAllNodesWithText("of 3 due today taken").assertCountEquals(1)
     }
 
     // SPEC: SUPP-03
@@ -77,11 +77,11 @@ class SupplementsScreenTest {
             MaterialTheme { SupplementsRoute(viewModel = viewModel()) }
         }
 
-        awaitNode(hasText("of 3 taken"))
+        awaitNode(hasText("of 3 due today taken"))
         // Take Omega-3 (id 2): the summary count climbs from 1 to 2.
         onNodeWithTag("supplements_take_2").performClick()
         awaitNode(hasTestTag("supplements_screen"))
-        onAllNodesWithText("of 3 taken").assertCountEquals(1) // still 3 total
+        onAllNodesWithText("of 3 due today taken").assertCountEquals(1) // still 3 total
         // The persisted state is reflected: two are now taken.
         onNodeWithTag("supplements_take_1").assertExists()
     }
@@ -94,7 +94,7 @@ class SupplementsScreenTest {
         setContent {
             MaterialTheme { SupplementsRoute(viewModel = viewModel()) }
         }
-        awaitNode(hasText("of 3 taken"))
+        awaitNode(hasText("of 3 due today taken"))
         onNodeWithTag("supplements_take_2").performClick()
         awaitNode(hasTestTag("supplements_screen"))
 

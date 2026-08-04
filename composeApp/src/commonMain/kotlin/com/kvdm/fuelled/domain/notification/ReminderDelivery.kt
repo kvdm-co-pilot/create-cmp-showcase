@@ -2,6 +2,7 @@ package com.kvdm.fuelled.domain.notification
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 /**
@@ -43,3 +44,27 @@ fun isStaleDelivery(
     deliveredAt: Instant,
     grace: Duration = REMINDER_STALE_AFTER,
 ): Boolean = deliveredAt - intendedAt > grace
+
+/**
+ * How late a LEAD-TIME reminder may arrive and still be posted (SUPP-12/WORK-06).
+ *
+ * The two-hour meal grace is wrong for a rung whose entire meaning is "before". A "30 minutes
+ * before" alarm delivered ninety minutes late is announcing something that started an hour
+ * ago; a "night before" nudge handed back at breakfast is telling you to prepare for a day
+ * that has already begun. Twenty minutes keeps the rung's promise or drops it — the at-time
+ * rung still carries the full meal-length grace, because "you have not taken it yet" stays
+ * true for as long as the day does.
+ */
+val LEAD_REMINDER_STALE_AFTER: Duration = 20.minutes
+
+/**
+ * The grace a reminder key is entitled to (PLAN-26, SUPP-12, WORK-06).
+ *
+ * Keyed off the rung encoded in the key rather than a separate field, so a reminder that
+ * arrives after a process restart — where all the app has is the key its intent carried — gets
+ * the same answer the arming side would have given.
+ */
+fun staleAfterFor(key: String): Duration = when {
+    key.endsWith("_NIGHT_BEFORE") || key.endsWith("_THIRTY_MIN") -> LEAD_REMINDER_STALE_AFTER
+    else -> REMINDER_STALE_AFTER
+}

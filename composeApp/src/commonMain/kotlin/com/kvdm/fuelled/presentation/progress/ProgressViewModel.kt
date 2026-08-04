@@ -2,10 +2,21 @@ package com.kvdm.fuelled.presentation.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
+import com.kvdm.fuelled.core.time.RealTimeSignal
+import com.kvdm.fuelled.core.time.TimeSignal
+import com.kvdm.fuelled.core.time.days
 import com.kvdm.fuelled.domain.model.AppState
 import com.kvdm.fuelled.domain.model.History
 import com.kvdm.fuelled.domain.model.WeightLog
+import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.repository.WorkoutRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import com.kvdm.fuelled.domain.usecase.GetHistoryUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveWeightLogUseCase
@@ -26,19 +37,36 @@ import kotlinx.coroutines.launch
  * transient failure is replaced by the source's next emission, not by a button. No
  * `try`/`catch` (ARCH-07): failures arrive typed and become copy here.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class ProgressViewModel(
     getHistory: GetHistoryUseCase,
     observeWeight: ObserveWeightLogUseCase,
     observeAppState: ObserveAppStateUseCase,
     private val recordWeight: RecordWeightUseCase,
+    workouts: WorkoutRepository,
+    time: TimeSignal = RealTimeSignal(),
+    zone: TimeZone = TimeZone.currentSystemDefault(),
+    dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
+
+    /**
+     * WORK-05: the same seven days the history covers, as training.
+     *
+     * The window is derived from the SAME logical day the history use case anchors on, so the
+     * strip and the day cards are describing one week — an independently-computed window would
+     * be a second definition of "this week" waiting to disagree at 04:00.
+     */
+    private val trainingWeek = time.days(dayStartHour, zone).flatMapLatest { today ->
+        workouts.observeRange(today.minus(WEEK_DAYS - 1, DateTimeUnit.DAY), today)
+    }
 
     val state: StateFlow<ContentUiState<ProgressUi>> =
         combine(
             getHistory(),
             observeWeight(),
             observeAppState(),
-        ) { history, weight, appState -> fold(history, weight, appState) }
+            trainingWeek,
+        ) { history, weight, appState, training -> fold(history, weight, appState, training) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
 
     /**
@@ -53,6 +81,7 @@ class ProgressViewModel(
         history: AppResult<History>,
         weight: AppResult<WeightLog>,
         appState: AppResult<AppState>,
+        training: AppResult<List<WorkoutDay>>,
     ): ContentUiState<ProgressUi> = when (history) {
         // The HISTORY is the surface: without it there is nothing to render, so its failure
         // is the screen's failure.
@@ -67,7 +96,14 @@ class ProgressViewModel(
                 weight = (weight as? AppResult.Success)?.value ?: WeightLog(emptyList()),
                 units = (appState as? AppResult.Success)?.value?.settings?.unitSystem
                     ?: ProgressUi().units,
+                // WORK-05: optional too. An unreadable training week renders NO training
+                // section — never a week of zero sessions, which would read as seven misses.
+                training = (training as? AppResult.Success)?.value.orEmpty(),
             ),
         )
+    }
+
+    private companion object {
+        const val WEEK_DAYS = 7
     }
 }

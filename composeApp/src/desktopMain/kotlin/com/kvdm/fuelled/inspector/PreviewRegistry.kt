@@ -22,6 +22,8 @@ import com.kvdm.fuelled.presentation.mealplan.samplePlanTomorrow
 import com.kvdm.fuelled.presentation.meal.TrayContents
 import com.kvdm.fuelled.presentation.profile.ProfileScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
+import com.kvdm.fuelled.presentation.supplements.SupplementStackUi
+import com.kvdm.fuelled.presentation.supplements.sampleSupplementStack
 import com.kvdm.fuelled.presentation.today.TodayScreen
 import com.kvdm.fuelled.presentation.progress.ProgressScreen
 import com.kvdm.fuelled.presentation.builder.MealBuilderScreen
@@ -151,6 +153,22 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
                     ),
                     slot = MealSlot.LUNCH,
                     days = sampleBuilderWeek.toSet(),
+                ),
+            )
+        }
+    },
+    // SUPP-09: the off-day half of the split. The default `supplements` render already
+    // carries a resting row, so this variant exists for the OTHER shape — a day where the
+    // resting list is what there is to see, and nothing is due at all.
+    ScreenPreview("supplements@none-due", "Supplements — nothing due today (SUPP-09)") {
+        TabHost {
+            SupplementsScreen(
+                stack = SupplementStackUi(
+                    groups = emptyList(),
+                    takenCount = 0,
+                    total = 0,
+                    resting = sampleSupplementStack.resting,
+                    today = sampleSupplementStack.today,
                 ),
             )
         }

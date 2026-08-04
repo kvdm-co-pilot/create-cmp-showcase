@@ -15,6 +15,7 @@ import com.kvdm.fuelled.presentation.today.TodayViewModel
 import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeReminderScheduler
+import com.kvdm.fuelled.testing.fakes.FakeWorkoutRepository
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
 import com.kvdm.fuelled.testing.fakes.FakeTodayRepository
 import com.kvdm.fuelled.testing.fakes.FixedClock
@@ -53,6 +54,8 @@ fun todayViewModel(
     scheduler: FakeReminderScheduler = FakeReminderScheduler(),
     clock: Clock = FixedClock(TEST_NOW),
     appState: FakeAppStateRepository = FakeAppStateRepository(),
+    /** WORK-03: the training week Today's card reads. Defaults to the seeded split. */
+    workouts: FakeWorkoutRepository = FakeWorkoutRepository(),
 ): TodayViewModel {
     val getPlanDay = GetPlanDayUseCase(plan, time = FakeTimeSignal(TEST_NOW), zone = TEST_ZONE)
     val armReminders = ArmMealRemindersUseCase(
@@ -72,5 +75,6 @@ fun todayViewModel(
         deleteLogEntry = DeleteLogEntryUseCase(today),
             setEntryServings = SetEntryServingsUseCase(today),
             restoreLogEntry = RestoreLogEntryUseCase(today),
+        workouts = workouts,
     )
 }

@@ -7,6 +7,8 @@ import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.TodayModel
 import com.kvdm.fuelled.domain.result.AppResult
+import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.repository.WorkoutRepository
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.model.DeletedEntry
 import com.kvdm.fuelled.domain.usecase.DeleteLogEntryUseCase
@@ -57,6 +59,8 @@ class TodayViewModel(
     private val deleteLogEntry: DeleteLogEntryUseCase,
     private val setEntryServings: SetEntryServingsUseCase,
     private val restoreLogEntry: RestoreLogEntryUseCase,
+    /** WORK-03/WORK-04: the day's training — read as a stream, written by the card's tick. */
+    private val workouts: WorkoutRepository,
 ) : ViewModel() {
 
     /** ENTRY-02: the last removal, held for the undo bar (same shape as the plan screen's). */
@@ -96,7 +100,8 @@ class TodayViewModel(
                     getTodaySummary(),
                     getPlanDay(day),
                     getSupplementStack(),
-                ) { summary, plan, stack -> combineHighlights(summary, plan, stack) }
+                    workouts.observeToday(),
+                ) { summary, plan, stack, workout -> combineHighlights(summary, plan, stack, workout) }
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContentUiState.Loading)
 
@@ -191,6 +196,7 @@ class TodayViewModel(
         summary: AppResult<TodayModel>,
         plan: AppResult<PlanDay>,
         stack: AppResult<List<Supplement>>,
+        workout: AppResult<WorkoutDay>,
     ): ContentUiState<TodayHighlights> {
         if (summary is AppResult.Failure) return ContentUiState.Error(summary.error.toUserMessage())
         if (plan is AppResult.Failure) return ContentUiState.Error(plan.error.toUserMessage())
@@ -200,8 +206,28 @@ class TodayViewModel(
                 today = (summary as AppResult.Success<TodayModel>).value,
                 plan = (plan as AppResult.Success<PlanDay>).value,
                 supplements = (stack as? AppResult.Success)?.value?.currentBucket(),
+                // WORK-03: optional, like the bucket. A rest day and an unreadable week both
+                // render nothing, and neither costs the user their dashboard.
+                workout = (workout as? AppResult.Success)?.value?.takeIf { it.isTraining },
             ),
         )
+    }
+
+    /**
+     * WORK-04: mark today's session done, or undo it.
+     *
+     * Persists and stops — [WorkoutRepository.observeToday] re-emits, so the card, the week
+     * strip and the ladder all follow the one write. Re-arms afterwards for the reason a taken
+     * dose does (SUPP-12): a session already finished has nothing left to be reminded about.
+     */
+    fun onToggleWorkoutDone(done: Boolean) {
+        viewModelScope.launch {
+            if (workouts.setDone(done) is AppResult.Failure) {
+                _writeError.value = true
+            } else {
+                armReminders()
+            }
+        }
     }
 
     private fun doneSlots(): Set<MealSlot> =

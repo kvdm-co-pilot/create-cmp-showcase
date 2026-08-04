@@ -7,6 +7,7 @@ import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalDate
 
 /**
  * Hand-written fake — the template's testing convention (no mocking frameworks). Follows the
@@ -67,5 +68,20 @@ class FakeSupplementRepository : SupplementRepository {
         failure?.let { return AppResult.Failure(it) }
         stack = stack.map { if (it.id == id) it.copy(taken = taken) else it }
         return AppResult.Success(Unit)
+    }
+
+    /**
+     * NOTIF-08: doses taken on a given day.
+     *
+     * The fake keeps one day's worth — whatever `taken` says on the in-memory stack — because
+     * every test that asks is asking about TODAY. [takenByDate] overrides it for the delivery
+     * tests, which need a past date to answer differently from the present one.
+     */
+    var takenByDate: Map<LocalDate, Set<String>>? = null
+
+    override suspend fun takenOn(date: LocalDate): AppResult<Set<String>> {
+        failure?.let { return AppResult.Failure(it) }
+        takenByDate?.let { return AppResult.Success(it[date].orEmpty()) }
+        return AppResult.Success(stack.filter { it.taken }.map { it.id }.toSet())
     }
 }

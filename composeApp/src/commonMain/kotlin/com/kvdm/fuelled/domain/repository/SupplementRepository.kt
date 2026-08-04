@@ -3,6 +3,7 @@ package com.kvdm.fuelled.domain.repository
 import com.kvdm.fuelled.domain.model.Supplement
 import com.kvdm.fuelled.domain.result.AppResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalDate
 
 // Domain-facing contract for the day's supplement stack. Presentation depends on THIS, never
 // on the concrete Room-backed source. One-shot operations return AppResult — they never throw
@@ -33,4 +34,15 @@ interface SupplementRepository {
      * did not stop having taken it.
      */
     suspend fun delete(id: String): AppResult<Unit>
+
+    /**
+     * Which supplements were taken on [date] (NOTIF-08).
+     *
+     * Asked at DELIVERY, not at arming: an alarm set at midnight for an 08:00 dose knows
+     * nothing about the dose being swallowed at 07:30, and firing it anyway is the same defect
+     * NOTIF-06 fixed for the plan-tomorrow nudge. Takes an explicit date rather than reading
+     * the clock because the reminder carries the day it is ABOUT, which after a Doze-held
+     * delivery is not necessarily today.
+     */
+    suspend fun takenOn(date: LocalDate): AppResult<Set<String>>
 }

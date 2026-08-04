@@ -46,6 +46,10 @@ import com.kvdm.fuelled.domain.model.VEG_MEAL_GOAL
 import com.kvdm.fuelled.domain.model.WATER_DAY_GOAL_ML
 import com.kvdm.fuelled.domain.model.buildPlanDay
 import com.kvdm.fuelled.presentation.brand.FuelledWordmark
+import com.kvdm.fuelled.presentation.workout.TodayWorkoutCard
+import com.kvdm.fuelled.domain.model.ReminderLead
+import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.model.WorkoutDayPlan
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ProgressRing
@@ -114,6 +118,18 @@ val sampleToday = TodayModel(
  * the app can never actually produce — which is the failure mode of hand-built fixtures.
  */
 val sampleHighlights: TodayHighlights = TodayHighlights(
+    // WORK-03: a training day, not yet done — declared HERE rather than imported from the
+    // card's file, because a `sample*` symbol crossing a file boundary is exactly what ARCH-12
+    // forbids: sample data is a preview seam, not wiring other files reach into.
+    workout = WorkoutDay(
+        date = LocalDate(2026, 7, 22),
+        plan = WorkoutDayPlan(
+            label = "Upper body",
+            remindAt = LocalTime(18, 0),
+            leads = ReminderLead.DEFAULT,
+        ),
+        done = false,
+    ),
     today = sampleToday,
     plan = buildPlanDay(
         date = LocalDate(2026, 7, 22),
@@ -219,6 +235,7 @@ fun TodayRoute(
                 onOpenSupplements = onOpenSupplements,
                 onDeleteEntry = viewModel::deleteEntry,
                 onEntryServings = viewModel::setServings,
+                onToggleWorkoutDone = viewModel::onToggleWorkoutDone,
             ),
             undo = lastDeleted?.let { UndoState(it.name, viewModel::undoDelete) },
         )
@@ -239,6 +256,8 @@ data class TodayActions(
     val onDeleteEntry: (String) -> Unit = {},
     /** ENTRY-01: step an entry's servings in place, without leaving the dashboard. */
     val onEntryServings: (String, Int) -> Unit = { _, _ -> },
+    /** WORK-04: mark today's session done, or undo it. */
+    val onToggleWorkoutDone: (Boolean) -> Unit = {},
 )
 
 /**
@@ -343,6 +362,13 @@ fun TodayScreen(
                 onToggle = { actions.onToggleWater(water.index, !water.done) },
                 tagPrefix = "today",
             )
+        }
+
+        // WORK-03: the day's training. A card with its own tick, not a link — marking a
+        // session done is one tap, and a surface you have to navigate to in order to tick one
+        // box is a surface that goes unticked. Absent entirely on a rest day.
+        model.workout?.let { workout ->
+            TodayWorkoutCard(day = workout, onToggleDone = actions.onToggleWorkoutDone)
         }
 
         // TODAY-11: bucket-based, because Supplement carries a free-text `timing` and a taken

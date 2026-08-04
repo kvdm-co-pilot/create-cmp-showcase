@@ -19,6 +19,7 @@ import com.kvdm.fuelled.domain.usecase.RecordWeightUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
 import com.kvdm.fuelled.testing.TEST_NOW
 import com.kvdm.fuelled.testing.TEST_ZONE
+import com.kvdm.fuelled.testing.fakes.FakeWorkoutRepository
 import com.kvdm.fuelled.testing.fakes.FakeAppStateRepository
 import com.kvdm.fuelled.testing.fakes.FakeMealPlanRepository
 import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
@@ -69,6 +70,11 @@ class HistoryTest {
         observeWeight = ObserveWeightLogUseCase(weightRepository, getPlanDay()),
         observeAppState = ObserveAppStateUseCase(appState),
         recordWeight = RecordWeightUseCase(weightRepository, getPlanDay()),
+        // WORK-05: the SAME fixed clock the history reads, so the training window and the
+        // seven day cards are anchored on one logical day rather than two.
+        workouts = FakeWorkoutRepository(),
+        time = FakeTimeSignal(TEST_NOW),
+        zone = TEST_ZONE,
     )
 
     private fun content(vm: ProgressViewModel): ProgressUi =

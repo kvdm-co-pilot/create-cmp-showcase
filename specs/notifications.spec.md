@@ -35,3 +35,27 @@
 - **NOTIF-07** — Given the nudge was delivered and tomorrow is still unplanned the next
   evening, Then it arms again — one per day, every empty evening, with no self-imposed
   back-off (brief D8); the OS notification channel is the off switch.
+
+## The delivery-time question, generalised (SUPP-12/WORK-06)
+
+> NOTIF-06 established for one reminder what turned out to be true of every reminder the app
+> arms: what a notification CLAIMS can stop being true between arming it and it ringing.
+> Adding two more reminder families made that a rule rather than a special case.
+
+- **NOTIF-08** — Given any armed reminder fires, Then delivery re-asks whether it is still
+  wanted before posting — tomorrow may have been planned, the dose may have been swallowed,
+  the session may already be done — using the logical day the reminder is ABOUT rather than
+  the day it happens to arrive on. A question this cannot answer — an unrecognised key, a
+  storage failure — POSTS: silence is the worse failure, and "the database would not open" is
+  not evidence a dose was taken. This is the mirror of NOTIF-05's refusal to fire on unknown
+  state, and correct for the same reason — in each direction the default is the one that
+  cannot silently lose a fact.
+- **NOTIF-09** — Given reminders are posted, Then meals and water, supplements, and workouts
+  each use their own OS notification channel. The channel IS the off switch this app offers
+  instead of building its own (NOTIF-07), and a single channel makes that switch useless:
+  silencing evening training nudges would silence every meal reminder with them.
+- **NOTIF-10** — Given a reminder whose rung is a LEAD ("night before", "30 minutes before"),
+  Then it is armed in a tighter window than a meal's and dropped sooner when delivered late.
+  An hour of scheduling slack can land a "30 minutes before" alarm half an hour AFTER the
+  thing it was warning about, and a lead-time reminder that arrives late is not a late warning
+  but a wrong one.

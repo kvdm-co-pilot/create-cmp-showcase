@@ -5,6 +5,7 @@ import com.kvdm.fuelled.domain.model.PlanSlotView
 import com.kvdm.fuelled.domain.model.PlanWaterView
 import com.kvdm.fuelled.domain.model.Supplement
 import com.kvdm.fuelled.domain.model.TodayModel
+import com.kvdm.fuelled.domain.model.WorkoutDay
 
 /**
  * What the Today tab renders (TODAY-09..TODAY-14, brief decision 13).
@@ -23,6 +24,16 @@ data class TodayHighlights(
     val today: TodayModel,
     val plan: PlanDay,
     val supplements: SupplementBucket?,
+    /**
+     * WORK-03: the day's training, when there is any.
+     *
+     * Null covers BOTH "today is a rest day" and "the week could not be read", and the card
+     * renders nothing either way — deliberately, and for the same reason the bucket above is
+     * optional: losing the whole dashboard because one highlight's query failed is the worse
+     * trade. A rest day and a failed read look identical here, which is honest, because in
+     * both cases the app has nothing to ask of the user.
+     */
+    val workout: WorkoutDay? = null,
 ) {
     /** The one container Today shows (TODAY-09) — or null on a day that is fully done. */
     val focus: PlanSlotView? get() = plan.focusedSlot

@@ -53,6 +53,7 @@ class TodayGoldenTreeTest {
     )
 
     // SPEC: TODAY-06
+    // SPEC: WORK-09 — the workout card is part of Today's committed structure.
     @Test
     fun `today structure matches the committed golden tree`() = runComposeUiTest {
         val repository = FakeTodayRepository().apply { summary = goldenDay }

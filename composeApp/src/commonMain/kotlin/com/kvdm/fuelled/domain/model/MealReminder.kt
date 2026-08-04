@@ -1,6 +1,12 @@
 package com.kvdm.fuelled.domain.model
 
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 
 /**
  * What the app promises to remind you about, and how honestly it can (PLAN-07).
@@ -59,6 +65,45 @@ sealed interface ReminderTarget {
     data class Meal(val slot: MealSlot) : ReminderTarget
     data class Water(val index: Int) : ReminderTarget
     data object PlanTomorrow : ReminderTarget
+
+    /** A dose that is not due every day (SUPP-12) — one target per rung of the ladder. */
+    data class Supplement(val id: String, val lead: ReminderLead) : ReminderTarget
+
+    /** A training day (WORK-06) — keyed by weekday, because the week is the schedule. */
+    data class Workout(val day: DayOfWeek, val lead: ReminderLead) : ReminderTarget
+}
+
+/**
+ * How far ahead of the thing itself a reminder lands (SUPP-12/WORK-06).
+ *
+ * A single alarm at the moment of the dose is the design that fails for anything you cannot
+ * do instantly: an injection you need to warm, a gym session you have to travel to. So the
+ * ladder is three rungs, each answering a different question — *plan for it*, *get ready*,
+ * *now* — and each independently switchable, because which of the three actually helps
+ * depends on the thing.
+ *
+ * [NIGHT_BEFORE] is deliberately NOT offered for a daily schedule: "tomorrow is creatine day"
+ * is noise, while "tomorrow is injection day" is information. The rung's whole value is that
+ * it names an exception.
+ */
+enum class ReminderLead(val label: String) {
+    /** The evening before, at the same moment the plan-tomorrow nudge lands (NOTIF-04). */
+    NIGHT_BEFORE("Night before"),
+
+    /** Thirty minutes ahead — travel, warm-up, preparation. */
+    THIRTY_MIN("30 min before"),
+
+    /** The moment itself. */
+    AT_TIME("At time"),
+    ;
+
+    companion object {
+        /** What a newly-scheduled item arms when the user has not said otherwise. */
+        val DEFAULT: Set<ReminderLead> = entries.toSet()
+
+        /** Read a stored rung back, dropping anything a future build wrote (never throws). */
+        fun of(name: String): ReminderLead? = entries.firstOrNull { it.name == name }
+    }
 }
 
 /**
@@ -85,13 +130,54 @@ data class MealReminder(
     val time: LocalTime,
     val mode: ReminderMode,
     val eventTime: LocalTime = time,
+    /**
+     * The date this fires on, for reminders that are NOT daily (SUPP-12/WORK-06).
+     *
+     * Null keeps the original meaning and the original behaviour: a time of day, armed at its
+     * next occurrence — today if it has not passed, otherwise tomorrow. Meals, water and the
+     * nudge are all of that kind and stay untouched.
+     *
+     * A Monday-and-Thursday dose is not. "Next occurrence of 08:00" would ring it every
+     * morning, so those reminders carry the exact date they belong to and the scheduler arms
+     * that instant rather than guessing one from the clock.
+     */
+    val onDate: LocalDate? = null,
 ) {
     val key: String
         get() = when (target) {
             is ReminderTarget.Meal -> "meal_${target.slot.name}"
             is ReminderTarget.Water -> "water_${target.index}"
             is ReminderTarget.PlanTomorrow -> "plan_tomorrow"
+            // The id and the rung both ride the key: three rungs of the same dose are three
+            // separate alarms that must be replaceable and cancellable independently.
+            is ReminderTarget.Supplement -> "supp_${target.id}_${target.lead.name}"
+            is ReminderTarget.Workout -> "workout_${target.day.name}_${target.lead.name}"
         }
+
+    /** Which channel this posts to (NOTIF-09) — decided here, so it is testable without an OS. */
+    val channel: ReminderChannel
+        get() = when (target) {
+            is ReminderTarget.Supplement -> ReminderChannel.SUPPLEMENTS
+            is ReminderTarget.Workout -> ReminderChannel.WORKOUTS
+            else -> ReminderChannel.MEALS
+        }
+}
+
+/**
+ * The notification channels the app posts to (NOTIF-09).
+ *
+ * Three, not one, because the OS channel IS the off switch this app deliberately offers
+ * instead of building its own (NOTIF-07) — and a single channel makes that switch useless:
+ * silencing evening training nudges would silence every meal reminder with them.
+ *
+ * A domain enum rather than a string in the Android scheduler, so "each family has its own
+ * channel" is a claim a pure test can hold the app to. The platform maps these to real channel
+ * ids; the DECISION lives here.
+ */
+enum class ReminderChannel(val id: String, val displayName: String, val description: String) {
+    MEALS("meal_reminders", "Meal reminders", "Your six meals and the water between them."),
+    SUPPLEMENTS("supplement_reminders", "Supplement reminders", "Doses that are not due every day."),
+    WORKOUTS("workout_reminders", "Workout reminders", "Your training week."),
 }
 
 /** [leadMinutes] before a slot time, clamped at midnight — never wrapped to yesterday. */
@@ -162,8 +248,165 @@ fun planTomorrowNudge(
     capability: ReminderCapability,
 ): MealReminder? {
     if (!tomorrowUnplanned) return null
-    val afterLastMeal = times[MealSlot.EVENING_SNACK].toSecondOfDay() +
-        PLAN_NUDGE_OFFSET_MINUTES * 60
-    val time = LocalTime.fromSecondOfDay(minOf(afterLastMeal, PLAN_NUDGE_LATEST.toSecondOfDay()))
-    return MealReminder(target = ReminderTarget.PlanTomorrow, time = time, mode = capability.mode)
+    return MealReminder(
+        target = ReminderTarget.PlanTomorrow,
+        time = times.eveningNudgeTime,
+        mode = capability.mode,
+    )
+}
+
+/**
+ * The evening moment this app uses to talk about TOMORROW (NOTIF-04, SUPP-12, WORK-06).
+ *
+ * [PLAN_NUDGE_OFFSET_MINUTES] after the evening snack, never later than [PLAN_NUDGE_LATEST] —
+ * derived from the user's own meal times like the water schedule (PLAN-09's discipline), so
+ * moving the evening snack moves it and there is no separate evening setting to keep in step.
+ *
+ * Extracted because the night-before rung of the reminder ladder needs exactly this instant.
+ * Two evening times — one for the plan nudge and one for "tomorrow is injection day" — would
+ * be two settings that drift apart and two notifications arriving minutes from each other.
+ */
+val MealTimes.eveningNudgeTime: LocalTime
+    get() {
+        val afterLastMeal = this[MealSlot.EVENING_SNACK].toSecondOfDay() +
+            PLAN_NUDGE_OFFSET_MINUTES * 60
+        return LocalTime.fromSecondOfDay(minOf(afterLastMeal, PLAN_NUDGE_LATEST.toSecondOfDay()))
+    }
+
+/** The lead the middle rung of the ladder fires at (SUPP-12/WORK-06). */
+const val SHORT_LEAD_MINUTES: Int = 30
+
+/**
+ * The next moment [lead] fires for something due on [dueDates], strictly after [now].
+ *
+ * The heart of the non-daily ladder, and pure: given a way to enumerate due dates it answers
+ * *when does this ring next*, with no clock, no alarm manager and no storage. Three things it
+ * has to get right, each of which is a bug if it does not:
+ *
+ * - **Strictly after now.** An alarm armed in the past either fires instantly or never; both
+ *   look like a broken app. A rung whose moment has already passed today rolls to the next
+ *   due date rather than being dropped, so a dose taken every Monday still has a Monday
+ *   reminder after Monday lunchtime — it is just next Monday's.
+ * - **Already satisfied days are skipped.** [satisfied] holds the dates whose dose is taken or
+ *   whose session is done; a reminder for something already finished is pure noise.
+ * - **The night-before rung fires on the day BEFORE.** Which means it can also already have
+ *   passed even when the due date has not, and the same roll-forward applies.
+ *
+ * Returns null when nothing in the lookahead window qualifies — an empty weekday set, or a
+ * schedule whose only remaining occurrences are all satisfied.
+ */
+private fun nextFire(
+    dueDates: List<LocalDate>,
+    lead: ReminderLead,
+    remindAt: LocalTime,
+    nightBefore: LocalTime,
+    now: LocalDateTime,
+    satisfied: Set<LocalDate>,
+): LocalDateTime? = dueDates
+    .asSequence()
+    .filter { it !in satisfied }
+    .mapNotNull { due ->
+        when (lead) {
+            ReminderLead.AT_TIME -> LocalDateTime(due, remindAt)
+            ReminderLead.THIRTY_MIN -> LocalDateTime(due, remindAt.minusPrepLead(SHORT_LEAD_MINUTES))
+            ReminderLead.NIGHT_BEFORE -> LocalDateTime(due.minus(1, DateTimeUnit.DAY), nightBefore)
+        }
+    }
+    .firstOrNull { it > now }
+
+/** Every date this schedule falls due within the lookahead window, in order. */
+private fun SupplementSchedule.dueDatesFrom(from: LocalDate): List<LocalDate> {
+    if (this is SupplementSchedule.OnDays && days.isEmpty()) return emptyList()
+    // Two full cadences of lookahead: enough that the night-before rung of the SECOND
+    // occurrence is reachable when the first is already taken, which is the case that decides
+    // whether a Monday/Thursday dose still reminds after Monday's is ticked.
+    return (0 until DUE_LOOKAHEAD_DAYS)
+        .map { from.plus(it, DateTimeUnit.DAY) }
+        .filter { isDueOn(it) }
+}
+
+private const val DUE_LOOKAHEAD_DAYS = 30
+
+/**
+ * The reminders a supplement stack should currently have armed (SUPP-12).
+ *
+ * One [MealReminder] per (supplement, rung), each carrying the exact date it fires on. Only
+ * supplements with a [Supplement.remindAt] and at least one rung produce anything; a stack
+ * where nobody set a time arms nothing, which is the correct behaviour and not a failure.
+ *
+ * [ReminderLead.NIGHT_BEFORE] is dropped for [SupplementSchedule.Daily] here rather than only
+ * being hidden in the editor — a stored rung from a schedule that later became daily must not
+ * keep ringing every single evening.
+ *
+ * Denied notifications still produce the full list carrying [ReminderMode.UNAVAILABLE], for
+ * the same honesty [remindersFor] keeps: the list is what the app INTENDS, so a surface can
+ * say plainly that reminders are off instead of rendering an empty schedule.
+ */
+fun supplementReminders(
+    stack: List<Supplement>,
+    today: LocalDate,
+    now: LocalTime,
+    nightBefore: LocalTime,
+    capability: ReminderCapability,
+    takenToday: Set<String> = emptySet(),
+): List<MealReminder> {
+    val mode = capability.mode
+    val nowAt = LocalDateTime(today, now)
+    return stack.flatMap { supplement ->
+        val at = supplement.remindAt ?: return@flatMap emptyList()
+        val dueDates = supplement.schedule.dueDatesFrom(today)
+        // Today's dose is already swallowed — skip today's rungs, keep the next occurrence's.
+        val satisfied = if (supplement.id in takenToday) setOf(today) else emptySet()
+        supplement.leads
+            .filterNot { it == ReminderLead.NIGHT_BEFORE && supplement.schedule is SupplementSchedule.Daily }
+            .mapNotNull { lead ->
+                nextFire(dueDates, lead, at, nightBefore, nowAt, satisfied)?.let { fire ->
+                    MealReminder(
+                        target = ReminderTarget.Supplement(supplement.id, lead),
+                        time = fire.time,
+                        mode = mode,
+                        eventTime = at,
+                        onDate = fire.date,
+                    )
+                }
+            }
+    }
+}
+
+/**
+ * The reminders a training week should currently have armed (WORK-06).
+ *
+ * The weekday IS the schedule, so each training day is read as a one-day
+ * [SupplementSchedule.OnDays] and run through the same [nextFire] the stack uses — one
+ * policy, so "night before" cannot come to mean two different moments in two features.
+ *
+ * [doneDates] silences a session already marked done, exactly as a taken dose is silenced.
+ */
+fun workoutReminders(
+    week: WorkoutWeek,
+    today: LocalDate,
+    now: LocalTime,
+    nightBefore: LocalTime,
+    capability: ReminderCapability,
+    doneDates: Set<LocalDate> = emptySet(),
+): List<MealReminder> {
+    val mode = capability.mode
+    val nowAt = LocalDateTime(today, now)
+    return DayOfWeek.entries.flatMap { day ->
+        val plan = week[day]
+        val at = plan.remindAt ?: return@flatMap emptyList()
+        if (!plan.isTraining) return@flatMap emptyList()
+        val dueDates = SupplementSchedule.OnDays(setOf(day)).dueDatesFrom(today)
+        plan.leads.mapNotNull { lead ->
+            nextFire(dueDates, lead, at, nightBefore, nowAt, doneDates)?.let { fire ->
+                MealReminder(
+                    target = ReminderTarget.Workout(day, lead),
+                    time = fire.time,
+                    mode = mode,
+                    eventTime = at,
+                    onDate = fire.date,
+                )
+            }
+        }
+    }
 }

@@ -96,3 +96,12 @@
 {"at":"2026-08-03T20:10:26.631Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}
 {"at":"2026-08-03T20:11:30.531Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}
 {"at":"2026-08-04T18:26:13.327Z","verb":"approve","artifact":"feature-spec:notifications","hash":"e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac","via":"console"}
+{"at":"2026-08-04T19:41:26.206Z","verb":"accept","artifact":"feature-brief:bfl-catalog"}
+{"at":"2026-08-04T19:41:35.411Z","verb":"accept","artifact":"feature-brief:daily-journeys"}
+{"at":"2026-08-04T19:41:41.900Z","verb":"accept","artifact":"feature-brief:dated-goals"}
+{"at":"2026-08-04T19:41:43.750Z","verb":"accept","artifact":"feature-brief:first-run"}
+{"at":"2026-08-04T19:41:47.183Z","verb":"accept","artifact":"feature-brief:history"}
+{"at":"2026-08-04T19:42:00.125Z","verb":"accept","artifact":"feature-brief:notifications"}
+{"at":"2026-08-04T19:42:03.029Z","verb":"accept","artifact":"feature-brief:personalization"}
+{"at":"2026-08-04T19:42:09.279Z","verb":"accept","artifact":"feature-brief:settings"}
+{"at":"2026-08-04T19:42:11.781Z","verb":"accept","artifact":"feature-brief:usability-pass"}

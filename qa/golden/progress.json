@@ -14,6 +14,36 @@
         {"text": "2085"},
         {"text": "avg kcal"}
       ]},
+      {"tag": "week_training", "children": [
+        {"text": "4"},
+        {"text": "of 6 workouts this week"},
+        {"tag": "week_training_2026-07-16", "children": [
+          {"role": "Image", "contentDescription": "Trained"}
+        ]},
+        {"text": "T"},
+        {"tag": "week_training_2026-07-17", "children": [
+          {"role": "Image", "contentDescription": "Trained"}
+        ]},
+        {"text": "F"},
+        {"tag": "week_training_2026-07-18", "children": [
+          {"text": "—"}
+        ]},
+        {"text": "S"},
+        {"tag": "week_training_2026-07-19", "children": [
+          {"text": "R"}
+        ]},
+        {"text": "S"},
+        {"tag": "week_training_2026-07-20", "children": [
+          {"role": "Image", "contentDescription": "Trained"}
+        ]},
+        {"text": "M"},
+        {"tag": "week_training_2026-07-21", "children": [
+          {"role": "Image", "contentDescription": "Trained"}
+        ]},
+        {"text": "T"},
+        {"tag": "week_training_2026-07-22"},
+        {"text": "W"}
+      ]},
       {"tag": "trend_label", "text": "THE LAST 4 WEEKS"},
       {"tag": "trend_card", "children": [
         {"tag": "trend_week_2026-06-25", "children": [
@@ -58,7 +88,9 @@
         {"text": "WATER"},
         {"text": " 3.0 L"},
         {"text": "VEG"},
-        {"text": " 2"}
+        {"text": " 2"},
+        {"text": "TRAINED"},
+        {"text": " Yes"}
       ]},
       {"tag": "week_day_2026-07-17", "children": [
         {"text": "Fri 17"},
@@ -70,7 +102,9 @@
         {"text": "WATER"},
         {"text": " 2.5 L"},
         {"text": "VEG"},
-        {"text": " 2"}
+        {"text": " 2"},
+        {"text": "TRAINED"},
+        {"text": " Yes"}
       ]},
       {"tag": "week_day_2026-07-18", "children": [
         {"text": "Sat 18"},
@@ -82,7 +116,9 @@
         {"text": "WATER"},
         {"text": " 3.0 L"},
         {"text": "VEG"},
-        {"text": " 3"}
+        {"text": " 3"},
+        {"text": "TRAINED"},
+        {"text": " —"}
       ]},
       {"tag": "week_day_2026-07-19", "children": [
         {"text": "Sun 19"},
@@ -106,7 +142,9 @@
         {"text": "WATER"},
         {"text": " 2.5 L"},
         {"text": "VEG"},
-        {"text": " 2"}
+        {"text": " 2"},
+        {"text": "TRAINED"},
+        {"text": " Yes"}
       ]},
       {"tag": "week_day_2026-07-21", "children": [
         {"text": "Tue 21"},
@@ -118,7 +156,9 @@
         {"text": "WATER"},
         {"text": " 3.0 L"},
         {"text": "VEG"},
-        {"text": " 2"}
+        {"text": " 2"},
+        {"text": "TRAINED"},
+        {"text": " Yes"}
       ]},
       {"tag": "week_day_2026-07-22", "children": [
         {"text": "Today"},
@@ -130,7 +170,9 @@
         {"text": "WATER"},
         {"text": " 1.0 L"},
         {"text": "VEG"},
-        {"text": " 1"}
+        {"text": " 1"},
+        {"text": "TRAINED"},
+        {"text": " —"}
       ]}
     ]}
   ]}

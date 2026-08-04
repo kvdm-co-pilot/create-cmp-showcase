@@ -28,3 +28,44 @@
   same reason).
 - **SUPP-06** — Given the Supplements screen renders, When its structure is inspected, Then it
   matches its committed golden tree (`qa/golden/supplements.json`).
+
+## Not every day (brief: [`docs/features/supplement-schedules.md`](../docs/features/supplement-schedules.md))
+
+> SUPP-01's stack was daily by construction. Injection protocols are not: a testosterone dose
+> on Mondays and Thursdays, a pen every other day. These clauses make the stack non-daily
+> without making the common case cost anything — a daily vitamin's row is unchanged.
+
+- **SUPP-08** — Given a supplement, Then it carries a schedule from a CLOSED set — every day,
+  fixed weekdays, or every N days from an anchor — and whether it is due on a date is
+  **derived** from that schedule, never stored. There is no due-today column and no nightly
+  job, so nothing can be stale when the app is opened after a week away (PLAN-02/MEAL-02's
+  discipline). A missed dose does **not** move an every-N-days anchor: the cadence is a
+  property of the protocol, not of compliance with it, and a schedule that cannot be
+  re-derived from its own definition is one that drifts.
+- **SUPP-09** — Given the Supplements screen on a logical day, Then the stack splits: what is
+  due today is grouped by timing as before and is the ONLY thing the summary counts ("N of M
+  **due today** taken"), and what is not due is listed separately (`supplements_resting`) with
+  its schedule and the date it next comes round — visible, dated, and with no take control.
+  An off-day dose must never read as one that was missed; and "did I take it, or is it not a
+  dose day?" is the exact question a Mon/Thu injection creates, which a date answers and an
+  absence does not. Taking a dose off-schedule is a decision made in the editor, not a mis-tap
+  on the screen opened every morning.
+- **SUPP-10** — Given a supplement whose schedule is every day, Then its row renders exactly as
+  it did before schedules existed — no schedule caption, no extra control. The feature costs
+  the common case nothing.
+- **SUPP-11** — Given a stored schedule that cannot be read — a kind this build does not know,
+  a malformed anchor — Then it reads as daily rather than throwing, on the same principle as
+  SET-06's timing fallback. Daily is the safe fallback specifically because it OVER-shows: a
+  dose appearing on a day it is not due is visible and correctable, where silently never
+  appearing again is neither.
+- **SUPP-12** — Given a supplement with a reminder time and at least one armed rung, Then the
+  armed set carries that rung on the schedule's own due DATES — night before (at the same
+  evening moment the plan-tomorrow nudge uses, NOTIF-04, so there is no second evening setting
+  to keep in step), thirty minutes before, and at the time. The night-before rung is neither
+  offered nor armed for a daily schedule: "tomorrow is creatine day" is noise, and the rung's
+  whole value is that it names an exception. A dose already taken today arms nothing further
+  for today; saving or deleting a supplement re-arms immediately, since a deleted row leaves
+  nothing behind to derive a cancellation from.
+- **SUPP-13** — Given a supplement is saved with a time but no rungs, or rungs but no time,
+  Then it is stored with neither. Half a reminder is one that never fires while the row still
+  claims it will.

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.Supplement
@@ -88,6 +89,10 @@ class SupplementRepositoryImpl(
 
     override suspend fun delete(id: String): AppResult<Unit> = suspendRunCatching {
         dao.deleteById(id)
+    }
+
+    override suspend fun takenOn(date: LocalDate): AppResult<Set<String>> = suspendRunCatching {
+        dao.takenOn(date.toString()).map { it.supplementId }.toSet()
     }
 
     /** Seed the stack on first run so the app ships with content offline (idempotent). */

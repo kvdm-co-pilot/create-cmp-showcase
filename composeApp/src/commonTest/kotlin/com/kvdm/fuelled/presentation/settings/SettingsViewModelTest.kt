@@ -6,6 +6,8 @@ import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.model.UnitSystem
 import com.kvdm.fuelled.domain.usecase.ArmMealRemindersUseCase
 import com.kvdm.fuelled.domain.usecase.DeleteSupplementUseCase
+import com.kvdm.fuelled.domain.usecase.SaveWorkoutDayUseCase
+import com.kvdm.fuelled.testing.fakes.FakeWorkoutRepository
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.ObserveAppStateUseCase
 import com.kvdm.fuelled.domain.usecase.SaveSupplementUseCase
@@ -48,6 +50,8 @@ class SettingsViewModelTest {
     private val plan = FakeMealPlanRepository(FakeTimeSignal(TEST_NOW), TEST_ZONE)
     private val scheduler = FakeReminderScheduler()
 
+    private val workouts = FakeWorkoutRepository()
+
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
 
@@ -61,6 +65,8 @@ class SettingsViewModelTest {
         setPrepLead = SetPrepLeadUseCase(appState, ArmMealRemindersUseCase(plan, scheduler, appState, TomorrowUnplannedUseCase(plan, FakeTimeSignal(TEST_NOW), TEST_ZONE))),
         saveSupplement = SaveSupplementUseCase(supplements),
         deleteSupplement = DeleteSupplementUseCase(supplements),
+        saveWorkoutDay = SaveWorkoutDayUseCase(workouts),
+        workouts = workouts,
     )
 
     private fun content(vm: SettingsViewModel): SettingsUi =
@@ -90,15 +96,15 @@ class SettingsViewModelTest {
             keepCollecting(vm.state)
             advanceUntilIdle()
 
-            vm.onSaveSupplement("s-9", "Zinc", "25 mg", SupplementTiming.EVENING)
+            vm.onSaveSupplement(Supplement("s-9", "Zinc", "25 mg", SupplementTiming.EVENING, taken = false))
             advanceUntilIdle()
             assertEquals(1, supplements.saves.size)
             assertEquals("Zinc", supplements.saves.single().name)
             assertEquals(SupplementTiming.EVENING, supplements.saves.single().timing)
             assertTrue(content(vm).stack.any { it.name == "Zinc" }, "it is in the stack, observed")
 
-            vm.onSaveSupplement("s-10", "   ", "25 mg", SupplementTiming.MORNING)
-            vm.onSaveSupplement("s-11", "Zinc", "", SupplementTiming.MORNING)
+            vm.onSaveSupplement(Supplement("s-10", "   ", "25 mg", SupplementTiming.MORNING, taken = false))
+            vm.onSaveSupplement(Supplement("s-11", "Zinc", "", SupplementTiming.MORNING, taken = false))
             advanceUntilIdle()
             assertEquals(1, supplements.saves.size, "a nameless or doseless supplement is refused before the write")
         }
@@ -112,7 +118,7 @@ class SettingsViewModelTest {
             keepCollecting(vm.state)
             advanceUntilIdle()
 
-            vm.onSaveSupplement("1", "Creatine mono", "10 g", SupplementTiming.PRE_WORKOUT)
+            vm.onSaveSupplement(Supplement("1", "Creatine mono", "10 g", SupplementTiming.PRE_WORKOUT, taken = false))
             advanceUntilIdle()
             assertEquals(1, content(vm).stack.size, "a re-save of the same id corrects, never twins")
             assertEquals("Creatine mono", content(vm).stack.single().name)

@@ -20,12 +20,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,9 +41,21 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.AppSettings
 import com.kvdm.fuelled.domain.model.PREP_LEAD_CHOICES
+import com.kvdm.fuelled.domain.model.ReminderLead
 import com.kvdm.fuelled.domain.model.Supplement
+import com.kvdm.fuelled.domain.model.SupplementSchedule
 import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.model.UnitSystem
+import com.kvdm.fuelled.domain.model.WorkoutDayPlan
+import com.kvdm.fuelled.domain.model.WorkoutWeek
+import com.kvdm.fuelled.domain.model.label
+import com.kvdm.fuelled.domain.model.shortLabel
+import kotlin.time.Clock
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppIconButton
@@ -60,12 +75,27 @@ import org.koin.compose.viewmodel.koinViewModel
 data class SettingsUi(
     val settings: AppSettings = AppSettings(),
     val stack: List<Supplement> = sampleStack,
+    /** WORK-07: the training week, shaped here beside the stack. */
+    val week: WorkoutWeek = WorkoutWeek.DEFAULT,
 )
 
-/** PREVIEW/DEMO fixture — a realistic stack across three of the four timings. */
+/**
+ * PREVIEW/DEMO fixture — a realistic stack across three of the four timings, including one
+ * SCHEDULED row so the editor's second branch renders in the gallery.
+ */
 val sampleStack: List<Supplement> = listOf(
     Supplement("1", "Creatine", "5 g", SupplementTiming.MORNING, taken = false),
     Supplement("2", "Vitamin D3", "2000 IU", SupplementTiming.MORNING, taken = false),
+    Supplement(
+        id = "7",
+        name = "Testosterone",
+        dose = "100 mg",
+        timing = SupplementTiming.MORNING,
+        taken = false,
+        schedule = SupplementSchedule.OnDays(setOf(DayOfWeek.MONDAY, DayOfWeek.THURSDAY)),
+        remindAt = LocalTime(8, 0),
+        leads = ReminderLead.DEFAULT,
+    ),
     Supplement("4", "Caffeine", "200 mg", SupplementTiming.PRE_WORKOUT, taken = false),
     Supplement("6", "Magnesium", "400 mg", SupplementTiming.EVENING, taken = false),
 )
@@ -74,8 +104,11 @@ val sampleStack: List<Supplement> = listOf(
 data class SettingsActions(
     val onUnitSystem: (UnitSystem) -> Unit = {},
     val onPrepLead: (Int) -> Unit = {},
-    val onSaveSupplement: (String, String, String, SupplementTiming) -> Unit = { _, _, _, _ -> },
+    /** SET-04/SUPP-08/SUPP-12: one save carries the whole row, schedule and ladder included. */
+    val onSaveSupplement: (Supplement) -> Unit = {},
     val onDeleteSupplement: (String) -> Unit = {},
+    /** WORK-07: set one day of the training week — label, time and rungs together. */
+    val onSaveWorkoutDay: (DayOfWeek, WorkoutDayPlan) -> Unit = { _, _ -> },
 )
 
 /** The VM-backed destination (`settings`, SET-01). */
@@ -94,6 +127,7 @@ fun SettingsRoute(
                 onPrepLead = viewModel::onPrepLead,
                 onSaveSupplement = viewModel::onSaveSupplement,
                 onDeleteSupplement = viewModel::onDeleteSupplement,
+                onSaveWorkoutDay = viewModel::onSaveWorkoutDay,
             ),
         )
     }
@@ -118,6 +152,9 @@ fun SettingsScreen(
                 onSave = actions.onSaveSupplement,
                 onDelete = actions.onDeleteSupplement,
             )
+            // WORK-07: the training week, beside the stack. Both are "the routine you keep",
+            // and splitting them across two screens would make one of them the forgotten one.
+            WorkoutWeekCard(week = ui.week, onSave = actions.onSaveWorkoutDay)
             Spacer(Modifier.padding(bottom = 8.dp))
         }
     }
@@ -191,7 +228,7 @@ private fun PrepLeadCard(current: Int, onSelect: (Int) -> Unit) {
 @Composable
 private fun StackCard(
     stack: List<Supplement>,
-    onSave: (String, String, String, SupplementTiming) -> Unit,
+    onSave: (Supplement) -> Unit,
     onDelete: (String) -> Unit,
 ) {
     // Which supplement's editor is open: an id, "" for the new-supplement form, or null for
@@ -212,7 +249,7 @@ private fun StackCard(
                     supplement = supplement,
                     editing = editing == supplement.id,
                     onToggleEdit = { editing = if (editing == supplement.id) null else supplement.id },
-                    onSave = { name, dose, t -> onSave(supplement.id, name, dose, t); editing = null },
+                    onSave = { edited -> onSave(edited.copy(id = supplement.id)); editing = null },
                     onDelete = { onDelete(supplement.id); editing = null },
                 )
             }
@@ -221,10 +258,10 @@ private fun StackCard(
         if (editing == NEW) {
             SupplementEditor(
                 initial = null,
-                onSave = { name, dose, timing ->
+                onSave = { edited ->
                     // SET-04: a client-minted id, so a double-tapped save replaces one row
                     // rather than creating twins (MEAL-05's reasoning).
-                    onSave(newSupplementId(stack), name, dose, timing)
+                    onSave(edited.copy(id = newSupplementId(stack)))
                     editing = null
                 },
                 onCancel = { editing = null },
@@ -245,7 +282,7 @@ private fun StackRow(
     supplement: Supplement,
     editing: Boolean,
     onToggleEdit: () -> Unit,
-    onSave: (String, String, SupplementTiming) -> Unit,
+    onSave: (Supplement) -> Unit,
     onDelete: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -263,7 +300,10 @@ private fun StackRow(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    supplement.dose,
+                    // SUPP-08: the collapsed row states the schedule, so a Mon/Thu dose is
+                    // recognisable without opening its editor.
+                    if (supplement.schedule is SupplementSchedule.Daily) supplement.dose
+                    else "${supplement.dose}  ·  ${supplement.schedule.label}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -295,7 +335,7 @@ private fun StackRow(
 @Composable
 private fun SupplementEditor(
     initial: Supplement?,
-    onSave: (String, String, SupplementTiming) -> Unit,
+    onSave: (Supplement) -> Unit,
     onCancel: () -> Unit,
     onDelete: (() -> Unit)?,
 ) {
@@ -303,6 +343,20 @@ private fun SupplementEditor(
     var dose by rememberSaveable(initial?.id) { mutableStateOf(initial?.dose ?: "") }
     var timing by rememberSaveable(initial?.id) {
         mutableStateOf(initial?.timing ?: SupplementTiming.MORNING)
+    }
+    // SUPP-08: the schedule is held as its three parts rather than as the sealed value, so
+    // switching branch and back does not lose the days you already picked. Only the branch in
+    // effect is read at save.
+    var kind by rememberSaveable(initial?.id) { mutableStateOf(initial?.schedule.kind()) }
+    var days by rememberSaveable(initial?.id, saver = daysSaver) {
+        mutableStateOf((initial?.schedule as? SupplementSchedule.OnDays)?.days ?: emptySet())
+    }
+    var cadence by rememberSaveable(initial?.id) {
+        mutableStateOf((initial?.schedule as? SupplementSchedule.EveryNDays)?.n ?: 2)
+    }
+    var remindAt by rememberSaveable(initial?.id) { mutableStateOf(initial?.remindAt?.clock() ?: "") }
+    var leads by rememberSaveable(initial?.id, saver = leadsSaver) {
+        mutableStateOf(initial?.leads ?: ReminderLead.DEFAULT)
     }
 
     Column(
@@ -330,6 +384,10 @@ private fun SupplementEditor(
             label = { Text("Dose") },
             modifier = Modifier.fillMaxWidth().semantics { testTag = "settings_supplement_dose" },
         )
+        // TIMING is when in the DAY. SCHEDULE, below, is which DAYS. Two questions, two rows —
+        // folding them together would make a Monday-only evening dose unrepresentable without
+        // a timing bucket per weekday (SUPP-08).
+        FieldLabel("Timing")
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -343,10 +401,112 @@ private fun SupplementEditor(
                 )
             }
         }
+
+        FieldLabel("Schedule")
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ScheduleKindChoice.entries.forEach { option ->
+                ChoicePill(
+                    label = option.label,
+                    selected = option == kind,
+                    tag = "settings_schedule_${option.name}",
+                    onClick = { kind = option },
+                )
+            }
+        }
+        when (kind) {
+            ScheduleKindChoice.DAILY -> Unit
+            ScheduleKindChoice.ON_DAYS -> Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                DayOfWeek.entries.forEach { day ->
+                    ChoicePill(
+                        label = day.shortLabel,
+                        selected = day in days,
+                        tag = "settings_day_${day.name}",
+                        onClick = { days = if (day in days) days - day else days + day },
+                    )
+                }
+            }
+            ScheduleKindChoice.EVERY_N_DAYS -> Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // AppIconButton, not a bare pill: these are 48dp-enforced, which the draft's
+                // hand-rolled steppers were not — the a11y audit caught exactly that.
+                AppIconButton(
+                    icon = Icons.Filled.Remove,
+                    contentDescription = "Fewer days between doses",
+                    onClick = { cadence = (cadence - 1).coerceIn(SupplementSchedule.CADENCE_RANGE) },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "settings_cadence_down" },
+                )
+                Text(
+                    "Every $cadence days",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.semantics { testTag = "settings_cadence" },
+                )
+                AppIconButton(
+                    icon = Icons.Filled.Add,
+                    contentDescription = "More days between doses",
+                    onClick = { cadence = (cadence + 1).coerceIn(SupplementSchedule.CADENCE_RANGE) },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.semantics { testTag = "settings_cadence_up" },
+                )
+            }
+        }
+
+        // SUPP-12: the ladder. Blank time = no reminders at all, which is the default for a
+        // new row — an alarm nobody asked for is how an app's notifications get switched off.
+        FieldLabel("Reminders")
+        OutlinedTextField(
+            value = remindAt,
+            onValueChange = { remindAt = it },
+            singleLine = true,
+            label = { Text("Time (HH:MM)") },
+            placeholder = { Text("08:00") },
+            modifier = Modifier.width(160.dp).semantics { testTag = "settings_supplement_time" },
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ReminderLead.entries.forEach { lead ->
+                // NIGHT_BEFORE is not offered on a daily schedule: "tomorrow is creatine day"
+                // is noise, and the rung's whole value is that it names an exception.
+                if (lead == ReminderLead.NIGHT_BEFORE && kind == ScheduleKindChoice.DAILY) return@forEach
+                ChoicePill(
+                    label = lead.label,
+                    selected = lead in leads,
+                    tag = "settings_lead_${lead.name}",
+                    onClick = { leads = if (lead in leads) leads - lead else leads + lead },
+                )
+            }
+        }
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppTextButton(
                 text = "Save",
-                onClick = { onSave(name, dose, timing) },
+                onClick = {
+                    onSave(
+                        Supplement(
+                            id = initial?.id.orEmpty(),
+                            name = name,
+                            dose = dose,
+                            timing = timing,
+                            // `taken` is a fact about today, owned by the dose table — never
+                            // written from the editor (SUPP-07).
+                            taken = initial?.taken ?: false,
+                            schedule = kind.build(days, cadence, initial?.schedule),
+                            remindAt = remindAt.parseClock(),
+                            leads = leads,
+                        ),
+                    )
+                },
                 modifier = Modifier.semantics { testTag = "settings_supplement_save" },
             )
             Spacer(Modifier.width(8.dp))
@@ -363,6 +523,236 @@ private fun SupplementEditor(
             }
         }
     }
+}
+
+// ── The training week (WORK-07) ─────────────────────────────────────────────────────────
+
+/**
+ * Seven rows, one per weekday, each opening the same editor — the accordion the stack uses.
+ *
+ * Always seven, never "the training days": a week is a grid (WORK-02), and hiding rest days
+ * would make "add Sunday back" a control that has to exist somewhere else.
+ */
+@Composable
+private fun WorkoutWeekCard(week: WorkoutWeek, onSave: (DayOfWeek, WorkoutDayPlan) -> Unit) {
+    var editing by rememberSaveable { mutableStateOf<String?>(null) }
+
+    SettingsCard(title = "Workout week", tag = "settings_week") {
+        DayOfWeek.entries.forEach { day ->
+            val plan = week[day]
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = AppButtonDefaults.MinTouchTarget)
+                        .semantics { testTag = "settings_workout_${day.name}" },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        day.name.lowercase().replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        plan.rowLabel(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (plan.isTraining) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    AppIconButton(
+                        icon = Icons.Filled.Edit,
+                        contentDescription = "Edit ${day.name.lowercase()}",
+                        onClick = { editing = if (editing == day.name) null else day.name },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.semantics { testTag = "settings_workout_edit_${day.name}" },
+                    )
+                }
+                if (editing == day.name) {
+                    WorkoutDayEditor(
+                        initial = plan,
+                        onSave = { onSave(day, it); editing = null },
+                        onCancel = { editing = null },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** "Upper body · 18:00", or "Rest" — the collapsed row's whole story. */
+private fun WorkoutDayPlan.rowLabel(): String = when {
+    !isTraining -> "Rest"
+    remindAt != null && leads.isNotEmpty() -> "$label  ·  ${remindAt.clock()}"
+    else -> label.orEmpty()
+}
+
+/**
+ * One day's plan: what it is, when to be reminded, and which rungs.
+ *
+ * The TIME is per day (WORK-07) — a weekday session after work and a Saturday morning session
+ * are the normal shape of a real week, and one time for all seven would be wrong on most of
+ * them. Clearing the label is how a day becomes a rest day; there is no separate "rest"
+ * control, because a training day with no name is not a thing.
+ */
+@Composable
+private fun WorkoutDayEditor(
+    initial: WorkoutDayPlan,
+    onSave: (WorkoutDayPlan) -> Unit,
+    onCancel: () -> Unit,
+) {
+    var label by rememberSaveable { mutableStateOf(initial.label.orEmpty()) }
+    var time by rememberSaveable { mutableStateOf(initial.remindAt?.clock() ?: "") }
+    var leads by rememberSaveable(saver = leadsSaver) {
+        mutableStateOf(initial.leads.ifEmpty { ReminderLead.DEFAULT })
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(12.dp)
+            .semantics { testTag = "settings_workout_editor" },
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        OutlinedTextField(
+            value = label,
+            onValueChange = { label = it },
+            singleLine = true,
+            label = { Text("Session") },
+            placeholder = { Text("Leave empty for a rest day") },
+            modifier = Modifier.fillMaxWidth().semantics { testTag = "settings_workout_label" },
+        )
+        OutlinedTextField(
+            value = time,
+            onValueChange = { time = it },
+            singleLine = true,
+            label = { Text("Time (HH:MM)") },
+            placeholder = { Text("18:00") },
+            modifier = Modifier.width(160.dp).semantics { testTag = "settings_workout_time" },
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // The SAME three rungs the stack offers — one reminder vocabulary across the app.
+            ReminderLead.entries.forEach { lead ->
+                ChoicePill(
+                    label = lead.label,
+                    selected = lead in leads,
+                    tag = "settings_workout_lead_${lead.name}",
+                    onClick = { leads = if (lead in leads) leads - lead else leads + lead },
+                )
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AppTextButton(
+                text = "Save",
+                onClick = {
+                    onSave(
+                        WorkoutDayPlan(
+                            label = label.trim().ifBlank { null },
+                            remindAt = time.parseClock(),
+                            leads = leads,
+                        ),
+                    )
+                },
+                modifier = Modifier.semantics { testTag = "settings_workout_save" },
+            )
+            Spacer(Modifier.width(8.dp))
+            AppTextButton(text = "Cancel", onClick = onCancel)
+        }
+    }
+}
+
+// ── Editor helpers (SUPP-08/SUPP-12/WORK-07) ────────────────────────────────────────────
+
+/** The editor's schedule branches — the sealed hierarchy as a flat, pickable choice. */
+private enum class ScheduleKindChoice(val label: String) {
+    DAILY("Daily"),
+    ON_DAYS("Days of week"),
+    EVERY_N_DAYS("Every N days"),
+}
+
+private fun SupplementSchedule?.kind(): ScheduleKindChoice = when (this) {
+    is SupplementSchedule.OnDays -> ScheduleKindChoice.ON_DAYS
+    is SupplementSchedule.EveryNDays -> ScheduleKindChoice.EVERY_N_DAYS
+    else -> ScheduleKindChoice.DAILY
+}
+
+/**
+ * Rebuild the sealed schedule from the branch in effect.
+ *
+ * A cadence keeps its ORIGINAL anchor when one already exists: re-saving a name typo must not
+ * silently restart an every-other-day cycle from today, which would move every future dose by
+ * a day. Only a schedule that was not already a cadence gets today as its anchor.
+ */
+private fun ScheduleKindChoice.build(
+    days: Set<DayOfWeek>,
+    cadence: Int,
+    previous: SupplementSchedule?,
+): SupplementSchedule = when (this) {
+    ScheduleKindChoice.DAILY -> SupplementSchedule.Daily
+    ScheduleKindChoice.ON_DAYS -> SupplementSchedule.OnDays(days)
+    ScheduleKindChoice.EVERY_N_DAYS -> SupplementSchedule.EveryNDays(
+        n = cadence,
+        anchor = (previous as? SupplementSchedule.EveryNDays)?.anchor ?: todayForAnchor(),
+    )
+}
+
+/**
+ * The anchor a NEW cadence starts from.
+ *
+ * Reads the system clock directly — the one place in this screen that does. The editor is
+ * stateless by design and takes no clock, and threading a TimeSignal through three composables
+ * to stamp one date on save would buy nothing testable: what the tests assert is that an
+ * EXISTING anchor survives a re-save, which is the branch above.
+ */
+private fun todayForAnchor(): LocalDate =
+    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+/** "08:00" — the one clock format both editors read and write. */
+private fun LocalTime.clock(): String =
+    "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+
+/**
+ * Parse "08:00", or null for anything else — including empty, which IS the way to say "no
+ * reminders". Deliberately forgiving rather than validating: a half-typed "8:" while the user
+ * is still going means no alarm yet, not an error banner.
+ */
+private fun String.parseClock(): LocalTime? {
+    val parts = trim().split(':')
+    if (parts.size != 2) return null
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+    if (hour !in 0..23 || minute !in 0..59) return null
+    return LocalTime(hour, minute)
+}
+
+/** rememberSaveable needs an explicit saver for a Set — stored as the CSV the DB uses. */
+private val leadsSaver: Saver<MutableState<Set<ReminderLead>>, String> = Saver(
+    save = { it.value.joinToString(",") { lead -> lead.name } },
+    restore = { csv -> mutableStateOf(csv.split(',').mapNotNull(ReminderLead::of).toSet()) },
+)
+
+private val daysSaver: Saver<MutableState<Set<DayOfWeek>>, String> = Saver(
+    save = { it.value.joinToString(",") { day -> day.name } },
+    restore = { csv ->
+        mutableStateOf(
+            csv.split(',').mapNotNull { name -> DayOfWeek.entries.firstOrNull { it.name == name } }.toSet(),
+        )
+    },
+)
+
+/** A small caption above a field group — the editor's own section rule. */
+@Composable
+private fun FieldLabel(text: String) {
+    Text(
+        text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 // ── Shared bits ─────────────────────────────────────────────────────────────────────────

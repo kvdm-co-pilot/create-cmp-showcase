@@ -42,6 +42,15 @@
         {"role": "Image", "contentDescription": "Mark water 1 done"}
       ]}
     ]},
+    {"tag": "today_workout", "children": [
+      {"tag": "today_workout_label", "text": "Cardio"},
+      {"text": "Today's training"},
+      {"tag": "today_workout_done", "role": "Button", "children": [
+        {"children": [
+          {"role": "Image", "contentDescription": "Mark done"}
+        ]}
+      ]}
+    ]},
     {"tag": "today_plan_link", "children": [
       {"text": "This week"},
       {"text": "Plan the week — all six meals, every day"}

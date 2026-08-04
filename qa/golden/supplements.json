@@ -1,10 +1,10 @@
 {"children": [
   {"tag": "supplements_screen", "children": [
     {"tag": "supplements_title", "text": "Supplements"},
-    {"text": "Today's stack"},
+    {"tag": "supplements_day", "text": "Due Tuesday 4 Aug"},
     {"tag": "supplements_summary", "children": [
       {"text": "1"},
-      {"text": "of 3 taken"}
+      {"text": "of 3 due today taken"}
     ]},
     {"text": "MORNING"},
     {"children": [
