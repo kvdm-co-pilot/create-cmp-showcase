@@ -5,6 +5,8 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] — the reminders arrive
+
 ### Added
 - **Notifications actually reach the device now** (`docs/features/notifications.md`,
   `specs/notifications.spec.md` NOTIF-01..07). The meal and water reminders had shipped
@@ -19,6 +21,30 @@ versioning: [SemVer](https://semver.org/).
   anything for tomorrow silences it instantly via the existing re-arm seams, and delivery
   re-checks emptiness so a nudge about a meanwhile-planned day is never posted. It fires
   every empty evening — the OS channel is the off switch.
+
+### Fixed
+- **The E2E smoke flow could not have passed on a clean device** — and nothing revealed it,
+  because `e2eSmoke` SKIPs whenever no device is attached, so release after release stepped
+  over it. Driven on a device for this release, it failed at step two and kept failing for
+  three more reasons, each a stale selector nobody had run:
+  - It asserted the shell on a fresh install, but `clearState` IS a fresh install, so the app
+    shows the first-run interview (START-01). The flow now proves that gate instead of
+    tripping over it: the interview is shown, skipping keeps the seeded defaults, and the
+    shell replaces it **in place** with no relaunch.
+  - Food ids became slugs when 0.4.0 replaced the eight invented foods with 59 USDA rows —
+    `foods_item_1` had been `foods_item_almonds` for a whole release. Selectors are now real
+    ids, never positions.
+  - The tray's picks are a LazyColumn over 59 foods, so only composed rows exist in the
+    semantics tree at all; a selector for a food below the fold is simply absent.
+  - `pressKey: Enter` did not dismiss the IME on Gboard/API 35 as the flow assumed, so the
+    keyboard covered the bottom bar and every assert against it failed on a working app.
+- **The first-run interview was invisible to every id-based automation tool.** START-01 is a
+  gate ABOVE the nav graph, and `exposeTestTagsForAutomation` was applied only inside
+  `AppNavHost` — so uiautomator saw `android:id/content` and nothing else on the one screen a
+  fresh install always shows. Now exposed at the interview's own root, adding no layout node.
+
+This release's receipt is the first to carry **`on-device: tokenDrift+e2eSmoke`**: 0.2.0
+through 0.4.0 all shipped with both of those SKIPped.
 
 ## [0.4.0] — real food, and a week you can actually plan
 

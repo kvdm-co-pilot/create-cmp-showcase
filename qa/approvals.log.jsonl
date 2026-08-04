@@ -95,3 +95,4 @@
 {"at":"2026-08-03T19:30:47.752Z","verb":"approve","artifact":"feature-brief:notifications","hash":"50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c","via":"cli"}
 {"at":"2026-08-03T20:10:26.631Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}
 {"at":"2026-08-03T20:11:30.531Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"cli"}
+{"at":"2026-08-04T18:26:13.327Z","verb":"approve","artifact":"feature-spec:notifications","hash":"e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac","via":"console"}

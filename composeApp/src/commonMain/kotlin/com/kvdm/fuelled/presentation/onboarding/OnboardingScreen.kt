@@ -28,6 +28,7 @@ import com.kvdm.fuelled.presentation.brand.FuelledWordmark
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
 import org.koin.compose.viewmodel.koinViewModel
@@ -65,6 +66,13 @@ fun OnboardingScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp)
+                // START-01 is a GATE above the nav graph (see App.kt), so this subtree never
+                // passes through AppNavHost — which is the one place the automation exposure
+                // was applied. Without this the interview's tags reach no id-based E2E tool at
+                // all: uiautomator saw only `android:id/content`, and the smoke flow could not
+                // select the very screen a fresh install always shows. Expose here too; the
+                // modifier adds no layout node, so no golden tree moves.
+                .exposeTestTagsForAutomation()
                 .semantics { testTag = "onboarding_screen" },
             verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {

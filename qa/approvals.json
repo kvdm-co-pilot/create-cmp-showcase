@@ -269,6 +269,13 @@
       "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
       "approvedAt": "2026-08-03T20:11:30.530Z",
       "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:notifications",
+      "status": "approved",
+      "hash": "e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac",
+      "approvedAt": "2026-08-04T18:26:13.320Z",
+      "via": "console"
     }
   ],
   "exemplarFeature": "foods"
