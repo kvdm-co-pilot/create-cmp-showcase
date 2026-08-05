@@ -575,6 +575,23 @@ function stepE2eSmoke() {
   if (!install.ok) {
     return { name: "e2eSmoke", verdict: "FAIL", reason: "installDebug failed — the APK could not be installed on the attached device", durationMs: install.durationMs };
   }
+  // Let the device settle AFTER the install, before handing it to Maestro.
+  //
+  // `installDebug` returning 0 means the package manager accepted the APK, not that the
+  // device is ready to be driven. Reinstalling over a running app tears its process down and
+  // the emulator's adb transport goes briefly offline behind it — `adb devices` still reports
+  // `device`, but Maestro's own adb client (dadb) gets `device offline` and dies on its first
+  // `am force-stop`, before a single assertion runs. Observed here 4/4 whenever the live tier
+  // ran ahead of this step (its port-forward traffic widens the window) and never when it was
+  // skipped — a false red about the harness, not the app.
+  //
+  // wait-for-device is the specific cure and it blocks only as long as the transport is
+  // actually down. The kill/start pair ahead of it clears a server-side transport entry that
+  // stayed stale even once the device was back. Neither asserts anything nor hides anything:
+  // the flow still has to pass on its own merits.
+  sh("adb kill-server");
+  sh("adb start-server");
+  sh("adb wait-for-device");
   // Harden the device for headless/CI automation before driving it. Without this, a slow or
   // loaded emulator produces false reds that have nothing to do with the app:
   //  - hide_error_dialogs=1 stops Android popping ANR/crash dialogs (e.g. SystemUI under load)

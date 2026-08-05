@@ -10,8 +10,11 @@ import com.kvdm.fuelled.domain.model.SupplementTiming
 import com.kvdm.fuelled.domain.usecase.GetSupplementStackUseCase
 import com.kvdm.fuelled.domain.usecase.SetSupplementTakenUseCase
 import com.kvdm.fuelled.testing.StructuralTree
+import com.kvdm.fuelled.testing.TEST_NOW
+import com.kvdm.fuelled.testing.TEST_ZONE
 import com.kvdm.fuelled.testing.awaitNode
 import com.kvdm.fuelled.testing.fakes.FakeSupplementRepository
+import com.kvdm.fuelled.testing.fakes.FakeTimeSignal
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
@@ -47,6 +50,13 @@ class SupplementsGoldenTreeTest {
         val viewModel = SupplementsViewModel(
             GetSupplementStackUseCase(repository),
             SetSupplementTakenUseCase(repository),
+            // The clock is PINNED, not defaulted. SUPP-09 put the logical day on the screen
+            // (the "Wed 5 Aug" subtitle and the resting rows' next-due dates), so a VM built
+            // on its default RealTimeSignal renders a different tree every calendar day —
+            // a golden that passes when regenerated and fails by morning. Caught exactly that
+            // way: green at 23:xx, red on the next day's first run with nothing changed.
+            time = FakeTimeSignal(TEST_NOW),
+            zone = TEST_ZONE,
         )
 
         setContent {

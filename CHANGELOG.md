@@ -5,6 +5,77 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] — not every day, and the sixth pillar
+
+### ⚠️ Upgrading wipes local data
+Schema v14 → v15, destructive migrations as always: anything logged in an earlier build is
+gone. Deliberate for pre-1.0, and said here rather than after.
+
+### Added
+- **Supplements that are not due every day** (`docs/features/supplement-schedules.md`,
+  `specs/supplements.spec.md` SUPP-08..13). A dose can be daily, on fixed weekdays (Mon &
+  Thu), or every N days from an anchor. Due-ness is **derived** from the schedule on every
+  read — no stored flag, no nightly job, so nothing is stale when you open the app after a
+  week away. Off-day supplements are listed separately with the date they next come round,
+  and the summary counts only what is **due today**: an every-other-day pen can never read as
+  a dose you missed. A missed dose does not move the cadence — the anchor belongs to the
+  protocol, not to your compliance with it. A daily row renders exactly as it did before.
+- **A three-rung reminder ladder** (SUPP-12): night before, 30 minutes before, and at the
+  time, each independently switchable. The night-before rung lands at the same evening moment
+  the plan-tomorrow nudge uses, derived from your own meal times — one evening, not a second
+  setting to keep in step — and is never offered for a daily schedule, because "tomorrow is
+  creatine day" is noise. Notification copy deliberately omits the supplement's name: a lock
+  screen is readable by whoever is holding the phone.
+- **Workout tracking** (`docs/features/workouts.md`, `specs/workouts.spec.md` WORK-01..09).
+  Body-for-LIFE was always three disciplines and the day's verdict carried only two of them.
+  No new tab: **Today** gains a card with its own mark-done tick (absent entirely on a rest
+  day — rest is the plan working), **Progress** gains sessions-kept plus a seven-day strip
+  with four states (done / missed / today-pending / rest, because "not done" collapses three
+  facts that mean different things), and **Settings** gains the training week beside the
+  supplement stack with a **per-day** reminder time. Seeded to the classic split with no
+  alarms set. The plan and the done-marks are separate tables, so editing Wednesday to Rest
+  never rewrites the Wednesdays you already trained.
+
+### Fixed
+Auditing the notification path for the two new features turned up five defects in it — four
+latent since 0.3.0, none of which a green test suite was ever going to catch.
+
+- **Two reminders could share one alarm.** A `PendingIntent`'s identity is its request code
+  plus `Intent.filterEquals`, and `filterEquals` ignores extras — which was all these intents
+  differed by, so the whole identity rested on `key.hashCode()`. Safe while the keys were
+  thirteen compile-time constants; unsound the moment supplement ids became user-supplied
+  strings, where two colliding keys share a slot and the second silently overwrites the first.
+  Every alarm intent now carries a per-key `data` Uri. The same hash was the notification id,
+  so two notifications could collapse into one — the key is now the tag.
+- **A deleted supplement's alarms could never be cancelled.** `cancelAll()` enumerated a fixed
+  key list, and once a row was gone there was nothing left to derive its keys from. The armed
+  set is now recorded as it is armed, floored by the enumerable keys.
+- **Re-arming resurrected reminders for meals already eaten.** The arm defaulted "which slots
+  are done" to *none*, so every caller that did not have them to hand — the alarm receiver's
+  own re-arm, the boot receiver, the permission grant — asserted the day was untouched. It
+  reads them now.
+- **One notification channel for everything.** The OS channel is the off switch this app
+  deliberately offers instead of building its own (NOTIF-07), and a single channel made it
+  useless: silencing evening training nudges would have silenced every meal reminder with
+  them. Three channels now — meals/water, supplements, workouts (NOTIF-09).
+- **The delivery-time sanity check covered one reminder out of thirteen.** NOTIF-06 re-asked
+  "is tomorrow still unplanned?" when the nudge fired; nothing else re-asked anything, so a
+  dose swallowed at 07:30 still rang at 08:00. Generalised to every reminder (NOTIF-08),
+  keyed on the logical day the alarm is *about*. A question that cannot be answered — an
+  unrecognised key, a storage failure — still posts: silence is the worse failure, and "the
+  database would not open" is not evidence you took it.
+- **Lead-time reminders could arrive after the thing they warned about.** The inexact
+  scheduling window was an hour for everything, so a "30 minutes before" alarm could land half
+  an hour late. Lead rungs now get a 15-minute window and are dropped if delivered more than
+  20 minutes late (NOTIF-10).
+
+### Internal
+- **A golden baseline that expired overnight.** Putting the logical day on the Supplements
+  screen (SUPP-09) made its golden-tree test clock-dependent: the ViewModel's injected clock
+  defaults to the real one, so the committed structure was pinned to the calendar date it was
+  generated on. It passed the evening it was written and failed the next morning with nothing
+  changed. The test now pins the clock to the suite's fixed instant, like the other goldens.
+
 ## [0.5.0] — the reminders arrive
 
 ### Added

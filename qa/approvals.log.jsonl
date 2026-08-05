@@ -105,3 +105,9 @@
 {"at":"2026-08-04T19:42:03.029Z","verb":"accept","artifact":"feature-brief:personalization"}
 {"at":"2026-08-04T19:42:09.279Z","verb":"accept","artifact":"feature-brief:settings"}
 {"at":"2026-08-04T19:42:11.781Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-08-05T08:44:33.304Z","verb":"approve","artifact":"feature-brief:workouts","hash":"5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b","via":"cli"}
+{"at":"2026-08-05T11:32:05.892Z","verb":"approve","artifact":"feature-spec:workouts","hash":"eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7","via":"cli"}
+{"at":"2026-08-05T11:32:17.598Z","verb":"approve","artifact":"feature-brief:supplement-schedules","hash":"548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b","via":"console"}
+{"at":"2026-08-05T11:32:22.495Z","verb":"approve","artifact":"feature-design:settings","hash":"1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd","via":"console"}
+{"at":"2026-08-05T11:32:29.163Z","verb":"approve","artifact":"feature-spec:notifications","hash":"fa8c4184cdf7ce1a208b91ec2c6b716f121ef996d68117f11edf7a369d88a303","via":"console"}
+{"at":"2026-08-05T11:32:37.447Z","verb":"approve","artifact":"feature-spec:supplements","hash":"236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1","via":"console"}

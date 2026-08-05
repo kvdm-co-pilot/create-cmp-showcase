@@ -1,7 +1,7 @@
 {"children": [
   {"tag": "supplements_screen", "children": [
     {"tag": "supplements_title", "text": "Supplements"},
-    {"tag": "supplements_day", "text": "Due Tuesday 4 Aug"},
+    {"tag": "supplements_day", "text": "Due Wednesday 22 Jul"},
     {"tag": "supplements_summary", "children": [
       {"text": "1"},
       {"text": "of 3 due today taken"}

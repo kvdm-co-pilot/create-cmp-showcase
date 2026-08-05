@@ -178,13 +178,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-design:settings",
-      "status": "approved",
-      "hash": "6d5bdb22ec905c98f5221bebdf6555c8dee5c4228c8ace62e820d7abfb5d27af",
-      "approvedAt": "2026-08-02T07:24:21.299Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:entry-editing",
       "status": "approved",
       "hash": "c305c45cc9cefbdf88c46c1733121d0394d58a4469fc7e364ca6a29feaba6387",
@@ -203,13 +196,6 @@
       "status": "approved",
       "hash": "3cfae7a49f9cc42605c4a503d49e436cf01726532628aa7777017c324343208d",
       "approvedAt": "2026-08-02T07:24:21.607Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-spec:supplements",
-      "status": "approved",
-      "hash": "922bd4d0ae3e440937c479e1669cbe1b3cbe2099b47e54a13af2c0c854b483a1",
-      "approvedAt": "2026-08-02T07:24:21.683Z",
       "via": "cli"
     },
     {
@@ -289,10 +275,45 @@
       "via": "cli"
     },
     {
+      "artifact": "feature-brief:workouts",
+      "status": "approved",
+      "hash": "5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b",
+      "approvedAt": "2026-08-05T08:44:33.301Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:workouts",
+      "status": "approved",
+      "hash": "eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7",
+      "approvedAt": "2026-08-05T11:32:05.891Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-brief:supplement-schedules",
+      "status": "approved",
+      "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b",
+      "approvedAt": "2026-08-05T11:32:17.597Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "approved",
+      "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd",
+      "approvedAt": "2026-08-05T11:32:22.495Z",
+      "via": "console"
+    },
+    {
       "artifact": "feature-spec:notifications",
       "status": "approved",
-      "hash": "e6e8e7ca395d6b9b6ef387103ebc4aa438e6f469da432b1f17ba025c3c51c4ac",
-      "approvedAt": "2026-08-04T18:26:13.320Z",
+      "hash": "fa8c4184cdf7ce1a208b91ec2c6b716f121ef996d68117f11edf7a369d88a303",
+      "approvedAt": "2026-08-05T11:32:29.162Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:supplements",
+      "status": "approved",
+      "hash": "236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1",
+      "approvedAt": "2026-08-05T11:32:37.446Z",
       "via": "console"
     }
   ],
