@@ -4,72 +4,52 @@
   "mode": "fast",
   "verdict": "FAIL",
   "commit": {
-    "sha": "2ac67a83e3f086d3165c3aad5c25d1ec8b83b859",
+    "sha": "35fbe0508af6b1653632ad5fdb3cc7e1fc76dfcd",
     "dirty": [
-      ".claude/settings.json",
-      ".claude/settings.json.bak-upgrade",
-      ".claude/skills/add-feature/SKILL.md",
-      "CLAUDE.md",
-      "README.md",
-      "README.md.bak-upgrade",
-      "composeApp/build.gradle.kts",
-      "composeApp/src/androidDebug/AndroidManifest.xml",
-      "composeApp/src/androidDebug/AndroidManifest.xml.bak-upgrade",
-      "composeApp/src/androidInstrumentedTest/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/brand/BrandMark.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt.bak-upgrade",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppButton.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppButton.kt.bak-upgrade",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppIconButton.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ArchitectureConformanceTest.kt",
-      "docs/ARCHITECTURE.md",
-      "docs/TESTING.md",
-      "gradle/libs.versions.toml",
-      "gradle/libs.versions.toml.bak-upgrade",
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "qa/lib/affected-tests.mjs",
-      "qa/lib/audit-cadence.mjs",
-      "qa/lib/determinism.mjs",
-      "qa/lib/device-lease.mjs",
-      "qa/lib/evidence-badge.mjs",
-      "qa/lib/evidence-level.mjs",
-      "qa/lib/flight-recorder.mjs",
-      "qa/lib/inputs-hash.mjs",
-      "qa/lib/spec-coverage.mjs",
-      "qa/lib/step-cache.mjs",
-      "qa/receipt-check.mjs",
-      "qa/receipt-check.mjs.bak-upgrade",
-      "qa/record-audit.mjs",
-      "qa/retrospective.mjs",
-      "qa/scaffold-feature.mjs",
-      "qa/scaffold-feature.mjs.bak-upgrade",
-      "qa/verify.mjs",
-      "qa/watch.mjs",
-      "specs/app-base.spec.md"
+      "create-cmp.json",
+      "qa/harness.lock.json",
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "f51600b092544c9fb4001674c539669f9aaf328bc158a3e195f7ac0f48961714",
-    "fileCount": 427
+    "hash": "b86456f8e82362eb32c9ceb0ca705f4bc2455121fb8d60647859b9b56a2bc61b",
+    "fileCount": 425
   },
   "steps": [
     {
+      "name": "harnessIntegrity",
+      "durationMs": 8,
+      "harness": {
+        "status": "intact",
+        "name": "create-cmp-harness",
+        "version": "0.14.1",
+        "sha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
+        "recordedSha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
+        "modified": [],
+        "missing": [],
+        "extra": [],
+        "fileCount": 36
+      },
+      "verdict": "PASS",
+      "note": "create-cmp-harness 0.14.1 — 36 files verified"
+    },
+    {
       "name": "specCoverage",
-      "verdict": "CACHED",
-      "note": "unchanged since 2026-08-20T06:27:29.428Z",
-      "durationMs": 93,
+      "verdict": "PASS",
+      "durationMs": 32,
       "details": {
-        "inputsHash": "5198f32089b439945c60bbdc73c1175c5837c00b2b3e38c5572f80faadfd04e9"
+        "clauses": 169,
+        "withdrawn": 2,
+        "tags": 354,
+        "files": 286,
+        "tierNote": "164 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-02, FOODS-03, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-02, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-11, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SUPP-01, SUPP-02, SUPP-03, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-13, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-04, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "FAIL",
       "reason": "Approval invalidated — a governed artifact changed after sign-off:\n  [architecture] Architecture + structure (specs/app-base.spec.md + docs/ARCHITECTURE.md, generated sections stripped) — approved at 6478649e, now 4cd43e5c. Re-approve: node qa/approve.mjs architecture\n  [components] Components (presentation/components/*.kt) — approved at 85cab4bc, now 99535a97. Re-approve: node qa/approve.mjs components",
-      "durationMs": 24,
+      "durationMs": 22,
       "details": {
         "artifacts": [
           {
@@ -287,26 +267,117 @@
     },
     {
       "name": "componentStories",
-      "verdict": "CACHED",
-      "note": "unchanged since 2026-08-20T06:27:29.513Z",
-      "durationMs": 20,
+      "verdict": "PASS",
+      "durationMs": 3,
       "details": {
-        "inputsHash": "ca877d3e5dcd4af70548d3b7ed7e99b1008089ef6456ac7c563c43bc998c3a65"
+        "components": 20,
+        "stories": 20,
+        "missing": [],
+        "orphans": []
       }
     },
     {
       "name": "reachability",
-      "verdict": "CACHED",
-      "note": "unchanged since 2026-08-20T06:27:29.555Z",
-      "durationMs": 21,
+      "verdict": "PASS",
+      "durationMs": 14,
       "details": {
-        "inputsHash": "961fbcbaf74192afe6762a71b5f348e0cb6ff3d9f00e20d026ed28eac197e8ab"
+        "features": [
+          {
+            "name": "builder",
+            "reachable": true,
+            "entryComposables": [
+              "MealBuilderRoute",
+              "MealBuilderScreen"
+            ]
+          },
+          {
+            "name": "foods",
+            "reachable": true,
+            "entryComposables": [
+              "FoodDetailRoute",
+              "FoodDetailScreen",
+              "FoodEditorRoute",
+              "FoodEditorScreen",
+              "FoodsRoute",
+              "FoodsScreen"
+            ]
+          },
+          {
+            "name": "meal",
+            "reachable": true,
+            "entryComposables": [
+              "MealTrayRoute",
+              "MealTrayScreen"
+            ]
+          },
+          {
+            "name": "meal-plan",
+            "reachable": true,
+            "entryComposables": [
+              "MealPlanDayScreen",
+              "MealTimesScreen"
+            ]
+          },
+          {
+            "name": "navigation",
+            "reachable": true,
+            "entryComposables": []
+          },
+          {
+            "name": "onboarding",
+            "reachable": true,
+            "entryComposables": [
+              "OnboardingRoute",
+              "OnboardingScreen"
+            ]
+          },
+          {
+            "name": "profile",
+            "reachable": true,
+            "entryComposables": [
+              "ProfileRoute",
+              "ProfileScreen"
+            ]
+          },
+          {
+            "name": "progress",
+            "reachable": true,
+            "entryComposables": [
+              "ProgressRoute",
+              "ProgressScreen"
+            ]
+          },
+          {
+            "name": "settings",
+            "reachable": true,
+            "entryComposables": [
+              "SettingsRoute",
+              "SettingsScreen"
+            ]
+          },
+          {
+            "name": "supplements",
+            "reachable": true,
+            "entryComposables": [
+              "SupplementsRoute",
+              "SupplementsScreen"
+            ]
+          },
+          {
+            "name": "today",
+            "reachable": true,
+            "entryComposables": [
+              "TodayRoute",
+              "TodayScreen"
+            ]
+          }
+        ]
       }
     },
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 18,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -314,7 +385,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 89,
+      "durationMs": 66,
       "details": {
         "schemaDirs": 3
       }
@@ -322,14 +393,14 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3937
+      "durationMs": 34939
     },
     {
       "name": "unitTests",
       "verdict": "FAIL",
-      "reason": "desktopTest failed (2 of 335 tests). Fix the failing behavior — do not delete or weaken tests to pass:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n335 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 24s",
-      "note": "full suite — broad-impact change — outside composeApp/src (.claude/settings.json)",
-      "durationMs": 24937,
+      "reason": "desktopTest failed (2 of 335 tests). Fix the failing behavior — do not delete or weaken tests to pass:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n335 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 33s",
+      "note": "full suite — broad-impact change — outside composeApp/src (create-cmp.json)",
+      "durationMs": 33232,
       "details": {
         "tests": 335,
         "failures": 2,
@@ -340,20 +411,27 @@
     {
       "name": "conformance",
       "verdict": "FAIL",
-      "reason": "Architecture conformance violated (specs/app-base.spec.md ARCH clauses). The failing rule names the clause, files, and fix:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n16 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 6s",
-      "durationMs": 7185
+      "reason": "Architecture conformance violated (specs/app-base.spec.md ARCH clauses). The failing rule names the clause, files, and fix:\n> Task :composeApp:desktopTest FAILED\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n16 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 3s",
+      "durationMs": 3656
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2878
+      "durationMs": 4728
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3138
+      "durationMs": 4360
     }
   ],
+  "harness": {
+    "name": "create-cmp-harness",
+    "version": "0.14.1",
+    "sha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
+    "status": "intact",
+    "intact": true
+  },
   "strength": {
     "onDeviceSteps": []
   },
@@ -363,5 +441,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-20T06:32:18.107Z"
+  "generatedAt": "2026-08-20T15:35:59.801Z"
 }

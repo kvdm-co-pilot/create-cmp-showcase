@@ -93,6 +93,14 @@ Flags:
                                   with --profile ci (or release) it runs
                                   inside the lane and lands on the receipt.
                                   Never combinable with --fast
+  --no-journal                   skip the qa/flight-recorder.jsonl append.
+                                  qa/watch.mjs passes this on every
+                                  save-triggered run: journalling each save
+                                  would add hundreds of committed lines a day
+                                  and leave a permanently dirty tree inside
+                                  the loop the recorder exists to observe. The
+                                  gap is disclosed in the retrospective's own
+                                  output
   --json                         print the receipt as JSON instead of the
                                   human-readable step-by-step log
   --help, -h                     print this usage and exit 0 without
@@ -116,7 +124,13 @@ if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
   process.exit(0);
 }
 
-const RECOGNIZED_FLAGS = new Set(["--profile", "--json", "--fast", "--determinism"]);
+// Every flag this file CONSUMES must be listed here, or the strict check below
+// rejects it. `--no-journal` was consumed but unlisted in 0.13.0, which meant
+// qa/watch.mjs — whose spawn passes exactly these flags — exited 2 on every
+// save without ever running the lane. test/verify-flags.test.mjs now pins
+// consumed ⊆ recognized and watch's spawn ⊆ recognized so the class cannot
+// recur.
+const RECOGNIZED_FLAGS = new Set(["--profile", "--json", "--fast", "--determinism", "--no-journal"]);
 for (let i = 0; i < rawArgs.length; i += 1) {
   const arg = rawArgs[i];
   if (arg === "--profile") {

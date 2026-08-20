@@ -1,8 +1,8 @@
 {
   "schema": "cmp-harness-lock/1",
   "name": "create-cmp-harness",
-  "version": "0.14.0",
-  "sha256": "1fd61cc52b126e505ded392ceb29681355def4a5669bdf7518caa77cac63fdec",
+  "version": "0.14.1",
+  "sha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
   "fileCount": 36,
   "files": {
     "qa/approve.mjs": "50d407c504c906239368fe026c0e908bb3cfa3a9081d4c862cef5626ddf2a267",
@@ -38,7 +38,7 @@
     "qa/retrospective.mjs": "76042565e20c8d747a3bb465ffc37d766d02a7e0273788e2c975cdf50ea27956",
     "qa/scaffold-feature.mjs": "f4f316b1846399004b2c7112e7a0022dbf1a407144c4b01837e0ca9fadc1e29f",
     "qa/setup-hooks.mjs": "d652c25ab33d05735c270d43e4a5a7f3ba2fe1a94d0ef40953706b4a0acbe469",
-    "qa/verify.mjs": "671e88a41808c3eb153b90a89d966a5782cd82c4e140af02da291afcb94e1bdc",
+    "qa/verify.mjs": "46fa7a7603cf72ac58a7c2cc68133f14873b0ad5e6d55501966059964b644b52",
     "qa/walkthrough.mjs": "772717017eac76b222ded48087bc2c72d025ee4c4c60d319f00eab95e0b7b677",
     "qa/watch.mjs": "c1fac9c18f3e4f5f8f0b8c033bc696ab2074b24a1533a93d33b70d6a9baa152f"
   }
