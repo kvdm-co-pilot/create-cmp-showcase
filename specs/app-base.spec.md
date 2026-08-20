@@ -51,6 +51,17 @@
   a sample is the UI-first preview seam (the stateless screen's own default parameter,
   plus the preview registry/stories and tests), never production wiring. Fake data
   resolving a nav route or seeding a repository is exactly the drift this stops.
+- **ARCH-13** — Given any `commonMain` file outside the designated time provider (a
+  `core/time` package), When its source is inspected, Then it references no ambient time
+  API — `Clock.System`, `System.currentTimeMillis`, `LocalDate.now()`,
+  `LocalDateTime.now()`, `LocalTime.now()`, `Instant.now()`,
+  `TimeZone.currentSystemDefault()` — time is injected from one provider so rendered
+  structure and test evidence never become a function of when they run.
+- **ARCH-14** — Given any `commonMain` file, When its source is inspected, Then it never
+  references Koin's reflection-based `viewModelOf` — ViewModels are registered with
+  explicit `viewModel { … }` factories, so a missing dependency fails at compile time
+  instead of at runtime resolution (reflection silently ignores constructor default
+  parameter values).
 
 ## App shell
 

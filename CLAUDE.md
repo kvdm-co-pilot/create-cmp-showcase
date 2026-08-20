@@ -15,7 +15,10 @@ tests, and gates the whole tree to produce the receipt, so it is slow by design;
 after every edit wastes the minutes it takes. Iterate on the fast tier, and run the lane
 once — when you believe the change is done.
 
-- **Inner loop — run continuously (seconds):** the preview loop (below) for UI, and
+- **Inner loop — run continuously (seconds):** the preview loop (below) for UI;
+  `node qa/watch.mjs` for verification — a resident watcher that re-runs the fast tier
+  (`node qa/verify.mjs --fast`) on every save and re-prints the step table, so the
+  did-I-break-anything signal is free the way an IDE's errors-on-save are free; and
   `./gradlew :composeApp:desktopTest` for the unit tests your change touches. This is where
   you catch your own mistakes.
 - **Checkpoint — run once, at done:** `node qa/verify.mjs`. It writes the receipt; commit
@@ -85,9 +88,25 @@ the tree. The governed `architecture` artifact (below) hashes the document along
 - Never delete, weaken, or `@Ignore` a failing test to reach green. Fix the behavior — or,
   if the test itself is wrong, say so in your summary and justify the change.
 
+**Platform behavior tests live in `composeApp/src/androidInstrumentedTest`** — when a
+feature touches alarms, notifications, lock-screen intents, or audio routing, its behavior
+test goes there, because no desktop tier can see those OS facts. Assertion helpers:
+`NotificationAsserts`, `AlarmAsserts`, `SystemState`. **Runtime state control** — put the
+device into the state your claim is about, instead of waiting for it: `TimeWarp` (clock,
+timezone), `DozeControl` (forced idle), `PermissionControl`, `ProcessControl`,
+`NetworkControl`, `ConfigControl` (dark mode, font scale, per-app locale). They compose —
+the exemplar proves an `allowWhileIdle` alarm delivers from inside forced deep idle by
+nesting a clock warp in a Doze bracket. Exemplars: `PlatformBehaviorSeamTest`,
+`RuntimeStateSeamTest`. Each organ's header states what it does NOT reproduce; read it
+before claiming more than it proves. The lane's `androidChecks` step runs them when a
+device is attached; see `docs/TESTING.md`.
+
 ## Evidence
 
 `node qa/verify.mjs` writes `qa/evidence/latest.json` (schema: `qa/evidence/schema.json`).
+Each PASS receipt names its **evidence rung** (L0 scaffold / L1 desktop / L2 device /
+L3 release), derived from which steps actually ran and passed — never declared, and a
+SKIPped step never upgrades it (see `docs/TESTING.md` §"The evidence ladder").
 Commit it with your change; git history is the audit ledger. Binary artifacts under
 `qa-artifacts/` are hashed into the receipt, never committed. The studio console's Evidence
 page reconstructs the full audit trail from the git log of `latest.json` — every commit is
@@ -155,10 +174,11 @@ right.
 | Step | What |
 |---|---|
 | 1 | **Feature brief** — `docs/features/<name>.md`: the decisions with their why, research, rejected options, an **Open decisions** section until the human closes each. Signed BEFORE code. |
-| 2 | **Contract** — reopen any signed spec the brief amends (`--reopen feature-spec:<surface> --reason "…"`); write the clauses where the behavior lives; the human signs |
-| 3 | Build the slice (`add-feature` / preview loop). Declared blast lands "as declared"; re-approve touched visual artifacts on rendered output |
-| 4 | Prove — nothing to do: the lane's gates + receipt ARE the proof |
-| 5 | The human's `--accept` — enabled only at provenDone |
+| 2 | **Design** — iff the feature has a UI surface (`"screens": true`, or screen files exist): draft the screens on STUB data, register them in the PreviewRegistry, render, and STOP. The human judges the rendered screens and signs `feature-design:<name>`. Never ask a human to approve a described UI. |
+| 3 | **Contract** — reopen any signed spec the brief amends (`--reopen feature-spec:<surface> --reason "…"`); write the clauses where the behavior lives — about the form that now exists; the human signs |
+| 4 | Build the slice (`add-feature` / preview loop). Declared blast lands "as declared"; re-approve touched visual artifacts on rendered output (wiring the signed screens from stub to real state drifts `feature-design:<name>` — its re-approval is that pass) |
+| 5 | Prove — nothing to do: the lane's gates + receipt ARE the proof |
+| 6 | The human's `--accept` — enabled only at provenDone AND a signed design |
 
 **Direct lane** — everything else (bug fix, copy edit, tweak): confirm in chat, reopen →
 amend clause → re-approve if a signed contract is touched, build, lane once at done.
@@ -170,13 +190,16 @@ Legacy features never get retro-briefs; spikes are ungoverned until they become 
 machine-read block, and it **declares — it never gates**:
 
 ```json cmp:feature
-{ "touches": ["components", "design-system"] }
+{ "touches": ["components", "design-system"], "screens": true }
 ```
 
 `touches` is the declared blast radius — the artifact hashes already enforce; declaring
 lets the console show "components re-approval, as planned" instead of an unexplained
 failure, and surface **undeclared blast** when something drifted that no open brief
-accounted for.
+accounted for. `screens: true` declares a UI surface: it holds the design gate
+(`feature-design:<name>` — the feature's own `presentation/<name>/*Screen.kt`, signed on
+rendered output) before any screen file exists; once files exist, disk is ground truth
+regardless. Both declare — neither gates.
 
 **Doneness is DERIVED, never claimed.** There is no `--deliver` and no checks block —
 deliberately (they existed and were removed as a weaker parallel truth). A feature is
@@ -284,7 +307,6 @@ the honest error instead.
 
 ## UI feedback loop — see what you build, without a device
 
-<!-- >>> cmp:feature inspector -->
 While building or changing any screen, use the preview loop instead of an emulator. It
 renders this app's real screens (real DI, real theme, seeded data) headlessly in seconds
 and tells you what your edit changed.
@@ -301,16 +323,35 @@ and tells you what your edit changed.
 3. `preview_diff { screen }` proves the change in one call: `proven-clean` /
    `changed-with-regressions` / `no-change`. No snapshot bookkeeping.
 
-**Without the plugin:** `./gradlew :composeApp:renderScreens` renders every screen to
-`composeApp/build/previews/<id>/{screen.png, tree.json}` (`-Pscreen=<id>` for one);
-`node qa/preview-gallery.mjs` builds a self-contained gallery page from the output.
+**If the tools are missing:** capability absence is a fault to diagnose and report — never
+a silent fallback. If ToolSearch finds no `cmp-inspector` tools, STOP and tell the human
+which it is: the plugin is disabled (`enabledPlugins` in `~/.claude/settings.json` or the
+project settings); the session predates the plugin's enablement (MCP servers attach at
+session start — restart the session; no in-session retry will surface them); or the plugin
+copy is stale/broken (run cmp-doctor's inspector-MCP check group). Report before degrading.
+
+**Degraded path** — for environments where the plugin is genuinely unavailable (CI, other
+agents), and only after the fault is reported: `./gradlew :composeApp:renderScreens` renders
+every screen to `composeApp/build/previews/<id>/{screen.png, tree.json}` (`-Pscreen=<id>`
+for one); `node qa/preview-gallery.mjs` builds a self-contained gallery page from the
+output. What this loses: on-save re-render, changed-screen attribution, compile errors
+in-band, and the `preview_diff` change proof — structured feedback replaced by pixels.
 
 **Live tier — the human's live device view (standing step).** Whenever `connect_live`
 succeeds, OFFER the `remoteUrl` it returns (`http://127.0.0.1:9500/inspect/remote`) to the
 human — every time, not as a maybe. It is a self-contained browser page that mirrors the
 running app (~700ms refresh) with click-to-tap driving the real device: they watch and drive
-the actual app while you assert on the tree (`navigate_and_inspect` / `prove_change` /
-`db_query`). It is also the right way for a human to *watch* an e2e run.
+the actual app while you assert on the tree (`navigate_and_inspect` — its before/after delta
+is the change proof live — and `inspect_tree`). It is also the right way for a human to
+*watch* an e2e run.
+
+Asserting persisted state: `db_query` reads bounded rows from the running app's database;
+use it when a flow's proof is a row existing (or not) after an action, instead of shelling
+into sqlite or trusting the UI.
+
+When the app crashes or misbehaves on device: `runtime_crashes` returns persisted crashes
+with cause attribution and `runtime_logs` bounded structured logcat for the app's pid; use
+these before hand-grepping `adb logcat`.
 
 Screens come from `inspector/PreviewRegistry.kt` (desktopMain). The `add-feature` and
 `add-screen` stampers auto-register stamped screens at the `// cmp:anchor preview-registry`
@@ -319,11 +360,8 @@ another entry (`"home@empty"`). Every common component also carries a story entr
 (`"component.<kebab-name>"` in `inspector/ComponentStories.kt`); when you add a component,
 add its story — the lane's `componentStories` step fails naming the missing id otherwise.
 Assert on `tree.json` structure; never read PNG bytes. Pixels are for humans.
-<!-- <<< cmp:feature inspector -->
-<!-- >>> cmp:feature dev-client -->
 For one interactive window instead of stills of every screen:
 `./gradlew :composeApp:hotRunDesktop --auto` (Compose Hot Reload dev-client).
-<!-- <<< cmp:feature dev-client -->
 
 ## Docs
 
@@ -338,7 +376,15 @@ conventions) · [`CONTRIBUTING.md`](./CONTRIBUTING.md) (workflow, Conventional C
 | Command | What |
 |---|---|
 | `node qa/verify.mjs` | The verify lane (profile `local`) — the done checkpoint, run once |
+| `node qa/verify.mjs --fast` | **Inner loop — NOT the done-gate**: skips the device/release tier (`releaseBuild`, `tokenDrift`, `e2eSmoke`, `androidChecks`, `releaseSmoke`), reuses unchanged pure-Node step results (`CACHED`, content-hashed inputs), and scopes unit tests to the working-tree change (broad-impact changes — build files, DI, theme, shared components, `qa/` — run the full suite). Its receipt records `"mode": "fast"`, earns no evidence rung, and the Stop hook refuses it — run the full lane once at done |
+| `node qa/watch.mjs` | **Resident inner loop — never a gate**: watches `composeApp/src`, `specs/`, `qa/` and re-runs `node qa/verify.mjs --fast` on save (debounced — a save storm is one run; defers while a verify lane or a preview render holds the project). `--once` for a single pass, `--json` for line-per-run output. The done-gate stays one deliberate full `node qa/verify.mjs` run |
 | `./gradlew :composeApp:desktopTest` | Unit tests only (fast inner loop) |
 | `node qa/setup-hooks.mjs` | Enable the pre-push receipt gate (one-time, after `git init`) |
 | `./gradlew :composeApp:assembleDebug` | Android debug build |
+| `./gradlew :composeApp:assembleRelease` | Android release build — R8 + `lintVital`, the variant the lane's `releaseBuild` step proves. Produces an **unsigned** APK; signing needs a keystore, which is yours to create and keep out of the repo. |
 | `./gradlew :composeApp:hotRunDesktop --auto` | Desktop dev-client with hot reload |
+| `./gradlew :composeApp:connectedDebugAndroidTest` | Instrumented behavior tests on the attached device (the lane's `androidChecks` step) |
+| `node qa/verify.mjs --profile release` | Ship-time lane: everything `ci` proves plus the audit-cadence report (`auditCadence` — which androidMain subsystems changed since their last recorded `cmp-audit`; a nudge, never a gate) and the release-APK Maestro smoke (`releaseSmoke`) |
+| `node qa/verify.mjs --determinism` | Timezone determinism probe, alone: runs the JVM test tier twice under UTC-12 and UTC+14 and FAILs naming any test whose outcome differs — the dynamic net behind ARCH-13's static one. Opt-in inside a lane via `--profile ci --determinism`; never with `--fast`; writes no receipt on its own |
+| `node qa/record-audit.mjs <subsystem>` | Record that a `cmp-audit` of an androidMain subsystem happened (appends subsystem + HEAD sha + timestamp to `qa/audits.jsonl`; refuses dirty/unknown targets). `--list` shows every derived subsystem and its audit status |
+| `node qa/retrospective.mjs` | How this project actually uses its harness, from `qa/flight-recorder.jsonl` (appended by every lane run): fast vs full ratio, verbatim SKIP reasons grouped, whether the device tier is ever reached, longest stretch with no full lane. States only what the journal recorded |

@@ -142,6 +142,24 @@ kotlin {
                 implementation(compose.desktop.currentOs)
             }
         }
+
+        // Android INSTRUMENTATION tier (composeApp/src/androidInstrumentedTest) — the one
+        // evidence tier that crosses the process boundary. Everything else in this build is
+        // JVM-side: desktopTest is a JVM, golden trees are structure, the conformance suite
+        // is static analysis, and the Maestro smoke taps UI without asserting anything about
+        // notifications or alarms. Alarms, notification channels, full-screen intents,
+        // PendingIntent identity, and audio routing are OS facts that only exist on a device
+        // — a fully green desktop lane is compatible with an alerting feature that never
+        // alerts. This source set runs via `:composeApp:connectedDebugAndroidTest` (the
+        // lane's `androidChecks` step; SKIPs honestly when no device is attached).
+        //
+        // Its dependencies are declared through AGP's androidTestImplementation
+        // configuration (the dependencies block at the bottom of this file), not here: the
+        // KMP source-set DSL compiles these sources but does not put the androidx.test
+        // artifacts on their classpath.
+        //
+        // No kotlin-test here: instrumented tests run under JUnit4 (AndroidJUnit4), so they
+        // assert with org.junit.Assert — a second assertion vocabulary buys nothing.
     }
 }
 
@@ -155,11 +173,28 @@ android {
         targetSdk = 35
         versionCode = 6
         versionName = "0.6.0"
+        // Instrumentation entry point for the on-device behavior tier
+        // (composeApp/src/androidInstrumentedTest — see the source-set note above).
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    // AGP resolves BUILD-TYPE source sets at src/<buildType>/, while the Kotlin
+    // Multiplatform plugin only remaps the `main` one to src/androidMain/. Without this
+    // wiring, src/androidDebug/'s manifest and resources are silently never merged —
+    // dead files that look live: the debug network-security config never applied, and a
+    // permission declared there never reached the APK. Point the debug build type at them
+    // explicitly. Caught when an instrumented test asserted canScheduleExactAlarms() and
+    // found the grant it had declared was absent on the device.
+    sourceSets {
+        getByName("debug") {
+            manifest.srcFile("src/androidDebug/AndroidManifest.xml")
+            res.srcDirs("src/androidDebug/res")
         }
     }
 
@@ -259,6 +294,16 @@ dependencies {
     add("kspIosArm64", libs.room.compiler)
     add("kspDesktop", libs.room.compiler)
     add("coreLibraryDesugaring", libs.android.desugar.jdk)
+
+    // The instrumentation tier's runner, JUnit4 harness, and device helpers. Declared
+    // through AGP's own configuration rather than the KMP androidInstrumentedTest
+    // source-set block — the latter compiles the sources but does not put these
+    // artifacts on their classpath.
+    add("androidTestImplementation", libs.androidx.test.runner)
+    add("androidTestImplementation", libs.androidx.test.core)
+    add("androidTestImplementation", libs.androidx.test.ext.junit)
+    add("androidTestImplementation", libs.androidx.uiautomator)
+    add("androidTestImplementation", libs.junit4)
 }
 
 // Pin the generated resources accessor package so `com.kvdm.fuelled.generated.resources.Res`

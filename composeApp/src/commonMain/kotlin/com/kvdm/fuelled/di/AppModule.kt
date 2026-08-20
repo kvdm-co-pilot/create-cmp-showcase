@@ -76,7 +76,6 @@ import com.kvdm.fuelled.presentation.foods.FoodEditorViewModel
 // cmp:anchor di-imports
 import kotlinx.datetime.LocalDate
 import org.koin.core.module.dsl.viewModel
-import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -179,20 +178,30 @@ val useCaseModule = module {
     // cmp:anchor di-usecases
 }
 
+// ARCH-14: explicit `viewModel { }` factories only — never reflection-based viewModelOf.
+// It resolves EVERY declared constructor parameter from the graph, silently ignoring
+// default values, which turns a compile-time wiring error into a runtime resolution crash.
+// This module had nine of them; MealBuilderViewModel's was already live ammunition (four
+// defaulted parameters — MealSlot, Clock, TimeZone, Int — none of them in the graph), and
+// nothing caught it because the builder is reachable from no nav destination and has no
+// golden. One get() per constructor dependency, and defaults left to the constructor.
 val viewModelModule = module {
-    viewModelOf(::FoodsViewModel)
+    viewModel { FoodsViewModel(get(), get()) }
     // The detail's log path (UX-03) takes its clock/zone/dayStartHour from production
     // defaults, so it is wired by hand like the tray — viewModelOf would try to resolve
     // those three from the graph. Tests construct it directly with a FixedClock.
     viewModel { FoodDetailViewModel(get(), get(), get()) }
-    viewModelOf(::TodayViewModel)
+    viewModel { TodayViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     // SUPP-08: due-ness depends on the logical day, so this one takes a clock/zone/dayStartHour
     // from production defaults — wired by hand for the same reason the tray is, since
     // viewModelOf would try to resolve all three from the graph and fail on the zone.
     viewModel { SupplementsViewModel(get(), get(), get()) }
-    viewModelOf(::SettingsViewModel)
-    viewModelOf(::MealBuilderViewModel)
-    viewModelOf(::ProfileViewModel)
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    // Two graph dependencies; initialSlot/clock/zone/dayStartHour keep their production
+    // defaults. viewModelOf resolved all six and would have thrown on MealSlot the first
+    // time this screen was opened (ARCH-14).
+    viewModel { MealBuilderViewModel(get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get()) }
     // Like the tray below, the plan's opening day comes from the CALL SITE: the nav destination
     // passes `plan/{date}`'s date as a Koin parameter, so the ViewModel is aimed before its
     // first frame and nothing re-aims it afterwards (PLAN-24). Required for the same reason —
@@ -200,12 +209,12 @@ val viewModelModule = module {
     viewModel { params ->
         MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
     }
-    viewModelOf(::MealTimesViewModel)
+    viewModel { MealTimesViewModel(get(), get(), get(), get()) }
     // WORK-05: same reason as Supplements above — the training window is derived from the
     // logical day, so the clock/zone/dayStartHour come from production defaults.
     viewModel { ProgressViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModelOf(::OnboardingViewModel)
-    viewModelOf(::FoodEditorViewModel)
+    viewModel { OnboardingViewModel(get(), get(), get(), get()) }
+    viewModel { FoodEditorViewModel(get(), get(), get()) }
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired
     // by hand rather than with viewModelOf — which would try to resolve those three from the
     // graph. Tests construct it directly with a FixedClock (MEAL-10).

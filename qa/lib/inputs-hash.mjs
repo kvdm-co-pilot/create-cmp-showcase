@@ -40,7 +40,22 @@ export const VERIFIED_SURFACE = [
 // snapshot (qa/approvals.json) already carries as state — no lane step reads
 // it, so recording who/why must never invalidate a receipt for a tree whose
 // code did not change (the exact failure FI-8 killed for acceptance).
-const EXCLUDED_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/comments.json", "qa/approvals.log.jsonl"];
+// qa/flight-recorder.jsonl is a lane OUTPUT in the strictest sense: the lane
+// appends one line to it on every run, after the receipt is written — hashing
+// it would make every run invalidate its own receipt. qa/audits.jsonl (the
+// cmp-audit ledger) is read by exactly one lane step (auditCadence), which is
+// a REPORT and can never change the verdict — and recording an audit is
+// bookkeeping about a commit that already happened, so appending a record
+// must never invalidate a receipt for a tree whose code did not change
+// (approvals.log.jsonl's principle, applied to audits).
+const EXCLUDED_PREFIXES = [
+  "qa/evidence",
+  "qa-artifacts",
+  "qa/comments.json",
+  "qa/approvals.log.jsonl",
+  "qa/flight-recorder.jsonl",
+  "qa/audits.jsonl",
+];
 
 // qa/approvals.json is hashed by PROJECTION, not raw bytes. The approvals gate's
 // verdict depends on exactly three row fields (artifact, status, hash) plus the

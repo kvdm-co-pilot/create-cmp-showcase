@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * The registry's icon button: M3 `IconButton` held to the 48 dp touch-target floor.
  *
  * Stock M3 `IconButton` defaults to a 40x40 dp target — below WCAG 2.2 SC 2.5.8 and this
- * harness's own `audit_a11y` bar — so every raw use is a violation waiting to be measured
+ * verify lane's own a11y bar — so every raw use is a violation waiting to be measured
  * (and historically why a text link masqueraded as a back button). This wrapper clears the
  * floor once, by construction, the same way [AppPrimaryButton] does for filled buttons.
  *

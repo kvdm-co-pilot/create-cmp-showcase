@@ -118,7 +118,7 @@ internal fun NavItem(
             .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             // a11y: guarantee the 48dp minimum touch target regardless of label width
-            // (the inspector's audit_a11y flags anything smaller).
+            // (the verify lane's a11y step flags anything smaller).
             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
             // Durable selection handle (tests/E2E select by testTag, never display text).
             .semantics { testTag = navItemTag(label) }

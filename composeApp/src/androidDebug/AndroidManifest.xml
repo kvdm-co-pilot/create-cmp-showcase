@@ -5,6 +5,15 @@
          drops INTERNET from the main manifest; loopback-only bind, never on the LAN. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- The instrumented-tier exact-alarm proof (PlatformBehaviorSeamTest, TimeWarp) needs
+         setExactAndAllowWhileIdle to actually schedule. API 31/32 gate it behind
+         SCHEDULE_EXACT_ALARM, which the system grants by default there; API 33+ gates it
+         behind USE_EXACT_ALARM, granted at install. Neither belongs in the shipped
+         manifest — a real app that wants exact alarms declares that choice itself; this is
+         the test harness's own permission, debug-only. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
     <application
         android:networkSecurityConfig="@xml/debug_network_security_config"
         android:usesCleartextTraffic="true" />

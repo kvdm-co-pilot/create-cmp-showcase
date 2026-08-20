@@ -31,7 +31,10 @@ lane, and why. Never route silently; the human can overrule the triage in a word
   carries real decisions (day-boundary rules, scheduling semantics) — I'll draft a feature
   brief at `docs/features/<name>.md` with the open decisions for you to close and sign
   BEFORE I stamp anything."* Only after the brief is signed does this skill's stamping
-  start.
+  start — and if the feature has a UI surface, the **design gate comes next, before the
+  spec**: draft the screens on stub data, render them, and stop for the human's signature
+  on `feature-design:<name>` (brief → design → spec → build). A human signs rendered
+  screens, never a description of screens.
 - **Direct lane** — an ordinary feature with no decisions worth recording. Say so, e.g.:
   *"Straightforward slice, no decisions worth a brief — direct lane: spec clauses for your
   confirmation, then I stamp and prove."* Then continue with Step 1 below.

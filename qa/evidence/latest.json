@@ -1,40 +1,75 @@
 {
   "schema": "cmp-evidence/1",
   "profile": "local",
-  "verdict": "PASS",
+  "mode": "fast",
+  "verdict": "FAIL",
   "commit": {
-    "sha": "14c6952a11c878066bbd7ce5ebfbcdec7c241b71",
+    "sha": "2ac67a83e3f086d3165c3aad5c25d1ec8b83b859",
     "dirty": [
-      "CHANGELOG.md",
+      ".claude/settings.json",
+      ".claude/settings.json.bak-upgrade",
+      ".claude/skills/add-feature/SKILL.md",
+      "CLAUDE.md",
+      "README.md",
+      "README.md.bak-upgrade",
       "composeApp/build.gradle.kts",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsGoldenTreeTest.kt",
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl",
+      "composeApp/src/androidDebug/AndroidManifest.xml",
+      "composeApp/src/androidDebug/AndroidManifest.xml.bak-upgrade",
+      "composeApp/src/androidInstrumentedTest/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/brand/BrandMark.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt.bak-upgrade",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppButton.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppButton.kt.bak-upgrade",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppIconButton.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ArchitectureConformanceTest.kt",
+      "docs/ARCHITECTURE.md",
+      "docs/TESTING.md",
+      "gradle/libs.versions.toml",
+      "gradle/libs.versions.toml.bak-upgrade",
       "qa/evidence/latest.json",
-      "qa/golden/supplements.json",
-      "qa/verify.mjs"
+      "qa/flight-recorder.jsonl",
+      "qa/lib/affected-tests.mjs",
+      "qa/lib/audit-cadence.mjs",
+      "qa/lib/determinism.mjs",
+      "qa/lib/device-lease.mjs",
+      "qa/lib/evidence-badge.mjs",
+      "qa/lib/evidence-level.mjs",
+      "qa/lib/flight-recorder.mjs",
+      "qa/lib/inputs-hash.mjs",
+      "qa/lib/spec-coverage.mjs",
+      "qa/lib/step-cache.mjs",
+      "qa/receipt-check.mjs",
+      "qa/receipt-check.mjs.bak-upgrade",
+      "qa/record-audit.mjs",
+      "qa/retrospective.mjs",
+      "qa/scaffold-feature.mjs",
+      "qa/scaffold-feature.mjs.bak-upgrade",
+      "qa/verify.mjs",
+      "qa/watch.mjs",
+      "specs/app-base.spec.md"
     ]
   },
   "inputs": {
-    "hash": "9d4b7dd105fa83b042a5c7b18c1ea870355e9d9dcfee7b7daae84626d245ef6c",
-    "fileCount": 398
+    "hash": "f51600b092544c9fb4001674c539669f9aaf328bc158a3e195f7ac0f48961714",
+    "fileCount": 427
   },
   "steps": [
     {
       "name": "specCoverage",
-      "verdict": "PASS",
-      "durationMs": 59,
+      "verdict": "CACHED",
+      "note": "unchanged since 2026-08-20T06:27:29.428Z",
+      "durationMs": 93,
       "details": {
-        "clauses": 167,
-        "withdrawn": 2,
-        "tags": 352,
-        "files": 273
+        "inputsHash": "5198f32089b439945c60bbdc73c1175c5837c00b2b3e38c5572f80faadfd04e9"
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 17,
+      "verdict": "FAIL",
+      "reason": "Approval invalidated — a governed artifact changed after sign-off:\n  [architecture] Architecture + structure (specs/app-base.spec.md + docs/ARCHITECTURE.md, generated sections stripped) — approved at 6478649e, now 4cd43e5c. Re-approve: node qa/approve.mjs architecture\n  [components] Components (presentation/components/*.kt) — approved at 85cab4bc, now 99535a97. Re-approve: node qa/approve.mjs components",
+      "durationMs": 24,
       "details": {
         "artifacts": [
           {
@@ -119,8 +154,8 @@
           },
           {
             "id": "architecture",
-            "status": "approved",
-            "hash": "6478649ec66d4187b320bcb4091f6fc3b69ceabae794cd2bf2f534639892789d"
+            "status": "changed-since-approval",
+            "hash": "4cd43e5cf765d33bc4bcbd8f33a73c3f93da52a3ee28a17a5802f1bb3217cbe8"
           },
           {
             "id": "exemplar-spec",
@@ -139,8 +174,8 @@
           },
           {
             "id": "components",
-            "status": "approved",
-            "hash": "85cab4bcf9cd9d3986d4617cc0e115250fccf72d8533c3269fc3c67280d89348"
+            "status": "changed-since-approval",
+            "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385"
           },
           {
             "id": "feature-design:meal-plan",
@@ -252,182 +287,81 @@
     },
     {
       "name": "componentStories",
-      "verdict": "PASS",
-      "durationMs": 2,
+      "verdict": "CACHED",
+      "note": "unchanged since 2026-08-20T06:27:29.513Z",
+      "durationMs": 20,
       "details": {
-        "components": 20,
-        "stories": 20,
-        "missing": [],
-        "orphans": []
+        "inputsHash": "ca877d3e5dcd4af70548d3b7ed7e99b1008089ef6456ac7c563c43bc998c3a65"
       }
     },
     {
       "name": "reachability",
-      "verdict": "PASS",
-      "durationMs": 8,
+      "verdict": "CACHED",
+      "note": "unchanged since 2026-08-20T06:27:29.555Z",
+      "durationMs": 21,
       "details": {
-        "features": [
-          {
-            "name": "builder",
-            "reachable": true,
-            "entryComposables": [
-              "MealBuilderRoute",
-              "MealBuilderScreen"
-            ]
-          },
-          {
-            "name": "foods",
-            "reachable": true,
-            "entryComposables": [
-              "FoodDetailRoute",
-              "FoodDetailScreen",
-              "FoodEditorRoute",
-              "FoodEditorScreen",
-              "FoodsRoute",
-              "FoodsScreen"
-            ]
-          },
-          {
-            "name": "meal",
-            "reachable": true,
-            "entryComposables": [
-              "MealTrayRoute",
-              "MealTrayScreen"
-            ]
-          },
-          {
-            "name": "meal-plan",
-            "reachable": true,
-            "entryComposables": [
-              "MealPlanDayScreen",
-              "MealTimesScreen"
-            ]
-          },
-          {
-            "name": "navigation",
-            "reachable": true,
-            "entryComposables": []
-          },
-          {
-            "name": "onboarding",
-            "reachable": true,
-            "entryComposables": [
-              "OnboardingRoute",
-              "OnboardingScreen"
-            ]
-          },
-          {
-            "name": "profile",
-            "reachable": true,
-            "entryComposables": [
-              "ProfileRoute",
-              "ProfileScreen"
-            ]
-          },
-          {
-            "name": "progress",
-            "reachable": true,
-            "entryComposables": [
-              "ProgressRoute",
-              "ProgressScreen"
-            ]
-          },
-          {
-            "name": "settings",
-            "reachable": true,
-            "entryComposables": [
-              "SettingsRoute",
-              "SettingsScreen"
-            ]
-          },
-          {
-            "name": "supplements",
-            "reachable": true,
-            "entryComposables": [
-              "SupplementsRoute",
-              "SupplementsScreen"
-            ]
-          },
-          {
-            "name": "today",
-            "reachable": true,
-            "entryComposables": [
-              "TodayRoute",
-              "TodayScreen"
-            ]
-          }
-        ]
+        "inputsHash": "961fbcbaf74192afe6762a71b5f348e0cb6ff3d9f00e20d026ed28eac197e8ab"
       }
     },
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 11,
+      "durationMs": 18,
       "details": {
         "sectionsChecked": 4
       }
     },
     {
-      "name": "build",
+      "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 1181
+      "durationMs": 89,
+      "details": {
+        "schemaDirs": 3
+      }
     },
     {
-      "name": "releaseBuild",
+      "name": "build",
       "verdict": "PASS",
-      "durationMs": 1003
+      "durationMs": 3937
     },
     {
       "name": "unitTests",
-      "verdict": "PASS",
-      "durationMs": 6933,
+      "verdict": "FAIL",
+      "reason": "desktopTest failed (2 of 335 tests). Fix the failing behavior — do not delete or weaken tests to pass:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n335 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 24s",
+      "note": "full suite — broad-impact change — outside composeApp/src (.claude/settings.json)",
+      "durationMs": 24937,
       "details": {
-        "tests": 333,
-        "failures": 0,
+        "tests": 335,
+        "failures": 2,
         "errors": 0,
         "skipped": 0
       }
     },
     {
       "name": "conformance",
-      "verdict": "PASS",
-      "durationMs": 1532
+      "verdict": "FAIL",
+      "reason": "Architecture conformance violated (specs/app-base.spec.md ARCH clauses). The failing rule names the clause, files, and fix:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n16 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 6s",
+      "durationMs": 7185
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 2723
-    },
-    {
-      "name": "tokenDrift",
-      "verdict": "PASS",
-      "durationMs": 110,
-      "details": {
-        "checked": 0,
-        "drifted": 0
-      }
+      "durationMs": 2878
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 2311
-    },
-    {
-      "name": "e2eSmoke",
-      "verdict": "PASS",
-      "durationMs": 43298
+      "durationMs": 3138
     }
   ],
   "strength": {
-    "onDeviceSteps": [
-      "tokenDrift",
-      "e2eSmoke"
-    ]
+    "onDeviceSteps": []
   },
+  "evidenceLevel": null,
   "artifacts": [],
   "toolVersions": {
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-05T12:03:40.819Z"
+  "generatedAt": "2026-08-20T06:32:18.107Z"
 }

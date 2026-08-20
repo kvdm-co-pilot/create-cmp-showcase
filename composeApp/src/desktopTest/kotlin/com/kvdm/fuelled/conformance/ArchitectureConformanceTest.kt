@@ -378,6 +378,64 @@ class ArchitectureConformanceTest {
         )
     }
 
+    // SPEC: ARCH-13
+    @Test
+    fun `ARCH-13 ambient time is read only inside the designated time provider`() {
+        // The classic "inject the clock" rule. Ambient time reads make rendered structure
+        // and test evidence a function of WHEN you run them — a golden tree that passes at
+        // 23:00 and fails at 09:00 with no code change, an assertion that only reds out
+        // across a midnight boundary. Time is injected from one provider (a package ending
+        // in `.core.time`) so tests can pin it; everywhere else these APIs are banned.
+        // Scanned at reference level (imports AND fully-qualified inline calls), the same
+        // pragmatic granularity as the layer-boundary rules above. Covers kotlinx-datetime
+        // and kotlin.time (`Clock.System`), the JVM clock (`System.currentTimeMillis`),
+        // java.time (`LocalDate.now()` et al.), and the ambient zone
+        // (`TimeZone.currentSystemDefault()`) — the zone is time-of-run state too.
+        val ambientTime = Regex(
+            """Clock\.System|System\.currentTimeMillis|LocalDate\.now\s*\(|LocalDateTime\.now\s*\(|""" +
+                """LocalTime\.now\s*\(|Instant\.now\s*\(|TimeZone\.currentSystemDefault\s*\("""
+        )
+        val offenders = sources(commonMain)
+            .filterNot { it.path.replace(File.separatorChar, '/').contains("/core/time/") }
+            .filter { file -> nonCommentLines(file).any { ambientTime.containsMatchIn(it) } }
+            .map { it.path }
+        if (offenders.isNotEmpty()) fail(
+            violation(
+                "ARCH-13", "ambient time APIs (Clock.System, System.currentTimeMillis, *.now(), " +
+                    "TimeZone.currentSystemDefault()) are called only inside the designated time " +
+                    "provider (a `core/time` package) — everywhere else, time is an injected value.",
+                offenders,
+                "inject a clock/time provider (constructor parameter, wired in di/) that lives in " +
+                    "`core/time`, and read the current moment through it — never ambiently. Tests then " +
+                    "pin the provider instead of inheriting the wall clock.",
+            )
+        )
+    }
+
+    // SPEC: ARCH-14
+    @Test
+    fun `ARCH-14 ViewModels are registered with explicit viewModel factories - viewModelOf is banned`() {
+        // Koin's reflection-based `viewModelOf(::X)` silently ignores Kotlin default
+        // parameter values: it resolves EVERY constructor parameter from the graph, so a
+        // ViewModel that compiles and previews fine crashes at runtime resolution the
+        // first time a defaulted parameter matters (the default masked a dependency the
+        // graph never registered). An explicit `viewModel { X(get(), …) }` factory states
+        // each dependency and fails at compile time instead.
+        val offenders = sources(commonMain)
+            .filter { file -> nonCommentLines(file).any { it.contains("viewModelOf") } }
+            .map { it.path }
+        if (offenders.isNotEmpty()) fail(
+            violation(
+                "ARCH-14", "ViewModels are registered with explicit `viewModel { … }` factories — " +
+                    "reflection-based `viewModelOf` is banned (it silently ignores constructor " +
+                    "default parameter values; failures move from compile time to runtime resolution).",
+                offenders,
+                "replace `viewModelOf(::XViewModel)` with `viewModel { XViewModel(get(), …) }` " +
+                    "(import org.koin.core.module.dsl.viewModel), one get() per constructor dependency.",
+            )
+        )
+    }
+
     // SPEC: SHELL-05
     @Test
     fun `SHELL-05 every non-shell nav destination wraps its content in BaseScreen`() {
@@ -391,7 +449,11 @@ class ArchitectureConformanceTest {
             ?: sources(commonMain).firstOrNull { under(it, "navigation") && it.readText().contains("composable(") }
             ?: return
         val text = navHost.readText()
-        val screenCall = Regex("""([A-Z][A-Za-z0-9]*Screen)\s*\(""")
+        // Both destination shapes: the plain `XScreen(...)` AND the UI-first seam's
+        // VM-backed `XRoute(...)` wrapper — keying on `Screen(` alone left every *Route
+        // destination uninspected, passing the gate vacuously (dogfood finding: the
+        // invariant held in Fuelled, but only by convention, not because this asserted it).
+        val screenCall = Regex("""([A-Z][A-Za-z0-9]*(?:Screen|Route))\s*\(""")
         // A call with only a trailing lambda has no paren — `BaseScreen { … }` — so match both.
         val baseScreenCall = Regex("""BaseScreen\s*[({]""")
         val allSources = sources(commonMain)

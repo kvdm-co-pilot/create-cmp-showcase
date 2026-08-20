@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 /**
  * The filled call-to-action button: M3 `Button` with a 48 dp minimum touch target
  * applied. Stock M3 buttons sit below that floor by default; wrapping them here clears
- * WCAG 2.2 SC 2.5.8 and the harness's `audit_a11y` bar once, for every call site.
+ * WCAG 2.2 SC 2.5.8 and the verify lane's a11y bar once, for every call site.
  */
 @Composable
 fun AppPrimaryButton(

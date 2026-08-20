@@ -46,7 +46,25 @@ function evaluate() {
   if (receipt === null) {
     return { valid: false, reason: "no receipt — run `node qa/verify.mjs`", profile: undefined };
   }
-  return evaluateReceipt(receipt, () => computeInputsHash(ROOT));
+  // A fast-mode receipt (verify --fast) is an inner-loop signal, never done
+  // evidence — refused here before the hash is even recomputed, so a session
+  // can never end on "done" while its evidence trail's last run was --fast.
+  if (receipt.mode === "fast") {
+    return {
+      valid: false,
+      reason: "the last verify run was --fast (inner-loop only); run the full lane (`node qa/verify.mjs`) before finishing",
+      profile: receipt.profile,
+    };
+  }
+  const result = evaluateReceipt(receipt, () => computeInputsHash(ROOT));
+  // Surface the receipt's evidence rung (the ladder — qa/lib/evidence-level.mjs)
+  // alongside the verdict: the rung is the receipt's own derived field, read
+  // verbatim, never recomputed here. Older receipts without it stay valid.
+  const level = receipt.evidenceLevel;
+  if (level && typeof level === "object" && typeof level.rung === "string") {
+    result.evidenceLevel = level;
+  }
+  return result;
 }
 
 const result = evaluate();
@@ -65,10 +83,12 @@ if (asHook) {
   process.exit(0);
 }
 
+const rungSuffix = result.evidenceLevel ? ` — evidence ${result.evidenceLevel.rung} · ${result.evidenceLevel.name}` : "";
+
 if (asJson) {
   console.log(JSON.stringify(result, null, 2));
 } else if (result.valid) {
-  console.log(`VALID — ${result.reason}`);
+  console.log(`VALID — ${result.reason}${rungSuffix}`);
 } else {
   console.error(`INVALID — ${result.reason}`);
 }
