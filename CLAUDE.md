@@ -112,6 +112,36 @@ Commit it with your change; git history is the audit ledger. Binary artifacts un
 page reconstructs the full audit trail from the git log of `latest.json` — every commit is
 one verified, attributed state — so committing each receipt is what builds the record.
 
+## The lane is not yours to edit
+
+Every `.mjs` file directly under `qa/` and `qa/lib/` is **machine-owned**: harness code
+that is byte-identical in every create-cmp app and carries no app content at all. It
+belongs to `create-cmp-harness`, versioned independently of the engine that stamped this
+app's shape, and `qa/harness.lock.json` records a sha256 of every one of those files.
+
+`node qa/verify.mjs` checks that lock first, on every run. Editing lane code fails the
+`harnessIntegrity` step and names the file — because a lane that has been modified cannot
+honestly vouch for itself. Without that check the receipt was unfalsifiable in one
+specific way: force every step to PASS in `qa/verify.mjs` and the receipt still validated,
+since the edited file was simply part of the hashed input surface.
+
+**So: do not edit `qa/*.mjs` or `qa/lib/*.mjs`.** If the lane is wrong, the fix is
+upstream in the engine, not here. If you genuinely must fork it, know that
+`npx create-cmp-cli upgrade --harness` will replace the region and preserve your edits as
+`qa/harness-local.patch` for you to re-apply or upstream — nothing is lost, but the fork
+stops being invisible.
+
+Everything else under `qa/` **is** yours: `approvals.json`, `comments.json`, `golden/`,
+`evidence/`, and `e2e/*.yaml` (seeded once at stamp time, app-owned forever after). So is
+`specs/`, and so is every line under `composeApp/src/`.
+
+Upgrading the lane is safe to do unattended — it touches no app content and no signed
+artifact:
+
+```bash
+npx create-cmp-cli upgrade --harness
+```
+
 ## Approvals — governed artifacts need a human's sign-off
 
 Some artifacts are **governed**: a human approves them, and the approval is bound to the

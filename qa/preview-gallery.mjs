@@ -23,6 +23,21 @@ const previewsDir = resolve(
 const { renderTreeSvg } = await import(new URL("./lib/render.mjs", import.meta.url));
 const { auditA11y } = await import(new URL("./lib/a11y.mjs", import.meta.url));
 
+// The app's display name is read at RUNTIME from create-cmp.json, never stamped in.
+// Every .mjs under qa/ is machine-owned harness code copied byte-identical from the
+// engine — token substitution must not touch it (see qa/lib/harness-region.mjs), so
+// anything app-specific is looked up from the record that already holds that truth.
+function appName() {
+  try {
+    const rec = JSON.parse(readFileSync(join(HERE, "..", "create-cmp.json"), "utf8"));
+    if (typeof rec.name === "string" && rec.name.trim()) return rec.name;
+  } catch {
+    // Not stamped, or an unreadable record — the gallery is a report, not a gate.
+  }
+  return "App";
+}
+const APP_NAME = appName();
+
 const manifest = JSON.parse(readFileSync(join(previewsDir, "manifest.json"), "utf8"));
 const { width, height, pngScale } = manifest.viewport;
 
@@ -57,7 +72,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 const html = `<!doctype html>
 <meta charset="utf-8">
-<title>Fuelled — screen previews (headless)</title>
+<title>${esc(APP_NAME)} — screen previews (headless)</title>
 <style>
   :root { color-scheme: light; }
   body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #F7F9FC; color: #1A1A1A; }
@@ -77,7 +92,7 @@ const html = `<!doctype html>
   .lbl { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 4px; }
 </style>
 <header>
-  <h1>Fuelled — screen previews</h1>
+  <h1>${esc(APP_NAME)} — screen previews</h1>
   <p>Rendered headlessly (no device/emulator) by <code>:composeApp:renderScreens</code> —
      ${width}×${height}dp, PNG @${pngScale}x · pixels for humans, wireframe+tree for the AI ·
      regenerate: <code>./gradlew :composeApp:renderScreens && node qa/preview-gallery.mjs</code></p>

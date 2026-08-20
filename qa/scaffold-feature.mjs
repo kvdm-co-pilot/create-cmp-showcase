@@ -136,7 +136,7 @@ function resolvePackage() {
   }
   die(
     "could not resolve the project's package — expected a resolved `namespace = \"...\"` in " +
-      "composeApp/build.gradle.kts (found com.kvdm.fuelled unresolved, or the file is missing). " +
+      "composeApp/build.gradle.kts (found __PACKAGE__ unresolved, or the file is missing). " +
       "Run this script POST-scaffold, in a project that has already been stamped.",
   );
 }

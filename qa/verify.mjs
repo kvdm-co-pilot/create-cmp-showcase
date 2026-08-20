@@ -45,6 +45,7 @@ import { ARCH_DOC_REL_PATH, SECTION_IDS, regenerateArchDoc } from "./lib/arch-do
 import { DETERMINISM_TIMEZONES, compareOutcomes, parseJUnitOutcomes } from "./lib/determinism.mjs";
 import { evaluateAuditCadence } from "./lib/audit-cadence.mjs";
 import { appendFlightRecord, buildFlightEntry } from "./lib/flight-recorder.mjs";
+import { checkHarnessIntegrity, describeIntegrity, LOCK_PATH } from "./lib/harness-lock.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE_DIR = path.join(ROOT, "qa", "evidence");
@@ -416,6 +417,62 @@ function settleAdb() {
 // itself lives in qa/lib/spec-coverage.mjs — the SAME scan feature-brief.mjs
 // derives doneness from, so this gate and the Features view can never disagree
 // about a clause. This step owns only the orphan decision + bookkeeping.
+// The first question any verdict depends on: is the lane that is about to
+// issue it the lane this app was given?
+//
+// Without this the receipt is unfalsifiable in one specific way — edit
+// qa/verify.mjs to force every step PASS and the receipt still validates,
+// because the edited file is simply part of the hashed input surface. Hashing
+// the machine-owned region against qa/harness.lock.json closes that: the lane
+// cannot vouch for itself while modified.
+//
+// DELIBERATELY NOT MEMOIZED. Every other pure-Node step can serve a cached
+// PASS when its inputs are unchanged; a cached PASS on an integrity check is
+// precisely the failure it exists to prevent, and 34 file reads are too cheap
+// to be worth the risk.
+//
+// Three states, three verdicts:
+//   intact    PASS
+//   modified  FAIL — named files, with the command that restores them
+//   unlocked  SKIP — an app stamped before locks existed. Nothing is known to
+//             be wrong, but nothing is proven either; recording the gap keeps
+//             the pipeline honest instead of quietly passing.
+function stepHarnessIntegrity() {
+  const started = Date.now();
+  const r = checkHarnessIntegrity(ROOT);
+  const base = { name: "harnessIntegrity", durationMs: Date.now() - started, harness: r };
+
+  if (r.status === "intact") {
+    return { ...base, verdict: "PASS", note: describeIntegrity(r) };
+  }
+  if (r.status === "unlocked") {
+    return {
+      ...base,
+      verdict: "SKIP",
+      reason: `no ${LOCK_PATH} — this app was stamped before harness locks existed. ` +
+        "`npx create-cmp-cli upgrade --harness` records one.",
+    };
+  }
+
+  const named = [
+    ...r.modified.map((f) => `modified  ${f}`),
+    ...r.missing.map((f) => `missing   ${f}`),
+    ...r.extra.map((f) => `unrecorded ${f}`),
+  ];
+  return {
+    ...base,
+    verdict: "FAIL",
+    reason:
+      `the verify lane has been modified since it was installed — ${describeIntegrity(r)}. ` +
+      "Lane code is machine-owned: it is byte-identical in every create-cmp app and carries " +
+      "no app content, so a local edit is either an accident, a half-applied upgrade, or an " +
+      "attempt to make this receipt say something the lane would not. Restore it with " +
+      "`npx create-cmp-cli upgrade --harness`, which also reports any genuine local patch " +
+      "instead of discarding it.",
+    files: named,
+  };
+}
+
 function stepSpecCoverage() {
   const started = Date.now();
   const specsDir = path.join(ROOT, "specs");
@@ -1307,8 +1364,11 @@ const stepArchDocMemo = memoized("archDoc", stepArchDoc);
 const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
-  scaffold: [stepSpecCoverageMemo, stepApprovalsMemo, stepComponentStoriesMemo, stepReachabilityMemo, stepArchDocMemo, stepSchemaHistory, stepBuild, stepUnitTests],
+  scaffold: [stepHarnessIntegrity, stepSpecCoverageMemo, stepApprovalsMemo, stepComponentStoriesMemo, stepReachabilityMemo, stepArchDocMemo, stepSchemaHistory, stepBuild, stepUnitTests],
   local: [
+    // First, always: every verdict below is only worth what the lane issuing
+    // it is worth.
+    stepHarnessIntegrity,
     stepSpecCoverageMemo,
     stepApprovalsMemo,
     stepComponentStoriesMemo,
@@ -1502,6 +1562,30 @@ if (fs.existsSync(ARTIFACTS_DIR)) {
 // Bind the receipt to the content of the verified surface (ADR-0005), NOT the
 // parent SHA (rebase/merge-fragile). Must be computed before latest.json is
 // written — the receipt is an output and must never hash itself.
+/**
+ * The receipt's harness summary — compact by design. The per-file detail lives
+ * on the harnessIntegrity step; this is the part a receipt-holder needs to
+ * identify the lane, plus the names of any modified files (an auditor told
+ * "not intact" and not told which files has been given a rumour, not a fact).
+ */
+function harnessForReceipt() {
+  const row = steps.find((st) => st.name === "harnessIntegrity");
+  const r = row?.harness ?? checkHarnessIntegrity(ROOT);
+  const summary = {
+    name: r.name,
+    version: r.version,
+    sha256: r.sha256,
+    status: r.status,
+    intact: r.status === "intact",
+  };
+  if (r.status === "modified") {
+    summary.modified = r.modified;
+    summary.missing = r.missing;
+    summary.extra = r.extra;
+  }
+  return summary;
+}
+
 const inputs = computeInputsHash(ROOT);
 
 // The receipt. Deterministic key order; ONE volatile timestamp field.
@@ -1524,6 +1608,16 @@ const receipt = {
     fileCount: inputs.fileCount,
   },
   steps,
+  // WHICH LANE issued this verdict. A receipt that cannot name its own harness
+  // can only be checked against the tree it came from; naming the version and
+  // the region digest lets a third party who holds the receipt ask the harder
+  // question — was this the real published lane? — without the tree at all.
+  //
+  // `intact` is the LOCAL claim only: unmodified since installed. It is a
+  // checksum, not a signature, and someone who edits the lane can edit this
+  // too. What they cannot edit is what the registry published under that
+  // version, which is why `version` + `sha256` travel together.
+  harness: harnessForReceipt(),
   strength: { onDeviceSteps },
   evidenceLevel: level,
   artifacts,

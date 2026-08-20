@@ -27,6 +27,14 @@ iosApp/build/
 xcuserdata/
 *.xcuserstate
 
+# `create-cmp upgrade`'s pre-write backups. In a git repo the previous commit IS
+# the backup, so these are redundant the moment they are created — and committing
+# them alongside the upgrade puts a stale copy of every touched file in history.
+# Kept on disk (an upgrade run in a dirty or non-git tree still needs them),
+# ignored by git. Delete them once you have reviewed the upgrade's diff.
+*.bak-upgrade
+*.cmp-new
+
 # Release signing — generated locally by scripts/generate-signing-key.sh, NEVER committed.
 # The keystore IS the app's identity on Android; the properties file holds its passwords.
 # Back both up out-of-band (see the script's header) — a lost signing key cannot be reissued.

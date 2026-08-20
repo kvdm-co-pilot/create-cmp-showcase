@@ -8,7 +8,7 @@
 // create-cmp repo (the `cmp-receipts` package). The copy in a generated
 // project's qa/lib/ is vendored byte-identical at scaffold time and pinned by
 // test/receipts-parity.test.mjs — edit the package source, then run
-// `node scripts/sync-receipts.mjs`.
+// `node scripts/sync-harness.mjs`.
 //
 // See docs/adr/0005-evidence-binding-by-inputs-hash.md for the why.
 
