@@ -33,11 +33,9 @@ import com.kvdm.fuelled.presentation.builder.MealBuilderRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
+import com.kvdm.fuelled.presentation.workouts.WorkoutWeekRoute
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-
-/** The Supplements tab's index in [appTabs] — Today's supplement highlight opens it (TODAY-11). */
-private const val SUPPLEMENTS_TAB = 2
 
 @Composable
 fun AppNavHost() {
@@ -91,31 +89,45 @@ fun AppNavHost() {
         modifier = Modifier.exposeTestTagsForAutomation(),
     ) {
         composable(Screen.Shell.route) {
-            // Hoisted so Today's supplement highlight can move the user to that TAB (TODAY-11)
-            // — a tab switch, not a pushed destination, because the Supplements tab is where
-            // the stack is actually edited.
-            var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+            // NAV-01: five tabs, and the shell keeps its own selection again. The
+            // selectedIndex/onSelectTab hoisting lived here for exactly one caller — Today's
+            // supplement highlight moving the user to the Supplements TAB — and NAV-05 turned
+            // that into an ordinary push, so the parameters have no caller left.
             val tabs = appTabs(
                 today = {
                     TodayRoute(
                         // TODAY-07: the tap carries its own target into the route.
                         onAddToMeal = { date, slot -> navController.navigate(Routes.mealTray(date, slot)) },
-                        // TODAY-12: the one control into the full week, opened at the current
-                        // logical day — planning is one tap from the dashboard.
-                        onOpenPlan = { date -> navController.navigate(Routes.mealPlan(date)) },
                         // TODAY-11: Today summarizes the stack; editing it is the Supplements
-                        // tab's job, so this switches tabs rather than opening an editor here.
-                        onOpenSupplements = { selectedTab = SUPPLEMENTS_TAB },
+                        // screen's job, now a pushed destination rather than a tab (NAV-05), so
+                        // system-back returns here instead of stranding the user on a tab they
+                        // did not choose.
+                        onOpenSupplements = { navController.navigate(Routes.SUPPLEMENTS) },
                     )
                 },
-                foods = {
+                // NAV-02: the week is a tab, not a link below Today's fold. It hosts the plan
+                // screen with NO date argument — a tab has none to carry — so the ViewModel
+                // anchors on the current logical day and re-anchors across the 04:00 boundary.
+                week = {
+                    MealPlanRoute(
+                        onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
+                        onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
+                        onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
+                    )
+                },
+                meals = {
                     FoodsRoute(
                         onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) },
-                        // CAT-01: the Foods tab's new job — your own catalog entries.
+                        // CAT-01: the catalog tab's own job — your custom entries.
                         onAddFood = { navController.navigate(Routes.foodEditor()) },
                     )
                 },
-                supplements = { SupplementsRoute() },
+                // NAV-06: the training week gets a home. The tick stays on Today's card
+                // (WORK-03) — this tab answers "what does my week look like", which is the
+                // question that had no surface at all.
+                training = {
+                    WorkoutWeekRoute(onEditWeek = { navController.navigate(Routes.SETTINGS) })
+                },
                 profile = {
                     ProfileRoute(
                         onOpenWeek = { navController.navigate(Routes.PROGRESS) },
@@ -123,7 +135,7 @@ fun AppNavHost() {
                     )
                 },
             )
-            AppShell(tabs = tabs, selectedIndex = selectedTab, onSelectTab = { selectedTab = it })
+            AppShell(tabs = tabs)
         }
 
         composable(
@@ -246,6 +258,15 @@ fun AppNavHost() {
                     newId = "custom-" + backStackEntry.id,
                     onDone = { navController.popBackStack() },
                 )
+            }
+        }
+        // NAV-05: Supplements comes off the bar and becomes a pushed destination, entered
+        // from Today's highlight (TODAY-11) and from Profile. BaseScreen because a destination
+        // registered directly on the NavHost owns its insets (SHELL-05); tabs get theirs from
+        // AppShell — which is exactly what changed for this screen.
+        composable(Screen.Supplements.route) {
+            BaseScreen {
+                SupplementsRoute()
             }
         }
         // cmp:anchor nav-destinations

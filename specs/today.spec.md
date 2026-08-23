@@ -2,7 +2,8 @@
 
 > Today is the home dashboard: the day's calories and macros against goal, plus the
 > **highlights** of the structured day — what to eat next, the next water, the supplement
-> stack, and the way into the week's plan. It owns no structure of its own: the meal
+> stack, and the day's training. The way into the week is the Week TAB (NAV-01/NAV-03), not
+> a control on this screen. It owns no structure of its own: the meal
 > containers and their state are the meal-plan feature's (PLAN-*), projected here.
 > Data-backed, stateless-over-a-model. Every clause id is cited by the durable test(s) that
 > verify it (`// SPEC: TODAY-NN`).
@@ -56,9 +57,13 @@
   current timing bucket (`today_supplements`) naming the bucket and how many of its
   supplements are taken (SUPP-02), and opening it goes to the Supplements tab — Today
   summarizes the stack, it never edits it.
-- **TODAY-12** — Given the Today screen, Then it offers one control into the full week
-  (`today_plan_link`) which opens the plan screen (PLAN-11) at the current logical day —
-  planning is one tap from the dashboard, and Today never renders the week itself.
+- ~~**TODAY-12**~~ — *WITHDRAWN (navigation-ia, NAV-03).* Read: "Today offers one control into
+  the full week (`today_plan_link`) which opens the plan screen at the current logical day."
+  The clause existed because the week had no tab; NAV-01 gave it one, which is the same
+  destination always visible and one tap away, so the card became the weaker of two routes to
+  one place and sat below the fold besides. Withdrawn rather than amended — there is no
+  surviving claim once the tab exists. Today still never renders the week itself; that half
+  is now carried by NAV-03.
 - **TODAY-13** — Given the same logical day, When a meal or water container is ticked from
   Today and when it is ticked from the plan screen, Then the resulting stored state is
   identical — Today renders a projection of the plan and writes through the same use case,

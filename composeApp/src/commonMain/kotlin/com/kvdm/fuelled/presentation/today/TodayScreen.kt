@@ -217,7 +217,6 @@ internal val MealSlot.label: String
 fun TodayRoute(
     viewModel: TodayViewModel = koinViewModel(),
     onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
-    onOpenPlan: (LocalDate) -> Unit = {},
     onOpenSupplements: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -231,7 +230,6 @@ fun TodayRoute(
                 onAddToMeal = onAddToMeal,
                 onToggleFocusDone = viewModel::setSlotDone,
                 onToggleWater = viewModel::setWaterDone,
-                onOpenPlan = { onOpenPlan(model.plan.date) },
                 onOpenSupplements = onOpenSupplements,
                 onDeleteEntry = viewModel::deleteEntry,
                 onEntryServings = viewModel::setServings,
@@ -243,14 +241,13 @@ fun TodayRoute(
 }
 
 /**
- * Every interaction Today offers (TODAY-07/TODAY-09..TODAY-12), bundled so the stateless screen
+ * Every interaction Today offers (TODAY-07/TODAY-09..TODAY-11, TODAY-14), bundled so the stateless screen
  * keeps a preview-friendly shape and its golden tree stays a pure function of its arguments.
  */
 data class TodayActions(
     val onAddToMeal: (LocalDate, MealSlot) -> Unit = { _, _ -> },
     val onToggleFocusDone: (MealSlot, Boolean) -> Unit = { _, _ -> },
     val onToggleWater: (Int, Boolean) -> Unit = { _, _ -> },
-    val onOpenPlan: () -> Unit = {},
     val onOpenSupplements: () -> Unit = {},
     /** UX-02: remove an entry from the focused container — the same delete as the plan's. */
     val onDeleteEntry: (String) -> Unit = {},
@@ -267,7 +264,7 @@ data class TodayActions(
  * **Today is the highlights, not the day** (decision 13). It shows what is true right now: the
  * ring and macros, the ONE focused container (TODAY-09), the next water (TODAY-10), the veg
  * count (TODAY-14), the supplement bucket (TODAY-11), and one link into the full week
- * (TODAY-12). The week itself lives on the plan screen and is never rendered here.
+ * bucket (TODAY-11). The week itself lives on its own tab (NAV-02) and is never rendered here.
  *
  * The focused container and the water row are the plan screen's OWN composables
  * ([PlanMealCard], [WaterRow]), imported rather than reimplemented — so the two surfaces cannot
@@ -390,21 +387,13 @@ fun TodayScreen(
             )
         }
 
-        // TODAY-12: the one control into the full week. Today never renders the week itself.
-        ListItemCard(
-            title = "This week",
-            subtitle = "Plan the week — all six meals, every day",
-            onClick = actions.onOpenPlan,
-            leading = { Icon(Icons.Filled.Today, contentDescription = null, tint = FuelledColors.Primary) },
-            trailing = {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            modifier = Modifier.semantics { testTag = "today_plan_link" },
-        )
+        // `today_plan_link` lived here: TODAY-12's one control into the full week, a card
+        // near the bottom of this screen. NAV-02 promoted the week to a bottom-bar tab, which
+        // is the same destination one tap away and always visible — this card was the weaker
+        // of two routes to one place, and it sat below the fold (the e2e flow needed two
+        // swipes to reach it). Withdrawn, not moved: there is no surviving claim once the tab
+        // exists.
+
         Spacer(Modifier.height(8.dp))
     }
 }

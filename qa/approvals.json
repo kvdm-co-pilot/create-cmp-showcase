@@ -8,18 +8,6 @@
       "approvedAt": "2026-07-23T17:04:37.670Z"
     },
     {
-      "artifact": "architecture",
-      "status": "approved",
-      "hash": "6478649ec66d4187b320bcb4091f6fc3b69ceabae794cd2bf2f534639892789d",
-      "approvedAt": "2026-07-24T11:44:36.796Z"
-    },
-    {
-      "artifact": "components",
-      "status": "approved",
-      "hash": "85cab4bcf9cd9d3986d4617cc0e115250fccf72d8533c3269fc3c67280d89348",
-      "approvedAt": "2026-07-24T11:44:36.874Z"
-    },
-    {
       "artifact": "feature-brief:meal",
       "status": "approved",
       "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767",
@@ -51,13 +39,6 @@
       "status": "approved",
       "hash": "6f3c138ff97dbe1ba00e8b0788fa3b126cdd4600dd5d8988493f5bc8c618e06e",
       "approvedAt": "2026-07-29T08:51:50.748Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-spec:today",
-      "status": "approved",
-      "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
-      "approvedAt": "2026-07-29T10:02:20.031Z",
       "via": "console"
     },
     {
@@ -282,13 +263,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-spec:workouts",
-      "status": "approved",
-      "hash": "eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7",
-      "approvedAt": "2026-08-05T11:32:05.891Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-brief:supplement-schedules",
       "status": "approved",
       "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b",
@@ -315,6 +289,47 @@
       "hash": "236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1",
       "approvedAt": "2026-08-05T11:32:37.446Z",
       "via": "console"
+    },
+    {
+      "artifact": "architecture",
+      "status": "approved",
+      "hash": "4cd43e5cf765d33bc4bcbd8f33a73c3f93da52a3ee28a17a5802f1bb3217cbe8",
+      "approvedAt": "2026-08-22T14:00:13.482Z",
+      "via": "console"
+    },
+    {
+      "artifact": "components",
+      "status": "approved",
+      "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385",
+      "approvedAt": "2026-08-22T14:00:21.168Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:today",
+      "status": "reopened",
+      "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
+      "approvedAt": "2026-07-29T10:02:20.031Z",
+      "reopenedAt": "2026-08-22T15:03:06.867Z",
+      "reason": "navigation-ia NAV-03: TODAY-12 withdrawn — the week became a bottom-bar tab, so Today's link to it is a second route to a place always one tap away",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:workouts",
+      "status": "reopened",
+      "hash": "eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7",
+      "approvedAt": "2026-08-05T11:32:05.891Z",
+      "reopenedAt": "2026-08-23T18:52:03.301Z",
+      "reason": "navigation-ia D6/NAV-06: training gained a fourth surface — the Training tab. WORK-05 and WORK-07 are amended to say what they are NOT, so the tab and the retrospective strip cannot drift into two definitions of one week.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-brief:navigation-ia",
+      "status": "reopened",
+      "hash": "cb889d0e86b150a8c151e9f7dfbab5061c4dd0115683ada905db40a30adfb5f9",
+      "approvedAt": "2026-08-22T14:00:05.485Z",
+      "reopenedAt": "2026-08-23T18:53:17.202Z",
+      "reason": "OD1/OD2/OD3 closed at implementation: Week+Meals, full-word labels (nav_training not nav_train), and the workout-week editor STAYS in Settings — D10 overruled for the smaller change. Recording the calls in the doc changes signed bytes, so it walks back for re-signature.",
+      "via": "cli"
     }
   ],
   "exemplarFeature": "foods"

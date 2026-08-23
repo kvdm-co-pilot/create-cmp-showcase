@@ -63,6 +63,19 @@
       "author": "human-console",
       "createdAt": "2026-07-28T12:56:47.700Z",
       "status": "open"
+    },
+    {
+      "id": "c6",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with navigation-ia: contract: write the clauses in specs/navigation-ia.spec.md + reopen & amend specs/today.spec.md, specs/workouts.spec.md (declared)",
+      "author": "human-console",
+      "createdAt": "2026-08-22T14:00:07.141Z",
+      "status": "resolved",
+      "resolvedAt": "2026-08-23T18:54:19.041Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Done. Clauses written in specs/navigation-ia.spec.md (NAV-01..07, all cited). specs/today.spec.md reopened + TODAY-12 struck through (withdrawn, superseded by NAV-03). specs/workouts.spec.md reopened + amended: scope now names the FOURTH surface and defers to NAV-06 rather than restating it; WORK-05 gains 'Not the Training tab' (retrospective rolling window vs. the calendar week you are in); WORK-07 gains 'The editor stays here' (OD3 closed — D10 overruled for the smaller change). Brief reopened to record OD1/OD2/OD3 as closed. Three artifacts now await your re-signature."
     }
   ]
 }

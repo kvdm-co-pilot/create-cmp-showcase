@@ -44,7 +44,8 @@ appId: com.kvdm.fuelled
 - assertNotVisible:
     id: "onboarding_screen"
 
-# SPEC: SHELL-02 + FOODS-02 — switch to Foods, then prove search filters the Room-backed
+# SPEC: SHELL-02, NAV-04, FOODS-02 — switch to Meals (the catalog tab, renamed from
+# Foods — the nav id follows the label), then prove search filters the Room-backed
 # catalog on-device: typing "Chicken" keeps Chicken breast and drops Almonds.
 #
 # Item ids are SLUGS (foods_item_<food.id>, FoodsScreen.kt) — `almonds`, `chicken-breast`,
@@ -53,7 +54,7 @@ appId: com.kvdm.fuelled
 # e2eSmoke SKIPs whenever no device is attached. Selectors here must be real ids, never
 # positions — "item 1" stops meaning anything the moment the catalog is re-sorted.
 - tapOn:
-    id: "nav_foods"
+    id: "nav_meals"
 - assertVisible:
     id: "foods_title"
 # The catalog seeds into Room on first read, so the first item arrives after a round-trip
@@ -65,7 +66,7 @@ appId: com.kvdm.fuelled
 - tapOn:
     id: "foods_search"
 - inputText: "Chicken"
-# The keyboard MUST be down before the bottom-nav assert and the nav_supplements tap below —
+# The keyboard MUST be down before the bottom-nav assert and the nav taps below —
 # the IME overlays the bottom bar, and an assert against a covered node fails on a working app.
 #
 # `pressKey: Enter` alone was the previous approach, on the reasoning that a singleLine field
@@ -90,20 +91,49 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "app_bottom_nav"
 
-# SPEC: SHELL-02 + SUPP-03 — switch to Supplements and tap a take control; the tap routes
-# through the ViewModel, persists to Room, and re-reads — the summary re-renders without crash.
+# SPEC: NAV-05 + SUPP-03 — Supplements is no longer a tab: it is a pushed destination,
+# entered from Today's highlight. This is the on-device proof of BOTH halves — that the
+# highlight opens it at all, and that a tap-to-take routes through the VM → Room and
+# re-renders. Back then returns to Today, which a tab switch never did.
 - tapOn:
-    id: "nav_supplements"
-- assertVisible:
-    id: "supplements_title"
+    id: "nav_today"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 30000
+# The highlight sits below the hero and the focused container, so bring it into view first —
+# tapOn targets an element's CENTRE, and a centre below the viewport lands on the bottom nav.
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "today_supplements"
+- extendedWaitUntil:
+    visible:
+      id: "supplements_title"
+    timeout: 30000
 - assertVisible:
     id: "supplements_summary"
 - tapOn:
     id: "supplements_take_3"
 - assertVisible:
     id: "supplements_summary"
+# NAV-05: a pushed destination, so system-back returns to the surface that opened it.
+- back
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 30000
+
+# SPEC: NAV-06 — Training is a tab, and it renders the whole week including rest days.
+- tapOn:
+    id: "nav_training"
+- extendedWaitUntil:
+    visible:
+      id: "training_screen"
+    timeout: 30000
 - assertVisible:
-    id: "app_bottom_nav"
+    id: "training_summary"
 
 # SPEC: SHELL-02 — Profile renders inside the shell.
 - tapOn:
@@ -113,42 +143,22 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "app_bottom_nav"
 
-# and back to Today
-- tapOn:
-    id: "nav_today"
-- assertVisible:
-    id: "today_title"
-
-# SPEC: TODAY-12 + PLAN-02 + PLAN-04 — Today links into the full week, the plan renders all
-# six containers whatever the hour, and a container's add control opens the tray ALREADY
-# TARGETED at that container's slot.
+# SPEC: NAV-02 + PLAN-02 + PLAN-04 — the Week TAB opens the structured day anchored on the
+# current logical day, the plan renders all six containers whatever the hour, and a
+# container's add control opens the tray ALREADY TARGETED at that container's slot.
 #
-# This goes via the PLAN screen deliberately. Today now shows only the FOCUSED container
-# (TODAY-09), and which slot that is depends on the wall clock — so `today_add_breakfast` only
-# exists in the early morning, and a flow asserting it would pass or fail by time of day. The
-# plan screen always renders all six (PLAN-02), so `plan_add_breakfast` is there at any hour.
+# This used to go via `today_plan_link` and needed two `swipe UP` steps to reach it, because
+# the link sat below Today's fold. NAV-03 withdrew that card and NAV-01 put the week on the
+# bar, so the same destination is now one tap with no scrolling — which is the change this
+# flow exists to prove as much as it is the reason for it.
 #
 # It is also the standing proof that a destination registered directly on the NavHost (outside
 # AppShell) exposes its testTags to the automation layer at all: `exposeTestTagsForAutomation`
 # sits on the NavHost in AppNavHost.kt, and while it sat inside AppShell instead,
 # `meal_tray_screen` did not exist as a resource-id and no id-selector could see this screen.
 # If that modifier ever moves back down, these steps fail.
-# The link sits below the fold — the hero, the protein card and the focused container fill the
-# first screenful — so bring it up before tapping. `tapOn` targets an element's CENTRE, and a
-# centre below the viewport lands on the bottom nav instead.
-#
-# Explicit swipes, NOT scrollUntilVisible: Compose reports a node's UNCLIPPED bounds in the
-# semantics tree, so a row scrolled off the bottom still reads as 100% visible and
-# scrollUntilVisible completes without moving anything. (Same measurement quirk the a11y step
-# already discounts for touch targets.) Two swipes clear this screen's content on any phone.
-- swipe:
-    direction: UP
-    duration: 400
-- swipe:
-    direction: UP
-    duration: 400
 - tapOn:
-    id: "today_plan_link"
+    id: "nav_week"
 - extendedWaitUntil:
     visible:
       id: "meal_plan_screen"

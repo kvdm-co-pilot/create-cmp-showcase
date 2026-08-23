@@ -286,25 +286,22 @@ class TodayScreenTest {
             assertTrue(openedSupplements, "the highlight opens the Supplements tab; Today never edits the stack")
         }
 
-    // SPEC: TODAY-12
+    // SPEC: NAV-03 — TODAY-12 withdrawn: the week is a tab, so Today no longer carries a
+    // link to it. This test replaces the one that asserted `today_plan_link` exists; it is
+    // kept (rather than deleted) because "the card is gone" is now the claim worth defending —
+    // the failure mode being guarded is someone re-adding a second route to a tab destination.
     @Test
-    fun `today offers one link into the full week, opened at the current logical day`() =
+    fun `today carries no link into the week — the week is a tab`() =
         runComposeUiTest {
-            var requested: String? = null
-
             setContent {
                 MaterialTheme {
-                    TodayRoute(
-                        viewModel = todayViewModel(today = repository),
-                        onOpenPlan = { date -> requested = Routes.mealPlan(date) },
-                    )
+                    TodayRoute(viewModel = todayViewModel(today = repository))
                 }
             }
 
-            awaitNode(hasTestTag("today_plan_link"))
-            onNodeWithTag("today_plan_link").performScrollTo().performClick()
-            assertEquals("plan/2026-07-22", requested)
-            // And Today does NOT render the week itself — there is no day strip here.
+            awaitNode(hasTestTag("today_screen"))
+            onNodeWithTag("today_plan_link").assertDoesNotExist()
+            // And Today still does NOT render the week itself — there is no day strip here.
             onNodeWithTag("plan_days").assertDoesNotExist()
         }
 

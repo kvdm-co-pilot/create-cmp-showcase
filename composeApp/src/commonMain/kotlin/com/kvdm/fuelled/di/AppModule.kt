@@ -71,6 +71,7 @@ import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 import com.kvdm.fuelled.presentation.progress.ProgressViewModel
+import com.kvdm.fuelled.presentation.workouts.WorkoutWeekViewModel
 import com.kvdm.fuelled.presentation.onboarding.OnboardingViewModel
 import com.kvdm.fuelled.presentation.foods.FoodEditorViewModel
 // cmp:anchor di-imports
@@ -213,6 +214,8 @@ val viewModelModule = module {
     // WORK-05: same reason as Supplements above — the training window is derived from the
     // logical day, so the clock/zone/dayStartHour come from production defaults.
     viewModel { ProgressViewModel(get(), get(), get(), get(), get(), get()) }
+    // NAV-06: the Training tab. WorkoutRepository + TimeSignal; zone and dayStartHour default.
+    viewModel { WorkoutWeekViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get(), get()) }
     viewModel { FoodEditorViewModel(get(), get(), get()) }
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired

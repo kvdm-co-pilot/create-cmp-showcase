@@ -77,4 +77,35 @@ class AppShellTest {
         onNodeWithTag("tab_one_content").assertIsDisplayed()
         onNodeWithTag("app_bottom_nav").assertIsDisplayed()
     }
+    // SPEC: NAV-01
+    @Test
+    fun `the bottom bar carries the five day-order tabs, and Supplements is not one of them`() =
+        runComposeUiTest {
+            // The real tab list, not the in-test stand-ins above: NAV-01 is a claim about
+            // WHICH tabs exist and in what order, so a test built on placeholder tabs could
+            // not fail when the set changes. Contents are stubbed — the shell is what is
+            // under test — but the labels, order and count are the production ones.
+            setContent {
+                MaterialTheme {
+                    AppShell(
+                        tabs = appTabs(
+                            today = { Text("today") },
+                            week = { Text("week") },
+                            meals = { Text("meals") },
+                            training = { Text("training") },
+                            profile = { Text("profile") },
+                        ),
+                    )
+                }
+            }
+
+            awaitNode(hasTestTag("app_bottom_nav"))
+            // The order IS the spec: what is true now → what is planned → what you eat from
+            // → the sixth pillar → you.
+            listOf("nav_today", "nav_week", "nav_meals", "nav_training", "nav_profile")
+                .forEach { onNodeWithTag(it).assertIsDisplayed() }
+            // NAV-05: the stack came off the bar and became a pushed destination.
+            onNodeWithTag("nav_supplements").assertDoesNotExist()
+        }
+
 }

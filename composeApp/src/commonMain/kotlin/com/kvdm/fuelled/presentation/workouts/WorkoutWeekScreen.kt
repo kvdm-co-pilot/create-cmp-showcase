@@ -1,0 +1,160 @@
+package com.kvdm.fuelled.presentation.workouts
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.model.WorkoutDayPlan
+import com.kvdm.fuelled.domain.model.WorkoutDayState
+import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ListItemCard
+import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.theme.FuelledColors
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import org.koin.compose.viewmodel.koinViewModel
+
+// ── Training: the training week, as a tab (NAV-06) ───────────────────────────────────────
+// The UI-first preview seam, mirroring the exemplar's two entry points:
+//   • WorkoutWeekScreen — STATELESS, sample-defaulted; the preview registry renders it with no VM.
+//   • WorkoutWeekRoute  — the VM-backed tab the nav graph hosts.
+//
+// This screen answers "what does my training week look like" — the question that had no home
+// before it: WORK-03 put the day's session on Today, WORK-05 put a retrospective strip inside
+// Progress, and WORK-07 put an editor inside Settings, but the WEEK itself was nowhere.
+
+/**
+ * PREVIEW/DEMO fixture — a mid-week state that communicates most: two sessions kept, one
+ * missed, today pending and tickable, a rest day in the middle. Fixed dates, never a clock
+ * read, so gallery renders and golden diffs stay deterministic (ARCH-12).
+ */
+val sampleWorkoutWeek = WorkoutWeekUi(
+    today = LocalDate(2026, 7, 22),
+    days = listOf(
+        WorkoutDay(LocalDate(2026, 7, 20), WorkoutDayPlan("Upper body", LocalTime(18, 0)), done = true),
+        WorkoutDay(LocalDate(2026, 7, 21), WorkoutDayPlan("Cardio 20 min", LocalTime(18, 0)), done = true),
+        WorkoutDay(LocalDate(2026, 7, 22), WorkoutDayPlan("Upper body", LocalTime(18, 0)), done = false),
+        WorkoutDay(LocalDate(2026, 7, 23), WorkoutDayPlan("Cardio 20 min", LocalTime(18, 0)), done = false),
+        WorkoutDay(LocalDate(2026, 7, 24), WorkoutDayPlan("Lower body", LocalTime(18, 0)), done = false),
+        WorkoutDay(LocalDate(2026, 7, 25), WorkoutDayPlan("Cardio 20 min", LocalTime(9, 0)), done = false),
+        WorkoutDay(LocalDate(2026, 7, 26), WorkoutDayPlan(), done = false),
+    ),
+)
+
+/** A rest-heavy week that has not started — the forced-state variant the registry renders. */
+val sampleWorkoutWeekFresh = sampleWorkoutWeek.copy(
+    days = sampleWorkoutWeek.days.map { it.copy(done = false) },
+    today = LocalDate(2026, 7, 20),
+)
+
+/**
+ * The VM-backed Training tab the nav graph hosts. A tab: it inherits BaseScreen (insets) from
+ * AppShell, so it does not re-wrap it (SHELL-05).
+ */
+@Composable
+fun WorkoutWeekRoute(
+    viewModel: WorkoutWeekViewModel = koinViewModel(),
+    onEditWeek: () -> Unit = {},
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ContentStateContainer(state = state, screenTag = "training") { model ->
+        WorkoutWeekScreen(
+            model = model,
+            onToggleTodayDone = viewModel::onToggleTodayDone,
+            onEditWeek = onEditWeek,
+        )
+    }
+}
+
+/**
+ * The stateless training week — the preview/UI-first seam, defaulted to a sample so the
+ * registry renders it without a VM or Koin.
+ *
+ * Every day renders, rest included. On Today a rest day shows NOTHING (workouts D5) because a
+ * rest day has nothing to say about right now — but here the shape of the WEEK is the point,
+ * and a gap in it would read as missing data rather than as a planned rest.
+ */
+@Composable
+fun WorkoutWeekScreen(
+    model: WorkoutWeekUi = sampleWorkoutWeek,
+    onToggleTodayDone: (Boolean) -> Unit = {},
+    onEditWeek: () -> Unit = {},
+) {
+    ScreenColumn(screenTag = "training") {
+        AppHeader(title = "Training", screenTag = "training")
+        Text(
+            text = "${model.kept} of ${model.planned} sessions kept",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "training_summary" },
+        )
+
+        model.days.forEach { day ->
+            val state = day.state(model.today)
+            val isToday = day.date == model.today
+            ListItemCard(
+                title = day.date.weekdayLabel() + (day.plan.label?.let { " · $it" } ?: " · Rest"),
+                subtitle = day.caption(state),
+                // WORK-04: only the current logical day is tickable — a week view that could
+                // retro-tick Tuesday would be inventing a fact nobody observed. Every other
+                // row opens the week editor instead of silently doing nothing.
+                onClick = { if (isToday && day.plan.isTraining) onToggleTodayDone(!day.done) else onEditWeek() },
+                leading = {
+                    Icon(
+                        Icons.Filled.FitnessCenter,
+                        contentDescription = null,
+                        tint = when (state) {
+                            WorkoutDayState.DONE -> FuelledColors.Primary
+                            WorkoutDayState.MISSED -> FuelledColors.Error
+                            WorkoutDayState.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant
+                            WorkoutDayState.REST -> MaterialTheme.colorScheme.outline
+                        },
+                    )
+                },
+                trailing = {
+                    if (state == WorkoutDayState.DONE) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = FuelledColors.Primary)
+                    }
+                },
+                modifier = Modifier.semantics { testTag = "training_day_${day.date}" },
+            )
+        }
+
+        Text(
+            text = "Shape the week in Settings",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "training_edit_hint" },
+        )
+    }
+}
+
+/**
+ * The row's supporting line: the state in words, plus the reminder time when there is one.
+ * Presentation formatting of domain values — the model carries a [WorkoutDayState] and a
+ * [LocalTime], never their rendering.
+ */
+private fun WorkoutDay.caption(state: WorkoutDayState): String = when (state) {
+    WorkoutDayState.DONE -> "Done"
+    WorkoutDayState.MISSED -> "Missed"
+    WorkoutDayState.REST -> "Rest day"
+    WorkoutDayState.PENDING -> plan.remindAt?.let { "Reminder ${it.clock()}" } ?: "Planned"
+}
+
+private fun LocalTime.clock(): String = "${hour.pad()}:${minute.pad()}"
+
+private fun Int.pad(): String = toString().padStart(2, '0')
+
+/** "Mon", "Tue", … — presentation formatting of the date's weekday. */
+private fun LocalDate.weekdayLabel(): String =
+    dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)

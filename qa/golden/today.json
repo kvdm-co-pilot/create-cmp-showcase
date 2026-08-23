@@ -50,10 +50,6 @@
           {"role": "Image", "contentDescription": "Mark done"}
         ]}
       ]}
-    ]},
-    {"tag": "today_plan_link", "children": [
-      {"text": "This week"},
-      {"text": "Plan the week — all six meals, every day"}
     ]}
   ]}
 ]}

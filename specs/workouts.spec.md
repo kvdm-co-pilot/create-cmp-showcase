@@ -7,8 +7,13 @@
 > logical day. No exercises, sets, reps, loads or progression. Every clause id is cited by the
 > durable test(s) that verify it (`// SPEC: WORK-NN`).
 
-**Scope of this contract.** The week as a plan, the day as a fact, and the three surfaces that
-already exist. The reminder LADDER those times hang off is supplement-plan contract
+**Scope of this contract.** The week as a plan, the day as a fact, and the surfaces that show
+them. Training now has FOUR surfaces, not the three this contract was written against: the
+Today card (WORK-03), the Progress strip (WORK-05), the Settings editor (WORK-07), and — added
+by navigation-ia — the **Training tab**. The tab is specified in
+[`specs/navigation-ia.spec.md`](./navigation-ia.spec.md) (NAV-06) rather than restated here, on
+the same rule that keeps HIST-01 a single aggregate: one behavior gets one definition, and a
+second copy is a disagreement waiting for someone to edit only one of them. The reminder LADDER those times hang off is supplement-plan contract
 (SUPP-12) — one policy, two consumers — and WORK-06 only claims what training adds to it.
 
 - **WORK-01** — Given the app, Then training is stored as two things: a `WorkoutWeek` (the
@@ -37,6 +42,12 @@ already exist. The reminder LADDER those times hang off is supplement-plan contr
   nothing, today has not happened yet, and only a PAST training day with no mark is a miss.
   The window is derived from the same logical day the history is (HIST-01), so the strip and
   the day cards can never describe different weeks.
+
+  **Not the Training tab.** This strip looks BACK over a rolling seven days because Progress is
+  the retrospective surface; the tab (NAV-06) shows the calendar week you are IN because it is
+  the plan. Both span seven days and both read the same rows through the same repository, so
+  the difference is the WINDOW and nothing else — stated here because two seven-day training
+  views on one screenful of app is exactly the pair that silently becomes one definition.
 - **WORK-06** — Given a training day with a reminder time and at least one rung, Then the
   armed set carries that day's rungs at the SAME leads the supplement ladder uses (SUPP-12),
   fired on the training day's own date; and a session already marked done arms nothing
@@ -47,6 +58,11 @@ already exist. The reminder LADDER those times hang off is supplement-plan contr
   time, and its rungs; clearing the label makes that day a rest day and drops its time and
   rungs with it, so no alarm survives a day that no longer trains. Every save re-arms, so a
   changed time is live at once rather than at the next app open (SET-08's discipline).
+
+  **The editor stays here.** navigation-ia weighed moving it onto the Training tab (its OD3)
+  and kept it in Settings: the tab is read-and-tick, and a row that is not the current logical
+  day opens THIS editor rather than doing nothing. Shaping the week is a settings act performed
+  rarely; ticking it is a daily one, and they are different enough to live apart.
 - **WORK-08** — Given a fresh install, Then the week is seeded to the classic Body-for-LIFE
   split (upper/lower alternating, cardio between, Sunday rest) with NO reminder times set. A
   seeded week is a real starting point; a seeded alarm is one nobody asked for, and that is

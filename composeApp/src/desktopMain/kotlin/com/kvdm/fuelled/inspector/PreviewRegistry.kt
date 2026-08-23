@@ -25,6 +25,8 @@ import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementStackUi
 import com.kvdm.fuelled.presentation.supplements.sampleSupplementStack
 import com.kvdm.fuelled.presentation.today.TodayScreen
+import com.kvdm.fuelled.presentation.workouts.WorkoutWeekScreen
+import com.kvdm.fuelled.presentation.workouts.sampleWorkoutWeekFresh
 import com.kvdm.fuelled.presentation.progress.ProgressScreen
 import com.kvdm.fuelled.presentation.builder.MealBuilderScreen
 import com.kvdm.fuelled.presentation.builder.BuilderUi
@@ -78,8 +80,9 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
         AppShell(
             tabs = appTabs(
                 today = { TodayScreen() },
-                foods = { FoodsScreen() },
-                supplements = { SupplementsScreen() },
+                week = { MealPlanDayScreen() },
+                meals = { FoodsScreen() },
+                training = { WorkoutWeekScreen() },
                 profile = { ProfileScreen() },
             ),
         )
@@ -92,6 +95,13 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     // JRN-01/HIST-01: Progress — the holistic results surface (verdict, trend, weight, days).
     ScreenPreview("progress", "Progress — verdict, 4-week trend, weight, days") { TabHost { ProgressScreen() } },
+    // NAV-06: Training — the training week as its own tab.
+    ScreenPreview("training", "Training tab — the week (today pending, one missed)") {
+        TabHost { WorkoutWeekScreen() }
+    },
+    ScreenPreview("training@fresh", "Training — week not started") {
+        TabHost { WorkoutWeekScreen(sampleWorkoutWeekFresh) }
+    },
     // START-01: the app's first words.
     ScreenPreview("onboarding", "First run — the three answers") { OnboardingScreen() },
     // CAT-01: your own catalog entries.
