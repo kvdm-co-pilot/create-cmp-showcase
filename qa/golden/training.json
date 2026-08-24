@@ -1,0 +1,38 @@
+{"children": [
+  {"tag": "training_screen", "children": [
+    {"tag": "training_title", "text": "Training"},
+    {"tag": "training_summary", "text": "2 kept · 4 to come"},
+    {"tag": "training_day_2026-07-20", "children": [
+      {"text": "Mon · Upper body"},
+      {"text": "Done"}
+    ]},
+    {"tag": "training_day_2026-07-21", "children": [
+      {"text": "Tue · Cardio 20 min"},
+      {"text": "Done"}
+    ]},
+    {"tag": "training_day_2026-07-22", "children": [
+      {"text": "Wed · Upper body"},
+      {"text": "Reminder 18:00"}
+    ]},
+    {"tag": "training_day_2026-07-23", "children": [
+      {"text": "Thu · Cardio 20 min"},
+      {"text": "Reminder 18:00"}
+    ]},
+    {"tag": "training_day_2026-07-24", "children": [
+      {"text": "Fri · Lower body"},
+      {"text": "Reminder 18:00"}
+    ]},
+    {"tag": "training_day_2026-07-25", "children": [
+      {"text": "Sat · Cardio 20 min"},
+      {"text": "Reminder 09:00"}
+    ]},
+    {"tag": "training_day_2026-07-26", "children": [
+      {"text": "Sun · Rest"},
+      {"text": "Rest day"}
+    ]},
+    {"tag": "training_edit_week", "children": [
+      {"text": "Shape the week"},
+      {"text": "Labels, times and rest days — in Settings"}
+    ]}
+  ]}
+]}

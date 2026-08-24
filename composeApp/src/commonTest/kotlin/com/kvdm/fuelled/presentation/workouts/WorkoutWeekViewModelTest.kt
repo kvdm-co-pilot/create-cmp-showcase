@@ -110,4 +110,29 @@ class WorkoutWeekViewModelTest {
 
         assertTrue(vm.state.value is ContentUiState.Error, "typed failures cross the boundary as state")
     }
+    // SPEC: NAV-06
+    @Test
+    fun `the tally keeps pending and missed apart`() = runTest(dispatcher) {
+        repository.week = WorkoutWeek(
+            mapOf(
+                DayOfWeek.MONDAY to WorkoutDayPlan("Upper body", LocalTime(18, 0)),
+                DayOfWeek.TUESDAY to WorkoutDayPlan("Cardio", LocalTime(18, 0)),
+                DayOfWeek.WEDNESDAY to WorkoutDayPlan("Upper body", LocalTime(18, 0)),
+                DayOfWeek.THURSDAY to WorkoutDayPlan("Cardio", LocalTime(18, 0)),
+            ),
+        )
+        // Monday kept; Tuesday is PAST and unmarked, so it is a miss. Wednesday is today and
+        // Thursday is ahead — both still to come, neither a failure.
+        repository.done = setOf(LocalDate(2026, 7, 20))
+
+        val vm = viewModel()
+        keepCollecting(vm.state)
+        advanceUntilIdle()
+
+        val ui = assertIs<ContentUiState.Content<WorkoutWeekUi>>(vm.state.value).data
+        assertEquals(1, ui.kept)
+        assertEquals(1, ui.missed, "only a PAST training day with no mark is a miss")
+        assertEquals(2, ui.toCome, "today and the days after it have not happened yet")
+    }
+
 }

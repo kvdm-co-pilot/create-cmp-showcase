@@ -91,7 +91,7 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("today@empty", "Today — fresh day (breakfast focused, add-in-card)") {
         TabHost { TodayScreen(sampleHighlightsEmpty) }
     },
-    ScreenPreview("foods", "Foods tab") { TabHost { FoodsScreen() } },
+    ScreenPreview("foods", "Meals tab — the catalog (NAV-04)") { TabHost { FoodsScreen() } },
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     // JRN-01/HIST-01: Progress — the holistic results surface (verdict, trend, weight, days).
     ScreenPreview("progress", "Progress — verdict, 4-week trend, weight, days") { TabHost { ProgressScreen() } },
@@ -110,7 +110,7 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail@log", "Food detail — slot picker open (UX-03)") {
         TabHost { FoodDetailScreen(logPickerInitiallyOpen = true) }
     },
-    ScreenPreview("supplements", "Supplements tab") { TabHost { SupplementsScreen() } },
+    ScreenPreview("supplements", "Supplements — pushed destination, not a tab (NAV-05)") { TabHost { SupplementsScreen() } },
     ScreenPreview("profile", "Profile tab") { TabHost { ProfileScreen() } },
     ScreenPreview("meal-tray", "Meal tray — add to Lunch (3 ticked)") { TabHost { MealTrayScreen() } },
     ScreenPreview("meal-tray@empty", "Meal tray — empty selection") {

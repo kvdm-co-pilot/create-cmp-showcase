@@ -244,20 +244,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:workouts",
-      "status": "approved",
-      "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d",
-      "approvedAt": "2026-08-24T09:50:10.200Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-spec:navigation-ia",
-      "status": "approved",
-      "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9",
-      "approvedAt": "2026-08-24T09:50:15.674Z",
-      "via": "console"
-    },
-    {
       "artifact": "intent",
       "status": "approved",
       "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
@@ -338,6 +324,24 @@
       "approvedAt": "2026-08-05T11:32:22.495Z",
       "reopenedAt": "2026-08-24T10:00:39.366Z",
       "reason": "ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:workouts",
+      "status": "reopened",
+      "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d",
+      "approvedAt": "2026-08-24T09:50:10.200Z",
+      "reopenedAt": "2026-08-24T20:00:41.595Z",
+      "reason": "Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:navigation-ia",
+      "status": "reopened",
+      "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9",
+      "approvedAt": "2026-08-24T09:50:15.674Z",
+      "reopenedAt": "2026-08-24T20:00:41.672Z",
+      "reason": "NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.",
       "via": "cli"
     }
   ],

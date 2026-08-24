@@ -9,6 +9,7 @@ import com.kvdm.fuelled.core.time.TimeSignal
 import com.kvdm.fuelled.core.time.days
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.domain.model.WorkoutDayState
 import com.kvdm.fuelled.domain.repository.WorkoutRepository
 import com.kvdm.fuelled.domain.result.AppResult
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -91,9 +92,19 @@ data class WorkoutWeekUi(
     val days: List<WorkoutDay>,
     val today: LocalDate,
 ) {
-    /** Sessions kept of sessions planned, over this week — the header's summary. */
+    /**
+     * The week's tally, split three ways rather than two (NAV-06).
+     *
+     * "2 of 6 kept" is arithmetically true on a Wednesday and reads as four sessions MISSED
+     * when four are simply still to come. WORK-05 went to some trouble to keep pending and
+     * missed apart in the day dots — a rest day asked nothing, today has not happened yet, and
+     * only a PAST training day with no mark is a miss — and a summary that collapses them back
+     * undoes that on the one line most likely to be read.
+     */
     val planned: Int get() = days.count { it.plan.isTraining }
     val kept: Int get() = days.count { it.plan.isTraining && it.done }
+    val missed: Int get() = days.count { it.state(today) == WorkoutDayState.MISSED }
+    val toCome: Int get() = days.count { it.state(today) == WorkoutDayState.PENDING }
     /** The current logical day's row, when it is in the window — the only tickable one. */
     val todayRow: WorkoutDay? get() = days.firstOrNull { it.date == today }
 }

@@ -4,51 +4,27 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "5f8343ff4e69468e5680c2069ecd1ea0be89242e",
+    "sha": "766baed420ad49bcb68162d3d7d592f7016d5aab",
     "dirty": [
-      ".claude/launch.json",
-      "README.md",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/time/SystemTime.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/MealPlanRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/WorkoutRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetPlanDayUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/TomorrowUnplannedUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodEditorScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekScreen.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekViewModel.kt",
-      "docs/ARCHITECTURE.md",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekViewModelTest.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/workouts/",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "qa/golden/meal-plan.json",
-      "qa/golden/meal.json"
+      "qa/golden/training.json",
+      "specs/navigation-ia.spec.md"
     ]
   },
   "inputs": {
-    "hash": "27259d48046aa695b468c792fa1f31375c4da53d83ddd9cae61f6a4bc5f6635a",
-    "fileCount": 430
+    "hash": "0a920d46f73ef29bbb944d3b12596da8dbcbf3aca07cd3add87418825cdc7fb8",
+    "fileCount": 432
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 5,
+      "durationMs": 6,
       "harness": {
         "status": "intact",
         "name": "create-cmp-harness",
@@ -66,19 +42,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 33,
+      "durationMs": 32,
       "details": {
         "clauses": 175,
         "withdrawn": 3,
-        "tags": 362,
-        "files": 290,
+        "tags": 367,
+        "files": 291,
         "tierNote": "166 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-03, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-02, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-11, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SUPP-01, SUPP-02, SUPP-03, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-13, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-04, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:18.986Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:19.065Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:39.366Z (reason: ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:settings",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:18.986Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:19.065Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:39.366Z (reason: ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:settings\n  [feature-design:workouts] Feature design (workouts — presentation/workouts/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T20:00:41.595Z (reason: Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:workouts\n  [feature-spec:navigation-ia] Feature spec (specs/navigation-ia.spec.md) — reopened for redesign at 2026-08-24T20:00:41.672Z (reason: NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:navigation-ia",
       "durationMs": 23,
       "details": {
         "artifacts": [
@@ -209,8 +185,8 @@
           },
           {
             "id": "feature-design:workouts",
-            "status": "approved",
-            "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d"
+            "status": "reopened",
+            "hash": "52605fbea20853620bc26193dacd823b083c75ed26de271053e6977138806977"
           },
           {
             "id": "feature-spec:bfl-catalog",
@@ -259,8 +235,8 @@
           },
           {
             "id": "feature-spec:navigation-ia",
-            "status": "approved",
-            "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9"
+            "status": "reopened",
+            "hash": "ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e"
           },
           {
             "id": "feature-spec:notifications",
@@ -438,7 +414,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 60,
+      "durationMs": 61,
       "details": {
         "schemaDirs": 3
       }
@@ -446,19 +422,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2901
+      "durationMs": 18895
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 2029
+      "durationMs": 258680
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10258,
+      "durationMs": 24823,
       "details": {
-        "tests": 340,
+        "tests": 345,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -467,23 +443,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2963
+      "durationMs": 3508
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4162
+      "durationMs": 5252
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 23
+      "durationMs": 215
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3297
+      "durationMs": 3865
     },
     {
       "name": "e2eSmoke",
@@ -495,7 +471,7 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 22
+      "durationMs": 24
     }
   ],
   "harness": {
@@ -530,5 +506,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-24T10:18:28.669Z"
+  "generatedAt": "2026-08-24T20:08:40.855Z"
 }

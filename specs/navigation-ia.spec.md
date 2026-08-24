@@ -42,8 +42,13 @@
 - **NAV-06** — Given the Training tab, Then it shows the **current logical week** — Monday to
   Sunday, always all seven days, rest days included — each row carrying its plan label, its
   state (WORK-05's four: done / missed / pending / rest) and its reminder time when it has one;
-  with a summary of sessions kept against sessions planned, in which rest days count toward
-  neither. The window is derived from the same [TimeSignal] every other surface anchors on.
+  with a summary that keeps WORK-05's states APART rather than collapsing them: sessions kept,
+  sessions missed, and sessions still to come, naming only the counts that are non-zero. "Kept
+  against planned" alone is arithmetically true and misleading — on a Wednesday it renders the
+  back half of the week as failure when those days simply have not happened. Rest days count
+  toward none of the three. The window is derived from the same [TimeSignal] every other surface anchors on.
+  The week's editor is reached from a control on this surface, not from a line of prose naming
+  where it lives (it stays in Settings — WORK-07, navigation-ia OD3).
   Only the current logical day's row is tickable (WORK-04) — a week view that could retro-tick
   Tuesday would be inventing a fact nobody observed — and that tick writes through the same
   repository call Today's card uses, never a second write path.

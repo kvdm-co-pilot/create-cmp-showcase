@@ -1,8 +1,10 @@
 package com.kvdm.fuelled.presentation.workouts
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -93,7 +95,7 @@ fun WorkoutWeekScreen(
     ScreenColumn(screenTag = "training") {
         AppHeader(title = "Training", screenTag = "training")
         Text(
-            text = "${model.kept} of ${model.planned} sessions kept",
+            text = model.summaryLabel(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.semantics { testTag = "training_summary" },
@@ -130,11 +132,24 @@ fun WorkoutWeekScreen(
             )
         }
 
-        Text(
-            text = "Shape the week in Settings",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { testTag = "training_edit_hint" },
+        // The editor lives in Settings (workouts WORK-07, navigation-ia OD3). This used to be a
+        // line of grey text saying so, which made the editor reachable only by tapping a row
+        // that ISN'T today — an affordance you find by accident or not at all.
+        ListItemCard(
+            title = "Shape the week",
+            subtitle = "Labels, times and rest days — in Settings",
+            onClick = onEditWeek,
+            leading = {
+                Icon(Icons.Filled.Tune, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            },
+            trailing = {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            modifier = Modifier.semantics { testTag = "training_edit_week" },
         )
     }
 }
@@ -158,3 +173,20 @@ private fun Int.pad(): String = toString().padStart(2, '0')
 /** "Mon", "Tue", … — presentation formatting of the date's weekday. */
 private fun LocalDate.weekdayLabel(): String =
     dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+
+/**
+ * The week's tally in words: what you kept, what you missed, what is still ahead.
+ *
+ * Only the parts that are non-zero appear — "2 kept · 4 to come" mid-week, "5 kept · 1 missed"
+ * once the week is over, "6 kept" on a perfect one. A summary that always printed all three
+ * would put "0 missed" in front of someone who has missed nothing, which is the kind of line
+ * that makes a screen feel like it is keeping score against you.
+ */
+internal fun WorkoutWeekUi.summaryLabel(): String {
+    val parts = buildList {
+        add("$kept kept")
+        if (missed > 0) add("$missed missed")
+        if (toCome > 0) add("$toCome to come")
+    }
+    return parts.joinToString(" · ")
+}
