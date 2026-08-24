@@ -128,7 +128,15 @@ fun WorkoutWeekScreen(
                         Icon(Icons.Filled.Check, contentDescription = null, tint = FuelledColors.Primary)
                     }
                 },
-                modifier = Modifier.semantics { testTag = "training_day_${day.date}" },
+                // Keyed by WEEKDAY, not by date. `training_day_2026-07-20` is unpredictable to
+                // anything that does not already know today's date, which makes it unusable as
+                // an e2e selector — the flows select by testTag, never by display text, so the
+                // tag has to be something a flow can name in advance. The current day also
+                // carries `training_today`, so a flow can reach "the tickable row" without
+                // computing which weekday that is.
+                modifier = Modifier.semantics {
+                    testTag = if (isToday) "training_today" else "training_day_${day.date.dayOfWeek.name.lowercase().take(3)}"
+                },
             )
         }
 

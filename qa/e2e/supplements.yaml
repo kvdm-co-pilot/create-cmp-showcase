@@ -1,0 +1,52 @@
+# E2E — Supplements (NAV-05, SUPP-03). Per-feature flow.
+#
+# NAV-05 took the stack off the bottom bar: it is a pushed destination now, entered from
+# Today's highlight. That makes two claims only a device settles — that the highlight opens it
+# at all, and that system-back returns to Today, where a tab switch previously left no
+# back-stack entry to return through.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: NAV-05 — no nav item for it, and the highlight is the way in.
+- assertNotVisible:
+    id: "nav_supplements"
+# The highlight sits below the hero and the focused container — tapOn targets an element's
+# CENTRE, and a centre below the viewport lands on the bottom bar instead.
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "today_supplements"
+- extendedWaitUntil:
+    visible:
+      id: "supplements_title"
+    timeout: 30000
+- assertVisible:
+    id: "supplements_summary"
+
+# SPEC: SUPP-03 — tap-to-take routes through the VM into Room and the summary re-renders.
+- tapOn:
+    id: "supplements_take_3"
+- assertVisible:
+    id: "supplements_summary"
+
+# SPEC: NAV-05 — a pushed destination, so back returns to the surface that opened it.
+- back
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 30000
+- assertVisible:
+    id: "app_bottom_nav"

@@ -1,0 +1,60 @@
+# E2E — Meals (NAV-04, FOODS-*, CAT-01). Per-feature flow.
+#
+# The catalog tab, under the label NAV-04 renamed it to. On-device because the catalog seeds
+# into Room on first read and the search round-trips through the ViewModel to the database —
+# a filter that works against an in-memory list proves nothing about either.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: NAV-04 — the catalog tab, reached by its renamed nav id.
+- tapOn:
+    id: "nav_meals"
+- assertVisible:
+    id: "foods_title"
+# The catalog seeds into Room on first read, so the first row arrives after a round-trip.
+- extendedWaitUntil:
+    visible:
+      id: "foods_item_almonds"
+    timeout: 30000
+
+# SPEC: FOODS-02 — search filters the Room-backed catalog on-device.
+- tapOn:
+    id: "foods_search"
+- inputText: "Chicken"
+# The IME overlays the bottom bar; put it down before asserting on anything near it.
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "foods_item_chicken-breast"
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      id: "foods_item_almonds"
+    timeout: 30000
+
+# SPEC: FOODS-03 — a row opens its detail.
+- tapOn:
+    id: "foods_item_chicken-breast"
+- extendedWaitUntil:
+    visible:
+      id: "food_detail_title"
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "foods_title"
+    timeout: 30000
+- assertVisible:
+    id: "app_bottom_nav"

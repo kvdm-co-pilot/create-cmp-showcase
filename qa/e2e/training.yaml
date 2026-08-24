@@ -1,0 +1,82 @@
+# E2E — Training (NAV-06, WORK-03/WORK-04). Per-feature flow.
+#
+# What only a device proves here: the tab's ViewModel resolves through real Koin with no route
+# argument, the week renders from real Room rows, and a tick round-trips to the database and
+# back into BOTH surfaces (the tab's own row AND Today's workout card) rather than mutating a
+# local list. Selectors are testTags — never display text, and never the date-keyed row ids the
+# screen used to carry, which no flow could name in advance.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: NAV-06 — the tab renders the whole week, rest days included, with its summary.
+- tapOn:
+    id: "nav_training"
+- extendedWaitUntil:
+    visible:
+      id: "training_screen"
+    timeout: 30000
+- assertVisible:
+    id: "training_title"
+- assertVisible:
+    id: "training_summary"
+# The current logical day carries its own stable tag, whichever weekday it is.
+#
+# No assertion here names a specific weekday: the row that IS today is tagged `training_today`
+# and NOT `training_day_<wd>`, so `training_day_mon` exists six days a week and vanishes on the
+# seventh. (It vanished on the first run — a Monday.) That all seven render, rest day included,
+# is proven exactly and without a clock by the golden tree, which renders the date-pinned
+# sample; re-proving a deterministic fact through a device is only a flakier way to know it.
+- assertVisible:
+    id: "training_today"
+
+# SPEC: WORK-04 — ticking today persists through the repository. The row is tapped, the app is
+# left and re-entered, and the state survives: a local-list mutation would not.
+- tapOn:
+    id: "training_today"
+- assertVisible:
+    id: "training_summary"
+- tapOn:
+    id: "nav_today"
+- assertVisible:
+    id: "today_title"
+- tapOn:
+    id: "nav_training"
+- extendedWaitUntil:
+    visible:
+      id: "training_screen"
+    timeout: 30000
+- assertVisible:
+    id: "training_today"
+
+# SPEC: NAV-06 — the editor is reachable by a CONTROL, not by prose naming where it lives.
+# It opens Settings, where WORK-07 keeps the week (navigation-ia OD3).
+- tapOn:
+    id: "training_edit_week"
+- extendedWaitUntil:
+    visible:
+      id: "settings_screen"
+    timeout: 30000
+# WORK-07's week card sits well down a long settings screen, and Settings is a lazy list: only
+# COMPOSED rows exist in the semantics tree at all, so the card is genuinely absent until it is
+# scrolled near (not merely off-screen — absent). Explicit swipes rather than scrollUntilVisible,
+# which completes without moving anything here because Compose reports unclipped bounds.
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- assertVisible:
+    id: "settings_week"

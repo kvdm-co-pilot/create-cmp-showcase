@@ -46,7 +46,21 @@ const val PLAN_DAYS_AHEAD: Int = 7
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MealPlanViewModel(
-    initialDate: LocalDate,
+    /**
+     * The day the screen opens on, or null for "the current logical day".
+     *
+     * The dated `plan/{date}` destination passes a date (PLAN-24: it SEEDS the selection and is
+     * never re-applied). The Week TAB passes nothing — a tab carries no route argument — and
+     * NAV-02 says it anchors on the current logical day. Nullable rather than two constructors
+     * because "which day did we open on" is one question with two answers, and the VM already
+     * knows how to compute the second.
+     *
+     * It was non-null and REQUIRED, with the DI comment "the nav layer never composes the plan
+     * without a resolved date". navigation-ia then made the tab do exactly that, and Koin could
+     * not build the ViewModel at all — the Week tab rendered nothing. Caught on-device by the
+     * e2e smoke, invisible to every desktop tier because none of them resolve Koin parameters.
+     */
+    initialDate: LocalDate? = null,
     private val getPlanDay: GetPlanDayUseCase,
     private val setSlotDone: SetSlotDoneUseCase,
     private val setWaterDone: SetWaterDoneUseCase,
@@ -88,7 +102,9 @@ class MealPlanViewModel(
      * scoped to the nav entry, so it outlives the trip to the tray and the selection with it;
      * arriving on a genuinely new `plan/{date}` entry builds a new one, correctly aimed.
      */
-    private val _selectedDate = MutableStateFlow(initialDate)
+    private val openingDate: LocalDate = initialDate ?: getPlanDay.currentLogicalDayNow()
+
+    private val _selectedDate = MutableStateFlow(openingDate)
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
     /**
@@ -109,7 +125,7 @@ class MealPlanViewModel(
             .stateIn(
                 viewModelScope,
                 SharingStarted.Eagerly,
-                (-1..PLAN_DAYS_AHEAD).map { initialDate.plus(it, DateTimeUnit.DAY) },
+                (-1..PLAN_DAYS_AHEAD).map { openingDate.plus(it, DateTimeUnit.DAY) },
             )
 
     /**

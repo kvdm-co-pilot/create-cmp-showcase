@@ -208,7 +208,10 @@ val viewModelModule = module {
     // first frame and nothing re-aims it afterwards (PLAN-24). Required for the same reason —
     // the nav layer never composes the plan without a resolved date.
     viewModel { params ->
-        MealPlanViewModel(params.get<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
+        // NAV-02: the Week TAB resolves this with NO parameter and opens on the current logical
+        // day; the dated `plan/{date}` destination passes one. getOrNull, not get — a required
+        // parameter made the tab unbuildable and it rendered nothing (caught by the e2e smoke).
+        MealPlanViewModel(params.getOrNull<LocalDate>(), get(), get(), get(), get(), get(), get(), get(), get())
     }
     viewModel { MealTimesViewModel(get(), get(), get(), get()) }
     // WORK-05: same reason as Supplements above — the training window is derived from the

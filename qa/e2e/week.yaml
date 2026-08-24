@@ -1,0 +1,63 @@
+# E2E — Week (NAV-02, PLAN-02/PLAN-11). Per-feature flow.
+#
+# The regression this exists to catch is specific and already happened once: the Week TAB
+# resolves MealPlanViewModel with NO route argument, and while its date parameter was required
+# Koin could not build it at all — the tab rendered nothing. Every desktop tier passed, because
+# none of them resolve Koin parameters. Only a device runs the real graph.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: NAV-02 — the tab opens the structured day with no date argument, anchored on today.
+- tapOn:
+    id: "nav_week"
+- extendedWaitUntil:
+    visible:
+      id: "meal_plan_screen"
+    timeout: 30000
+- assertVisible:
+    id: "meal_plan_title"
+
+# SPEC: PLAN-02 — all six containers and the water rows come from the enum, not from stored
+# rows: a fresh install has logged nothing and the grid is still complete.
+- assertVisible:
+    id: "plan_slot_breakfast"
+- assertVisible:
+    id: "plan_slot_lunch"
+- assertVisible:
+    id: "plan_water_1"
+
+# SPEC: PLAN-11 — the day strip offers its window and the selection moves.
+- assertVisible:
+    id: "plan_days"
+- assertVisible:
+    id: "plan_day_0"
+- tapOn:
+    id: "plan_day_3"
+- assertVisible:
+    id: "meal_plan_screen"
+- assertVisible:
+    id: "plan_slot_breakfast"
+
+# SPEC: TODAY-13 — a container ticked on the plan is the SAME stored state Today renders.
+- tapOn:
+    id: "plan_day_1"
+- tapOn:
+    id: "plan_done_breakfast"
+- tapOn:
+    id: "nav_today"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 30000

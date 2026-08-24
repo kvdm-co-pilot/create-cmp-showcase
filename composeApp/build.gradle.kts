@@ -299,6 +299,14 @@ dependencies {
     // through AGP's own configuration rather than the KMP androidInstrumentedTest
     // source-set block — the latter compiles the sources but does not put these
     // artifacts on their classpath.
+    // The GitLive Firebase artifacts declare their google-firebase transitives WITHOUT a
+    // version, expecting the BOM to supply it. The app's own classpaths get it via Gradle's
+    // consistent resolution from debugRuntimeClasspath; the androidTest compile classpath has
+    // no such link, so `com.google.firebase:firebase-auth-ktx:` resolved to an EMPTY version and
+    // the whole instrumentation tier failed to compile. The BOM states the version explicitly
+    // for this configuration. (androidChecks had never once run — the tier arrived with the
+    // 0.14 harness upgrade and every lane since SKIPped it for want of a device.)
+    add("androidTestImplementation", platform(libs.firebase.bom))
     add("androidTestImplementation", libs.androidx.test.runner)
     add("androidTestImplementation", libs.androidx.test.core)
     add("androidTestImplementation", libs.androidx.test.ext.junit)
