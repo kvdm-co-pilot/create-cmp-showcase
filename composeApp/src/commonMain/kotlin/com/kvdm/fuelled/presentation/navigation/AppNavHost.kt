@@ -113,6 +113,8 @@ fun AppNavHost() {
                         onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
                         onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
                         onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
+                        // SHELL-05: AppShell already owns this tab's insets.
+                        ownsInsets = false,
                     )
                 },
                 meals = {
@@ -154,8 +156,8 @@ fun AppNavHost() {
         // route as an ISO logical date + the slot's enum name; it is handed to the ViewModel as
         // a Koin parameter, so the tray's first frame is already aimed. Absent or malformed
         // arguments resolve to null, and the destination goes back rather than opening a
-        // mis-aimed tray or throwing at the nav layer. BaseScreen wraps it because a destination registered
-        // directly on the NavHost owns its insets (SHELL-05); the tabs get theirs from AppShell.
+        // mis-aimed tray or throwing at the nav layer. The `*Destination` entry point owns the
+        // insets (SHELL-05, harness 0.14: the wrapper lives in the destination's own file now).
         composable(
             route = Screen.MealTray.route,
             arguments = listOf(
@@ -174,20 +176,18 @@ fun AppNavHost() {
                 // opening a tray aimed at a meal the user never picked.
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
-                BaseScreen {
-                    MealTrayRoute(
-                        viewModel = koinViewModel { parametersOf(initialTarget) },
-                        // MEAL-13: a confirmed add returns to the container it came from.
-                        onAdded = { navController.popBackStack() },
-                    )
-                }
+                MealTrayRoute(
+                    viewModel = koinViewModel { parametersOf(initialTarget) },
+                    // MEAL-13: a confirmed add returns to the container it came from.
+                    onAdded = { navController.popBackStack() },
+                )
             }
         }
         // The structured day (PLAN-11). The date rides the route so a link into a specific day
         // arrives showing it and the back stack remembers which one. A malformed date pops
         // back rather than opening a day that does not exist — same rule as the tray.
-        // BaseScreen because a destination registered directly on the NavHost owns its insets
-        // (SHELL-05); the tabs get theirs from AppShell.
+        // MealPlanRoute, not MealPlanRoute: the Week TAB hosts the bare route (insets from
+        // AppShell) while this dated entry owns its own — BaseScreen does not nest safely.
         composable(
             route = Screen.MealPlan.route,
             arguments = listOf(navArgument("date") { type = NavType.StringType }),
@@ -196,53 +196,42 @@ fun AppNavHost() {
             if (date == null) {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
-                BaseScreen {
-                    MealPlanRoute(
-                        onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
-                        // PLAN-24: the route's date SEEDS the ViewModel and is never re-applied
-                        // — same shape as the tray's target above, and for the same reason.
-                        viewModel = koinViewModel { parametersOf(date) },
-                        // PLAN-04: the tap carries this container's day and slot into the tray.
-                        onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
-                        onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
-                    )
-                }
+                MealPlanRoute(
+                    onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
+                    // PLAN-24: the route's date SEEDS the ViewModel and is never re-applied
+                    // — same shape as the tray's target above, and for the same reason.
+                    viewModel = koinViewModel { parametersOf(date) },
+                    // PLAN-04: the tap carries this container's day and slot into the tray.
+                    onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
+                    onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
+                )
             }
         }
 
         // The set-once meal-times sheet (PLAN-05/PLAN-06/PLAN-07). A literal route, matched
         // ahead of `plan/{date}`'s pattern.
         composable(Screen.MealTimes.route) {
-            BaseScreen {
-                MealTimesRoute(onBack = { navController.popBackStack() })
-            }
+            MealTimesRoute(onBack = { navController.popBackStack() })
         }
         // Progress (JRN-01/JRN-02, HIST-01) — the holistic look back; entered from Profile's
-        // stats row. BaseScreen: a destination registered directly on the NavHost owns its
-        // insets (SHELL-05).
+        // stats row. The `*Destination` entry point owns its insets (SHELL-05).
         composable(Screen.Progress.route) {
-            BaseScreen {
-                ProgressRoute(
-                    onBack = { navController.popBackStack() },
-                    // HIST-02: the day card is a door. It opens the PLAN for that day rather
-                    // than a read-only viewer — the reason you open Sunday is usually to fix
-                    // it, and the plan screen already edits any date.
-                    onOpenDay = { date -> navController.navigate(Routes.mealPlan(date)) },
-                )
-            }
+            ProgressRoute(
+                onBack = { navController.popBackStack() },
+                // HIST-02: the day card is a door. It opens the PLAN for that day rather
+                // than a read-only viewer — the reason you open Sunday is usually to fix
+                // it, and the plan screen already edits any date.
+                onOpenDay = { date -> navController.navigate(Routes.mealPlan(date)) },
+            )
         }
         // BFL-05: the meal builder — a week planned in a handful of taps, entered from the
         // plan screen and from Today.
         composable(Screen.MealBuilder.route) {
-            BaseScreen {
-                MealBuilderRoute(onBack = { navController.popBackStack() })
-            }
+            MealBuilderRoute(onBack = { navController.popBackStack() })
         }
         // SET-01: the settings UX-04 stopped pretending about, entered from Profile.
         composable(Screen.Settings.route) {
-            BaseScreen {
-                SettingsRoute(onBack = { navController.popBackStack() })
-            }
+            SettingsRoute(onBack = { navController.popBackStack() })
         }
         // CAT-01: the custom-food editor. `new` mints an id here rather than in the ViewModel,
         // so a rotation mid-typing keeps the same identity and cannot create a twin on save.
@@ -252,18 +241,15 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val arg = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
             val editing = if (arg == Routes.NEW_FOOD) "" else arg
-            BaseScreen {
-                FoodEditorRoute(
-                    foodId = editing,
-                    newId = "custom-" + backStackEntry.id,
-                    onDone = { navController.popBackStack() },
-                )
-            }
+            FoodEditorRoute(
+                foodId = editing,
+                newId = "custom-" + backStackEntry.id,
+                onDone = { navController.popBackStack() },
+            )
         }
         // NAV-05: Supplements comes off the bar and becomes a pushed destination, entered
-        // from Today's highlight (TODAY-11) and from Profile. BaseScreen because a destination
-        // registered directly on the NavHost owns its insets (SHELL-05); tabs get theirs from
-        // AppShell — which is exactly what changed for this screen.
+        // from Today's highlight (TODAY-11) and from Profile. It owns its insets now that it is
+        // a destination rather than a tab (SHELL-05) — which is exactly what NAV-05 changed.
         composable(Screen.Supplements.route) {
             BaseScreen {
                 SupplementsRoute()

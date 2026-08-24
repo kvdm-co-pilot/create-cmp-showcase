@@ -2,6 +2,8 @@ package com.kvdm.fuelled.presentation.builder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.systemZone
+import com.kvdm.fuelled.core.time.systemClock
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.BflCategory
@@ -44,8 +46,8 @@ class MealBuilderViewModel(
     getFoods: GetFoodsUseCase,
     private val planMeal: PlanMealUseCase,
     initialSlot: MealSlot = MealSlot.BREAKFAST,
-    clock: Clock = Clock.System,
-    zone: TimeZone = TimeZone.currentSystemDefault(),
+    clock: Clock = systemClock,
+    zone: TimeZone = systemZone(),
     dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 

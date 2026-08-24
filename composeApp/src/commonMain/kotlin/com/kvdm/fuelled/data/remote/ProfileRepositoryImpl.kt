@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.data.remote
 
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.RealTimeSignal
 import com.kvdm.fuelled.core.time.TimeSignal
@@ -31,7 +32,7 @@ class ProfileRepositoryImpl(
     private val dao: ProfileDao,
     private val todayDao: TodayDao,
     private val time: TimeSignal = RealTimeSignal(),
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ProfileRepository {
 

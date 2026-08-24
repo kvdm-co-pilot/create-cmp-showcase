@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.RealTimeSignal
 import com.kvdm.fuelled.core.time.TimeSignal
@@ -27,7 +28,7 @@ import kotlinx.datetime.toLocalDateTime
 class TomorrowUnplannedUseCase(
     private val repository: MealPlanRepository,
     private val time: TimeSignal = RealTimeSignal(),
-    private val zone: kotlinx.datetime.TimeZone = kotlinx.datetime.TimeZone.currentSystemDefault(),
+    private val zone: kotlinx.datetime.TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) {
     suspend operator fun invoke(): Boolean {

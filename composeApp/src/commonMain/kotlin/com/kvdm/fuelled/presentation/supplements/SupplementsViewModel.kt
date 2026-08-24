@@ -2,6 +2,7 @@ package com.kvdm.fuelled.presentation.supplements
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.RealTimeSignal
 import com.kvdm.fuelled.core.time.TimeSignal
@@ -49,7 +50,7 @@ class SupplementsViewModel(
      * test that could not fix "today" could not assert on a Monday-and-Thursday schedule at all.
      */
     private val time: TimeSignal = RealTimeSignal(),
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 

@@ -1,5 +1,7 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.core.time.systemZone
+import com.kvdm.fuelled.core.time.systemClock
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.LogStatus
@@ -28,8 +30,8 @@ import kotlinx.datetime.TimeZone
  */
 class AddLogEntriesUseCase(
     private val repository: TodayRepository,
-    private val clock: Clock = Clock.System,
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val clock: Clock = systemClock,
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) {
     suspend operator fun invoke(

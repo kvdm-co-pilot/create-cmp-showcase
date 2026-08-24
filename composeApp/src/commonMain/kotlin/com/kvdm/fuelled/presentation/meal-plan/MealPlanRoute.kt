@@ -9,6 +9,7 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.PlanSlotView
 import com.kvdm.fuelled.domain.model.VEG_MEAL_GOAL
 import com.kvdm.fuelled.domain.model.WATER_DAY_GOAL_ML
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.today.label
 import kotlinx.datetime.LocalDate
@@ -115,6 +116,42 @@ fun MealPlanRoute(
     viewModel: MealPlanViewModel = koinViewModel(),
     /** BFL-05: last and defaulted, so every existing positional call site still compiles. */
     onBuildMeal: () -> Unit = {},
+    /**
+     * SHELL-05: does this screen own its window insets?
+     *
+     * True — the default — is the NavHost destination case (`plan/{date}`, HIST-02's dated
+     * link): nothing above it applied insets, so it wraps itself in BaseScreen. False is the
+     * Week TAB (NAV-02), where AppShell already wrapped it and applied the top inset while
+     * deliberately NOT applying the bottom one (the nav bar owns that). Wrapping again there
+     * would re-apply the navigation-bar padding AppShell skipped and float the content above
+     * the bar — invisible on desktop, obvious on a phone.
+     *
+     * A flag rather than two entry points because the reachability gate resolves a feature by
+     * its `*Route`/`*Screen` name: a second wrapper composable hid MealPlanRoute from the graph
+     * and read as an unrouted feature (caught by the lane, 2026-08-24).
+     */
+    ownsInsets: Boolean = true,
+) {
+    if (ownsInsets) {
+        BaseScreen { MealPlanBody(
+            onAddToMeal, onOpenTimes, viewModel, onBuildMeal,
+        ) }
+    } else {
+        MealPlanBody(onAddToMeal, onOpenTimes, viewModel, onBuildMeal)
+    }
+}
+
+/**
+ * The screen itself, independent of who owns the insets — see [MealPlanRoute]'s `ownsInsets`.
+ * Private: both callers go through [MealPlanRoute], which is also what the reachability gate
+ * and the navigation graph name.
+ */
+@Composable
+private fun MealPlanBody(
+    onAddToMeal: (LocalDate, MealSlot) -> Unit,
+    onOpenTimes: () -> Unit,
+    viewModel: MealPlanViewModel,
+    onBuildMeal: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lastDeleted by viewModel.lastDeleted.collectAsStateWithLifecycle()

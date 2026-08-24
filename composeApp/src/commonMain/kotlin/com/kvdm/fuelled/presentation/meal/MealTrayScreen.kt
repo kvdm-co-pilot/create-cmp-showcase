@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppIconButton
@@ -105,32 +106,38 @@ fun MealTrayRoute(
     viewModel: MealTrayViewModel = koinViewModel(),
     onAdded: () -> Unit = {},
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val query by viewModel.query.collectAsStateWithLifecycle()
-    val target by viewModel.target.collectAsStateWithLifecycle()
-    val tray by viewModel.tray.collectAsStateWithLifecycle()
-    val confirmState by viewModel.confirmState.collectAsStateWithLifecycle()
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        val query by viewModel.query.collectAsStateWithLifecycle()
+        val target by viewModel.target.collectAsStateWithLifecycle()
+        val tray by viewModel.tray.collectAsStateWithLifecycle()
+        val confirmState by viewModel.confirmState.collectAsStateWithLifecycle()
 
-    // MEAL-13: the write landed, so the tray's job is done — go back to the container that
-    // opened it. The confirmation the user actually needs is the food sitting in that
-    // container, not a line of copy on a screen they still have to dismiss by hand, six times
-    // over for a planned day. Keyed on the state, so only the transition INTO Saved pops.
-    LaunchedEffect(confirmState) {
-        if (confirmState == TrayConfirmState.Saved) onAdded()
+        // MEAL-13: the write landed, so the tray's job is done — go back to the container that
+        // opened it. The confirmation the user actually needs is the food sitting in that
+        // container, not a line of copy on a screen they still have to dismiss by hand, six times
+        // over for a planned day. Keyed on the state, so only the transition INTO Saved pops.
+        LaunchedEffect(confirmState) {
+            if (confirmState == TrayConfirmState.Saved) onAdded()
+        }
+
+        MealTrayScreen(
+            state = state,
+            query = query,
+            target = target,
+            tray = tray,
+            confirmState = confirmState,
+            onQueryChange = viewModel::onQueryChange,
+            onFoodToggled = viewModel::onFoodToggled,
+            onServingsChanged = viewModel::onServingsChanged,
+            onConfirm = viewModel::confirm,
+            onRetry = viewModel::load,
+        )
     }
-
-    MealTrayScreen(
-        state = state,
-        query = query,
-        target = target,
-        tray = tray,
-        confirmState = confirmState,
-        onQueryChange = viewModel::onQueryChange,
-        onFoodToggled = viewModel::onFoodToggled,
-        onServingsChanged = viewModel::onServingsChanged,
-        onConfirm = viewModel::confirm,
-        onRetry = viewModel::load,
-    )
 }
 
 /**

@@ -2,6 +2,8 @@ package com.kvdm.fuelled.presentation.foods
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.systemZone
+import com.kvdm.fuelled.core.time.systemClock
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.Food
@@ -45,8 +47,8 @@ class FoodDetailViewModel(
     private val getFood: GetFoodUseCase,
     private val addLogEntries: AddLogEntriesUseCase,
     private val setFavourite: SetFavouriteUseCase,
-    private val clock: Clock = Clock.System,
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val clock: Clock = systemClock,
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 

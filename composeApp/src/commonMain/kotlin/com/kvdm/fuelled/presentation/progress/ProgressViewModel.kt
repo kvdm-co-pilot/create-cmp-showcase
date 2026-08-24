@@ -2,6 +2,7 @@ package com.kvdm.fuelled.presentation.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.RealTimeSignal
 import com.kvdm.fuelled.core.time.TimeSignal
@@ -45,7 +46,7 @@ class ProgressViewModel(
     private val recordWeight: RecordWeightUseCase,
     workouts: WorkoutRepository,
     time: TimeSignal = RealTimeSignal(),
-    zone: TimeZone = TimeZone.currentSystemDefault(),
+    zone: TimeZone = systemZone(),
     dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 

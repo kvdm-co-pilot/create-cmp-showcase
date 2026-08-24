@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.presentation.settings
 
+import com.kvdm.fuelled.core.time.systemToday
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +57,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppIconButton
@@ -117,19 +119,25 @@ fun SettingsRoute(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    ContentStateContainer(state = state, screenTag = "settings") { ui ->
-        SettingsScreen(
-            ui = ui,
-            onBack = onBack,
-            actions = SettingsActions(
-                onUnitSystem = viewModel::onUnitSystem,
-                onPrepLead = viewModel::onPrepLead,
-                onSaveSupplement = viewModel::onSaveSupplement,
-                onDeleteSupplement = viewModel::onDeleteSupplement,
-                onSaveWorkoutDay = viewModel::onSaveWorkoutDay,
-            ),
-        )
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        ContentStateContainer(state = state, screenTag = "settings") { ui ->
+            SettingsScreen(
+                ui = ui,
+                onBack = onBack,
+                actions = SettingsActions(
+                    onUnitSystem = viewModel::onUnitSystem,
+                    onPrepLead = viewModel::onPrepLead,
+                    onSaveSupplement = viewModel::onSaveSupplement,
+                    onDeleteSupplement = viewModel::onDeleteSupplement,
+                    onSaveWorkoutDay = viewModel::onSaveWorkoutDay,
+                ),
+            )
+        }
     }
 }
 
@@ -704,13 +712,15 @@ private fun ScheduleKindChoice.build(
 /**
  * The anchor a NEW cadence starts from.
  *
- * Reads the system clock directly — the one place in this screen that does. The editor is
- * stateless by design and takes no clock, and threading a TimeSignal through three composables
- * to stamp one date on save would buy nothing testable: what the tests assert is that an
- * EXISTING anchor survives a re-save, which is the branch above.
+ * The wall-clock date, via `core/time`'s named provider. It used to read `Clock.System`
+ * inline here, justified as "the one place in this screen that does" — ARCH-13 does not grant
+ * per-screen exceptions, and rightly: sixteen files each held one such exception. The reasoning
+ * that a stateless editor should not thread a TimeSignal to stamp one date still stands, so the
+ * read moved to the provider rather than becoming a parameter.
+ *
+ * [systemToday] and NOT the logical day, deliberately — see its own note.
  */
-private fun todayForAnchor(): LocalDate =
-    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+private fun todayForAnchor(): LocalDate = systemToday()
 
 /** "08:00" — the one clock format both editors read and write. */
 private fun LocalTime.clock(): String =

@@ -48,6 +48,7 @@ import com.kvdm.fuelled.domain.model.WorkoutDayPlan
 import com.kvdm.fuelled.domain.model.WorkoutDayState
 import com.kvdm.fuelled.domain.model.weightFromKg
 import com.kvdm.fuelled.domain.model.weightToKg
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
@@ -160,14 +161,20 @@ fun ProgressRoute(
     onOpenDay: (LocalDate) -> Unit,
     viewModel: ProgressViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    ContentStateContainer(state = state, screenTag = "week") { progress ->
-        ProgressScreen(
-            progress = progress,
-            onBack = onBack,
-            onOpenDay = onOpenDay,
-            onRecordWeight = viewModel::onWeightRecorded,
-        )
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        ContentStateContainer(state = state, screenTag = "week") { progress ->
+            ProgressScreen(
+                progress = progress,
+                onBack = onBack,
+                onOpenDay = onOpenDay,
+                onRecordWeight = viewModel::onWeightRecorded,
+            )
+        }
     }
 }
 

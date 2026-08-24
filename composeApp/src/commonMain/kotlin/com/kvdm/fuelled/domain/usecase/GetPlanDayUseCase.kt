@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.domain.usecase
 
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.PlanDay
@@ -27,7 +28,7 @@ import kotlinx.datetime.TimeZone
 class GetPlanDayUseCase(
     private val repository: MealPlanRepository,
     private val time: TimeSignal = RealTimeSignal(),
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) {
     /**

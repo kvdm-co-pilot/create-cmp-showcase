@@ -2,44 +2,53 @@
   "schema": "cmp-evidence/1",
   "profile": "local",
   "mode": "full",
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "commit": {
-    "sha": "8c7b64fd54aa9059f3749dcbd95342651964bcd0",
+    "sha": "5f8343ff4e69468e5680c2069ecd1ea0be89242e",
     "dirty": [
+      ".claude/launch.json",
       "README.md",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/time/SystemTime.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/MealPlanRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/ProfileRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/SupplementRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/TodayRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/WorkoutRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/AddLogEntriesUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/ArmMealRemindersUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/GetPlanDayUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/TomorrowUnplannedUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodEditorScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealTimesRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayViewModel.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppShell.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppTab.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/workouts/",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/navigation/AppShellTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/today/TodayScreenTest.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsViewModel.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekViewModel.kt",
       "docs/ARCHITECTURE.md",
-      "docs/features/navigation-ia.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/comments.json",
-      "qa/e2e/smoke.yaml",
       "qa/evidence/latest.json",
       "qa/flight-recorder.jsonl",
-      "qa/golden/today.json",
-      "specs/navigation-ia.spec.md",
-      "specs/today.spec.md",
-      "specs/workouts.spec.md"
+      "qa/golden/meal-plan.json",
+      "qa/golden/meal.json"
     ]
   },
   "inputs": {
-    "hash": "57fce202973f2bccb7af311c06da5c327fa44462f1203927e2a1b1ba519aebd4",
-    "fileCount": 429
+    "hash": "27259d48046aa695b468c792fa1f31375c4da53d83ddd9cae61f6a4bc5f6635a",
+    "fileCount": 430
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 7,
+      "durationMs": 5,
       "harness": {
         "status": "intact",
         "name": "create-cmp-harness",
@@ -57,19 +66,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 35,
+      "durationMs": 33,
       "details": {
         "clauses": 175,
         "withdrawn": 3,
         "tags": 362,
-        "files": 289,
+        "files": 290,
         "tierNote": "166 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-03, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-02, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-11, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SUPP-01, SUPP-02, SUPP-03, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-13, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-04, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-brief:navigation-ia] Feature brief (docs/features/navigation-ia.md) — reopened for redesign at 2026-08-23T18:53:17.202Z (reason: OD1/OD2/OD3 closed at implementation: Week+Meals, full-word labels (nav_training not nav_train), and the workout-week editor STAYS in Settings — D10 overruled for the smaller change. Recording the calls in the doc changes signed bytes, so it walks back for re-signature.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-brief:navigation-ia\n  [feature-design:workouts] Feature design (workouts — presentation/workouts/*Screen.kt, signed on rendered output) — unreviewed. Approve: node qa/approve.mjs feature-design:workouts\n  [feature-spec:navigation-ia] Feature spec (specs/navigation-ia.spec.md) — unreviewed. Approve: node qa/approve.mjs feature-spec:navigation-ia\n  [feature-spec:today] Feature spec (specs/today.spec.md) — reopened for redesign at 2026-08-22T15:03:06.867Z (reason: navigation-ia NAV-03: TODAY-12 withdrawn — the week became a bottom-bar tab, so Today's link to it is a second route to a place always one tap away) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:today\n  [feature-spec:workouts] Feature spec (specs/workouts.spec.md) — reopened for redesign at 2026-08-23T18:52:03.301Z (reason: navigation-ia D6/NAV-06: training gained a fourth surface — the Training tab. WORK-05 and WORK-07 are amended to say what they are NOT, so the tab and the retrospective strip cannot drift into two definitions of one week.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:workouts",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:18.986Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:19.065Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:39.366Z (reason: ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:settings",
       "durationMs": 23,
       "details": {
         "artifacts": [
@@ -120,7 +129,7 @@
           },
           {
             "id": "feature-brief:navigation-ia",
-            "status": "reopened",
+            "status": "approved",
             "hash": "2bdb1cb21d49c329f13eed50497fd41e1f7cf8fa6054f7914e0c3ecb9ab3a235"
           },
           {
@@ -185,22 +194,22 @@
           },
           {
             "id": "feature-design:meal-plan",
-            "status": "approved",
+            "status": "reopened",
             "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b"
           },
           {
             "id": "feature-design:meal",
-            "status": "approved",
-            "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a"
+            "status": "reopened",
+            "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395"
           },
           {
             "id": "feature-design:settings",
-            "status": "approved",
-            "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd"
+            "status": "reopened",
+            "hash": "38445c4f7cd02dd2f0e0b7d5772c5961333bab1c6de5c5d6e954123642d2b120"
           },
           {
             "id": "feature-design:workouts",
-            "status": "unreviewed",
+            "status": "approved",
             "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d"
           },
           {
@@ -250,7 +259,7 @@
           },
           {
             "id": "feature-spec:navigation-ia",
-            "status": "unreviewed",
+            "status": "approved",
             "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9"
           },
           {
@@ -285,7 +294,7 @@
           },
           {
             "id": "feature-spec:today",
-            "status": "reopened",
+            "status": "approved",
             "hash": "87fd93a5c8e0044970734c675d759f6f462652d4de69c0acb8b4c44df06808d7"
           },
           {
@@ -295,7 +304,7 @@
           },
           {
             "id": "feature-spec:workouts",
-            "status": "reopened",
+            "status": "approved",
             "hash": "44221bcf83fbb4d85f4eed4e77ffa8f3284ce0d44bc815a75aff02e929ea009f"
           }
         ]
@@ -429,7 +438,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 61,
+      "durationMs": 60,
       "details": {
         "schemaDirs": 3
       }
@@ -437,46 +446,44 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 21309
+      "durationMs": 2901
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 3419
+      "durationMs": 2029
     },
     {
       "name": "unitTests",
-      "verdict": "FAIL",
-      "reason": "desktopTest failed (2 of 340 tests). Fix the failing behavior — do not delete or weaken tests to pass:\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n> Task :composeApp:desktopTest FAILED\n340 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 12s",
-      "durationMs": 13121,
+      "verdict": "PASS",
+      "durationMs": 10258,
       "details": {
         "tests": 340,
-        "failures": 2,
+        "failures": 0,
         "errors": 0,
         "skipped": 0
       }
     },
     {
       "name": "conformance",
-      "verdict": "FAIL",
-      "reason": "Architecture conformance violated (specs/app-base.spec.md ARCH clauses). The failing rule names the clause, files, and fix:\n> Task :composeApp:desktopTest FAILED\nArchitectureConformanceTest[desktop] > SHELL-05 every non-shell nav destination wraps its content in BaseScreen[desktop] FAILED\nArchitectureConformanceTest[desktop] > ARCH-13 ambient time is read only inside the designated time provider[desktop] FAILED\n16 tests completed, 2 failed\nFAILURE: Build failed with an exception.\nExecution failed for task ':composeApp:desktopTest'.\nBUILD FAILED in 3s",
-      "durationMs": 3533
+      "verdict": "PASS",
+      "durationMs": 2963
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5207
+      "durationMs": 4162
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 116
+      "durationMs": 23
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3838
+      "durationMs": 3297
     },
     {
       "name": "e2eSmoke",
@@ -501,11 +508,27 @@
   "strength": {
     "onDeviceSteps": []
   },
-  "evidenceLevel": null,
+  "evidenceLevel": {
+    "rung": "L1",
+    "name": "desktop",
+    "satisfiedBy": [
+      "specCoverage",
+      "componentStories",
+      "reachability",
+      "archDoc",
+      "schemaHistory",
+      "build",
+      "releaseBuild",
+      "unitTests",
+      "conformance",
+      "goldenTrees",
+      "a11y"
+    ]
+  },
   "artifacts": [],
   "toolVersions": {
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-23T18:54:11.365Z"
+  "generatedAt": "2026-08-24T10:18:28.669Z"
 }

@@ -2,6 +2,8 @@ package com.kvdm.fuelled.presentation.meal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kvdm.fuelled.core.time.systemZone
+import com.kvdm.fuelled.core.time.systemClock
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.logicalDate
 import com.kvdm.fuelled.domain.model.Food
@@ -142,8 +144,8 @@ class MealTrayViewModel(
     private val searchFoods: SearchFoodsUseCase,
     private val addLogEntries: AddLogEntriesUseCase,
     initialTarget: MealTrayInitialTarget,
-    clock: Clock = Clock.System,
-    zone: TimeZone = TimeZone.currentSystemDefault(),
+    clock: Clock = systemClock,
+    zone: TimeZone = systemZone(),
     dayStartHour: Int = DEFAULT_DAY_START_HOUR,
 ) : ViewModel() {
 

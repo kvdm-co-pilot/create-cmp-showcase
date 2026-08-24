@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.MealSlot
 import com.kvdm.fuelled.domain.model.MealTimes
 import com.kvdm.fuelled.domain.model.ReminderMode
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
@@ -33,33 +34,39 @@ fun MealTimesRoute(
     onBack: () -> Unit,
     viewModel: MealTimesViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    var editing by remember { mutableStateOf<MealSlot?>(null) }
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        var editing by remember { mutableStateOf<MealSlot?>(null) }
 
-    ContentStateContainer(
-        state = state,
-        screenTag = "meal_times",
-        onRetry = { viewModel.load() },
-    ) { data ->
-        MealTimesScreen(
-            times = data.times.toUi(),
-            notice = data.reminderMode.toNotice(),
-            onBack = onBack,
-            onChange = { key -> editing = mealSlotForKey(key) },
-            onOpenNotificationSettings = { viewModel.openNotificationSettings() },
-        )
-
-        editing?.let { slot ->
-            SlotTimeDialog(
-                slot = slot,
-                current = data.times[slot],
-                range = data.times.validTimeRange(slot),
-                onDismiss = { editing = null },
-                onConfirm = { time ->
-                    viewModel.setTime(slot, time)
-                    editing = null
-                },
+        ContentStateContainer(
+            state = state,
+            screenTag = "meal_times",
+            onRetry = { viewModel.load() },
+        ) { data ->
+            MealTimesScreen(
+                times = data.times.toUi(),
+                notice = data.reminderMode.toNotice(),
+                onBack = onBack,
+                onChange = { key -> editing = mealSlotForKey(key) },
+                onOpenNotificationSettings = { viewModel.openNotificationSettings() },
             )
+
+            editing?.let { slot ->
+                SlotTimeDialog(
+                    slot = slot,
+                    current = data.times[slot],
+                    range = data.times.validTimeRange(slot),
+                    onDismiss = { editing = null },
+                    onConfirm = { time ->
+                        viewModel.setTime(slot, time)
+                        editing = null
+                    },
+                )
+            }
         }
     }
 }

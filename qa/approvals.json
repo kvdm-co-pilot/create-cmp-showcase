@@ -2,12 +2,6 @@
   "schema": "cmp-approvals/1",
   "artifacts": [
     {
-      "artifact": "intent",
-      "status": "approved",
-      "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
-      "approvedAt": "2026-07-23T17:04:37.670Z"
-    },
-    {
       "artifact": "feature-brief:meal",
       "status": "approved",
       "hash": "0f77f5ffd0624d1d64e2af1673bf2a0c373d266f1b825d8afb9083a1cd1e1767",
@@ -40,15 +34,6 @@
       "hash": "6f3c138ff97dbe1ba00e8b0788fa3b126cdd4600dd5d8988493f5bc8c618e06e",
       "approvedAt": "2026-07-29T08:51:50.748Z",
       "via": "console"
-    },
-    {
-      "artifact": "feature-brief:daily-journeys",
-      "status": "approved",
-      "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
-      "approvedAt": "2026-08-01T14:37:41.422Z",
-      "via": "console",
-      "accepted": true,
-      "acceptedAt": "2026-08-04T19:41:35.411Z"
     },
     {
       "artifact": "feature-brief:usability-pass",
@@ -97,13 +82,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-brief:catalog-and-editing",
-      "status": "approved",
-      "hash": "95e7bdf79d7a936518b2ab8d1ece255676a6567e2aca67d9eaffbd5dc50a96fe",
-      "approvedAt": "2026-08-01T18:16:43.528Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:catalog",
       "status": "approved",
       "hash": "14b29da6dcb34e128904576c2304d1305cca76c3b8550baa9b0e4bdb6d9c3a1d",
@@ -124,13 +102,6 @@
       "status": "approved",
       "hash": "cd922a6975b47cbddeedb2adbf05287fe641bab48fb06cc80de9db5098d6876a",
       "approvedAt": "2026-08-01T18:16:43.841Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-design:meal",
-      "status": "approved",
-      "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a",
-      "approvedAt": "2026-08-01T18:16:46.787Z",
       "via": "cli"
     },
     {
@@ -180,15 +151,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-brief:dated-goals",
-      "status": "approved",
-      "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
-      "approvedAt": "2026-08-02T12:15:18.848Z",
-      "via": "cli",
-      "accepted": true,
-      "acceptedAt": "2026-08-04T19:41:41.900Z"
-    },
-    {
       "artifact": "feature-spec:dated-goals",
       "status": "approved",
       "hash": "7338053c395e48d71bce2b17e2c0a0f9a72c7681411477a86949e28ad626350a",
@@ -208,15 +170,6 @@
       "hash": "e83c827c24fbc242b60f590349a5bdc36e90d6397df8e07574ea8b035c3deaa2",
       "approvedAt": "2026-08-02T12:15:19.095Z",
       "via": "cli"
-    },
-    {
-      "artifact": "feature-brief:bfl-catalog",
-      "status": "approved",
-      "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
-      "approvedAt": "2026-08-03T13:06:48.821Z",
-      "via": "cli",
-      "accepted": true,
-      "acceptedAt": "2026-08-04T19:41:26.205Z"
     },
     {
       "artifact": "feature-spec:bfl-catalog",
@@ -249,13 +202,6 @@
       "acceptedAt": "2026-08-04T19:42:00.124Z"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
-      "approvedAt": "2026-08-03T20:11:30.530Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-brief:workouts",
       "status": "approved",
       "hash": "5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b",
@@ -267,13 +213,6 @@
       "status": "approved",
       "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b",
       "approvedAt": "2026-08-05T11:32:17.597Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-design:settings",
-      "status": "approved",
-      "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd",
-      "approvedAt": "2026-08-05T11:32:22.495Z",
       "via": "console"
     },
     {
@@ -305,30 +244,100 @@
       "via": "console"
     },
     {
-      "artifact": "feature-spec:today",
-      "status": "reopened",
-      "hash": "fae6b41100c9c1458cadcdb016cd35aacdcd398b506d7a854fc9c13632702c16",
-      "approvedAt": "2026-07-29T10:02:20.031Z",
-      "reopenedAt": "2026-08-22T15:03:06.867Z",
-      "reason": "navigation-ia NAV-03: TODAY-12 withdrawn — the week became a bottom-bar tab, so Today's link to it is a second route to a place always one tap away",
-      "via": "cli"
+      "artifact": "feature-design:workouts",
+      "status": "approved",
+      "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d",
+      "approvedAt": "2026-08-24T09:50:10.200Z",
+      "via": "console"
     },
     {
-      "artifact": "feature-spec:workouts",
-      "status": "reopened",
-      "hash": "eeaaaf33a5e42542b225ed55b9eb78d196f4d4e06d47956200df322edd9ffbe7",
-      "approvedAt": "2026-08-05T11:32:05.891Z",
-      "reopenedAt": "2026-08-23T18:52:03.301Z",
-      "reason": "navigation-ia D6/NAV-06: training gained a fourth surface — the Training tab. WORK-05 and WORK-07 are amended to say what they are NOT, so the tab and the retrospective strip cannot drift into two definitions of one week.",
-      "via": "cli"
+      "artifact": "feature-spec:navigation-ia",
+      "status": "approved",
+      "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9",
+      "approvedAt": "2026-08-24T09:50:15.674Z",
+      "via": "console"
+    },
+    {
+      "artifact": "intent",
+      "status": "approved",
+      "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4",
+      "approvedAt": "2026-08-24T09:50:29.698Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-brief:bfl-catalog",
+      "status": "approved",
+      "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
+      "approvedAt": "2026-08-24T09:50:30.525Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-brief:catalog-and-editing",
+      "status": "approved",
+      "hash": "95e7bdf79d7a936518b2ab8d1ece255676a6567e2aca67d9eaffbd5dc50a96fe",
+      "approvedAt": "2026-08-24T09:50:31.706Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-brief:daily-journeys",
+      "status": "approved",
+      "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
+      "approvedAt": "2026-08-24T09:50:32.939Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-brief:dated-goals",
+      "status": "approved",
+      "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
+      "approvedAt": "2026-08-24T09:50:33.734Z",
+      "via": "console"
     },
     {
       "artifact": "feature-brief:navigation-ia",
+      "status": "approved",
+      "hash": "2bdb1cb21d49c329f13eed50497fd41e1f7cf8fa6054f7914e0c3ecb9ab3a235",
+      "approvedAt": "2026-08-24T09:50:48.867Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:today",
+      "status": "approved",
+      "hash": "87fd93a5c8e0044970734c675d759f6f462652d4de69c0acb8b4c44df06808d7",
+      "approvedAt": "2026-08-24T09:51:12.411Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:workouts",
+      "status": "approved",
+      "hash": "44221bcf83fbb4d85f4eed4e77ffa8f3284ce0d44bc815a75aff02e929ea009f",
+      "approvedAt": "2026-08-24T09:51:18.105Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
       "status": "reopened",
-      "hash": "cb889d0e86b150a8c151e9f7dfbab5061c4dd0115683ada905db40a30adfb5f9",
-      "approvedAt": "2026-08-22T14:00:05.485Z",
-      "reopenedAt": "2026-08-23T18:53:17.202Z",
-      "reason": "OD1/OD2/OD3 closed at implementation: Week+Meals, full-word labels (nav_training not nav_train), and the workout-week editor STAYS in Settings — D10 overruled for the smaller change. Recording the calls in the doc changes signed bytes, so it walks back for re-signature.",
+      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
+      "approvedAt": "2026-08-03T20:11:30.530Z",
+      "reopenedAt": "2026-08-24T10:00:18.986Z",
+      "reason": "SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "reopened",
+      "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a",
+      "approvedAt": "2026-08-01T18:16:46.787Z",
+      "reopenedAt": "2026-08-24T10:00:19.065Z",
+      "reason": "SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "reopened",
+      "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd",
+      "approvedAt": "2026-08-05T11:32:22.495Z",
+      "reopenedAt": "2026-08-24T10:00:39.366Z",
+      "reason": "ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.",
       "via": "cli"
     }
   ],

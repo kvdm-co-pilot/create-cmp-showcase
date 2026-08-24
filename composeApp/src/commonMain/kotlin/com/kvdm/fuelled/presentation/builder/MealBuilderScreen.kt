@@ -35,6 +35,7 @@ import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.Macros100g
 import com.kvdm.fuelled.domain.model.MEAL_PRESETS
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
@@ -119,25 +120,31 @@ fun MealBuilderRoute(
     onBack: () -> Unit,
     viewModel: MealBuilderViewModel = koinViewModel(),
 ) {
-    val catalog by viewModel.catalog.collectAsStateWithLifecycle()
-    val meal by viewModel.meal.collectAsStateWithLifecycle()
-    val slot by viewModel.slot.collectAsStateWithLifecycle()
-    val days by viewModel.days.collectAsStateWithLifecycle()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        val catalog by viewModel.catalog.collectAsStateWithLifecycle()
+        val meal by viewModel.meal.collectAsStateWithLifecycle()
+        val slot by viewModel.slot.collectAsStateWithLifecycle()
+        val days by viewModel.days.collectAsStateWithLifecycle()
+        val state by viewModel.state.collectAsStateWithLifecycle()
 
-    MealBuilderScreen(
-        ui = BuilderUi(catalog, meal, slot, viewModel.week, days, state),
-        onBack = onBack,
-        actions = BuilderActions(
-            onPick = viewModel::onPick,
-            onPreset = viewModel::onPreset,
-            onSlot = viewModel::onSlot,
-            onToggleDay = viewModel::onToggleDay,
-            onAllDays = viewModel::onAllDays,
-            onPlan = viewModel::onPlan,
-            onReset = viewModel::onReset,
-        ),
-    )
+        MealBuilderScreen(
+            ui = BuilderUi(catalog, meal, slot, viewModel.week, days, state),
+            onBack = onBack,
+            actions = BuilderActions(
+                onPick = viewModel::onPick,
+                onPreset = viewModel::onPreset,
+                onSlot = viewModel::onSlot,
+                onToggleDay = viewModel::onToggleDay,
+                onAllDays = viewModel::onAllDays,
+                onPlan = viewModel::onPlan,
+                onReset = viewModel::onReset,
+            ),
+        )
+    }
 }
 
 @Composable

@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
+import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
@@ -54,23 +55,29 @@ fun FoodEditorRoute(
     onDone: () -> Unit,
     viewModel: FoodEditorViewModel = koinViewModel(),
 ) {
-    LaunchedEffect(foodId) { viewModel.load(foodId) }
-    val food by viewModel.food.collectAsStateWithLifecycle()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
+    // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
+    // 0.14 requires it HERE, so a destination added later cannot ship inset-less because whoever
+    // registered it forgot to wrap it.
+    BaseScreen {
+        LaunchedEffect(foodId) { viewModel.load(foodId) }
+        val food by viewModel.food.collectAsStateWithLifecycle()
+        val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // The write landed, so the editor's job is done — same discipline as the tray (MEAL-13):
-    // the confirmation the user needs is the food in the list behind them.
-    LaunchedEffect(state) { if (state == FoodEditState.Saved) onDone() }
+        // The write landed, so the editor's job is done — same discipline as the tray (MEAL-13):
+        // the confirmation the user needs is the food in the list behind them.
+        LaunchedEffect(state) { if (state == FoodEditState.Saved) onDone() }
 
-    FoodEditorScreen(
-        food = food,
-        state = state,
-        onBack = onDone,
-        onSave = { name, brand, serving, kcal, p, c, f, veg ->
-            viewModel.save(food?.id ?: newId, name, brand, serving, kcal, p, c, f, veg)
-        },
-        onDelete = food?.takeIf { it.custom }?.let { { viewModel.delete(it.id) } },
-    )
+        FoodEditorScreen(
+            food = food,
+            state = state,
+            onBack = onDone,
+            onSave = { name, brand, serving, kcal, p, c, f, veg ->
+                viewModel.save(food?.id ?: newId, name, brand, serving, kcal, p, c, f, veg)
+            },
+            onDelete = food?.takeIf { it.custom }?.let { { viewModel.delete(it.id) } },
+        )
+    }
 }
 
 /** The stateless editor — the preview seam; `food = null` is the create-new form. */

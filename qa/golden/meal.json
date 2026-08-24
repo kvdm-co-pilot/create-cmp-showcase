@@ -1,48 +1,52 @@
 {"children": [
-  {"tag": "meal_tray_screen", "children": [
-    {"tag": "meal_tray_title", "text": "Add to meal"},
-    {"tag": "meal_tray_target", "text": "Lunch · Wednesday, Jul 22"},
-    {"tag": "meal_tray_search", "children": [
-      {"children": [
-        {"text": "Search foods"}
-      ]}
-    ]},
+  {"children": [
     {"children": [
-      {"tag": "meal_tray_item_1", "children": [
-        {"text": "Chicken breast"},
-        {"text": "Raw · skinless · 100 g"},
-        {"tag": "meal_tray_minus_1", "role": "Button", "children": [
-          {"role": "Image", "contentDescription": "One serving less"}
+      {"tag": "meal_tray_screen", "children": [
+        {"tag": "meal_tray_title", "text": "Add to meal"},
+        {"tag": "meal_tray_target", "text": "Lunch · Wednesday, Jul 22"},
+        {"tag": "meal_tray_search", "children": [
+          {"children": [
+            {"text": "Search foods"}
+          ]}
         ]},
-        {"tag": "meal_tray_servings_1", "text": "1×"},
-        {"tag": "meal_tray_plus_1", "role": "Button", "children": [
-          {"role": "Image", "contentDescription": "One serving more"}
+        {"children": [
+          {"tag": "meal_tray_item_1", "children": [
+            {"text": "Chicken breast"},
+            {"text": "Raw · skinless · 100 g"},
+            {"tag": "meal_tray_minus_1", "role": "Button", "children": [
+              {"role": "Image", "contentDescription": "One serving less"}
+            ]},
+            {"tag": "meal_tray_servings_1", "text": "1×"},
+            {"tag": "meal_tray_plus_1", "role": "Button", "children": [
+              {"role": "Image", "contentDescription": "One serving more"}
+            ]},
+            {"text": "165"},
+            {"text": "kcal"},
+            {"tag": "meal_tray_check_1"}
+          ]},
+          {"tag": "meal_tray_item_2", "children": [
+            {"text": "Rolled oats"},
+            {"text": "Quaker · 80 g"},
+            {"text": "303"},
+            {"text": "kcal"},
+            {"tag": "meal_tray_check_2"}
+          ]}
         ]},
-        {"text": "165"},
-        {"text": "kcal"},
-        {"tag": "meal_tray_check_1"}
-      ]},
-      {"tag": "meal_tray_item_2", "children": [
-        {"text": "Rolled oats"},
-        {"text": "Quaker · 80 g"},
-        {"text": "303"},
-        {"text": "kcal"},
-        {"tag": "meal_tray_check_2"}
-      ]}
-    ]},
-    {"children": [
-      {"tag": "meal_tray_total", "text": "1 item · 165 kcal"},
-      {"tag": "meal_tray_macros", "children": [
-        {"text": "P"},
-        {"text": " 31g"},
-        {"text": "C"},
-        {"text": " 0g"},
-        {"text": "F"},
-        {"text": " 4g"}
-      ]},
-      {"tag": "meal_tray_status", "text": "Adding to Lunch"},
-      {"tag": "meal_tray_add", "role": "Button", "children": [
-        {"text": "Add"}
+        {"children": [
+          {"tag": "meal_tray_total", "text": "1 item · 165 kcal"},
+          {"tag": "meal_tray_macros", "children": [
+            {"text": "P"},
+            {"text": " 31g"},
+            {"text": "C"},
+            {"text": " 0g"},
+            {"text": "F"},
+            {"text": " 4g"}
+          ]},
+          {"tag": "meal_tray_status", "text": "Adding to Lunch"},
+          {"tag": "meal_tray_add", "role": "Button", "children": [
+            {"text": "Add"}
+          ]}
+        ]}
       ]}
     ]}
   ]}

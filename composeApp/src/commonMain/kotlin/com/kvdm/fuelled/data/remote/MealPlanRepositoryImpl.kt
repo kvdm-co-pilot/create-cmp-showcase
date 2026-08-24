@@ -19,6 +19,7 @@ import com.kvdm.fuelled.domain.model.PlanDay
 import com.kvdm.fuelled.domain.model.buildPlanDay
 import com.kvdm.fuelled.domain.repository.MealPlanRepository
 import com.kvdm.fuelled.domain.result.AppResult
+import com.kvdm.fuelled.core.time.systemZone
 import com.kvdm.fuelled.core.time.DEFAULT_DAY_START_HOUR
 import com.kvdm.fuelled.core.time.RealTimeSignal
 import com.kvdm.fuelled.core.time.TimeSignal
@@ -47,7 +48,7 @@ class MealPlanRepositoryImpl(
     private val planDao: MealPlanDao,
     private val todayDao: TodayDao,
     private val time: TimeSignal = RealTimeSignal(),
-    private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val zone: TimeZone = systemZone(),
     private val dayStartHour: Int = DEFAULT_DAY_START_HOUR,
     // START-02: the instant this install was first opened, or null when it is unknown (the
     // desktop/dev wiring). Only consulted for the FIRST logical day — see `startedTimeFor`.
