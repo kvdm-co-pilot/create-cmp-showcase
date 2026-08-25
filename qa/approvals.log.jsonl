@@ -134,3 +134,13 @@
 {"at":"2026-08-24T20:00:41.596Z","verb":"reopen","artifact":"feature-design:workouts","reason":"Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.","via":"cli"}
 {"at":"2026-08-24T20:00:41.673Z","verb":"reopen","artifact":"feature-spec:navigation-ia","reason":"NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.","via":"cli"}
 {"at":"2026-08-25T10:23:30.000Z","verb":"approve","artifact":"architecture","hash":"c5ed806ef5247933ecc0d92bead75c48d27b5b25eb3631e37e148a824551690c","via":"console"}
+{"at":"2026-08-25T10:47:25.827Z","verb":"accept","artifact":"feature-brief:bfl-catalog"}
+{"at":"2026-08-25T10:47:27.186Z","verb":"accept","artifact":"feature-brief:daily-journeys"}
+{"at":"2026-08-25T10:47:27.614Z","verb":"accept","artifact":"feature-brief:dated-goals"}
+{"at":"2026-08-25T10:47:28.304Z","verb":"accept","artifact":"feature-brief:navigation-ia"}
+{"at":"2026-08-25T10:47:32.363Z","verb":"accept","artifact":"feature-brief:dated-goals"}
+{"at":"2026-08-25T10:47:58.115Z","verb":"approve","artifact":"feature-design:meal-plan","hash":"099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b","via":"console"}
+{"at":"2026-08-25T10:48:02.295Z","verb":"approve","artifact":"feature-design:settings","hash":"38445c4f7cd02dd2f0e0b7d5772c5961333bab1c6de5c5d6e954123642d2b120","via":"console"}
+{"at":"2026-08-25T10:48:10.413Z","verb":"approve","artifact":"feature-design:workouts","hash":"ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d","via":"console"}
+{"at":"2026-08-25T10:48:18.428Z","verb":"approve","artifact":"feature-spec:navigation-ia","hash":"ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e","via":"console"}
+{"at":"2026-08-25T10:48:31.761Z","verb":"approve","artifact":"feature-design:meal","hash":"84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395","via":"console"}

@@ -4,19 +4,14 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "11dc784d2175f415c8866dcfc3366782f561310e",
+    "sha": "56c249df021f643c956f4e7263361990db41ba2e",
     "dirty": [
-      "README.md",
       "qa/approvals.json",
-      "qa/approvals.log.jsonl",
-      "qa/e2e/smoke.yaml",
-      "qa/e2e/supplements.yaml",
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl"
+      "qa/approvals.log.jsonl"
     ]
   },
   "inputs": {
-    "hash": "ef7605fe5c286ed831b678fd7990bda041507cdc28cfecb4b8659232069e447a",
+    "hash": "e70346c48c8a4ecff93187e709030db98e86fc25b24245fabd951f3e3723fb31",
     "fileCount": 438
   },
   "steps": [
@@ -40,7 +35,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 33,
+      "durationMs": 34,
       "details": {
         "clauses": 175,
         "withdrawn": 3,
@@ -51,9 +46,8 @@
     },
     {
       "name": "approvals",
-      "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:18.986Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:19.065Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:39.366Z (reason: ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:settings\n  [feature-design:workouts] Feature design (workouts — presentation/workouts/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T20:00:41.595Z (reason: Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:workouts\n  [feature-spec:navigation-ia] Feature spec (specs/navigation-ia.spec.md) — reopened for redesign at 2026-08-24T20:00:41.672Z (reason: NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:navigation-ia",
-      "durationMs": 23,
+      "verdict": "PASS",
+      "durationMs": 22,
       "details": {
         "artifacts": [
           {
@@ -168,22 +162,22 @@
           },
           {
             "id": "feature-design:meal-plan",
-            "status": "reopened",
+            "status": "approved",
             "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b"
           },
           {
             "id": "feature-design:meal",
-            "status": "reopened",
+            "status": "approved",
             "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395"
           },
           {
             "id": "feature-design:settings",
-            "status": "reopened",
+            "status": "approved",
             "hash": "38445c4f7cd02dd2f0e0b7d5772c5961333bab1c6de5c5d6e954123642d2b120"
           },
           {
             "id": "feature-design:workouts",
-            "status": "reopened",
+            "status": "approved",
             "hash": "ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d"
           },
           {
@@ -233,7 +227,7 @@
           },
           {
             "id": "feature-spec:navigation-ia",
-            "status": "reopened",
+            "status": "approved",
             "hash": "ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e"
           },
           {
@@ -404,7 +398,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -412,7 +406,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 63,
+      "durationMs": 64,
       "details": {
         "schemaDirs": 3
       }
@@ -420,17 +414,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1655
+      "durationMs": 1687
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1569
+      "durationMs": 1559
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 11094,
+      "durationMs": 13490,
       "details": {
         "tests": 345,
         "failures": 0,
@@ -441,36 +435,36 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2712
+      "durationMs": 3482
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4087
+      "durationMs": 5693
     },
     {
       "name": "tokenDrift",
       "verdict": "PASS",
-      "durationMs": 201,
+      "durationMs": 215,
       "details": {
-        "checked": 4,
+        "checked": 0,
         "drifted": 0
       }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3725
+      "durationMs": 3510
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 51896
+      "durationMs": 57825
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 20913,
+      "durationMs": 27931,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -498,6 +492,7 @@
     "name": "device",
     "satisfiedBy": [
       "specCoverage",
+      "approvals",
       "componentStories",
       "reachability",
       "archDoc",
@@ -518,5 +513,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-25T10:36:31.252Z"
+  "generatedAt": "2026-08-25T10:56:08.339Z"
 }

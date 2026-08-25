@@ -248,7 +248,9 @@
       "status": "approved",
       "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
       "approvedAt": "2026-08-24T09:50:30.525Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-25T10:47:25.827Z"
     },
     {
       "artifact": "feature-brief:catalog-and-editing",
@@ -262,21 +264,27 @@
       "status": "approved",
       "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
       "approvedAt": "2026-08-24T09:50:32.939Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-25T10:47:27.185Z"
     },
     {
       "artifact": "feature-brief:dated-goals",
       "status": "approved",
       "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
       "approvedAt": "2026-08-24T09:50:33.734Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-25T10:47:32.363Z"
     },
     {
       "artifact": "feature-brief:navigation-ia",
       "status": "approved",
       "hash": "2bdb1cb21d49c329f13eed50497fd41e1f7cf8fa6054f7914e0c3ecb9ab3a235",
       "approvedAt": "2026-08-24T09:50:48.867Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-25T10:47:28.304Z"
     },
     {
       "artifact": "feature-spec:today",
@@ -293,55 +301,45 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "reopened",
-      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
-      "approvedAt": "2026-08-03T20:11:30.530Z",
-      "reopenedAt": "2026-08-24T10:00:18.986Z",
-      "reason": "SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-design:meal",
-      "status": "reopened",
-      "hash": "dbc417714ac6487607cdcbfedd63e93f6f8b6020b88c7773c369a7f53bddd34a",
-      "approvedAt": "2026-08-01T18:16:46.787Z",
-      "reopenedAt": "2026-08-24T10:00:19.065Z",
-      "reason": "SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-design:settings",
-      "status": "reopened",
-      "hash": "1951ecac6c7852050b5704f3a257d6d1f6b02ab6a570899cc8529e44ab7bf1cd",
-      "approvedAt": "2026-08-05T11:32:22.495Z",
-      "reopenedAt": "2026-08-24T10:00:39.366Z",
-      "reason": "ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-design:workouts",
-      "status": "reopened",
-      "hash": "04c4a27684be79f8f81a320f304e6a0be29450b5354e931815fbbf83ad89660d",
-      "approvedAt": "2026-08-24T09:50:10.200Z",
-      "reopenedAt": "2026-08-24T20:00:41.595Z",
-      "reason": "Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-spec:navigation-ia",
-      "status": "reopened",
-      "hash": "f482457ee2a82a6e55a67ace86d8df4d679c5e724a3629ef27cc0a0197e4bfd9",
-      "approvedAt": "2026-08-24T09:50:15.674Z",
-      "reopenedAt": "2026-08-24T20:00:41.672Z",
-      "reason": "NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.",
-      "via": "cli"
-    },
-    {
       "artifact": "architecture",
       "status": "approved",
       "hash": "c5ed806ef5247933ecc0d92bead75c48d27b5b25eb3631e37e148a824551690c",
       "approvedAt": "2026-08-25T10:23:29.999Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
+      "approvedAt": "2026-08-25T10:47:58.114Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "approved",
+      "hash": "38445c4f7cd02dd2f0e0b7d5772c5961333bab1c6de5c5d6e954123642d2b120",
+      "approvedAt": "2026-08-25T10:48:02.294Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:workouts",
+      "status": "approved",
+      "hash": "ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d",
+      "approvedAt": "2026-08-25T10:48:10.413Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-spec:navigation-ia",
+      "status": "approved",
+      "hash": "ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e",
+      "approvedAt": "2026-08-25T10:48:18.427Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "approved",
+      "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395",
+      "approvedAt": "2026-08-25T10:48:31.760Z",
       "via": "console"
     }
   ],
