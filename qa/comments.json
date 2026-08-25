@@ -62,7 +62,10 @@
       "text": "Proceed with meal-plan: prove: run node qa/verify.mjs so the receipt attests this tree",
       "author": "human-console",
       "createdAt": "2026-07-28T12:56:47.700Z",
-      "status": "open"
+      "status": "resolved",
+      "resolvedAt": "2026-08-25T11:50:44.041Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Satisfied. The receipt attests this tree: PASS · L2 device (28815bc), receipt-check reports VALID, and the meal-plan feature's clauses are all cited. The device tier that had never run when this comment was written now runs — e2eSmoke and androidChecks both green on an emulator, and qa/e2e/week.yaml covers the plan surface end-to-end on-device."
     },
     {
       "id": "c6",

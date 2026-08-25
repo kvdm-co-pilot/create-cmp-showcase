@@ -1,5 +1,16 @@
 # Feature brief: catalog & entry editing (usability-pass S2 + S3)
 
+**Spec:** this feature's promises live in TWO spec files, not one:
+[`specs/catalog.spec.md`](../../specs/catalog.spec.md) (CAT-01..03 — the catalog becomes
+yours) and [`specs/entry-editing.spec.md`](../../specs/entry-editing.spec.md) (ENTRY-01..03 —
+change your mind where you are). Both are approved and every clause is cited.
+
+There is deliberately no `specs/catalog-and-editing.spec.md`. The walk derivation pairs a brief
+with `specs/<name>.spec.md` by filename, so it reads this feature as still awaiting a contract;
+it is not. Writing that file would put a second copy of CAT/ENTRY behavior in the tree, which is
+the one thing these specs are organised to prevent — one behavior, one definition. The split is
+the honest shape: S2 and S3 shared a schema change, not a contract.
+
 ## What and why
 
 Two of the three verbs the usability pass named as "the last friction in daily logging",

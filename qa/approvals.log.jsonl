@@ -145,3 +145,5 @@
 {"at":"2026-08-25T10:48:18.428Z","verb":"approve","artifact":"feature-spec:navigation-ia","hash":"ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e","via":"console"}
 {"at":"2026-08-25T10:48:31.761Z","verb":"approve","artifact":"feature-design:meal","hash":"84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395","via":"console"}
 {"at":"2026-08-25T11:47:23.768Z","verb":"accept","artifact":"feature-brief:workouts","via":"cli"}
+{"at":"2026-08-25T11:51:59.290Z","verb":"reopen","artifact":"feature-brief:catalog-and-editing","reason":"Add the Spec: pointer header (house style, as supplement-schedules already has) naming specs/catalog.spec.md + specs/entry-editing.spec.md. The walk derivation pairs a brief to specs/<name>.spec.md by filename, finds nothing, and reports this feature as awaiting a contract it already has — the risk being that someone answers that by writing duplicate CAT/ENTRY clauses.","via":"cli"}
+{"at":"2026-08-25T11:51:59.440Z","verb":"approve","artifact":"feature-brief:catalog-and-editing","hash":"9c7d7a18f8f6f0eea16bfbbdea41fbb96dbf9f6f40490ef52411610fca1320ad","via":"cli"}

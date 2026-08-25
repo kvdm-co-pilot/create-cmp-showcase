@@ -255,13 +255,6 @@
       "acceptedAt": "2026-08-25T10:47:25.827Z"
     },
     {
-      "artifact": "feature-brief:catalog-and-editing",
-      "status": "approved",
-      "hash": "95e7bdf79d7a936518b2ab8d1ece255676a6567e2aca67d9eaffbd5dc50a96fe",
-      "approvedAt": "2026-08-24T09:50:31.706Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:daily-journeys",
       "status": "approved",
       "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
@@ -343,6 +336,13 @@
       "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395",
       "approvedAt": "2026-08-25T10:48:31.760Z",
       "via": "console"
+    },
+    {
+      "artifact": "feature-brief:catalog-and-editing",
+      "status": "approved",
+      "hash": "9c7d7a18f8f6f0eea16bfbbdea41fbb96dbf9f6f40490ef52411610fca1320ad",
+      "approvedAt": "2026-08-25T11:51:59.439Z",
+      "via": "cli"
     }
   ],
   "exemplarFeature": "foods"
