@@ -142,13 +142,12 @@ the release process, not on the phone.
 **E8 — Airplane mode / no connectivity.** `NetworkMonitor` already exists and already reports
 this; the surface uses it rather than discovering the outage through a timeout.
 
-`unrouted` is TEMPORARY and belongs to the Design stage only: the screen is drafted and
-rendered before it is wired, so the reachability gate would otherwise read it as a screen
-nobody can navigate to. Build removes the flag in the same change that registers the
-destination and adds the Settings entry point.
+`unrouted` was declared during Design, while the screen was drafted but not yet wired, and was
+removed at Build in the same change that registered the destination and added the Settings
+entry point — as this brief said it would be.
 
 ```json cmp:feature
-{ "touches": ["feature-spec:settings", "feature-design:settings"], "screens": true, "unrouted": true }
+{ "touches": ["feature-spec:settings", "feature-design:settings"], "screens": true }
 ```
 
 ## Open decisions

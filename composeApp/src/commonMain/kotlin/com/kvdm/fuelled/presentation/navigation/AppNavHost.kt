@@ -32,6 +32,7 @@ import com.kvdm.fuelled.presentation.settings.SettingsRoute
 import com.kvdm.fuelled.presentation.builder.MealBuilderRoute
 import com.kvdm.fuelled.presentation.profile.ProfileRoute
 import com.kvdm.fuelled.presentation.supplements.SupplementsRoute
+import com.kvdm.fuelled.presentation.appupdates.UpdateRoute
 import com.kvdm.fuelled.presentation.today.TodayRoute
 import com.kvdm.fuelled.presentation.workouts.WorkoutWeekRoute
 import org.koin.compose.viewmodel.koinViewModel
@@ -231,7 +232,10 @@ fun AppNavHost() {
         }
         // SET-01: the settings UX-04 stopped pretending about, entered from Profile.
         composable(Screen.Settings.route) {
-            SettingsRoute(onBack = { navController.popBackStack() })
+            SettingsRoute(
+                onBack = { navController.popBackStack() },
+                onOpenUpdates = { navController.navigate(Routes.UPDATES) },
+            )
         }
         // CAT-01: the custom-food editor. `new` mints an id here rather than in the ViewModel,
         // so a rotation mid-typing keeps the same identity and cannot create a twin on save.
@@ -254,6 +258,10 @@ fun AppNavHost() {
             BaseScreen {
                 SupplementsRoute()
             }
+        }
+        // UPD-09: the update surface. UpdateRoute owns its insets (SHELL-05).
+        composable(Screen.Updates.route) {
+            UpdateRoute(onBack = { navController.popBackStack() })
         }
         // cmp:anchor nav-destinations
     }

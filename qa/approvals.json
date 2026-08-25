@@ -310,13 +310,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:settings",
-      "status": "approved",
-      "hash": "38445c4f7cd02dd2f0e0b7d5772c5961333bab1c6de5c5d6e954123642d2b120",
-      "approvedAt": "2026-08-25T10:48:02.294Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-design:workouts",
       "status": "approved",
       "hash": "ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d",
@@ -347,16 +340,30 @@
     {
       "artifact": "feature-brief:app-updates",
       "status": "approved",
-      "hash": "0243243aae632f2849f8a693e81b5d3f1755fef8e97f2c1457f2e33fdcb83ba3",
-      "approvedAt": "2026-08-25T14:01:13.125Z",
+      "hash": "8418d57c2fe9603c3306671127aef2efebe21f1e695f600598eaa5ac993cd391",
+      "approvedAt": "2026-08-25T21:19:43.878Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:app-updates",
+      "status": "approved",
+      "hash": "f217b805225cfad7184bab12a21c3961aa0fa79f708f1a8d92bb1240eed5f268",
+      "approvedAt": "2026-08-25T21:32:05.601Z",
       "via": "cli"
     },
     {
       "artifact": "feature-design:app-updates",
       "status": "approved",
-      "hash": "4c4e40c7efd8390ef2bf169da20b8b27c9b8ec15f77e8cc3970b375c920fe9c0",
-      "approvedAt": "2026-08-25T14:08:01.689Z",
-      "via": "console"
+      "hash": "76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647",
+      "approvedAt": "2026-08-25T21:32:05.756Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "approved",
+      "hash": "e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af",
+      "approvedAt": "2026-08-25T21:32:05.911Z",
+      "via": "cli"
     }
   ],
   "exemplarFeature": "foods"

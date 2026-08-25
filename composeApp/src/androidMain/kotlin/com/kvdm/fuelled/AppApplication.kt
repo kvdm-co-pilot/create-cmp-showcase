@@ -11,6 +11,7 @@ import com.kvdm.fuelled.data.local.AppDatabase
 import com.kvdm.fuelled.data.local.appContext
 import com.kvdm.fuelled.data.local.buildDatabase
 import com.kvdm.fuelled.core.connectivity.NetworkMonitor
+import com.kvdm.fuelled.core.updates.AppInstaller
 import com.kvdm.fuelled.di.androidModule
 import com.kvdm.fuelled.inspector.startInspector
 import com.kvdm.fuelled.di.appModules
@@ -34,6 +35,7 @@ class AppApplication : Application() {
                 module {
                     single<AppDatabase> { buildDatabase() }
                     single { NetworkMonitor(androidContext()) }
+                single { AppInstaller(androidContext()) }
                 },
                 androidModule,
                 *appModules.toTypedArray()

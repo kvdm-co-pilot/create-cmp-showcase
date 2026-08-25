@@ -16,6 +16,7 @@ sealed class Screen(val route: String) {
     data object Settings : Screen(Routes.SETTINGS)
     data object MealBuilder : Screen(Routes.MEAL_BUILDER)
     data object Supplements : Screen(Routes.SUPPLEMENTS)
+    data object Updates : Screen(Routes.UPDATES)
     // cmp:anchor screen-objects
 }
 
@@ -38,6 +39,8 @@ object Routes {
     const val MEAL_BUILDER = "build"
     /** NAV-05: the supplement stack, off the bar and onto the back stack. */
     const val SUPPLEMENTS  = "supplements"
+    /** UPD-09: the update surface, entered from Settings. */
+    const val UPDATES      = "updates"
     // cmp:anchor route-consts
     fun foodDetail(foodId: String) = "food/$foodId"
 

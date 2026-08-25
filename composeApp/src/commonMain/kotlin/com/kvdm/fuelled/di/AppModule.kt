@@ -71,6 +71,14 @@ import com.kvdm.fuelled.presentation.profile.ProfileViewModel
 import com.kvdm.fuelled.presentation.supplements.SupplementsViewModel
 import com.kvdm.fuelled.presentation.today.TodayViewModel
 import com.kvdm.fuelled.presentation.progress.ProgressViewModel
+import com.kvdm.fuelled.domain.repository.UpdateRepository
+import com.kvdm.fuelled.data.remote.UpdateRepositoryImpl
+import com.kvdm.fuelled.domain.usecase.CheckForUpdateUseCase
+import com.kvdm.fuelled.presentation.appupdates.UpdateViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import com.kvdm.fuelled.presentation.workouts.WorkoutWeekViewModel
 import com.kvdm.fuelled.presentation.onboarding.OnboardingViewModel
 import com.kvdm.fuelled.presentation.foods.FoodEditorViewModel
@@ -219,6 +227,13 @@ val viewModelModule = module {
     viewModel { ProgressViewModel(get(), get(), get(), get(), get(), get()) }
     // NAV-06: the Training tab. WorkoutRepository + TimeSignal; zone and dayStartHour default.
     viewModel { WorkoutWeekViewModel(get(), get()) }
+    // UPD-01: the update check. owner/repo are compile-time constants — this app is published
+    // from the repository it lives in. AppInstaller comes from the PLATFORM module: only
+    // Android has one that can actually install (UPD-08).
+    single { HttpClient { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } } }
+    single<UpdateRepository> { UpdateRepositoryImpl(get(), owner = "kvdm-co-pilot", repo = "create-cmp-showcase") }
+    factory { CheckForUpdateUseCase(get(), get()) }
+    viewModel { UpdateViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get(), get(), get(), get()) }
     viewModel { FoodEditorViewModel(get(), get(), get()) }
     // The tray takes its clock/zone/dayStartHour from its production defaults, so it is wired

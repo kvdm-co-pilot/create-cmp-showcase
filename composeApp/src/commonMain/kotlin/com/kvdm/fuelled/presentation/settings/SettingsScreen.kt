@@ -17,11 +17,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -63,6 +65,7 @@ import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
@@ -79,6 +82,13 @@ data class SettingsUi(
     val stack: List<Supplement> = sampleStack,
     /** WORK-07: the training week, shaped here beside the stack. */
     val week: WorkoutWeek = WorkoutWeek.DEFAULT,
+    /**
+     * UPD-08: does this platform install applications at all?
+     *
+     * False on iOS and desktop, where the update row is not rendered — not disabled, absent.
+     * A disabled control advertises a capability; there is nothing here a user could enable.
+     */
+    val updatesSupported: Boolean = true,
 )
 
 /**
@@ -118,6 +128,8 @@ data class SettingsActions(
 fun SettingsRoute(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
+    /** UPD-09: the entry point into the update surface. */
+    onOpenUpdates: () -> Unit = {},
 ) {
     // SHELL-05: a destination registered directly on the NavHost owns its insets — tabs inherit
     // theirs from AppShell. The wrapper used to sit at the call site in AppNavHost.kt; harness
@@ -146,6 +158,14 @@ fun SettingsScreen(
     ui: SettingsUi = SettingsUi(),
     onBack: () -> Unit = {},
     actions: SettingsActions = SettingsActions(),
+    /**
+     * UPD-09: opens the update surface. Defaulted to a no-op so the stateless screen still
+     * renders in the gallery, and so the preview does not need a nav controller.
+     *
+     * Absent on platforms that cannot install (UPD-08) — the row is rendered only when
+     * [SettingsUi.updatesSupported] is true, which iOS and desktop never set.
+     */
+    onOpenUpdates: () -> Unit = {},
 ) {
     ScreenColumn(screenTag = "settings") {
         AppHeader(title = "Settings", screenTag = "settings", onBack = onBack)
@@ -163,6 +183,24 @@ fun SettingsScreen(
             // WORK-07: the training week, beside the stack. Both are "the routine you keep",
             // and splitting them across two screens would make one of them the forgotten one.
             WorkoutWeekCard(week = ui.week, onSave = actions.onSaveWorkoutDay)
+            // UPD-09: the way into the update surface. Rendered only where the platform can
+            // actually install (UPD-08) — on iOS and desktop the row is ABSENT, not disabled,
+            // because a disabled control advertises a capability the user cannot obtain.
+            if (ui.updatesSupported) {
+                ListItemCard(
+                    title = "Updates",
+                    subtitle = "Check GitHub for a newer build",
+                    onClick = onOpenUpdates,
+                    trailing = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                    modifier = Modifier.semantics { testTag = "settings_updates" },
+                )
+            }
             Spacer(Modifier.padding(bottom = 8.dp))
         }
     }

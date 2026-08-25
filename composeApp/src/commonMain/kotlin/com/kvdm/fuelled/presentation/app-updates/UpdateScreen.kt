@@ -24,6 +24,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kvdm.fuelled.domain.model.AppRelease
+import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import org.koin.compose.viewmodel.koinViewModel
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.ScreenColumn
@@ -59,6 +65,13 @@ sealed interface UpdateUi {
         val publishedAt: String,
         val sizeLabel: String,
         val notes: String,
+        /**
+         * What the download control acts on. Carried on the UI state rather than held
+         * separately in the ViewModel so the version on screen and the version fetched cannot
+         * drift apart — there is only one of them.
+         */
+        val assetUrl: String? = null,
+        val assetSizeBytes: Long? = null,
     ) : UpdateUi
 
     /** [fraction] is 0f..1f, or null for a download whose total size the server never gave. */
@@ -317,3 +330,49 @@ private fun Card(tag: String, content: @Composable androidx.compose.foundation.l
         content = content,
     )
 }
+
+/**
+ * The VM-backed Updates destination (UPD-09).
+ *
+ * BaseScreen because this is registered directly on the NavHost and owns its insets (SHELL-05).
+ *
+ * The Empty arm is UPD-08's: a platform that cannot install renders nothing. It is reached only
+ * on iOS and desktop, where [com.kvdm.fuelled.core.updates.AppInstaller.supported] is false —
+ * and on those targets Settings does not offer the entry point either, so in practice nobody
+ * arrives here. The arm exists so that "unsupported" has a defined rendering rather than
+ * depending on nobody finding the route.
+ */
+@Composable
+fun UpdateRoute(
+    viewModel: UpdateViewModel = koinViewModel(),
+    onBack: () -> Unit = {},
+) {
+    BaseScreen {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        ContentStateContainer(state = state, screenTag = "updates", onRetry = viewModel::check) { model ->
+            UpdateScreen(
+                model = model,
+                onCheck = viewModel::check,
+                onDownload = { (model as? UpdateUi.Available)?.let { viewModel.download(it.toRelease()) } },
+                onBack = onBack,
+            )
+        }
+    }
+}
+
+/**
+ * The screen's model back to a domain release for the download call.
+ *
+ * Only [AppRelease.assetUrl] and [AppRelease.assetSizeBytes] are actually read by
+ * [UpdateViewModel.download] — the rest is carried so the shapes line up. The ViewModel holds
+ * no release of its own on purpose: the thing on screen IS the thing that downloads, so the
+ * two cannot disagree about which version was offered.
+ */
+private fun UpdateUi.Available.toRelease(): AppRelease = AppRelease(
+    versionCode = 0L,
+    version = version,
+    publishedAt = publishedAt,
+    notes = notes,
+    assetUrl = assetUrl,
+    assetSizeBytes = assetSizeBytes,
+)

@@ -151,3 +151,9 @@
 {"at":"2026-08-25T14:01:12.986Z","verb":"reopen","artifact":"feature-brief:app-updates","reason":"Design stage: the screen exists as a draft but is deliberately not in the nav graph yet (Build wires it, after Contract). Declaring unrouted:true so the reachability gate reads that as intended rather than as a screen nobody can reach. The flag comes back out at Build.","via":"cli"}
 {"at":"2026-08-25T14:01:13.127Z","verb":"approve","artifact":"feature-brief:app-updates","hash":"0243243aae632f2849f8a693e81b5d3f1755fef8e97f2c1457f2e33fdcb83ba3","via":"cli"}
 {"at":"2026-08-25T14:08:01.690Z","verb":"approve","artifact":"feature-design:app-updates","hash":"4c4e40c7efd8390ef2bf169da20b8b27c9b8ec15f77e8cc3970b375c920fe9c0","via":"console"}
+{"at":"2026-08-25T14:10:45.847Z","verb":"approve","artifact":"feature-spec:app-updates","hash":"6d6a605881c379a9b31b5472374d8441362ca580356090270cbeef3ead12ff95","via":"console"}
+{"at":"2026-08-25T21:19:43.681Z","verb":"reopen","artifact":"feature-brief:app-updates","reason":"Build landed: the screen is registered on the NavHost and Settings carries the entry point, so the temporary Design-stage unrouted:true declaration comes back out as the brief said it would.","via":"cli"}
+{"at":"2026-08-25T21:19:43.880Z","verb":"approve","artifact":"feature-brief:app-updates","hash":"8418d57c2fe9603c3306671127aef2efebe21f1e695f600598eaa5ac993cd391","via":"cli"}
+{"at":"2026-08-25T21:32:05.603Z","verb":"approve","artifact":"feature-spec:app-updates","hash":"f217b805225cfad7184bab12a21c3961aa0fa79f708f1a8d92bb1240eed5f268","via":"cli"}
+{"at":"2026-08-25T21:32:05.758Z","verb":"approve","artifact":"feature-design:app-updates","hash":"76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647","via":"cli"}
+{"at":"2026-08-25T21:32:05.912Z","verb":"approve","artifact":"feature-design:settings","hash":"e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af","via":"cli"}
