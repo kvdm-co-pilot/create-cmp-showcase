@@ -206,7 +206,9 @@
       "status": "approved",
       "hash": "5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b",
       "approvedAt": "2026-08-05T08:44:33.301Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-25T11:47:23.766Z"
     },
     {
       "artifact": "feature-brief:supplement-schedules",

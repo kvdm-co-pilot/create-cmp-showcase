@@ -144,3 +144,4 @@
 {"at":"2026-08-25T10:48:10.413Z","verb":"approve","artifact":"feature-design:workouts","hash":"ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d","via":"console"}
 {"at":"2026-08-25T10:48:18.428Z","verb":"approve","artifact":"feature-spec:navigation-ia","hash":"ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e","via":"console"}
 {"at":"2026-08-25T10:48:31.761Z","verb":"approve","artifact":"feature-design:meal","hash":"84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395","via":"console"}
+{"at":"2026-08-25T11:47:23.768Z","verb":"accept","artifact":"feature-brief:workouts","via":"cli"}
