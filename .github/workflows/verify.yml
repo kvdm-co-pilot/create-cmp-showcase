@@ -36,6 +36,7 @@ jobs:
         continue-on-error: true
         run: npx --yes create-cmp-cli@latest doctor --yes --no-install --no-ios
 
+
       # Receipt attests HEAD: the committed evidence receipt (qa/evidence/latest.json)
       # must validly attest the checked-out tree — verdict PASS and the inputs-hash
       # still matching the verified surface — BEFORE we spend a runner re-running the

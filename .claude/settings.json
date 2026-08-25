@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"This app is governed by its delivery contract (CLAUDE.md): behavior starts in specs/, done is `node qa/verify.mjs` with a committed receipt, approvals gate signed artifacts. The cmp-inspector MCP tools (preview loop, live tier) are the expected eyes — if they are absent from this session, that is a fault to diagnose (plugin disabled, session predates plugin enablement, or stale plugin copy; see cmp-doctor), not a cue to fall back to screenshots or blind adb.\"}}'"
+            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"This app is governed by its delivery contract (CLAUDE.md): behavior starts in specs/, done is `node qa/verify.mjs` with a committed receipt, approvals gate signed artifacts. The cmp-inspector MCP tools (preview loop, live tier) are the expected eyes \u2014 if they are absent from this session, that is a fault to diagnose (plugin disabled, session predates plugin enablement, or stale plugin copy; see cmp-doctor), not a cue to fall back to screenshots or blind adb.\"}}'"
           }
         ]
       }
@@ -21,11 +21,11 @@
           },
           {
             "type": "command",
-            "command": "grep -qE 'connected[A-Za-z]*AndroidTest|maestro test|adb (-s [^ ]+ )?(install|uninstall)' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"Reminder: device evidence is lane-owned and batched. node qa/verify.mjs sequences the device steps once, last, under a machine-global per-serial lease (qa/lib/device-lease.mjs) — the one device is scarce, slow, and fragile, so device proof is a checkpoint, never an inner loop. Driving it by hand mid-task risks colliding with a running lane (wedged adbd, device offline, false reds, crossed app state). Ad-hoc debugging stays allowed; batch the evidence into the lane.\"}}' || true"
+            "command": "grep -qE 'connected[A-Za-z]*AndroidTest|maestro test|adb (-s [^ ]+ )?(install|uninstall)' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"Reminder: device evidence is lane-owned and batched. node qa/verify.mjs sequences the device steps once, last, under a machine-global per-serial lease (qa/lib/device-lease.mjs) \u2014 the one device is scarce, slow, and fragile, so device proof is a checkpoint, never an inner loop. Driving it by hand mid-task risks colliding with a running lane (wedged adbd, device offline, false reds, crossed app state). Ad-hoc debugging stays allowed; batch the evidence into the lane.\"}}' || true"
           },
           {
             "type": "command",
-            "command": "in=$(cat); printf '%s' \"$in\" | grep -qE 'node qa/verify\\.mjs' && ! printf '%s' \"$in\" | grep -q -- '--fast' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"Reminder: for inner-loop iteration, node qa/verify.mjs --fast skips the device/release tier (releaseBuild, tokenDrift, e2eSmoke, androidChecks, releaseSmoke) and is much quicker. Run the full lane once, deliberately, before reporting work done — never speculatively, and never to re-confirm a result you already have. A --fast receipt never satisfies the done-gate.\"}}' || true"
+            "command": "in=$(cat); printf '%s' \"$in\" | grep -qE 'node qa/verify\\.mjs' && ! printf '%s' \"$in\" | grep -q -- '--fast' && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"Reminder: for inner-loop iteration, node qa/verify.mjs --fast skips the device/release tier (releaseBuild, tokenDrift, e2eSmoke, androidChecks, releaseSmoke) and is much quicker. Run the full lane once, deliberately, before reporting work done \u2014 never speculatively, and never to re-confirm a result you already have. A --fast receipt never satisfies the done-gate.\"}}' || true"
           }
         ]
       }
@@ -34,9 +34,27 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node qa/receipt-check.mjs --hook" }
+          {
+            "type": "command",
+            "command": "node qa/receipt-check.mjs --hook"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f qa/walk-status.mjs && node qa/walk-status.mjs --inject || true"
+          }
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "test -f qa/walk-status.mjs && node qa/walk-status.mjs --statusline || true"
   }
 }

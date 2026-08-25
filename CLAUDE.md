@@ -303,6 +303,42 @@ stamper clones your pattern in your domain language, and `home` demotes to an or
 feature spec. If the configured exemplar has grown files beyond the canonical 11-file
 shape, the stamper clones the canonical set and warns, listing exactly what it skipped.
 
+
+## The walk — the user always knows where we are and whose turn it is
+
+Every governed change is a **walk** through six stages, spoken ONLY in this vocabulary
+wherever the human reads (chat, cards, commit prose): **Decide · Design · Contract ·
+Build · Prove · Sign-off**. The mapping is mechanical — Decide=the brief, Design=the
+rendered screens, Contract=the spec, Build=code+citing tests, Prove=the lane's receipt,
+Sign-off=acceptance — and spec clauses are spoken as **promises** ("Contract: 7
+promises agreed" · "Build: keeping promise 5 of 7" · "Prove: all promises kept,
+evidence attached"). `node qa/walk-status.mjs` derives the live position; a
+UserPromptSubmit hook injects it every prompt. **Render the injected state — never
+your memory of it.**
+
+**At kickoff** (with the triage restatement): print the itinerary —
+
+    Navigation redesign — the journey (brief lane)
+    Decide → Design → Contract → Build → Prove → Sign-off
+    Stops for you: 3 (Decide — now · Contract · Sign-off). Build and Prove never stop for you.
+    First stop is now: 2 open decisions below.
+
+**While working — quiet:** one line per stage transition, nothing per-file. The
+statusline carries the position continuously; do not repeat it in prose.
+
+**At every human gate — loud:** a full stop card, never a bare question:
+
+    ■ YOUR TURN — <feature> · stage 3 of 6: Contract
+    <what it is, in plain words — two lines maximum>
+    → <exactly what to do: the command, or the studio tab, or "reply approve">
+    After this: <the remaining stages, and which ones stop for the human>
+
+**Arrivals:** work that belongs to no open walk (undeclared drift, a harness
+upgrade's rule-change reopens) is NEVER silently interleaved. Render
+`▲ ARRIVED, UNPLANNED — <what> · now, or after <current walk> lands?` and default to
+after. One walk at a time unless the human chooses otherwise — three unframed
+interleaved walks is precisely the session this rule exists to prevent.
+
 ## Comments — review feedback flows back through the agent
 
 Approvals are binding (they gate the verify lane); **comments are advisory** — a human's

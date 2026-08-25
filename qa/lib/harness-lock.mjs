@@ -8,7 +8,7 @@
 //              Answered LOCALLY, offline, on every lane run. Needs nothing
 //              but the tree and this file.
 //
-//   AUTHENTICITY  "is my lane the real published create-cmp-harness@X?"
+//   AUTHENTICITY  "is my lane the real published @create-cmp/harness@X?"
 //              Answered REMOTELY, on request, by comparing this file's
 //              `sha256` against the published version's — `create-cmp
 //              upgrade --harness` does it, and so can any third party
@@ -61,7 +61,7 @@ export function readHarnessLock(root) {
  * @param {{name?: string, version: string}} harness identity to record
  * @returns {{sha256: string, fileCount: number}}
  */
-export function writeHarnessLock(root, { name = "create-cmp-harness", version }) {
+export function writeHarnessLock(root, { name = "@create-cmp/harness", version }) {
   if (typeof version !== "string" || version.length === 0) {
     throw new Error("writeHarnessLock: a harness version is required");
   }

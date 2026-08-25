@@ -11,7 +11,8 @@
 
 This app's purpose, audience, and shape are recorded in [`specs/intent.md`](../specs/intent.md)
 — the root brief this document, the component registry, and the exemplar feature all trace
-back to. The table below is the default quality-goal set a fresh scaffold ships with. The
+back to.
+The table below is the default quality-goal set a fresh scaffold ships with. The
 genesis walk's architecture conversation is where a human promotes, demotes, or replaces
 them for this app's actual priorities ("offline matters more than a11y for a field-work
 app").

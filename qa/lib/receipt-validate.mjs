@@ -6,7 +6,7 @@
 // tarball rather than the working tree.
 //
 // SINGLE SOURCE OF TRUTH: packages/receipts/src/receipt-validate.mjs in the
-// create-cmp repo (the `cmp-receipts` package). The copy in a generated
+// create-cmp repo (the `@create-cmp/receipts` package). The copy in a generated
 // project's qa/lib/ is vendored byte-identical at scaffold time and pinned by
 // test/receipts-parity.test.mjs — edit the package source, then run
 // `node scripts/sync-harness.mjs`.
