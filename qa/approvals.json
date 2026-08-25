@@ -343,6 +343,20 @@
       "hash": "9c7d7a18f8f6f0eea16bfbbdea41fbb96dbf9f6f40490ef52411610fca1320ad",
       "approvedAt": "2026-08-25T11:51:59.439Z",
       "via": "cli"
+    },
+    {
+      "artifact": "feature-brief:app-updates",
+      "status": "approved",
+      "hash": "0243243aae632f2849f8a693e81b5d3f1755fef8e97f2c1457f2e33fdcb83ba3",
+      "approvedAt": "2026-08-25T14:01:13.125Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:app-updates",
+      "status": "approved",
+      "hash": "4c4e40c7efd8390ef2bf169da20b8b27c9b8ec15f77e8cc3970b375c920fe9c0",
+      "approvedAt": "2026-08-25T14:08:01.689Z",
+      "via": "console"
     }
   ],
   "exemplarFeature": "foods"

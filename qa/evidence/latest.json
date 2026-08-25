@@ -4,22 +4,28 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "95c938f24d39f8e0f3e4eb662a5dabf4860a79d4",
+    "sha": "ebfe152db79bab7da26a9687d2139bc54e29ec4a",
     "dirty": [
-      "docs/features/catalog-and-editing.md",
+      "README.md",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "docs/ARCHITECTURE.md",
+      "docs/features/app-updates.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/comments.json"
+      "qa/comments.json",
+      "qa/evidence/latest.json",
+      "qa/flight-recorder.jsonl"
     ]
   },
   "inputs": {
-    "hash": "1a21912acac65f5d03a3157aad2946d0fe6e8521f258e25f52e3e48759e0ee84",
-    "fileCount": 438
+    "hash": "f70a5a5d496184713606f6fc92f75f572a31452eb2b6024020db5b946f0c10b1",
+    "fileCount": 439
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 5,
+      "durationMs": 6,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -37,25 +43,31 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 33,
+      "durationMs": 45,
       "details": {
         "clauses": 175,
         "withdrawn": 3,
         "tags": 380,
-        "files": 295,
+        "files": 296,
         "tierNote": "160 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 23,
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:app-updates] Feature design (app-updates — presentation/app-updates/*Screen.kt, signed on rendered output) — unreviewed. Approve: node qa/approve.mjs feature-design:app-updates",
+      "durationMs": 26,
       "details": {
         "artifacts": [
           {
             "id": "intent",
             "status": "approved",
             "hash": "16d3d6c5bf67978f030e26289cdfad35eded87052e561fd684cdeb254f6e31c4"
+          },
+          {
+            "id": "feature-brief:app-updates",
+            "status": "approved",
+            "hash": "0243243aae632f2849f8a693e81b5d3f1755fef8e97f2c1457f2e33fdcb83ba3"
           },
           {
             "id": "feature-brief:bfl-catalog",
@@ -161,6 +173,11 @@
             "id": "components",
             "status": "approved",
             "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385"
+          },
+          {
+            "id": "feature-design:app-updates",
+            "status": "unreviewed",
+            "hash": "4c4e40c7efd8390ef2bf169da20b8b27c9b8ec15f77e8cc3970b375c920fe9c0"
           },
           {
             "id": "feature-design:meal-plan",
@@ -294,9 +311,17 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 13,
+      "durationMs": 16,
       "details": {
         "features": [
+          {
+            "name": "app-updates",
+            "reachable": true,
+            "unrouted": true,
+            "entryComposables": [
+              "UpdateScreen"
+            ]
+          },
           {
             "name": "builder",
             "reachable": true,
@@ -400,7 +425,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 22,
       "details": {
         "sectionsChecked": 4
       }
@@ -408,7 +433,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 61,
+      "durationMs": 185,
       "details": {
         "schemaDirs": 3
       }
@@ -416,17 +441,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1776
+      "durationMs": 22976
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 2748
+      "durationMs": 264913
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 12529,
+      "durationMs": 19694,
       "details": {
         "tests": 345,
         "failures": 0,
@@ -437,33 +462,33 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3036
+      "durationMs": 4074
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4578
+      "durationMs": 5408
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
-      "durationMs": 8355
+      "durationMs": 8362
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4154
+      "durationMs": 8415
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 57740
+      "durationMs": 55122
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 23675,
+      "durationMs": 24518,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -490,7 +515,6 @@
     "name": "device",
     "satisfiedBy": [
       "specCoverage",
-      "approvals",
       "componentStories",
       "reachability",
       "archDoc",
@@ -510,5 +534,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-25T11:54:11.128Z"
+  "generatedAt": "2026-08-25T14:08:33.346Z"
 }

@@ -25,6 +25,10 @@ import com.kvdm.fuelled.presentation.supplements.SupplementsScreen
 import com.kvdm.fuelled.presentation.supplements.SupplementStackUi
 import com.kvdm.fuelled.presentation.supplements.sampleSupplementStack
 import com.kvdm.fuelled.presentation.today.TodayScreen
+import com.kvdm.fuelled.presentation.appupdates.UpdateScreen
+import com.kvdm.fuelled.presentation.appupdates.sampleDownloading
+import com.kvdm.fuelled.presentation.appupdates.sampleFailed
+import com.kvdm.fuelled.presentation.appupdates.sampleUpToDate
 import com.kvdm.fuelled.presentation.workouts.WorkoutWeekScreen
 import com.kvdm.fuelled.presentation.workouts.sampleWorkoutWeekFresh
 import com.kvdm.fuelled.presentation.progress.ProgressScreen
@@ -95,6 +99,17 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
     // JRN-01/HIST-01: Progress — the holistic results surface (verdict, trend, weight, days).
     ScreenPreview("progress", "Progress — verdict, 4-week trend, weight, days") { TabHost { ProgressScreen() } },
+    // UPD-01..09: Updates — the four states, drafted on stub data for the design gate.
+    ScreenPreview("updates", "Updates — a newer build is available") { TabHost { UpdateScreen() } },
+    ScreenPreview("updates@current", "Updates — already on the latest") {
+        TabHost { UpdateScreen(sampleUpToDate) }
+    },
+    ScreenPreview("updates@downloading", "Updates — downloading (42%)") {
+        TabHost { UpdateScreen(sampleDownloading) }
+    },
+    ScreenPreview("updates@failed", "Updates — the download failed, nothing installed") {
+        TabHost { UpdateScreen(sampleFailed) }
+    },
     // NAV-06: Training — the training week as its own tab.
     ScreenPreview("training", "Training tab — the week (today pending, one missed)") {
         TabHost { WorkoutWeekScreen() }
