@@ -4,49 +4,43 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "c769921590fda82ec0c38837eb86363f95751823",
+    "sha": "11dc784d2175f415c8866dcfc3366782f561310e",
     "dirty": [
       "README.md",
-      "composeApp/build.gradle.kts",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekScreen.kt",
-      "gradle/libs.versions.toml",
-      "qa/e2e/meals.yaml",
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
+      "qa/e2e/smoke.yaml",
       "qa/e2e/supplements.yaml",
-      "qa/e2e/training.yaml",
-      "qa/e2e/week.yaml",
       "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "qa/golden/training.json"
+      "qa/flight-recorder.jsonl"
     ]
   },
   "inputs": {
-    "hash": "ffdbf02e06da9ae598bd035d99861667f5ab0025e5a7df6b82e61484a678c8da",
-    "fileCount": 436
+    "hash": "ef7605fe5c286ed831b678fd7990bda041507cdc28cfecb4b8659232069e447a",
+    "fileCount": 438
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 10,
+      "durationMs": 5,
       "harness": {
         "status": "intact",
-        "name": "create-cmp-harness",
-        "version": "0.14.1",
-        "sha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
-        "recordedSha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
+        "name": "@create-cmp/harness",
+        "version": "0.15.0",
+        "sha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
+        "recordedSha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
         "modified": [],
         "missing": [],
         "extra": [],
-        "fileCount": 36
+        "fileCount": 38
       },
       "verdict": "PASS",
-      "note": "create-cmp-harness 0.14.1 — 36 files verified"
+      "note": "@create-cmp/harness 0.15.0 — 38 files verified"
     },
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 32,
+      "durationMs": 33,
       "details": {
         "clauses": 175,
         "withdrawn": 3,
@@ -59,7 +53,7 @@
       "name": "approvals",
       "verdict": "SKIP",
       "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:meal-plan] Feature design (meal-plan — presentation/meal-plan/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:18.986Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal-plan\n  [feature-design:meal] Feature design (meal — presentation/meal/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:19.065Z (reason: SHELL-05 (harness 0.14): the rule now requires BaseScreen in the destination's OWN file, not at the AppNavHost call site. Relocating the wrapper — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:meal\n  [feature-design:settings] Feature design (settings — presentation/settings/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T10:00:39.366Z (reason: ARCH-13 + SHELL-05 (harness 0.14): the cadence anchor's inline Clock.System read moves to core/time's named provider, and BaseScreen moves into SettingsRoute's own file. No visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:settings\n  [feature-design:workouts] Feature design (workouts — presentation/workouts/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-24T20:00:41.595Z (reason: Training tab finishing pass: the summary read '2 of 6 sessions kept' on a Wednesday, which scans as four missed when four are simply still to come; and 'Shape the week in Settings' was plain text, so the editor was only reachable by tapping a non-today row. Re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:workouts\n  [feature-spec:navigation-ia] Feature spec (specs/navigation-ia.spec.md) — reopened for redesign at 2026-08-24T20:00:41.672Z (reason: NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-spec:navigation-ia",
-      "durationMs": 31,
+      "durationMs": 23,
       "details": {
         "artifacts": [
           {
@@ -150,7 +144,7 @@
           {
             "id": "architecture",
             "status": "approved",
-            "hash": "4cd43e5cf765d33bc4bcbd8f33a73c3f93da52a3ee28a17a5802f1bb3217cbe8"
+            "hash": "c5ed806ef5247933ecc0d92bead75c48d27b5b25eb3631e37e148a824551690c"
           },
           {
             "id": "exemplar-spec",
@@ -293,7 +287,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -410,7 +404,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 16,
       "details": {
         "sectionsChecked": 4
       }
@@ -418,7 +412,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 79,
+      "durationMs": 63,
       "details": {
         "schemaDirs": 3
       }
@@ -426,17 +420,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3698
+      "durationMs": 1655
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 374791
+      "durationMs": 1569
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 38567,
+      "durationMs": 11094,
       "details": {
         "tests": 345,
         "failures": 0,
@@ -447,33 +441,36 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 7465
+      "durationMs": 2712
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 8164
+      "durationMs": 4087
     },
     {
       "name": "tokenDrift",
-      "verdict": "SKIP",
-      "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
-      "durationMs": 8532
+      "verdict": "PASS",
+      "durationMs": 201,
+      "details": {
+        "checked": 4,
+        "drifted": 0
+      }
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 13565
+      "durationMs": 3725
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 62036
+      "durationMs": 51896
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 25767,
+      "durationMs": 20913,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -483,14 +480,15 @@
     }
   ],
   "harness": {
-    "name": "create-cmp-harness",
-    "version": "0.14.1",
-    "sha256": "2ac3230672bef525848bdf109c2d5fa5c611ccd5a176f39d971e615ae9e9f264",
+    "name": "@create-cmp/harness",
+    "version": "0.15.0",
+    "sha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
     "status": "intact",
     "intact": true
   },
   "strength": {
     "onDeviceSteps": [
+      "tokenDrift",
       "e2eSmoke",
       "androidChecks"
     ]
@@ -509,6 +507,7 @@
       "unitTests",
       "conformance",
       "goldenTrees",
+      "tokenDrift",
       "a11y",
       "e2eSmoke",
       "androidChecks"
@@ -519,5 +518,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-24T20:54:13.687Z"
+  "generatedAt": "2026-08-25T10:36:31.252Z"
 }

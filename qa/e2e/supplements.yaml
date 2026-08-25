@@ -42,11 +42,17 @@ appId: com.kvdm.fuelled
 - assertVisible:
     id: "supplements_summary"
 
-# SPEC: NAV-05 — a pushed destination, so back returns to the surface that opened it.
+# SPEC: NAV-05: a pushed destination, so back returns to the surface that opened it.
+#
+# Asserts `today_screen`, NOT `today_title`. Reaching the highlight needed a swipe, and back
+# RESTORES that scroll position — so the header (and the title in it) is above the viewport
+# when we land. The title assertion passed for a while on timing alone and then started
+# failing with nothing changed, which is the tell. The root tag spans the viewport at any
+# scroll offset and is the honest way to say "we are on Today".
 - back
 - extendedWaitUntil:
     visible:
-      id: "today_title"
+      id: "today_screen"
     timeout: 30000
 - assertVisible:
     id: "app_bottom_nav"

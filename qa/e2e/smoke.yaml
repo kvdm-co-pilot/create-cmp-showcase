@@ -122,7 +122,7 @@ appId: com.kvdm.fuelled
 - back
 - extendedWaitUntil:
     visible:
-      id: "today_title"
+      id: "today_screen"
     timeout: 30000
 
 # SPEC: NAV-06 — Training is a tab, and it renders the whole week including rest days.

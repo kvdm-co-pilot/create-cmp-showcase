@@ -230,13 +230,6 @@
       "via": "console"
     },
     {
-      "artifact": "architecture",
-      "status": "approved",
-      "hash": "4cd43e5cf765d33bc4bcbd8f33a73c3f93da52a3ee28a17a5802f1bb3217cbe8",
-      "approvedAt": "2026-08-22T14:00:13.482Z",
-      "via": "console"
-    },
-    {
       "artifact": "components",
       "status": "approved",
       "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385",
@@ -343,6 +336,13 @@
       "reopenedAt": "2026-08-24T20:00:41.672Z",
       "reason": "NAV-06's summary clause said 'sessions kept against sessions planned', which is what produced the misleading Wednesday reading. Amending it to require pending and missed be distinguished — WORK-05's four states, applied to the summary line.",
       "via": "cli"
+    },
+    {
+      "artifact": "architecture",
+      "status": "approved",
+      "hash": "c5ed806ef5247933ecc0d92bead75c48d27b5b25eb3631e37e148a824551690c",
+      "approvedAt": "2026-08-25T10:23:29.999Z",
+      "via": "console"
     }
   ],
   "exemplarFeature": "foods"
