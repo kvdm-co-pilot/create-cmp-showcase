@@ -161,3 +161,4 @@
 {"at":"2026-08-26T00:30:39.155Z","verb":"approve","artifact":"feature-spec:settings","hash":"a8a79ab02f9eafbe69dc7990b28a16bf516fb2dedcf01d1eaf794f266f69f606","via":"cli"}
 {"at":"2026-08-26T00:31:10.900Z","verb":"reopen","artifact":"feature-spec:settings","reason":"SET-09 as first written promised the row shows the installed version; the row shows a generic subtitle. Correcting the clause to what the code actually does rather than leaving a promise nothing keeps.","via":"cli"}
 {"at":"2026-08-26T00:31:11.056Z","verb":"approve","artifact":"feature-spec:settings","hash":"84a46168fc015f1cdc057f909f2f7ef03227f28f3a0ddbbe5c9db0667444e8b8","via":"cli"}
+{"at":"2026-08-26T00:53:03.627Z","verb":"accept","artifact":"feature-brief:app-updates","via":"cli"}

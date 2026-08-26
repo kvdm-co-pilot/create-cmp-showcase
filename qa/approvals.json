@@ -335,7 +335,9 @@
       "status": "approved",
       "hash": "8418d57c2fe9603c3306671127aef2efebe21f1e695f600598eaa5ac993cd391",
       "approvedAt": "2026-08-25T21:19:43.878Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-26T00:53:03.625Z"
     },
     {
       "artifact": "feature-spec:app-updates",
