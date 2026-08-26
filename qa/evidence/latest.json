@@ -4,48 +4,23 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "7b2da9c23164a6a42c34bd8a0f2040387918fe9b",
+    "sha": "2a45475dcbaaf1ecb85c6dc1586ed14af783335e",
     "dirty": [
-      "README.md",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/AppApplication.kt",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/core/updates/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/updates/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/UpdateRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/di/AppModule.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppRelease.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/repository/UpdateRepository.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCase.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateViewModel.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/Screen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/appupdates/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppInstaller.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeUpdateRepository.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/core/updates/",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/di/DesktopModule.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/appupdates/",
-      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/KoinHelper.kt",
-      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/core/updates/",
-      "docs/ARCHITECTURE.md",
-      "docs/features/app-updates.md",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/settings/",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "specs/app-updates.spec.md"
+      "qa/comments.json",
+      "specs/settings.spec.md"
     ]
   },
   "inputs": {
-    "hash": "4ea6148ec547b2381ef94408fcb64d8eed3d75078d13a3be53b7430ef83f0c97",
-    "fileCount": 454
+    "hash": "d0d9ba2df21fb58b8d54c75a9d69c5c5a7447dc68b524563d9479cb13ef736af",
+    "fileCount": 455
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 5,
+      "durationMs": 7,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -63,19 +38,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 36,
+      "durationMs": 34,
       "details": {
-        "clauses": 184,
+        "clauses": 185,
         "withdrawn": 3,
-        "tags": 392,
-        "files": 310,
-        "tierNote": "169 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
+        "tags": 394,
+        "files": 311,
+        "tierNote": "170 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 27,
+      "durationMs": 24,
       "details": {
         "artifacts": [
           {
@@ -296,7 +271,7 @@
           {
             "id": "feature-spec:settings",
             "status": "approved",
-            "hash": "1ddf575aece3121d2acb1d5fc2ac6e8fbb479b209c66a781e9595c823e9715aa"
+            "hash": "84a46168fc015f1cdc057f909f2f7ef03227f28f3a0ddbbe5c9db0667444e8b8"
           },
           {
             "id": "feature-spec:supplements",
@@ -324,7 +299,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 20,
         "stories": 20,
@@ -335,7 +310,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 15,
       "details": {
         "features": [
           {
@@ -457,7 +432,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 73,
+      "durationMs": 63,
       "details": {
         "schemaDirs": 3
       }
@@ -465,19 +440,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2138
+      "durationMs": 1851
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 2793
+      "durationMs": 2714
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 16873,
+      "durationMs": 10131,
       "details": {
-        "tests": 357,
+        "tests": 359,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -486,33 +461,33 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 4424
+      "durationMs": 3026
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 6794
+      "durationMs": 4086
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
-      "durationMs": 8662
+      "durationMs": 8613
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4957
+      "durationMs": 3226
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 57092
+      "durationMs": 54732
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 27702,
+      "durationMs": 21440,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -559,5 +534,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-25T21:47:11.564Z"
+  "generatedAt": "2026-08-26T00:33:55.455Z"
 }

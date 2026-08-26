@@ -28,3 +28,8 @@
   the slot time itself, and the value is refused outside that range.
 - **SET-08** — Given the prep lead is changed, Then every armed reminder is re-armed at once
   against the new lead — the change never waits for the next day to take effect.
+- **SET-09** — Given the Settings surface on a platform that can install applications, Then it
+  offers exactly one entry point into the update surface (`settings_updates`). On a platform
+  that cannot install (UPD-08 — iOS, desktop), the row is ABSENT rather than disabled: a
+  disabled control advertises a capability the user cannot obtain, and there is nothing they
+  could do to obtain it.

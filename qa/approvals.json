@@ -123,13 +123,6 @@
       "acceptedAt": "2026-08-04T19:42:09.279Z"
     },
     {
-      "artifact": "feature-spec:settings",
-      "status": "approved",
-      "hash": "1ddf575aece3121d2acb1d5fc2ac6e8fbb479b209c66a781e9595c823e9715aa",
-      "approvedAt": "2026-08-02T07:24:21.220Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:entry-editing",
       "status": "approved",
       "hash": "c305c45cc9cefbdf88c46c1733121d0394d58a4469fc7e364ca6a29feaba6387",
@@ -363,6 +356,13 @@
       "status": "approved",
       "hash": "e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af",
       "approvedAt": "2026-08-25T21:32:05.911Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:settings",
+      "status": "approved",
+      "hash": "84a46168fc015f1cdc057f909f2f7ef03227f28f3a0ddbbe5c9db0667444e8b8",
+      "approvedAt": "2026-08-26T00:31:11.055Z",
       "via": "cli"
     }
   ],

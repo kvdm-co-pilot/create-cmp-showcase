@@ -88,7 +88,10 @@
       "text": "Proceed with app-updates: design: draft the app-updates screens on stub data and render them — you sign what renders, never a description",
       "author": "human-console",
       "createdAt": "2026-08-25T13:46:42.698Z",
-      "status": "open"
+      "status": "resolved",
+      "resolvedAt": "2026-08-26T00:31:57.054Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Done. Four states drafted on stub data (available / up-to-date / downloading / failed), registered in PreviewRegistry, rendered in the console at 0 a11y violations, and signed as feature-design:app-updates on the rendered output."
     },
     {
       "id": "c8",
@@ -98,7 +101,10 @@
       "text": "Proceed with app-updates: contract: write the clauses in specs/app-updates.spec.md + reopen & amend specs/settings.spec.md (declared)",
       "author": "human-console",
       "createdAt": "2026-08-25T14:08:03.675Z",
-      "status": "open"
+      "status": "resolved",
+      "resolvedAt": "2026-08-26T00:31:57.105Z",
+      "resolvedBy": "agent-cli",
+      "resolutionNote": "Done, and the second half was genuinely outstanding until now. specs/app-updates.spec.md carries UPD-01..09, all cited. The declared settings amendment had NOT been made — the code grew a settings_updates row that no clause described — so specs/settings.spec.md now carries SET-09, with a desktopTest citing it in both directions (row present where installing is possible, ABSENT where it is not). SET-09 was first written promising the row shows the installed version, which the code does not do; corrected to describe what is true rather than leaving an unkept promise."
     }
   ]
 }
