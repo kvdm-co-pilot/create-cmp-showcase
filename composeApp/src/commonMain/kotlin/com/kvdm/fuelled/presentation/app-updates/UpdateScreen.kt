@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.AppRelease
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import org.koin.compose.viewmodel.koinViewModel
@@ -72,6 +73,13 @@ sealed interface UpdateUi {
          */
         val assetUrl: String? = null,
         val assetSizeBytes: Long? = null,
+        /**
+         * The ORDERED version, carried alongside the display string. [version] is what the
+         * release was called; this is what decided it was newer. Held here because the
+         * download control rebuilds an [AppRelease] from this state, and a reconstruction that
+         * had to invent a version would be inventing the one field the decision turns on.
+         */
+        val semver: SemVer? = null,
     ) : UpdateUi
 
     /** [fraction] is 0f..1f, or null for a download whose total size the server never gave. */
@@ -369,8 +377,8 @@ fun UpdateRoute(
  * two cannot disagree about which version was offered.
  */
 private fun UpdateUi.Available.toRelease(): AppRelease = AppRelease(
-    versionCode = 0L,
-    version = version,
+    version = semver ?: SemVer(0, 0, 0),
+    displayVersion = version,
     publishedAt = publishedAt,
     notes = notes,
     assetUrl = assetUrl,

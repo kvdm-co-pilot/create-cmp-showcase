@@ -13,17 +13,25 @@
   Releases API for the repository this app is published from, unauthenticated. No token ships
   in the APK — an APK is a public artifact and a secret inside one is a published secret.
 
-- **UPD-02** — Given a release is found, Then "is it newer" is decided by comparing
-  **`versionCode` integers**, never release names or tags. Version STRINGS sort wrong
-  (`"0.10.0" < "0.9.0"` under string comparison), so a release-name typo could otherwise
-  decide whether the app updates itself. The tag is carried for display only.
+- **UPD-02** — Given a release is found, Then "is it newer" is decided by comparing versions
+  **component by component as integers**, never as strings. `"0.10.0" < "0.9.0"` under string
+  comparison — because `'1' < '9'` — so a lexical implementation would refuse to offer 0.10.0 to
+  someone on 0.9.0, silently and permanently. That failure is what this clause exists to prevent.
 
-  The releases API does not report `versionCode` — it is an Android concept GitHub knows
-  nothing about — so it travels in the **asset filename**, `fuelled-<versionCode>.apk`. That
-  makes the release process responsible for a convention, which is the honest cost of the
-  rule: the alternative is parsing a semver tag into an ordering, which is precisely the
-  string comparison this clause exists to forbid. An asset whose name does not carry a
-  parseable integer is not an installable asset (UPD-04).
+  The version rides the **asset filename**, `fuelled-<major>.<minor>.<patch>.apk`, because the
+  releases API reports nothing the app can order: `tag_name` is free text a human typed, and
+  Android's `versionCode` is a concept GitHub knows nothing about. The left-hand side is the
+  installed build's `versionName`, read from the package manager, parsed the same way.
+
+  This clause first required `fuelled-<versionCode>.apk`, on the reasoning that an integer needs
+  no parsing and so cannot be parsed wrong. It was the safer rule and the wrong one: all five
+  published releases are named `fuelled-<semver>.apk`, so the feature would have matched no real
+  asset and reported "up to date" forever — the silent failure, arrived at by guarding against
+  it. The convention won; the prohibition on *string* comparison did not bend.
+
+  An asset whose name does not carry three integers is not an installable asset, and a version
+  that cannot be parsed on either side is never treated as zero — "newer than unknown" is not a
+  claim this feature may make (UPD-03/UPD-04).
 
 - **UPD-03** — Given the installed build's `versionCode` is greater than or equal to the
   latest release's, Then the surface reports "up to date" and offers no action — including

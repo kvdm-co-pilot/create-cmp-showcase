@@ -4,22 +4,41 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "cbf63267eed041dbcec21a968622c4768b52f991",
+    "sha": "bc54f13f341bae832b7fdd2cd623270ab66c6865",
     "dirty": [
       "README.md",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/di/AndroidModule.kt",
+      "composeApp/src/androidMain/AndroidManifest.xml",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
+      "composeApp/src/androidMain/res/xml/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/UpdateRepositoryImpl.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppRelease.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/SemVer.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCase.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateViewModel.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/SemVerTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCaseTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/appupdates/UpdateViewModelTest.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppInstaller.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.desktop.kt",
+      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
+      "docs/ARCHITECTURE.md",
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
       "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl"
+      "qa/flight-recorder.jsonl",
+      "specs/app-updates.spec.md"
     ]
   },
   "inputs": {
-    "hash": "aaa3685efafb044dc5a247c7ad64aa111a76ad71af9f829e424b0b938c6ecf12",
-    "fileCount": 457
+    "hash": "fee17ed36fccb7110ffb06df2ca70bef8df6815683586bd7fa08ab13ee3c577c",
+    "fileCount": 460
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 9,
+      "durationMs": 5,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -37,19 +56,20 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 33,
+      "durationMs": 34,
       "details": {
         "clauses": 185,
         "withdrawn": 3,
-        "tags": 394,
-        "files": 311,
+        "tags": 397,
+        "files": 313,
         "tierNote": "170 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
-      "verdict": "PASS",
-      "durationMs": 24,
+      "verdict": "SKIP",
+      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:app-updates] Feature design (app-updates — presentation/app-updates/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-27T20:13:50.952Z (reason: UPD-02 bent to the fuelled-<semver>.apk convention: UpdateUi.Available carries the ordered SemVer alongside the display string, and toRelease() no longer fabricates a versionCode. Data-shape only — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:app-updates",
+      "durationMs": 23,
       "details": {
         "artifacts": [
           {
@@ -169,8 +189,8 @@
           },
           {
             "id": "feature-design:app-updates",
-            "status": "approved",
-            "hash": "76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647"
+            "status": "reopened",
+            "hash": "a270b13be80cb66e11c2f5c7d175ec01999f5fd991ff475e934f195c37b27da3"
           },
           {
             "id": "feature-design:meal-plan",
@@ -195,7 +215,7 @@
           {
             "id": "feature-spec:app-updates",
             "status": "approved",
-            "hash": "f217b805225cfad7184bab12a21c3961aa0fa79f708f1a8d92bb1240eed5f268"
+            "hash": "989dab8b66e37f147b49fbe6b98ade5fdf18ddf010a6d60447fe197bb4800325"
           },
           {
             "id": "feature-spec:bfl-catalog",
@@ -423,7 +443,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -431,7 +451,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 76,
+      "durationMs": 61,
       "details": {
         "schemaDirs": 3
       }
@@ -439,19 +459,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1580
+      "durationMs": 1588
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1555
+      "durationMs": 1746
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10026,
+      "durationMs": 10099,
       "details": {
-        "tests": 359,
+        "tests": 362,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -460,36 +480,33 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2580
+      "durationMs": 2418
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3878
+      "durationMs": 3751
     },
     {
       "name": "tokenDrift",
-      "verdict": "PASS",
-      "durationMs": 229,
-      "details": {
-        "checked": 2,
-        "drifted": 0
-      }
+      "verdict": "SKIP",
+      "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
+      "durationMs": 8346
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3028
+      "durationMs": 3094
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 49602
+      "durationMs": 49678
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 20304,
+      "durationMs": 24704,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -507,7 +524,6 @@
   },
   "strength": {
     "onDeviceSteps": [
-      "tokenDrift",
       "e2eSmoke",
       "androidChecks"
     ]
@@ -517,7 +533,6 @@
     "name": "device",
     "satisfiedBy": [
       "specCoverage",
-      "approvals",
       "componentStories",
       "reachability",
       "archDoc",
@@ -527,7 +542,6 @@
       "unitTests",
       "conformance",
       "goldenTrees",
-      "tokenDrift",
       "a11y",
       "e2eSmoke",
       "androidChecks"
@@ -538,5 +552,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-27T17:33:17.949Z"
+  "generatedAt": "2026-08-27T20:16:42.271Z"
 }

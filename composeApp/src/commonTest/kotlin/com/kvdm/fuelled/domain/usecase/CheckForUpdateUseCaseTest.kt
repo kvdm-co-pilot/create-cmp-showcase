@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.domain.usecase
 
 import com.kvdm.fuelled.domain.model.AppRelease
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.model.UpdateAvailability
 import com.kvdm.fuelled.domain.result.AppResult
@@ -21,55 +22,73 @@ class CheckForUpdateUseCaseTest {
 
     private val repository = FakeUpdateRepository()
 
-    private fun release(versionCode: Long, asset: String? = "https://example/fuelled.apk") = AppRelease(
-        versionCode = versionCode,
-        version = "0.9.9",
+    private fun release(version: SemVer, asset: String? = "https://example/fuelled.apk") = AppRelease(
+        version = version,
+        displayVersion = version.toString(),
         publishedAt = "2026-08-25T10:00:00Z",
         notes = "notes",
         assetUrl = asset,
         assetSizeBytes = 1024,
     )
 
-    private fun useCase(installed: Long = 6L, supported: Boolean = true) =
+    private fun useCase(installed: SemVer? = SemVer(0, 6, 0), supported: Boolean = true) =
         CheckForUpdateUseCase(repository, FakeAppInstaller(installed, supported))
 
     // SPEC: UPD-02
     @Test
-    fun `a higher versionCode is an update, regardless of how the name sorts`() = runTest {
-        // The release NAME is "0.9.9" and the installed build is 10 — a string comparison
-        // would call this an update. The integers say otherwise, and the integers decide.
-        repository.release = release(versionCode = 7)
-        val available = assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = 6)()).value
+    fun `0 point 10 is newer than 0 point 9 — the case string ordering gets wrong`() = runTest {
+        // THE regression this clause exists for. Compared as strings "0.10.0" < "0.9.0",
+        // because '1' < '9' — so a lexical implementation would refuse to offer 0.10.0 to
+        // someone on 0.9.0, silently, forever. Compared component by component it is newer.
+        repository.release = release(SemVer(0, 10, 0))
+        val available = assertIs<AppResult.Success<UpdateAvailability>>(
+            useCase(installed = SemVer(0, 9, 0))(),
+        ).value
         assertIs<UpdateAvailability.Available>(available)
 
-        repository.release = release(versionCode = 7)
-        val notAvailable = assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = 10)()).value
-        assertEquals(UpdateAvailability.UpToDate, notAvailable, "10 is not behind 7 whatever the tag reads")
+        repository.release = release(SemVer(0, 9, 0))
+        val notAvailable = assertIs<AppResult.Success<UpdateAvailability>>(
+            useCase(installed = SemVer(0, 10, 0))(),
+        ).value
+        assertEquals(UpdateAvailability.UpToDate, notAvailable, "0.10.0 is not behind 0.9.0")
+    }
+
+    // SPEC: UPD-03
+    @Test
+    fun `an unreadable installed version offers nothing`() = runTest {
+        // The platform could not report a parseable versionName. "Newer than unknown" is not a
+        // claim this feature is allowed to make — it would offer an update over a build it
+        // could not identify, which is how a downgrade ships.
+        repository.release = release(SemVer(9, 9, 9))
+        assertEquals(
+            UpdateAvailability.UpToDate,
+            assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = null)()).value,
+        )
     }
 
     // SPEC: UPD-03
     @Test
     fun `an equal or newer installed build is up to date, never a downgrade offer`() = runTest {
-        repository.release = release(versionCode = 6)
+        repository.release = release(SemVer(0, 6, 0))
         assertEquals(
             UpdateAvailability.UpToDate,
-            assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = 6)()).value,
+            assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = SemVer(0, 6, 0))()).value,
             "equal is current",
         )
 
         // A local debug build ahead of every release. Android would refuse the install anyway,
         // and offering it would be proposing to replace newer work with older.
-        repository.release = release(versionCode = 6)
+        repository.release = release(SemVer(0, 6, 0))
         assertEquals(
             UpdateAvailability.UpToDate,
-            assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = 99)()).value,
+            assertIs<AppResult.Success<UpdateAvailability>>(useCase(installed = SemVer(9, 9, 9))()).value,
         )
     }
 
     // SPEC: UPD-04
     @Test
     fun `a release with no installable asset is nothing to install, not an error`() = runTest {
-        repository.release = release(versionCode = 99, asset = null)
+        repository.release = release(SemVer(9, 9, 9), asset = null)
         assertEquals(
             UpdateAvailability.UpToDate,
             assertIs<AppResult.Success<UpdateAvailability>>(useCase()()).value,

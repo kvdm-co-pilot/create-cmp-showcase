@@ -13,6 +13,14 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <!-- Alarms do not survive a reboot; the boot receiver below re-arms them. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!--
+      UPD-06. Fuelled is sideloaded (never Play — Play's Device and Network Abuse policy bars an
+      app from installing its own updates), so it hands the downloaded APK to the system
+      installer and the user confirms there. Without this the hand-off is refused outright.
+      The user must ALSO grant "install unknown apps" per-app; that is a runtime state the
+      surface checks before spending data on a download (E4).
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".AppApplication"
@@ -22,6 +30,22 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="${usesCleartextTraffic}"
         android:theme="@style/Theme.App">
+
+        <!--
+          UPD-06: the authority AppInstaller builds its content:// URI with
+          ("${'$'}{packageName}.updates"). A file:// URI has been illegal to pass across an app
+          boundary since API 24 (FileUriExposedException), so the installer cannot read the APK
+          without this. Scoped to cache/ alone — see res/xml/update_paths.xml.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
 
         <activity
             android:name=".MainActivity"

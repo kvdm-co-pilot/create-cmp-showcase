@@ -59,7 +59,7 @@ class UpdateViewModel(
     fun download(release: AppRelease) {
         viewModelScope.launch {
             _state.value = ContentUiState.Content(
-                UpdateUi.Downloading(installedLabel(), release.version, fraction = null),
+                UpdateUi.Downloading(installedLabel(), release.displayVersion, fraction = null),
             )
             val result = installer.downloadAndInstall(release.assetUrl.orEmpty(), release.assetSizeBytes)
             if (result is AppResult.Failure) {
@@ -74,7 +74,12 @@ class UpdateViewModel(
         }
     }
 
-    private fun installedLabel(): String = installer.installedVersionCode.toString()
+    /**
+     * The installed version as the screen shows it. "unknown" when the platform could not
+     * report a parseable one — stated rather than hidden, because every other line on the
+     * surface is relative to it.
+     */
+    private fun installedLabel(): String = installer.installedVersion?.toString() ?: "unknown"
 
     private fun DomainError.message(): String = when (this) {
         is DomainError.Network -> "Could not reach GitHub. Your installed build is unchanged."
@@ -91,7 +96,8 @@ class UpdateViewModel(
 /** The domain release, as the screen shows it (UPD-09). */
 private fun AppRelease.toUi(installed: String): UpdateUi.Available = UpdateUi.Available(
     installed = installed,
-    version = version,
+    version = displayVersion,
+    semver = version,
     publishedAt = publishedAt.take(10),
     sizeLabel = assetSizeBytes?.let { "${(it / 1_048_576.0).toInt()} MB" } ?: "",
     notes = notes,

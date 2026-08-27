@@ -3,6 +3,7 @@ package com.kvdm.fuelled.data.remote
 import com.kvdm.fuelled.data.suspendRunCatching
 import com.kvdm.fuelled.domain.model.AppRelease
 import com.kvdm.fuelled.domain.model.DomainError
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.domain.repository.UpdateRepository
 import com.kvdm.fuelled.domain.result.AppResult
 import io.ktor.client.HttpClient
@@ -69,26 +70,33 @@ private data class GitHubAsset(
 )
 
 /**
- * UPD-02: the versionCode rides the ASSET FILENAME (`fuelled-<versionCode>.apk`), because the
- * releases API does not report it — it is an Android concept GitHub knows nothing about.
+ * UPD-02: the version rides the ASSET FILENAME (`fuelled-<major>.<minor>.<patch>.apk`), because
+ * the releases API reports no version the app can order — the tag is free text and `versionCode`
+ * is an Android concept GitHub knows nothing about.
  *
- * An asset that does not match the convention is not an installable asset: it resolves to a
- * release with a null [AppRelease.assetUrl], which UPD-04 reads as "nothing to install".
- * Deliberately NOT falling back to parsing the tag — an ordering derived from a semver string
- * is exactly the comparison UPD-02 forbids.
+ * Parsed into a [SemVer] and compared as three integers, never as a string: `"0.10.0" < "0.9.0"`
+ * lexically, which is the bug this parsing exists to prevent rather than cause.
+ *
+ * An asset that does not match is not an installable asset: it resolves to a release with a null
+ * [AppRelease.assetUrl], which UPD-04 reads as "nothing to install". Deliberately NOT falling
+ * back to the tag — `tag_name` is whatever a human typed when they cut the release.
  */
-private val ASSET_NAME = Regex("""^fuelled-(\d+)\.apk$""")
+private val ASSET_NAME = Regex("""^fuelled-(\d+\.\d+\.\d+)\.apk$""")
 
-private fun GitHubRelease.toDomain(): AppRelease {
+private fun GitHubRelease.toDomain(): AppRelease? {
     val installable = assets.firstNotNullOfOrNull { asset ->
-        ASSET_NAME.find(asset.name)?.groupValues?.get(1)?.toLongOrNull()?.let { it to asset }
+        SemVer.parse(ASSET_NAME.find(asset.name)?.groupValues?.get(1))?.let { it to asset }
     }
+    // No parseable asset means no version to order by, so there is nothing this release could
+    // be compared against — UPD-04's "nothing to install", surfaced as a null release rather
+    // than as an AppRelease carrying a fabricated 0.0.0 that every installed build outranks.
+    if (installable == null) return null
     return AppRelease(
-        versionCode = installable?.first ?: 0L,
-        version = name?.takeIf { it.isNotBlank() } ?: tagName,
+        version = installable.first,
+        displayVersion = name?.takeIf { it.isNotBlank() } ?: tagName,
         publishedAt = publishedAt.orEmpty(),
         notes = body.orEmpty(),
-        assetUrl = installable?.second?.browserDownloadUrl,
-        assetSizeBytes = installable?.second?.size,
+        assetUrl = installable.second.browserDownloadUrl,
+        assetSizeBytes = installable.second.size,
     )
 }

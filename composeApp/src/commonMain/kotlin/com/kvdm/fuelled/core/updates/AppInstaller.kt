@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.core.updates
 
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.domain.result.AppResult
 
 /**
@@ -16,8 +17,14 @@ interface InstallCapability {
     /** False where installing applications is impossible — iOS. UPD-08 hides the surface then. */
     val supported: Boolean
 
-    /** This build's own `versionCode` — the left-hand side of UPD-02's comparison. */
-    val installedVersionCode: Long
+    /**
+     * This build's own version — the left-hand side of UPD-02's comparison.
+     *
+     * Null when the platform cannot report one, which is treated as "nothing to compare" rather
+     * than as zero: a missing version that defaulted to 0.0.0 would make every release look
+     * newer and offer an update over a build we could not identify.
+     */
+    val installedVersion: SemVer?
 
     /**
      * Fetch [url] and hand it to the platform installer, where the USER confirms (UPD-06).

@@ -340,20 +340,6 @@
       "acceptedAt": "2026-08-26T00:53:03.625Z"
     },
     {
-      "artifact": "feature-spec:app-updates",
-      "status": "approved",
-      "hash": "f217b805225cfad7184bab12a21c3961aa0fa79f708f1a8d92bb1240eed5f268",
-      "approvedAt": "2026-08-25T21:32:05.601Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-design:app-updates",
-      "status": "approved",
-      "hash": "76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647",
-      "approvedAt": "2026-08-25T21:32:05.756Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:settings",
       "status": "approved",
       "hash": "e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af",
@@ -365,6 +351,22 @@
       "status": "approved",
       "hash": "84a46168fc015f1cdc057f909f2f7ef03227f28f3a0ddbbe5c9db0667444e8b8",
       "approvedAt": "2026-08-26T00:31:11.055Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:app-updates",
+      "status": "approved",
+      "hash": "989dab8b66e37f147b49fbe6b98ade5fdf18ddf010a6d60447fe197bb4800325",
+      "approvedAt": "2026-08-27T20:01:02.495Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:app-updates",
+      "status": "reopened",
+      "hash": "76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647",
+      "approvedAt": "2026-08-25T21:32:05.756Z",
+      "reopenedAt": "2026-08-27T20:13:50.952Z",
+      "reason": "UPD-02 bent to the fuelled-<semver>.apk convention: UpdateUi.Available carries the ordered SemVer alongside the display string, and toRelease() no longer fabricates a versionCode. Data-shape only — no visual change intended; re-approve on rendered output.",
       "via": "cli"
     }
   ],

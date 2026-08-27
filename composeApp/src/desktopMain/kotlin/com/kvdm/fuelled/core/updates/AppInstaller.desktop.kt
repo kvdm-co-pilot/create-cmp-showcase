@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.core.updates
 
 import com.kvdm.fuelled.domain.model.DomainError
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.domain.result.AppResult
 
 /**
@@ -14,7 +15,7 @@ actual class AppInstaller actual constructor(context: Any?) : InstallCapability 
 
     override val supported: Boolean = false
 
-    override val installedVersionCode: Long = 0L
+    override val installedVersion: SemVer? = null
 
     override suspend fun downloadAndInstall(url: String, expectedSizeBytes: Long?): AppResult<Unit> =
         AppResult.Failure(DomainError.Unexpected(null))

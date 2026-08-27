@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.presentation.appupdates
 
 import com.kvdm.fuelled.domain.model.AppRelease
+import com.kvdm.fuelled.domain.model.SemVer
 import com.kvdm.fuelled.domain.model.DomainError
 import com.kvdm.fuelled.domain.usecase.CheckForUpdateUseCase
 import com.kvdm.fuelled.presentation.components.ContentUiState
@@ -34,11 +35,12 @@ class UpdateViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private val release = AppRelease(
-        versionCode = 7,
-        version = "0.7.0",
+        version = SemVer(0, 7, 0),
+        displayVersion = "0.7.0",
         publishedAt = "2026-08-25T10:00:00Z",
         notes = "notes",
-        assetUrl = "https://example/fuelled-7.apk",
+        // The real convention, matching what every published release is actually named.
+        assetUrl = "https://example/fuelled-0.7.0.apk",
         assetSizeBytes = 18_400_000,
     )
 
@@ -96,7 +98,7 @@ class UpdateViewModelTest {
         vm.download(release)
         advanceUntilIdle()
 
-        assertEquals("https://example/fuelled-7.apk", installer.installedUrl)
+        assertEquals("https://example/fuelled-0.7.0.apk", installer.installedUrl)
     }
 
     // SPEC: UPD-07

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  UPD-06: the one path the update FileProvider shares — the cache directory AppInstaller
+  downloads into. Deliberately narrow: a provider that shared files/ or external storage would
+  expose the Room database and every logged meal to any app holding the granted URI. The
+  installer only ever needs the single update.apk it just wrote.
+-->
+<paths>
+    <cache-path name="updates" path="." />
+</paths>

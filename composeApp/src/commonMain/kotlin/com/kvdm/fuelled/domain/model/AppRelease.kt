@@ -3,17 +3,17 @@ package com.kvdm.fuelled.domain.model
 /**
  * A published release of this app, as the update check needs it (UPD-01/UPD-02).
  *
- * [versionCode] is the only field the "is it newer" decision reads. [version] is the tag as
- * published and exists for DISPLAY — UPD-02 keeps those jobs apart on purpose, because version
- * strings sort wrong ("0.10.0" < "0.9.0") and a release-name typo must never be able to decide
- * whether the app replaces itself.
+ * [version] is the only field the "is it newer" decision reads, and it is a [SemVer] — three
+ * integers compared numerically, never a string (UPD-02). [displayVersion] is the tag exactly as
+ * published, for the screen. Keeping those apart is the point: a release-name typo must never be
+ * able to decide whether the app replaces itself.
  *
  * [assetUrl] is null for a release with no installable asset — a source-only tag, which UPD-04
  * treats as "nothing to install" rather than as an error.
  */
 data class AppRelease(
-    val versionCode: Long,
-    val version: String,
+    val version: SemVer,
+    val displayVersion: String,
     val publishedAt: String,
     val notes: String,
     val assetUrl: String?,
