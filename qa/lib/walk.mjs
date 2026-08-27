@@ -13,11 +13,14 @@
 // test is that promise kept, provenDone is all of them kept with the receipt
 // attesting this tree.
 
+import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { getFeatureBoard, getApprovalStatuses, readJournal } from "./approvals.mjs";
 import { CLAUSE_LINE_RE } from "./spec-coverage.mjs";
+import { deriveChain, renderChain } from "./plan.mjs";
 
 /** The six stages, in walk order. `label` is the only user-facing name (D2). */
 export const STAGES = [
@@ -28,6 +31,32 @@ export const STAGES = [
   { key: "prove", label: "Prove" },
   { key: "signoff", label: "Sign-off" },
 ];
+
+/**
+ * Plain-language glosses (walk-legibility L3) — what each stage IS, for a
+ * reader who did not build the harness. Rendered beside the stage name
+ * wherever a human reads; the keys and ids underneath never change.
+ */
+export const STAGE_GLOSS = {
+  decide: "choosing what to build, and why",
+  design: "how it looks — judged on rendered screens",
+  contract: "agreeing what it promises",
+  build: "keeping the promises",
+  prove: "checking every promise",
+  signoff: "your sign-off",
+};
+
+/**
+ * A governed artifact id in plain words (L3): `feature-spec:meal` reads as
+ * "the promises for meal". Ledger ids stay ids; only the human rendering
+ * translates. Unknown shapes pass through untouched — never invented prose.
+ */
+export function humanArtifact(id) {
+  const m = /^feature-(brief|design|spec):(.+)$/.exec(String(id));
+  if (!m) return String(id);
+  const what = m[1] === "brief" ? "the decisions for" : m[1] === "design" ? "the design of" : "the promises for";
+  return `${what} ${m[2]}`;
+}
 
 /** nextStep.key -> the stage that step belongs to. `closed` maps to none. */
 const STEP_STAGE = {
@@ -105,20 +134,49 @@ function remainingStops(stages, currentIdx) {
  * provenDone) to ONE next act — stages before it are done, after it pending.
  * Design is `skipped` when the feature honestly has no UI surface (D2).
  */
-function walkOfFeature(root, f) {
+function walkOfFeature(root, f, lane = null) {
   const currentKey = STEP_STAGE[f.nextStep?.key] ?? null; // null => closed
   const currentIdx = currentKey ? STAGES.findIndex((s) => s.key === currentKey) : STAGES.length;
   const stages = STAGES.map((s, i) => {
     if (s.key === "design" && f.design === null)
       return { ...s, state: "skipped", note: "no UI surface" };
-    return { ...s, state: i < currentIdx ? "done" : i === currentIdx ? "current" : "pending" };
+    const state = i < currentIdx ? "done" : i === currentIdx ? "current" : "pending";
+    // Time is part of position (L4): Prove is the one stage with its own
+    // recorded history (the lane journals every run), so it says what it
+    // costs — measured, never the agent's memory of it.
+    if (s.key === "prove" && lane)
+      return { ...s, state, note: `${humanDuration(lane.durationMs)} last full run` };
+    return { ...s, state };
   });
 
-  const promises = listPromises(root, f.specRel).filter((p) => !p.withdrawn);
+  // The paired specs (L1): promises concatenate across every spec the brief
+  // names, in declaration order — same pairing the board derivation used.
+  const specRels = f.specRels ?? [f.specRel];
+  const promises = specRels.flatMap((rel) => listPromises(root, rel)).filter((p) => !p.withdrawn);
   // The promise being kept NOW: first live clause without a citing test —
   // board clause order, titles from the spec's own words.
   const citedIds = new Set(f.clauses.filter((c) => c.cited).map((c) => c.id));
   const current = promises.find((p) => !citedIds.has(p.id)) ?? null;
+
+  // The signature the current step is waiting for, when it IS a signature —
+  // so a surface with a signing control (the console) can put the button on
+  // the walk card itself instead of pointing at a CLI incantation (L5).
+  // Derived from the board's own step key, never a fourth approve path.
+  const signable = (() => {
+    switch (f.nextStep?.key) {
+      case "sign-brief":
+      case "re-approve":
+        return [{ verb: "approve", artifact: `feature-brief:${f.name}` }];
+      case "sign-design":
+        return [{ verb: "approve", artifact: `feature-design:${f.name}` }];
+      case "sign-spec":
+        return (f.specNames ?? [f.name]).map((n) => ({ verb: "approve", artifact: `feature-spec:${n}` }));
+      case "accept":
+        return [{ verb: "accept", artifact: f.name }];
+      default:
+        return [];
+    }
+  })();
 
   // Whose turn (D4): from the board's own owner, never re-derived.
   const owner = f.nextStep?.owner ?? null;
@@ -137,11 +195,81 @@ function walkOfFeature(root, f) {
     open: f.phase !== "accepted",
     stages,
     currentStage: currentKey,
-    promises: { total: f.total, kept: f.covered, current },
-    you,
+    // `all` is the full promise list with per-promise kept state (L5) — the
+    // console renders the promises themselves, not only the tally.
+    promises: {
+      total: f.total,
+      kept: f.covered,
+      current,
+      all: promises.map((p) => ({ ...p, kept: citedIds.has(p.id) })),
+    },
+    you: { ...you, signable },
     stops: remainingStops(stages, currentIdx),
     doneReason: f.doneReason,
   };
+}
+
+/**
+ * What a full verify-lane run costs HERE, from the lane's own journal
+ * (qa/flight-recorder.jsonl) — the most recent non-fast run's wall time and
+ * verdict. Walk-legibility L4: any surface quoting the lane quotes this,
+ * never a memory of it (the observed failure: a 3× overestimate, spoken
+ * while the human was deciding whether a run was worth it, lost the run).
+ * @returns {{durationMs: number, verdict: (string|null)} | null}
+ */
+export function laneTiming(root) {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(root, "qa/flight-recorder.jsonl"), "utf8");
+  } catch {
+    return null;
+  }
+  const lines = text.split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line === "") continue;
+    let e;
+    try {
+      e = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (e && e.mode !== "fast" && typeof e.durationMs === "number" && e.durationMs > 0)
+      return { durationMs: e.durationMs, verdict: e.verdict ?? null };
+  }
+  return null;
+}
+
+/** "98s" under two minutes, "~5 min" above — for humans deciding whether to wait. */
+export function humanDuration(ms) {
+  if (!(ms > 0)) return "unknown";
+  return ms < 120000 ? `${Math.round(ms / 1000)}s` : `~${Math.round(ms / 60000)} min`;
+}
+
+/**
+ * The studio console currently registered for `root`, from the same tmp-dir
+ * record the console itself writes — a CROSS-PACKAGE CONTRACT with the
+ * inspector's preview-service.mjs (consoleRegistryPath): sha1(resolved
+ * root).slice(0,12), `cmp-console-<key>.json` in os.tmpdir(), fields
+ * {pid, port, url}. pid-liveness only, no HTTP — this runs inside a
+ * statusline with a <300ms budget.
+ * @returns {{url: string} | {stale: true} | null} null = no record at all
+ *   (never started, or stopped cleanly — silence, not an alarm)
+ */
+export function consoleState(root) {
+  try {
+    const key = crypto.createHash("sha1").update(path.resolve(root)).digest("hex").slice(0, 12);
+    const rec = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), `cmp-console-${key}.json`), "utf8"));
+    if (!rec || typeof rec.pid !== "number") return null;
+    try {
+      process.kill(rec.pid, 0); // signal 0: existence probe, touches nothing
+    } catch (err) {
+      if (!(err && err.code === "EPERM")) return { stale: true }; // record left by a crashed console
+    }
+    return { url: typeof rec.url === "string" ? rec.url : `http://127.0.0.1:${rec.port}/` };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -167,15 +295,22 @@ export function deriveWalks(root) {
   // worked on today (seen on the showcase: bfl-catalog, alphabetical, outshouted
   // the live navigation-ia walk in the statusline).
   const journalForOrder = readJournal(root);
+  const byName = new Map(board.features.map((f) => [f.name, f]));
   const lastActivity = (name) => {
-    const family = new Set([`feature-brief:${name}`, `feature-design:${name}`, `feature-spec:${name}`]);
+    const specNames = byName.get(name)?.specNames ?? [name];
+    const family = new Set([
+      `feature-brief:${name}`,
+      `feature-design:${name}`,
+      ...specNames.map((n) => `feature-spec:${n}`),
+    ]);
     for (let i = journalForOrder.length - 1; i >= 0; i--) {
       if (family.has(journalForOrder[i].artifact)) return i;
     }
     return -1;
   };
+  const lane = laneTiming(root);
   const walks = board.features
-    .map((f) => walkOfFeature(root, f))
+    .map((f) => walkOfFeature(root, f, lane))
     .filter((w) => w.open)
     .sort((a, b) => lastActivity(b.name) - lastActivity(a.name));
 
@@ -187,7 +322,9 @@ export function deriveWalks(root) {
     if (f.phase === "accepted") continue;
     owned.add(`feature-brief:${f.name}`);
     owned.add(`feature-design:${f.name}`);
-    owned.add(`feature-spec:${f.name}`);
+    // The spec side follows the brief's own pairing (L1) — a reopened spec a
+    // multi-spec walk owns is that walk's Contract stage, never an arrival.
+    for (const n of f.specNames ?? [f.name]) owned.add(`feature-spec:${n}`);
     for (const t of f.touches) owned.add(t.id);
   }
   const journal = journalForOrder;
@@ -206,7 +343,13 @@ export function deriveWalks(root) {
       reason: s.status === "reopened" ? lastReopenReason(s.id) : "changed since its signature",
     }));
 
-  return { available: true, walks, arrivals };
+  // `lane` (L4) and `console` (L6) ride along so every rendering can say
+  // what a check costs and where the buttons are — both derived, never
+  // remembered, and both null-safe for projects that have neither yet.
+  // The live CHAIN (studio-drive-mode) rides along too: request + declared
+  // step plan + what is actually running. Declared state, labeled as such by
+  // every renderer; it gates nothing and the walk stays the truth.
+  return { available: true, walks, arrivals, lane, console: consoleState(root), chain: deriveChain(root) };
 }
 
 // ── Renderings — one grammar, four slots (D4) ────────────────────────────────
@@ -225,35 +368,51 @@ function loudest(walks) {
  * The always-on one-liner (statusline). "" when there is nothing to say — an
  * ungoverned project's statusline stays silent, never fabricated.
  */
-export function renderStatusline({ available, walks, arrivals }) {
+export function renderStatusline({ available, walks, arrivals, console: consoleRec }) {
   if (!available || walks.length === 0) return "";
   const w = loudest(walks);
   const extra = walks.length > 1 ? ` · +${walks.length - 1} walk${walks.length > 2 ? "s" : ""}` : "";
   const arrived = arrivals.length > 0 ? ` · ▲${arrivals.length} arrived` : "";
-  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}`;
+  // L6: the always-visible surface reports the other surface's death. A stale
+  // record means the console CRASHED (a clean stop removes it) — the failure
+  // mode was silence, and silence is the one thing this line never does.
+  const down = consoleRec && consoleRec.stale ? " · console down" : "";
+  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}${down}`;
   const now =
     w.currentStage === "build" && w.promises.total > 0
       ? `keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)}/${w.promises.total}`
       : stageLabel(w);
-  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}`;
+  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}${down}`;
 }
 
-/** One walk's full card — the CLI default and the loud stop-card's body. */
-export function renderCard(w) {
+/**
+ * One walk's full card — the CLI default and the loud stop-card's body.
+ * `ctx` carries the derivation's ride-alongs ({console, lane} from
+ * deriveWalks): with a live console, a human gate leads with the console
+ * (L5 — the product ships buttons; the CLI stays as the fallback beneath).
+ */
+export function renderCard(w, ctx = {}) {
   const line = w.stages
-    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.state === "skipped" ? ` (${s.note})` : ""}`)
+    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.note ? ` (${s.note})` : ""}`)
     .join("  ");
+  const gloss = STAGE_GLOSS[w.currentStage] ? ` — ${STAGE_GLOSS[w.currentStage]}` : "";
+  const laneNote =
+    w.currentStage === "prove" && ctx.lane ? ` (takes ${humanDuration(ctx.lane.durationMs)} here, measured)` : "";
   const nowLine =
     w.currentStage === "build" && w.promises.current
       ? `Now: keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)} of ${w.promises.total} — “${w.promises.current.title || w.promises.current.id}”`
-      : `Now: ${w.you.act ?? w.doneReason}`;
+      : `Now: ${w.you.act ?? w.doneReason}${laneNote}`;
+  const consoleLine =
+    w.you.turn === "you" && ctx.console && ctx.console.url
+      ? `\n→ Easiest: the studio console at ${ctx.console.url} — the row carries the button. CLI fallback below.`
+      : "";
   const youLine =
     w.you.turn === "you"
-      ? `■ YOUR TURN: ${w.you.act}`
+      ? `■ YOUR TURN: ${w.you.act}${consoleLine}`
       : w.you.turn === "agent"
         ? `You: nothing needed${w.stops.length ? ` · next stop${w.stops.length > 1 ? "s" : ""} for you: ${w.stops.join(", ")}` : ""}`
         : "Closed.";
-  return `${w.name} — stage: ${stageLabel(w)}\n${line}\n${nowLine}\n${youLine}`;
+  return `${w.name} — stage: ${stageLabel(w)}${gloss}\n${line}\n${nowLine}\n${youLine}`;
 }
 
 /**
@@ -261,17 +420,49 @@ export function renderCard(w) {
  * standing protocol reminders, re-delivered every turn so the narration rules
  * are decay-proof — re-told, never remembered (D5/D6).
  */
-export function renderInject({ available, walks, arrivals }) {
+/**
+ * The studio's status, said plainly every prompt (studio-drive-mode: the
+ * agent ALWAYS knows whether the human's window exists, and healing it is a
+ * standing instruction, not a discovery).
+ */
+function studioLine(consoleRec) {
+  if (consoleRec && consoleRec.url) return `[studio: running at ${consoleRec.url}]`;
+  if (consoleRec && consoleRec.stale)
+    return "[studio: DOWN — it crashed (stale registry record). Restore it now: call the cmp-inspector `preview { projectDir }` tool (it starts a detached resident console), or tell the human it is down. Do not proceed silently.]";
+  return "[studio: not running. If the cmp-inspector tools are available, start it now with `preview { projectDir }` — the human's window should exist whenever work is happening. If they are absent, say so once.]";
+}
+
+export function renderInject(data) {
+  const { available, walks, arrivals, chain } = data;
   if (!available || (walks.length === 0 && arrivals.length === 0)) return "";
   const parts = [];
+  // L2 — chat is a walk surface: the reply opens with the derivation's OWN
+  // one-liner, pasted verbatim. Machinery-authored so it cannot drift, and
+  // transcript-persistent, which the statusline never is.
+  const header = renderStatusline(data);
+  if (header !== "") {
+    parts.push(`[chat header — open your reply with this exact line (verbatim, then a blank line):]\n${header}`);
+  }
+  // The studio's status is stated EVERY prompt — its absence was silent once
+  // (the walk-wiring lesson) and never gets to be silent again.
+  parts.push(studioLine(data.console));
+  // The live chain (studio-drive-mode): the current request and the declared
+  // step plan, with its age. Declared by the agent — which is exactly why it
+  // is re-shown every turn: keeping it current is part of the contract.
+  const chainText = renderChain(chain);
+  parts.push(
+    chainText !== ""
+      ? `[the chain — the current request's steps. Keep it CURRENT: advance with \`node qa/plan.mjs --step N\` as steps land, \`--done\` when the request lands. A stale chain misleads the human watching the studio.]\n${chainText}`
+      : '[no chain declared. At kickoff, declare the request\'s steps so the human can watch position live: `node qa/plan.mjs --set "step | step | …" --title "<the ask, restated>"` — mirror the itinerary you print in chat.]',
+  );
   if (walks.length > 0) {
     parts.push("[walk-status — derived from the ledgers; render this state, never your own memory of it]");
-    for (const w of walks) parts.push(renderCard(w));
+    for (const w of walks) parts.push(renderCard(w, data));
   }
   for (const a of arrivals)
     parts.push(`▲ ARRIVED, UNPLANNED — ${a.label} (${a.status}): ${a.reason ?? "no recorded reason"}. Offer: handle now, or after the current walk lands (recommended: after).`);
   parts.push(
-    "Protocol: speak stages as Decide·Design·Contract·Build·Prove·Sign-off and clauses as promises. Quiet while working (one line per stage transition). At any human gate, render the full stop card (stage, what it is in plain words, exactly what to do, what comes after). Never open a second walk silently.",
+    "Protocol: open every reply with the chat header line above, verbatim. Speak stages as Decide·Design·Contract·Build·Prove·Sign-off — with their plain-words gloss on first mention — and clauses as promises. Declare the chain at kickoff and advance it as you go; if the studio line above says DOWN or not running, restore it (preview tool) or surface it before proceeding. Quiet between headers (one line per stage transition). At any human gate, render the full stop card: stage, what it is in plain words, then the easiest act first (the studio console when it is up; the CLI as fallback), then what comes after. Quote the lane's cost only from the measured figure in the card — never estimate it. Never open a second walk silently.",
   );
   return parts.join("\n\n");
 }

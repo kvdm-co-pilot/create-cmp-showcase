@@ -75,8 +75,13 @@ if (asHook) {
     process.exit(0);
   }
   if (!result.valid) {
+    // The walk's vocabulary (walk-legibility L3): this gate IS the Prove
+    // stage refusing to close — same fact, same enforcement, words that match
+    // every other surface. The precise reason stays verbatim beneath.
     process.stderr.write(
-      `Not done: ${result.reason}. Run \`node qa/verify.mjs\` and commit the receipt, or see README §Verification enforcement to bypass.\n`,
+      `■ Prove — not done: the promises are not yet checked against this tree. ` +
+        `${result.reason}. Run \`node qa/verify.mjs\` (it checks every promise and writes the receipt), ` +
+        `commit the receipt, or see README §Verification enforcement to bypass.\n`,
     );
     process.exit(2);
   }

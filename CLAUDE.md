@@ -316,21 +316,47 @@ evidence attached"). `node qa/walk-status.mjs` derives the live position; a
 UserPromptSubmit hook injects it every prompt. **Render the injected state — never
 your memory of it.**
 
-**At kickoff** (with the triage restatement): print the itinerary —
+**At kickoff** (with the triage restatement): print the itinerary — and DECLARE it as
+the live chain, so the studio's Drive strip and the statusline's readers see the same
+steps you just printed:
 
     Navigation redesign — the journey (brief lane)
     Decide → Design → Contract → Build → Prove → Sign-off
     Stops for you: 3 (Decide — now · Contract · Sign-off). Build and Prove never stop for you.
     First stop is now: 2 open decisions below.
 
-**While working — quiet:** one line per stage transition, nothing per-file. The
-statusline carries the position continuously; do not repeat it in prose.
+```bash
+node qa/plan.mjs --set "sign the brief | draft screens | agree the promises | build | full check | your sign-off" --title "navigation redesign"
+```
 
-**At every human gate — loud:** a full stop card, never a bare question:
+**The chain stays current** — this is part of the contract, not a nicety: advance it
+with `node qa/plan.mjs --step N` as each step lands and `--done` when the request
+lands. The current request itself is recorded mechanically (the per-prompt hook), the
+steps are yours to declare, and every surface shows the declaration's age — a stale
+chain reads as stale to the human watching the studio, which is worse than no chain.
+The chain gates nothing; the walk stays the truth for doneness.
 
-    ■ YOUR TURN — <feature> · stage 3 of 6: Contract
+**The studio is a standing check:** every injected context opens with a `[studio: …]`
+line. If it says DOWN or not running, restore it before proceeding — call the
+cmp-inspector `preview { projectDir }` tool (it starts a detached resident console
+that survives the session) — or, if the tools are absent, tell the human once. A
+missing window is a fault to heal, never something to work silently past.
+
+**While working — the header, then quiet:** open EVERY reply with the walk's one-line
+header — the exact `[chat header]` line the per-prompt inject delivers. Paste it
+verbatim, never compose it: it is the derivation's own string, so it cannot drift, and
+it persists in the transcript, which the statusline beneath the input box never does.
+After the header: one line per stage transition, nothing per-file. Stages carry their
+plain-words gloss on first mention ("Contract — agreeing what it promises"); quote the
+lane's cost only from the measured figure in the injected card, never an estimate.
+
+**At every human gate — loud:** a full stop card, never a bare question — and the
+easiest act leads:
+
+    ■ YOUR TURN — <feature> · stage 3 of 6: Contract — agreeing what it promises
     <what it is, in plain words — two lines maximum>
-    → <exactly what to do: the command, or the studio tab, or "reply approve">
+    → Easiest: the studio console at <url from the injected card> — the row carries the button.
+    → CLI fallback: <the command>   (or "reply approve" when no console is up)
     After this: <the remaining stages, and which ones stop for the human>
 
 **Arrivals:** work that belongs to no open walk (undeclared drift, a harness

@@ -19,8 +19,41 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 
+/**
+ * The hook's stdin, parsed — UserPromptSubmit delivers {prompt, ...} as JSON.
+ * Bounded read, fail-soft: no stdin / non-JSON / no prompt -> null. Only the
+ * --inject path consumes this (the statusline gets no stdin and must not wait
+ * on one).
+ */
+async function readHookStdin() {
+  if (process.stdin.isTTY) return null;
+  try {
+    let raw = "";
+    for await (const chunk of process.stdin) {
+      raw += chunk;
+      if (raw.length > 1_000_000) break; // a prompt is never this — stop reading, keep what we have
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 try {
   const { deriveWalks, renderStatusline, renderCard, renderInject } = await import("./lib/walk.mjs");
+
+  // Tier 1 of the chain (studio-drive-mode): record the human's own prompt
+  // BEFORE deriving, so this very inject already reflects the new request.
+  // Machinery-owned — the words are the hook's, never the agent's.
+  if (args.includes("--inject")) {
+    const hook = await readHookStdin();
+    if (hook && typeof hook.prompt === "string") {
+      const { recordRequest } = await import("./lib/plan.mjs");
+      recordRequest(ROOT, hook.prompt);
+    }
+  }
+
   const data = deriveWalks(ROOT);
 
   if (args.includes("--json")) {
@@ -43,7 +76,10 @@ try {
     } else if (data.walks.length === 0 && data.arrivals.length === 0) {
       process.stdout.write("No open walks. Every accepted feature's brief is its doc-of-record.\n");
     } else {
-      for (const w of data.walks) process.stdout.write(`${renderCard(w)}\n\n`);
+      const { renderChain } = await import("./lib/plan.mjs");
+      const chainText = renderChain(data.chain);
+      if (chainText !== "") process.stdout.write(`${chainText}\n\n`);
+      for (const w of data.walks) process.stdout.write(`${renderCard(w, data)}\n\n`);
       for (const a of data.arrivals)
         process.stdout.write(`▲ ARRIVED, UNPLANNED — ${a.label} (${a.status}): ${a.reason ?? "no recorded reason"}\n`);
     }

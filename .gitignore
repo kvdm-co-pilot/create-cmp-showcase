@@ -42,3 +42,10 @@ keystore.properties
 keystore/
 *.jks
 *.keystore
+
+# The live chain's ephemeral state (studio-drive-mode): the current request
+# (rewritten by the UserPromptSubmit hook on every prompt) and the agent's
+# declared step plan. Per-session windshield, not project history — and also
+# hard-excluded from the receipt's hashed input surface (qa/lib/inputs-hash.mjs).
+qa/.request.json
+qa/.plan.json

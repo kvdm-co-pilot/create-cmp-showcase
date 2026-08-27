@@ -1063,7 +1063,10 @@ export function reopenFeature(root, name, options = {}) {
     return { ok: false, reason: `unknown feature "${name}" — known briefs: ${briefs.join(", ") || "(none)"}` };
   }
   const derived = deriveAllFeatures(root).find((d) => d.name === name);
-  const set = [briefId, `feature-spec:${name}`, `${FEATURE_DESIGN_PREFIX}${name}`, ...(derived ? derived.touches : [])];
+  // The spec side of the family follows the brief's own pairing (a multi-spec
+  // brief reopens every spec its promises live in), defaulting to the name.
+  const specIds = (derived?.specNames ?? [name]).map((n) => `feature-spec:${n}`);
+  const set = [briefId, ...specIds, `${FEATURE_DESIGN_PREFIX}${name}`, ...(derived ? derived.touches : [])];
   const byId = new Map(getApprovalStatuses(root).map((s) => [s.id, s]));
   const reopened = [];
   const skipped = [];
@@ -1274,7 +1277,12 @@ export function getFeatureBoard(root) {
   // feature-spec:* that is still signed must be reopened and amended, and the
   // step says so by name — that is what the human's signature set in motion.
   const deriveNextStep = (d, phase) => {
-    const specArtifact = byId.get(`feature-spec:${d.name}`);
+    // The brief's PAIRED specs (feature-brief.mjs pairedSpecNames — the one
+    // pairing function): a multi-spec brief waits on ALL of them being
+    // signed, and its contract step names each one still waiting.
+    const specArtifacts = (d.specNames ?? [d.name])
+      .map((n) => byId.get(`feature-spec:${n}`))
+      .filter(Boolean);
     const designArtifact = byId.get(`${FEATURE_DESIGN_PREFIX}${d.name}`) ?? null;
     const declaredSpecAmendments = d.touches
       .filter((id) => id.startsWith("feature-spec:") && byId.get(id)?.status === "approved")
@@ -1343,8 +1351,9 @@ export function getFeatureBoard(root) {
     // phase === "approved": building — which part of the loop is open?
     if (!d.specExists || d.total === 0)
       return { key: "contract", owner: "agent drafts → human signs", label: `contract: write the clauses in ${d.specRel}${amendNote}` };
-    if (specArtifact && specArtifact.status !== "approved")
-      return { key: "sign-spec", owner: "human", label: `sign the contract (feature-spec:${d.name})${amendNote}` };
+    const unsignedSpecs = specArtifacts.filter((a) => a.status !== "approved");
+    if (unsignedSpecs.length > 0)
+      return { key: "sign-spec", owner: "human", label: `sign the contract (${unsignedSpecs.map((a) => a.id).join(", ")})${amendNote}` };
     if (d.covered < d.total)
       return { key: "build", owner: "agent", label: `build & cite: ${d.total - d.covered} clause(s) have no citing test yet` };
     return { key: "prove", owner: "agent", label: "prove: run node qa/verify.mjs so the receipt attests this tree" };

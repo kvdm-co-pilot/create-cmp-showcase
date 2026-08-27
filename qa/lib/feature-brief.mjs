@@ -7,8 +7,9 @@
 // docs/features/ is a governed `feature-brief:<name>` artifact, hashed and
 // signed like anything else, approved BEFORE the feature is built. (Harness
 // design standards stay in docs/proposals/ — different directory, different
-// meaning.) `<name>` matches the feature's spec: docs/features/meal.md pairs
-// with specs/meal.spec.md.
+// meaning.) `<name>` pairs with the feature's spec — by default
+// specs/<name>.spec.md, overridable by the brief itself when its promises
+// genuinely live in several spec files (see pairedSpecNames).
 //
 // The brief carries at most ONE machine-read block, and it declares — it never
 // gates:
@@ -163,30 +164,90 @@ export function briefSections(markdown) {
 
 /**
  * A brief's declarations: blast radius (`touches`), UI surface (`screens`),
- * and the reachability exemption (`unrouted` — FI-7's escape hatch: a screen
- * intentionally not wired into the navigation graph yet). A missing block, or
- * one without a field, declares nothing — legal and common. A block that IS
- * present but malformed is surfaced as `error`: a doc that tried to declare
- * and failed should say so, not read as "declares nothing".
+ * the reachability exemption (`unrouted` — FI-7's escape hatch: a screen
+ * intentionally not wired into the navigation graph yet), and the paired
+ * spec files (`specs` — walk-legibility L1: spec NAMES, no path/extension;
+ * `"specs": ["catalog", "entry-editing"]`). A missing block, or one without a
+ * field, declares nothing — legal and common. A block that IS present but
+ * malformed is surfaced as `error`: a doc that tried to declare and failed
+ * should say so, not read as "declares nothing".
  * @param {string} markdown
- * @returns {{touches: string[], screens: boolean, unrouted: boolean, error: (string|null)}}
+ * @returns {{touches: string[], screens: boolean, unrouted: boolean, specs: string[], error: (string|null)}}
  */
 export function parseFeatureBlock(markdown) {
   const m = typeof markdown === "string" ? markdown.match(FEATURE_FENCE_RE) : null;
-  if (!m) return { touches: [], screens: false, unrouted: false, error: null };
+  if (!m) return { touches: [], screens: false, unrouted: false, specs: [], error: null };
   let parsed;
   try {
     parsed = JSON.parse(m[1]);
   } catch (err) {
-    return { touches: [], screens: false, unrouted: false, error: `cmp:feature block is not valid JSON — ${err.message}` };
+    return { touches: [], screens: false, unrouted: false, specs: [], error: `cmp:feature block is not valid JSON — ${err.message}` };
   }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return { touches: [], screens: false, unrouted: false, error: "cmp:feature must be a JSON object" };
+    return { touches: [], screens: false, unrouted: false, specs: [], error: "cmp:feature must be a JSON object" };
   }
   const touches = Array.isArray(parsed.touches)
     ? parsed.touches.filter((t) => typeof t === "string" && t.trim() !== "")
     : [];
-  return { touches, screens: parsed.screens === true, unrouted: parsed.unrouted === true, error: null };
+  // `specs` entries are normalized to bare names ("specs/catalog.spec.md" and
+  // "catalog" both mean specs/catalog.spec.md) — declaring in either form is
+  // fine; storing one form keeps every consumer's arithmetic identical.
+  const specs = Array.isArray(parsed.specs)
+    ? [
+        ...new Set(
+          parsed.specs
+            .filter((s) => typeof s === "string" && s.trim() !== "")
+            .map((s) => s.trim().replace(/^specs\//, "").replace(/\.spec\.md$/, "")),
+        ),
+      ]
+    : [];
+  return { touches, screens: parsed.screens === true, unrouted: parsed.unrouted === true, specs, error: null };
+}
+
+/**
+ * The spec files a brief's promises live in — THE pairing function
+ * (walk-legibility L1). One definition, consumed by the board derivation, the
+ * walk, and (through them) the console, so no surface can pair differently.
+ * Precedence:
+ *   1. the cmp:feature block's `"specs": [...]` — the explicit declaration
+ *   2. the brief's `**Spec:**` paragraph — every `specs/<name>.spec.md`
+ *      reference in it (the form briefs already carry for human readers)
+ *   3. the filename default: `specs/<name>.spec.md`
+ * Before this existed, a brief whose blast radius genuinely spans two specs
+ * (catalog-and-editing, showcase 2026-08-26) derived as "still awaiting a
+ * contract" forever — a standing false instruction on the primary surface
+ * that invites an agent to write a second definition of signed behavior.
+ * @param {string} markdown the brief's full text
+ * @param {string} name the brief's name (docs/features/<name>.md)
+ * @param {{specs?: string[]}} [block] a parseFeatureBlock result, if the
+ *   caller already has one (avoids re-parsing; same answer either way)
+ * @returns {string[]} spec names, e.g. ["catalog", "entry-editing"]
+ */
+export function pairedSpecNames(markdown, name, block) {
+  const declared = (block ?? parseFeatureBlock(markdown)).specs ?? [];
+  if (declared.length > 0) return declared;
+  const fromHeader = specHeaderNames(markdown);
+  if (fromHeader.length > 0) return fromHeader;
+  return [name];
+}
+
+/**
+ * Every `specs/<name>.spec.md` referenced in the brief's `**Spec:**`
+ * paragraph — the line starting `**Spec:**` through the next blank line, so
+ * later prose that merely MENTIONS a spec path never redirects the pairing.
+ */
+function specHeaderNames(markdown) {
+  if (typeof markdown !== "string") return [];
+  const lines = markdown.split("\n");
+  const start = lines.findIndex((l) => /^\*\*Spec:?\*\*/.test(l.trim()));
+  if (start === -1) return [];
+  const para = [];
+  for (let i = start; i < lines.length && lines[i].trim() !== ""; i++) para.push(lines[i]);
+  const out = [];
+  for (const m of para.join("\n").matchAll(/specs\/([A-Za-z0-9_-]+)\.spec\.md/g)) {
+    if (!out.includes(m[1])) out.push(m[1]);
+  }
+  return out;
 }
 
 /**
@@ -262,12 +323,21 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
   } catch {
     readable = false;
   }
-  const block = readable ? parseFeatureBlock(markdown) : { touches: [], screens: false, error: `${brief.rel} could not be read` };
+  const block = readable
+    ? parseFeatureBlock(markdown)
+    : { touches: [], screens: false, specs: [], error: `${brief.rel} could not be read` };
 
-  const specRel = `specs/${brief.name}.spec.md`;
-  const specExists = fs.existsSync(path.join(root, specRel));
+  // The paired specs (walk-legibility L1): usually one, by filename; a brief
+  // may name several. Clauses concatenate in declaration order — "done" means
+  // every live clause across ALL of them is cited.
+  const specNames = pairedSpecNames(markdown, brief.name, block);
+  const specRels = specNames.map((n) => `specs/${n}.spec.md`);
+  const specExists = specRels.every((rel) => fs.existsSync(path.join(root, rel)));
+  const specRel = specRels.join(" + ");
   const citedIds = new Set((pre.citations ?? scanCitations(root)).map((t) => t.id));
-  const clauses = clausesOfSpec(root, specRel).map((c) => ({ ...c, cited: citedIds.has(c.id) }));
+  const clauses = specRels
+    .flatMap((rel) => clausesOfSpec(root, rel))
+    .map((c) => ({ ...c, cited: citedIds.has(c.id) }));
   const live = clauses.filter((c) => !c.withdrawn);
   const covered = live.filter((c) => c.cited).length;
 
@@ -286,6 +356,8 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
     // rung's only mechanical signal (see countEdgeCases).
     edgeCases: readable ? countEdgeCases(markdown) : 0,
     specRel,
+    specNames,
+    specRels,
     specExists,
     clauses,
     covered,

@@ -48,7 +48,15 @@ export const VERIFIED_SURFACE = [
 // bookkeeping about a commit that already happened, so appending a record
 // must never invalidate a receipt for a tree whose code did not change
 // (approvals.log.jsonl's principle, applied to audits).
+// qa/.request.json and qa/.plan.json are the live chain's EPHEMERAL state
+// (studio-drive-mode): the request file is rewritten on EVERY user prompt by
+// the UserPromptSubmit hook, so hashing either would invalidate the receipt
+// the moment the human speaks. They are also gitignored on fresh scaffolds,
+// but the exclusion here is the load-bearing one — upgraded apps keep their
+// own .gitignore, which never learns new entries.
 const EXCLUDED_PREFIXES = [
+  "qa/.plan.json",
+  "qa/.request.json",
   "qa/evidence",
   "qa-artifacts",
   "qa/comments.json",

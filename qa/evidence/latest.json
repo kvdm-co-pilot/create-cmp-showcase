@@ -4,41 +4,50 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "2a45475dcbaaf1ecb85c6dc1586ed14af783335e",
+    "sha": "8745a5bd7fa18137b8b52652d7128ce810d517e3",
     "dirty": [
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/settings/",
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl",
-      "qa/comments.json",
-      "specs/settings.spec.md"
+      ".gitignore",
+      "CLAUDE.md",
+      "README.md",
+      "qa/evidence/latest.json",
+      "qa/flight-recorder.jsonl",
+      "qa/harness.lock.json",
+      "qa/lib/approvals.mjs",
+      "qa/lib/feature-brief.mjs",
+      "qa/lib/inputs-hash.mjs",
+      "qa/lib/plan.mjs",
+      "qa/lib/walk.mjs",
+      "qa/plan.mjs",
+      "qa/receipt-check.mjs",
+      "qa/walk-status.mjs"
     ]
   },
   "inputs": {
-    "hash": "d0d9ba2df21fb58b8d54c75a9d69c5c5a7447dc68b524563d9479cb13ef736af",
-    "fileCount": 455
+    "hash": "ae1c71d6d0da81d5955be150c02a35689bfa629d09f92d2fa9ae6cac13f44ec3",
+    "fileCount": 457
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 7,
+      "durationMs": 10,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
-        "version": "0.15.0",
-        "sha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
-        "recordedSha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
+        "version": "0.16.0",
+        "sha256": "b5a6b260ea9cb0e7ff6f941b60f41965412e913280a529a2691f2d49f2ec5537",
+        "recordedSha256": "b5a6b260ea9cb0e7ff6f941b60f41965412e913280a529a2691f2d49f2ec5537",
         "modified": [],
         "missing": [],
         "extra": [],
-        "fileCount": 38
+        "fileCount": 40
       },
       "verdict": "PASS",
-      "note": "@create-cmp/harness 0.15.0 — 38 files verified"
+      "note": "@create-cmp/harness 0.16.0 — 40 files verified"
     },
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 34,
+      "durationMs": 51,
       "details": {
         "clauses": 185,
         "withdrawn": 3,
@@ -50,7 +59,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 24,
+      "durationMs": 36,
       "details": {
         "artifacts": [
           {
@@ -299,7 +308,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 5,
       "details": {
         "components": 20,
         "stories": 20,
@@ -310,7 +319,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 15,
+      "durationMs": 22,
       "details": {
         "features": [
           {
@@ -424,7 +433,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 25,
       "details": {
         "sectionsChecked": 4
       }
@@ -432,7 +441,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 63,
+      "durationMs": 95,
       "details": {
         "schemaDirs": 3
       }
@@ -440,17 +449,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1851
+      "durationMs": 3353
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 2714
+      "durationMs": 2675
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10131,
+      "durationMs": 16800,
       "details": {
         "tests": 359,
         "failures": 0,
@@ -461,33 +470,33 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3026
+      "durationMs": 4420
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4086
+      "durationMs": 6098
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
-      "durationMs": 8613
+      "durationMs": 8576
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3226
+      "durationMs": 3856
     },
     {
       "name": "e2eSmoke",
       "verdict": "PASS",
-      "durationMs": 54732
+      "durationMs": 62345
     },
     {
       "name": "androidChecks",
       "verdict": "PASS",
-      "durationMs": 21440,
+      "durationMs": 23609,
       "details": {
         "tests": 0,
         "failures": 0,
@@ -498,8 +507,8 @@
   ],
   "harness": {
     "name": "@create-cmp/harness",
-    "version": "0.15.0",
-    "sha256": "e0e4c6ea444a93b8da874b92a5fb4e3390c933c090ecbb2f5dfcabcdef90ade2",
+    "version": "0.16.0",
+    "sha256": "b5a6b260ea9cb0e7ff6f941b60f41965412e913280a529a2691f2d49f2ec5537",
     "status": "intact",
     "intact": true
   },
@@ -534,5 +543,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-26T00:33:55.455Z"
+  "generatedAt": "2026-08-27T16:20:46.557Z"
 }
