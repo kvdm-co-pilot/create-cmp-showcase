@@ -1,93 +1,23 @@
 {
   "schema": "cmp-evidence/1",
-  "profile": "local",
+  "profile": "release",
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "2c1a8ebe599ca1ae5ceedfb155456e6b60a6e717",
+    "sha": "a734f734b4e6eb3de7c357904b08d1bb93cc57b9",
     "dirty": [
       "CHANGELOG.md",
-      "README.md",
-      "composeApp/schemas/iosSimulatorArm64/com.kvdm.fuelled.data.local.AppDatabase/15.json",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/presentation/theme/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/App.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/brand/FuelledLogo.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AnimatedNumber.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppHeader.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ContentStateContainer.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/Motion.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ProgressRing.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/Shimmer.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatBar.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/TickButton.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/motion/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppShell.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/onboarding/OnboardingScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/PlatformMotion.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Theme.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Tokens.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/GoalBloom.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workout/WorkoutCard.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekScreen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/theme/",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/GoalBloomTest.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewHarness.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/presentation/theme/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/MotionConformanceTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/components/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/foods/MealsBuildDoorTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/PlanReviewDoorTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/motion/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsEditStackDoorTest.kt",
-      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/presentation/theme/",
-      "docs/ARCHITECTURE.md",
-      "docs/DESIGN-SYSTEM.md",
-      "docs/features/motion.md",
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl",
-      "qa/comments.json",
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "qa/golden/foods.json",
-      "qa/golden/meal-plan.json",
-      "qa/golden/meal.json",
-      "qa/golden/profile.json",
-      "qa/golden/progress.json",
-      "qa/golden/supplements.json",
-      "qa/golden/today.json",
-      "specs/catalog.spec.md",
-      "specs/foods.spec.md",
-      "specs/meal-plan.spec.md",
-      "specs/meal.spec.md",
-      "specs/motion.spec.md",
-      "specs/supplements.spec.md"
+      "composeApp/build.gradle.kts"
     ]
   },
   "inputs": {
-    "hash": "bf78b7a7a126a94cc0f3c195a01e5675947760fc660873d98982fae833d20a19",
+    "hash": "758f89f596c6c60d0dfaf69db86c05c88f52a28dda9ddfa0330511f5cd9b72c2",
     "fileCount": 479
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 6,
+      "durationMs": 13,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -105,7 +35,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 41,
+      "durationMs": 608,
       "details": {
         "clauses": 202,
         "withdrawn": 3,
@@ -117,7 +47,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 28,
+      "durationMs": 285,
       "details": {
         "artifacts": [
           {
@@ -381,7 +311,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "details": {
         "components": 22,
         "stories": 22,
@@ -392,7 +322,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 18,
+      "durationMs": 54,
       "details": {
         "features": [
           {
@@ -513,7 +443,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 18,
+      "durationMs": 296,
       "details": {
         "sectionsChecked": 4
       }
@@ -521,7 +451,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 61,
+      "durationMs": 265,
       "details": {
         "schemaDirs": 3
       }
@@ -529,17 +459,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2611
+      "durationMs": 21592
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1868
+      "durationMs": 225576
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 14026,
+      "durationMs": 19412,
       "details": {
         "tests": 391,
         "failures": 0,
@@ -550,23 +480,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2615
+      "durationMs": 3859
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3935
+      "durationMs": 5089
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 23
+      "durationMs": 29
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3841
+      "durationMs": 3322
     },
     {
       "name": "e2eSmoke",
@@ -578,7 +508,74 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 21
+      "durationMs": 22
+    },
+    {
+      "name": "determinism",
+      "verdict": "SKIP",
+      "reason": "determinism probe is opt-in (it runs the JVM test tier twice) — add --determinism to this lane, or run the probe alone: node qa/verify.mjs --determinism",
+      "durationMs": 0
+    },
+    {
+      "name": "auditCadence",
+      "verdict": "PASS",
+      "note": "0 changed since audit · 6 never audited · 0 unchanged",
+      "durationMs": 39,
+      "details": {
+        "packageRoot": "composeApp/src/androidMain/kotlin/com/kvdm/fuelled",
+        "subsystems": [
+          {
+            "name": "core",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          },
+          {
+            "name": "data",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          },
+          {
+            "name": "di",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          },
+          {
+            "name": "notification",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          },
+          {
+            "name": "presentation",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          },
+          {
+            "name": "(root)",
+            "status": "never-audited",
+            "changedFiles": 0,
+            "lastAudit": null
+          }
+        ],
+        "lines": [
+          "no audit recorded for core — when it gets one (cmp-audit core), record it: node qa/record-audit.mjs \"core\"",
+          "no audit recorded for data — when it gets one (cmp-audit data), record it: node qa/record-audit.mjs \"data\"",
+          "no audit recorded for di — when it gets one (cmp-audit di), record it: node qa/record-audit.mjs \"di\"",
+          "no audit recorded for notification — when it gets one (cmp-audit notification), record it: node qa/record-audit.mjs \"notification\"",
+          "no audit recorded for presentation — when it gets one (cmp-audit presentation), record it: node qa/record-audit.mjs \"presentation\"",
+          "no audit recorded for (root) — when it gets one (cmp-audit (root)), record it: node qa/record-audit.mjs \"(root)\""
+        ]
+      }
+    },
+    {
+      "name": "releaseSmoke",
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb)",
+      "durationMs": 0
     }
   ],
   "harness": {
@@ -614,5 +611,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-02T14:19:50.455Z"
+  "generatedAt": "2026-09-02T14:51:44.017Z"
 }

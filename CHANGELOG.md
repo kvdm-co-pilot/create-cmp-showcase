@@ -5,6 +5,12 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.0] — the app moves
+
+### No data loss
+Schema unchanged at v15. Nothing you have logged is affected; this release is presentation
+and navigation only.
+
 ### Added
 - **The motion layer of the design system** (`docs/features/motion.md`, `specs/motion.spec.md`
   MOTION-01..12, `docs/DESIGN-SYSTEM.md`). Motion tokens (`FuelledMotion`: six durations, three
