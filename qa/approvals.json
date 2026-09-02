@@ -325,13 +325,6 @@
       "via": "cli"
     },
     {
-      "artifact": "components",
-      "status": "approved",
-      "hash": "82705d987c2a234bc68a17a3ba99b156439bc216978cb9825716f4cdb4925127",
-      "approvedAt": "2026-09-02T15:51:50.012Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:app-updates",
       "status": "approved",
       "hash": "44d84fa0bfbfd71a6220a3d96a446ff47ef7a49129e65f2a42cf04226199260d",
@@ -360,13 +353,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-design:workouts",
-      "status": "approved",
-      "hash": "fa25e95ca46f6f6236d42e127b8276e7e9f5b5371d113cd48145744d5156b299",
-      "approvedAt": "2026-09-02T15:51:50.265Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:catalog",
       "status": "approved",
       "hash": "9b12b456226b0bd69950d8493f76f68f2815d9d2dbe9e6fc81295fc529dde0b7",
@@ -392,6 +378,20 @@
       "status": "approved",
       "hash": "ee6930283bdede9d634951884711b933400261430838c1a2275738e66acd263a",
       "approvedAt": "2026-09-02T15:51:50.467Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "components",
+      "status": "approved",
+      "hash": "9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d",
+      "approvedAt": "2026-09-02T22:34:50.240Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:workouts",
+      "status": "approved",
+      "hash": "a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86",
+      "approvedAt": "2026-09-02T22:34:50.323Z",
       "via": "cli"
     }
   ],

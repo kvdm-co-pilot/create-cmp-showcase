@@ -1,6 +1,7 @@
 package com.kvdm.fuelled.presentation.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -59,6 +60,10 @@ fun ListItemCard(
         Row(
             modifier = Modifier.padding(FuelledTokens.PaddingCard),
             verticalAlignment = Alignment.CenterVertically,
+            // The slots need air between them: without it a leading icon touches the title
+            // and a trailing chevron touches the subtitle, which is what made rows read as
+            // cramped on device wherever this card carries both.
+            horizontalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {
             if (leading != null) leading()
             Column(modifier = Modifier.weight(1f)) {

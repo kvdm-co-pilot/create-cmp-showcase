@@ -4,24 +4,22 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "84656dd23d3ebdba4efd2ac19c5851cfb9a510d9",
+    "sha": "26327533b0504c026bf3d5d94134f0b4ecf40915",
     "dirty": [
       "CHANGELOG.md",
       "README.md",
       "composeApp/build.gradle.kts",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/App.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/motion/IntroScreen.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/motion/",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/motion/IntroScreenTest.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ListItemCard.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekScreen.kt",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
       "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "specs/motion.spec.md"
+      "qa/flight-recorder.jsonl"
     ]
   },
   "inputs": {
-    "hash": "09a1ba343fd59c484e9d3568f3bca7d9ff22ab0af858a3127d0983f7c2349dd2",
+    "hash": "a2933c8f3dabe359c987756745158c09bf9c5531215ddd896cd711f8ab325a28",
     "fileCount": 480
   },
   "steps": [
@@ -45,7 +43,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 41,
+      "durationMs": 99,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
@@ -57,7 +55,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 28,
+      "durationMs": 49,
       "details": {
         "artifacts": [
           {
@@ -178,7 +176,7 @@
           {
             "id": "components",
             "status": "approved",
-            "hash": "82705d987c2a234bc68a17a3ba99b156439bc216978cb9825716f4cdb4925127"
+            "hash": "9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d"
           },
           {
             "id": "feature-design:app-updates",
@@ -208,7 +206,7 @@
           {
             "id": "feature-design:workouts",
             "status": "approved",
-            "hash": "fa25e95ca46f6f6236d42e127b8276e7e9f5b5371d113cd48145744d5156b299"
+            "hash": "a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86"
           },
           {
             "id": "feature-spec:app-updates",
@@ -321,7 +319,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 8,
       "details": {
         "components": 22,
         "stories": 22,
@@ -332,7 +330,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 30,
       "details": {
         "features": [
           {
@@ -453,7 +451,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 27,
       "details": {
         "sectionsChecked": 4
       }
@@ -461,7 +459,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 63,
+      "durationMs": 87,
       "details": {
         "schemaDirs": 3
       }
@@ -469,17 +467,17 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 3844
+      "durationMs": 33995
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 3589
+      "durationMs": 390731
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 20351,
+      "durationMs": 36684,
       "details": {
         "tests": 395,
         "failures": 0,
@@ -490,23 +488,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 4941
+      "durationMs": 6705
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 7900
+      "durationMs": 9704
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 11
+      "durationMs": 23
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 5529
+      "durationMs": 6504
     },
     {
       "name": "e2eSmoke",
@@ -518,7 +516,7 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 8
+      "durationMs": 6
     },
     {
       "name": "determinism",
@@ -530,7 +528,7 @@
       "name": "auditCadence",
       "verdict": "PASS",
       "note": "0 changed since audit · 6 never audited · 0 unchanged",
-      "durationMs": 51,
+      "durationMs": 67,
       "details": {
         "packageRoot": "composeApp/src/androidMain/kotlin/com/kvdm/fuelled",
         "subsystems": [
@@ -621,5 +619,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-02T16:48:37.736Z"
+  "generatedAt": "2026-09-02T22:58:39.814Z"
 }

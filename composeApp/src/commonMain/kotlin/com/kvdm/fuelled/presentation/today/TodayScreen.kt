@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -445,14 +444,11 @@ private fun MacroProgress.colored(color: Color): Pair<MacroProgress, Color> = th
 
 @Composable
 internal fun HeroCard(model: TodayModel, modifier: Modifier = Modifier) {
-    // D11: a 1 dp top-edge highlight (onSurface 10% -> 0%) — the machined edge, no new colour.
-    val edge = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f), Color.Transparent))
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .border(1.dp, edge, RoundedCornerShape(24.dp))
             .padding(20.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,

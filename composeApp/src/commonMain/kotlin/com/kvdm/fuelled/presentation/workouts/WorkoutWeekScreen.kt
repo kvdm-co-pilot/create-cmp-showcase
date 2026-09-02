@@ -5,6 +5,11 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import com.kvdm.fuelled.presentation.theme.FuelledTokens
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -103,6 +108,8 @@ fun WorkoutWeekScreen(
         )
 
         // D8: the day cards rise in a stagger.
+        Spacer(Modifier.height(FuelledTokens.GapCard))
+        Column(verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard)) {
         model.days.forEachIndexed { i, day ->
             val state = day.state(model.today)
             val isToday = day.date == model.today
@@ -141,6 +148,8 @@ fun WorkoutWeekScreen(
                 },
             )
         }
+        }
+        Spacer(Modifier.height(FuelledTokens.GapCard))
 
         // The editor lives in Settings (workouts WORK-07, navigation-ia OD3). This used to be a
         // line of grey text saying so, which made the editor reachable only by tapping a row

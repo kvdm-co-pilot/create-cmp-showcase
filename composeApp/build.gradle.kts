@@ -171,8 +171,8 @@ android {
         applicationId = "com.kvdm.fuelled"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.7.1"
+        versionCode = 9
+        versionName = "0.7.2"
         // Instrumentation entry point for the on-device behavior tier
         // (composeApp/src/androidInstrumentedTest — see the source-set note above).
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

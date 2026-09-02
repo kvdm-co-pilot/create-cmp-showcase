@@ -5,6 +5,20 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.2] — the rows breathe again
+
+### Fixed
+- **Training read as one blob.** `ScreenColumn` sets no vertical arrangement, so the week's
+  day cards stacked with zero gap and their rounded corners pinched into a single slab. They
+  now carry the same card gap the rest of the app uses.
+- **Every row with an icon was cramped.** `ListItemCard` put no space between its leading
+  slot, its text and its trailing slot, so icons touched titles and chevrons touched
+  subtitles. The slots are now spaced, which fixes every screen that uses the card at once.
+- **Removed a 1 dp gradient edge on Today's hero card.** It read as a seam on device. The
+  ring's glow, the bars' live edge and all motion are unchanged.
+
+Colours and typography were never altered by the motion work and are untouched here.
+
 ## [0.7.1] — the ignition you can actually see
 
 ### Fixed
