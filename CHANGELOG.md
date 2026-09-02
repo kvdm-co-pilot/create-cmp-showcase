@@ -5,6 +5,25 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.1] — the ignition you can actually see
+
+### Fixed
+- **The ignition never played for anyone already signed up** (`specs/motion.spec.md`
+  MOTION-13). It was gated on composition state, and a warm resume — which is how you open
+  an app you already use — does not recompose the root, so the app went straight to Today.
+  Reported from a real device within an hour of 0.7.0; reproduced, and now driven by the
+  lifecycle and the injected clock instead. It plays on a cold start, and again when you come
+  back after being away for a minute. Glancing at a notification and returning does not
+  replay it, and neither does rotating the screen.
+- **Reduced motion deleted the brand moment instead of calming it** (MOTION-15). With
+  animations turned off the whole ignition faded out in 120 ms. The assembled mark is now
+  held, then dismissed: reduced motion removes movement, never the moment.
+
+### Evidence
+First release proven at **L2 device** — `tokenDrift` and `androidChecks` ran on a real
+emulator rather than being skipped. `e2eSmoke` still skips: the Maestro CLI is not installed
+on this machine.
+
 ## [0.7.0] — the app moves
 
 ### No data loss

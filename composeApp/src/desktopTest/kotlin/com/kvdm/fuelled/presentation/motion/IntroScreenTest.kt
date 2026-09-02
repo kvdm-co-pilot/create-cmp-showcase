@@ -12,11 +12,11 @@ import com.kvdm.fuelled.testing.awaitNode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** The ignition's guarantees (MOTION-13): it exists, it ends, and it ends exactly once. */
+/** The ignition's guarantees (MOTION-15): it exists, it ends, and it ends exactly once. */
 @OptIn(ExperimentalTestApi::class)
 class IntroScreenTest {
 
-    // SPEC: MOTION-13
+    // SPEC: MOTION-15
     @Test
     fun `under Instant the ignition is over on the first frame, and done fires exactly once`() = runComposeUiTest {
         var done = 0
@@ -29,7 +29,7 @@ class IntroScreenTest {
         assertEquals(1, done, "a tap after it ended is not a second ending")
     }
 
-    // SPEC: MOTION-13
+    // SPEC: MOTION-15
     @Test
     fun `a tap skips the ignition, and the choreography's own ending does not fire again`() = runComposeUiTest {
         var done = 0

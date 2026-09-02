@@ -4,20 +4,30 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "a734f734b4e6eb3de7c357904b08d1bb93cc57b9",
+    "sha": "84656dd23d3ebdba4efd2ac19c5851cfb9a510d9",
     "dirty": [
       "CHANGELOG.md",
-      "composeApp/build.gradle.kts"
+      "README.md",
+      "composeApp/build.gradle.kts",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/App.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/motion/IntroScreen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/motion/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/motion/IntroScreenTest.kt",
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
+      "qa/evidence/latest.json",
+      "qa/flight-recorder.jsonl",
+      "specs/motion.spec.md"
     ]
   },
   "inputs": {
-    "hash": "758f89f596c6c60d0dfaf69db86c05c88f52a28dda9ddfa0330511f5cd9b72c2",
-    "fileCount": 479
+    "hash": "09a1ba343fd59c484e9d3568f3bca7d9ff22ab0af858a3127d0983f7c2349dd2",
+    "fileCount": 480
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 13,
+      "durationMs": 9,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -35,19 +45,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 608,
+      "durationMs": 41,
       "details": {
-        "clauses": 202,
+        "clauses": 203,
         "withdrawn": 3,
-        "tags": 428,
-        "files": 330,
-        "tierNote": "187 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-13, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
+        "tags": 432,
+        "files": 331,
+        "tierNote": "188 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-13, MOTION-15, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 285,
+      "durationMs": 28,
       "details": {
         "artifacts": [
           {
@@ -188,7 +198,7 @@
           {
             "id": "feature-design:motion",
             "status": "approved",
-            "hash": "09471cfe2555efa62580e78558c1fbbdefc15d57268821dfc75b6cea8f539382"
+            "hash": "981fc6378748c17ce57ba72e04be4a6a68c99beee425ecce7527136779a8b1b9"
           },
           {
             "id": "feature-design:settings",
@@ -253,7 +263,7 @@
           {
             "id": "feature-spec:motion",
             "status": "approved",
-            "hash": "cc8870ca3045e4785682bc2d4ab91483bbc4a942801eec2d71d7ac0426ddfa71"
+            "hash": "883e75afeae5bba39cd38a4f6047a5102bb99f21a6e5a296d1e596bcf1c61b24"
           },
           {
             "id": "feature-spec:navigation-ia",
@@ -311,7 +321,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 7,
+      "durationMs": 3,
       "details": {
         "components": 22,
         "stories": 22,
@@ -322,7 +332,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 54,
+      "durationMs": 16,
       "details": {
         "features": [
           {
@@ -443,7 +453,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 296,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -451,7 +461,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 265,
+      "durationMs": 63,
       "details": {
         "schemaDirs": 3
       }
@@ -459,19 +469,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 21592
+      "durationMs": 3844
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 225576
+      "durationMs": 3589
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 19412,
+      "durationMs": 20351,
       "details": {
-        "tests": 391,
+        "tests": 395,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -480,23 +490,23 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3859
+      "durationMs": 4941
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5089
+      "durationMs": 7900
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 29
+      "durationMs": 11
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3322
+      "durationMs": 5529
     },
     {
       "name": "e2eSmoke",
@@ -508,7 +518,7 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 22
+      "durationMs": 8
     },
     {
       "name": "determinism",
@@ -520,7 +530,7 @@
       "name": "auditCadence",
       "verdict": "PASS",
       "note": "0 changed since audit · 6 never audited · 0 unchanged",
-      "durationMs": 39,
+      "durationMs": 51,
       "details": {
         "packageRoot": "composeApp/src/androidMain/kotlin/com/kvdm/fuelled",
         "subsystems": [
@@ -611,5 +621,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-02T14:51:44.017Z"
+  "generatedAt": "2026-09-02T16:48:37.736Z"
 }

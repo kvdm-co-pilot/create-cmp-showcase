@@ -95,13 +95,21 @@ the kind a future contributor would otherwise re-introduce.
 
 ## The ignition (brief D18)
 
-- **MOTION-13** — Given the app process starts, Then the ignition (`intro_screen`) plays
-  once — while the start gate resolves, and never again on a configuration change — built
-  from the app's own parts: the spark, the day ring sweeping to full (the registry's
-  `ProgressRing`), the mark revealed from the spark, the name's letters rising in the
-  arrival stagger; it completes in under 2 s on `Full`, a tap anywhere ends it early
-  ("Skip intro"), and `onDone` fires exactly once either way. Under `Reduced` it is a `Quick`
-  fade of the assembled mark; under `Instant` it is over on the first frame. While the gate
-  is still unresolved after it ends it holds its end state — it is the loading screen, in
-  place of the blank frame. Its ring and Today's hero ring share one element key
-  (`hero-ring`) across the gate's transition, so the ring hands off into the dashboard.
+- **MOTION-13** — Given the app comes to the foreground, Then the ignition (`intro_screen`)
+  plays: on a cold process start, and on a return to the foreground after the app has been
+  away for at least `IntroReplayAfter`. Coming straight back — glancing at a notification,
+  answering a message — does NOT replay it, and neither does a configuration change. The
+  away interval is measured with the INJECTED clock (ARCH-13) across the lifecycle's
+  stop/start, never from composition state: the root does not recompose on a warm resume,
+  which is precisely why a composition-held flag left the ignition unreachable for every
+  already-onboarded user (observed on-device, 2026-09-02).
+- **MOTION-15** — Given the ignition runs, Then it is built from the app's own parts — the
+  spark, the day ring sweeping to full (the registry's `ProgressRing`), the mark revealed
+  from the spark, the name's letters rising in the arrival stagger — it completes in under
+  2 s on `Full`, a tap anywhere ends it early ("Skip intro"), and `onDone` fires exactly once
+  either way. Under `Reduced` the assembled mark is HELD for `IntroHold` and then dismissed —
+  reduced motion removes movement, never the moment; under `Instant` it is over on the first
+  frame. While the start gate is still unresolved after the ignition ends it holds its end
+  state — it is the loading screen, in place of the blank frame. Its ring and Today's hero
+  ring share one element key (`hero-ring`) across the gate's transition, so the ring hands
+  off into the dashboard.

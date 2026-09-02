@@ -46,6 +46,9 @@ import com.kvdm.fuelled.presentation.theme.moves
 import com.kvdm.fuelled.presentation.theme.spring
 import com.kvdm.fuelled.presentation.theme.staggerDelayMs
 import com.kvdm.fuelled.presentation.theme.tween
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -65,6 +68,33 @@ import kotlinx.coroutines.launch
 
 /** The shared-element key the intro's ring and Today's hero ring meet under. */
 const val HERO_RING_KEY = "hero-ring"
+
+/**
+ * How long the app must have been away before returning to the foreground replays the
+ * ignition (MOTION-13). Long enough that glancing at a notification and coming straight back
+ * does not replay it; short enough that "I opened the app" means you see it. A product rule,
+ * not an animation spec — which is why it lives here with the surface it governs rather than
+ * in the motion token catalog.
+ */
+val IntroReplayAfter: Duration = 60.seconds
+
+/**
+ * How long the assembled mark is HELD under the Reduced scheme (MOTION-15). Reduced motion
+ * removes movement, not the moment: the first draft faded the whole ignition out in 120 ms,
+ * which deleted the brand beat for exactly the people who cannot watch it move.
+ */
+val IntroHold: Duration = 900.milliseconds
+
+/**
+ * Whether returning to the foreground replays the ignition (MOTION-13). Pure, so the rule is
+ * testable without a lifecycle: [awayFor] is how long the app was actually away.
+ *
+ * `null` means the app was never away (a cold start, or a configuration change) — the caller
+ * decides those; this answers only the RETURN. Instant never replays: tests and previews get
+ * exactly one end state.
+ */
+fun shouldReplayIntro(awayFor: Duration?, motion: MotionScheme): Boolean =
+    awayFor != null && motion != MotionScheme.Instant && awayFor >= IntroReplayAfter
 
 /**
  * The ignition. Stateless and sample-free — it has no data to show — so the registry renders
@@ -97,7 +127,9 @@ fun IntroScreen(
         when (motion) {
             MotionScheme.Instant -> finish()
             MotionScheme.Reduced -> {
+                // MOTION-15: fade the assembled mark in, HOLD it so the moment lands, then go.
                 fade.animateTo(1f, motion.tween(FuelledMotion.Duration.Quick))
+                delay(IntroHold)
                 finish()
             }
             MotionScheme.Full -> {
