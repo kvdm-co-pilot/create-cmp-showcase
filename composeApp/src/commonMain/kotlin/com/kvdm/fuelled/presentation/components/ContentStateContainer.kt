@@ -4,8 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.graphicsLayer
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -44,7 +52,10 @@ fun <T> ContentStateContainer(
     empty: @Composable () -> Unit = { EmptyState(screenTag = screenTag) },
     content: @Composable (data: T) -> Unit,
 ) {
-    Box(modifier.fillMaxSize()) {
+    // MOTION-12: an arm change fades the container in on Standard/Enter — the skeleton shares
+    // the rows' geometry, so the swap reads as a cross-fade with no jump. Applied to the
+    // container's own node, never a wrapper, so the semantics tree is exactly the arm's.
+    Box(modifier.fillMaxSize().armFade(state::class.simpleName)) {
         when (state) {
             is ContentUiState.Loading -> loading()
             is ContentUiState.Error -> error(state.message)
@@ -52,6 +63,19 @@ fun <T> ContentStateContainer(
             is ContentUiState.Content -> content(state.data)
         }
     }
+}
+
+/** Fade in whenever [armKey] changes after the first composition; a snap under Instant. */
+private fun Modifier.armFade(armKey: String?): Modifier = composed {
+    val motion = LocalMotion.current
+    val alpha = remember { Animatable(1f) }
+    val first = remember { arrayOf(true) }
+    LaunchedEffect(armKey) {
+        if (first[0]) { first[0] = false; return@LaunchedEffect }
+        alpha.snapTo(0f)
+        alpha.animateTo(1f, motion.tween(FuelledMotion.Duration.Standard, FuelledMotion.Easings.Enter))
+    }
+    graphicsLayer { this.alpha = alpha.value }
 }
 
 /** Default slot implementations for [ContentStateContainer]. */

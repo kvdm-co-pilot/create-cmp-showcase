@@ -1,19 +1,17 @@
 package com.kvdm.fuelled.presentation.today
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Medication
@@ -22,13 +20,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -50,10 +51,16 @@ import com.kvdm.fuelled.presentation.workout.TodayWorkoutCard
 import com.kvdm.fuelled.domain.model.ReminderLead
 import com.kvdm.fuelled.domain.model.WorkoutDay
 import com.kvdm.fuelled.domain.model.WorkoutDayPlan
+import com.kvdm.fuelled.presentation.components.AnimatedNumber
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ProgressRing
+import com.kvdm.fuelled.presentation.components.sharedHero
+import com.kvdm.fuelled.presentation.motion.HERO_RING_KEY
+import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatBar
+import com.kvdm.fuelled.presentation.components.enterRise
+import com.kvdm.fuelled.presentation.components.goalBloom
 import com.kvdm.fuelled.presentation.mealplan.PlanEntryUi
 import com.kvdm.fuelled.presentation.mealplan.PlanMealCard
 import com.kvdm.fuelled.presentation.mealplan.PlanMealUi
@@ -279,42 +286,56 @@ fun TodayScreen(
     initialExpandedEntryId: String? = null,
 ) {
     var expandedEntryId by rememberSaveable { mutableStateOf(initialExpandedEntryId) }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .semantics { testTag = "today_screen" },
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
+    // MOTION-10: the goal bloom fires once per logical day. `lastBloomed` is the day it last
+    // fired on (an ISO date string, so it survives in saved state); `bloomKey` is the value
+    // handed to the primitive and is only ever moved FORWARD to a new date — never reset to
+    // null — so the running sweep is not cancelled the moment the latch closes behind it.
+    var lastBloomed by rememberSaveable { mutableStateOf<String?>(null) }
+    var bloomKey by remember { mutableStateOf<LocalDate?>(null) }
+    val bloomTrigger = goalBloomTrigger(model.today.protein, model.today.date, lastBloomed?.let { LocalDate.parse(it) })
+    LaunchedEffect(bloomTrigger) {
+        if (bloomTrigger != null) {
+            bloomKey = bloomTrigger
+            lastBloomed = bloomTrigger.toString()
+        }
+    }
+    // D12: the registry's root (tag `today_screen`, page padding, token self-report). The
+    // arrangement lives on a nested Column because ScreenColumn's has none; the nested Column
+    // carries no semantics, so the golden tree is the one it always was.
+    ScreenColumn(screenTag = "today", scrollable = true) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Spacer(Modifier.height(4.dp))
+        // The rise sits on the row's PARTS, not the row: a graphicsLayer on a plain layout
+        // node inserts a wrapper into the semantics tree, and the golden holds these three as
+        // direct children of the root. Same index, same motion, no new node.
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            FuelledWordmark(markSize = 26.dp)
+            FuelledWordmark(markSize = 26.dp, partModifier = Modifier.enterRise(0))
             Spacer(Modifier.weight(1f))
             Text(
                 text = model.today.date.dayHeaderLabel().uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.semantics { testTag = "today_title" },
+                modifier = Modifier.enterRise(0).semantics { testTag = "today_title" },
             )
         }
 
-        HeroCard(model.today)
-        ProteinFocus(model.today.protein)
+        HeroCard(model.today, modifier = Modifier.enterRise(1))
+        ProteinFocus(model.today.protein, bloomTrigger = bloomKey, modifier = Modifier.enterRise(2))
 
+        // As above: the rise is on the three texts, so the row stays a pure layout node.
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "UP NEXT",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.semantics { testTag = "today_up_next" },
+                modifier = Modifier.enterRise(3).semantics { testTag = "today_up_next" },
             )
             Spacer(Modifier.weight(1f))
             Text(
                 text = "Water ${model.plan.waterMl.litresLabel()} / ${WATER_DAY_GOAL_ML.litresLabel()} L",
                 style = MaterialTheme.typography.labelMedium,
                 color = FuelledColors.Info,
-                modifier = Modifier.semantics { testTag = "today_water_total" },
+                modifier = Modifier.enterRise(3).semantics { testTag = "today_water_total" },
             )
             Spacer(Modifier.width(12.dp))
             // TODAY-14: the method's veg-with-two-meals rule at a glance.
@@ -322,7 +343,7 @@ fun TodayScreen(
                 text = "Veg ${model.plan.vegMeals} of $VEG_MEAL_GOAL",
                 style = MaterialTheme.typography.labelMedium,
                 color = FuelledColors.Success,
-                modifier = Modifier.semantics { testTag = "today_veg_total" },
+                modifier = Modifier.enterRise(3).semantics { testTag = "today_veg_total" },
             )
         }
 
@@ -340,12 +361,13 @@ fun TodayScreen(
                 // TODAY-07 names this surface's add control `today_add_<slot>`; the same
                 // composable on the plan screen tags itself `plan_add_<slot>`.
                 tagPrefix = "today",
+                modifier = Modifier.enterRise(4),
             )
         } ?: Text(
             text = "That's the day — six for six. Next up is tomorrow's breakfast.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { testTag = "today_day_complete" },
+            modifier = Modifier.enterRise(4).semantics { testTag = "today_day_complete" },
         )
 
         // TODAY-10: the next water not yet ticked. Absent once all six are done — six ticked
@@ -358,6 +380,7 @@ fun TodayScreen(
                 water = PlanWaterUi(index = water.index, time = water.time.clockLabel(), done = water.done),
                 onToggle = { actions.onToggleWater(water.index, !water.done) },
                 tagPrefix = "today",
+                modifier = Modifier.enterRise(5),
             )
         }
 
@@ -365,7 +388,7 @@ fun TodayScreen(
         // session done is one tap, and a surface you have to navigate to in order to tick one
         // box is a surface that goes unticked. Absent entirely on a rest day.
         model.workout?.let { workout ->
-            TodayWorkoutCard(day = workout, onToggleDone = actions.onToggleWorkoutDone)
+            TodayWorkoutCard(day = workout, onToggleDone = actions.onToggleWorkoutDone, modifier = Modifier.enterRise(6))
         }
 
         // TODAY-11: bucket-based, because Supplement carries a free-text `timing` and a taken
@@ -383,7 +406,7 @@ fun TodayScreen(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
-                modifier = Modifier.semantics { testTag = "today_supplements" },
+                modifier = Modifier.enterRise(7).semantics { testTag = "today_supplements" },
             )
         }
 
@@ -395,6 +418,7 @@ fun TodayScreen(
         // exists.
 
         Spacer(Modifier.height(8.dp))
+    }
     }
 }
 
@@ -420,23 +444,30 @@ private fun PlanSlotView.toUi(): PlanMealUi = PlanMealUi(
 private fun MacroProgress.colored(color: Color): Pair<MacroProgress, Color> = this to color
 
 @Composable
-internal fun HeroCard(model: TodayModel) {
+internal fun HeroCard(model: TodayModel, modifier: Modifier = Modifier) {
+    // D11: a 1 dp top-edge highlight (onSurface 10% -> 0%) — the machined edge, no new colour.
+    val edge = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f), Color.Transparent))
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .border(1.dp, edge, RoundedCornerShape(24.dp))
             .padding(20.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // D8: the ring sweeps from 0 on arrival and the day counts itself up.
         ProgressRing(
             progress = if (model.targetKcal <= 0) 0f else model.consumedKcal.toFloat() / model.targetKcal,
-            modifier = Modifier.size(132.dp),
+            // MOTION-13: the ignition's ring lands here — the same element key across the gate.
+            modifier = Modifier.size(132.dp).sharedHero(HERO_RING_KEY),
+            sweepFrom = 0f,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = model.remainingKcal.toString(),
+                AnimatedNumber(
+                    value = model.remainingKcal,
+                    countFrom = 0,
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
@@ -452,12 +483,14 @@ internal fun HeroCard(model: TodayModel) {
                 model.protein.colored(FuelledColors.Protein),
                 model.carbs.colored(FuelledColors.Carbs),
                 model.fat.colored(FuelledColors.Fat),
-            ).forEach { (m, color) ->
+            ).forEachIndexed { i, (m, color) ->
                 StatBar(
                     progress = if (m.target <= 0) 0f else m.current.toFloat() / m.target,
                     color = color,
                     label = m.label,
                     valueText = "${m.current} / ${m.target}${m.unit}",
+                    fillFrom = 0f,
+                    staggerIndex = i,
                 )
             }
         }
@@ -465,13 +498,20 @@ internal fun HeroCard(model: TodayModel) {
 }
 
 @Composable
-internal fun ProteinFocus(protein: MacroProgress) {
+internal fun ProteinFocus(
+    protein: MacroProgress,
+    modifier: Modifier = Modifier,
+    /** MOTION-10: the date the goal was reached on, or null — see [goalBloomTrigger]. */
+    bloomTrigger: LocalDate? = null,
+) {
     val toGo = (protein.target - protein.current).coerceAtLeast(0)
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
+            // After the clip, so the bloom's sweep keeps the card's corners.
+            .goalBloom(bloomTrigger)
             .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -479,8 +519,9 @@ internal fun ProteinFocus(protein: MacroProgress) {
             Text("PROTEIN", style = MaterialTheme.typography.labelSmall, color = FuelledColors.Primary)
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "${protein.current}",
+                AnimatedNumber(
+                    value = protein.current,
+                    countFrom = 0,
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

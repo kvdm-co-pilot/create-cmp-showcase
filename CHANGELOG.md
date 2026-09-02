@@ -5,6 +5,23 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **The motion layer of the design system** (`docs/features/motion.md`, `specs/motion.spec.md`
+  MOTION-01..12, `docs/DESIGN-SYSTEM.md`). Motion tokens (`FuelledMotion`: six durations, three
+  easings, three springs, stagger, distances, scales) join `Tokens.kt`; a `MotionScheme`
+  (Full / Reduced / Instant) is provided by the theme, chosen from the platform's reduce-motion
+  setting, and defaults to Instant wherever no theme is above — so every test and golden tree
+  is deterministic by construction. Six primitives join the registry: `pressable`, `enterRise`,
+  `AnimatedNumber`, `TickButton`, `goalBloom`, `sharedTitle`. The ring sweeps with a glowing
+  head, bars fill with a live edge, numbers count in tabular figures, ticks pop with a haptic,
+  the bottom bar's pill slides between tabs, tabs fade through, pushes slide, and a food's name
+  travels from its row into its detail. A spec literal outside the theme and the registry
+  fails MOTION-01, the way a colour literal fails ARCH-05.
+- **Information-architecture doors** (motion D13–D17): the Meals tab's header says "Meals"
+  (CAT-01) and carries "Build a meal" (CAT-04); Supplements carries "Edit stack" (SUPP-14); the
+  Week tab carries "Review" into Progress (PLAN-19). Profile's two inert rows are gone (D14).
+  `PaddingPage` is 20 dp everywhere; Today, Profile and Supplements root in `ScreenColumn`.
+
 ## [0.6.0] — not every day, and the sixth pillar
 
 ### ⚠️ Upgrading wipes local data

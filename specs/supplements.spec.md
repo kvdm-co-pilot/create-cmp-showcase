@@ -69,3 +69,11 @@
 - **SUPP-13** — Given a supplement is saved with a time but no rungs, or rungs but no time,
   Then it is stored with neither. Half a reminder is one that never fires while the row still
   claims it will.
+
+## The stack's door (motion D16)
+
+- **SUPP-14** — Given the Supplements screen, Then its header (`supplements_title`, an
+  `AppHeader` like every pushed screen's) carries an "Edit stack" action
+  (`supplements_edit_stack`) that opens the Settings surface, where the stack editor lives
+  (SET-01's card) — the editor does not move; it gains a second door from the screen that
+  shows the doses it defines.

@@ -24,6 +24,7 @@ import com.kvdm.fuelled.data.local.buildDatabase
 import com.kvdm.fuelled.di.appModules
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTheme
+import com.kvdm.fuelled.presentation.theme.MotionScheme
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
 import com.kvdm.fuelled.presentation.theme.FuelledTypeRamp
 import kotlinx.serialization.json.Json
@@ -127,7 +128,7 @@ internal fun PreviewRoot(content: @Composable () -> Unit) {
         LocalLifecycleOwner provides owner,
         LocalViewModelStoreOwner provides owner,
     ) {
-        FuelledTheme(content)
+        FuelledTheme(motion = MotionScheme.Instant, content = content)
     }
 }
 

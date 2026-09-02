@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -34,10 +35,16 @@ private val BoltPoints = listOf(
     0.55f to 0.42f,
 )
 
+/**
+ * @param drawProgress How much of the bolt is drawn, 0..1 (motion D7): the badge is always
+ *   drawn; below 1 the bolt is scaled about its centre so it can grow in on arrival. The
+ *   default is the finished mark, which is what every still and golden sees.
+ */
 @Composable
 fun FuelledMark(
     modifier: Modifier = Modifier,
     size: Dp = 32.dp,
+    drawProgress: Float = 1f,
 ) {
     val badge = FuelledColors.Primary
     val bolt = FuelledColors.OnPrimary
@@ -52,7 +59,10 @@ fun FuelledMark(
             color = badge,
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius, radius),
         )
-        drawBolt(bolt, s)
+        when {
+            drawProgress >= 1f -> drawBolt(bolt, s)
+            drawProgress > 0f -> scale(drawProgress, pivot = center) { drawBolt(bolt, s) }
+        }
     }
 }
 
@@ -68,22 +78,30 @@ private fun DrawScope.drawBolt(color: androidx.compose.ui.graphics.Color, s: Flo
     drawPath(path, color)
 }
 
+/**
+ * @param partModifier Applied to the mark AND the word, each of which is already a semantics
+ *   node — so a caller can animate the wordmark's arrival (`Modifier.enterRise(0)`) without a
+ *   layer on the row, which would insert a wrapper node into the tree a golden holds.
+ */
 @Composable
 fun FuelledWordmark(
     modifier: Modifier = Modifier,
     markSize: Dp = 28.dp,
+    drawProgress: Float = 1f,
+    partModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FuelledMark(size = markSize)
+        FuelledMark(size = markSize, drawProgress = drawProgress, modifier = partModifier)
         Spacer(Modifier.width(10.dp))
         Text(
             text = "Fuelled",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = partModifier,
         )
     }
 }

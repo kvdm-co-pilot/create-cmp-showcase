@@ -1,21 +1,20 @@
 package com.kvdm.fuelled.presentation.profile
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,7 +38,10 @@ import com.kvdm.fuelled.domain.model.ProfileGoals
 import com.kvdm.fuelled.domain.model.ProfileIdentity
 import com.kvdm.fuelled.domain.model.WeeklyStats
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatTile
+import com.kvdm.fuelled.presentation.components.enterRise
+import com.kvdm.fuelled.presentation.components.pressable
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -48,9 +50,14 @@ import org.koin.compose.viewmodel.koinViewModel
 //   • ProfileScreen — STATELESS, sample-defaulted. The preview registry renders it with no VM.
 //   • ProfileRoute  — the VM-backed tab the nav graph hosts: Loading/Content/Error are driven
 //     by ProfileViewModel through ContentStateContainer.
-// The settings-list labels (units, reminders, connected apps, account) are STATIC presentation —
-// not persisted domain data (PROF-04). Their destinations do not exist yet, so the rows are
-// READ-ONLY (UX-04): the tap affordance ships with the destination, never before it.
+// The settings-list labels (units, stack, reminders) are STATIC presentation — not persisted
+// domain data (PROF-04). Every row opens Settings (SET-01); a row with no destination is not
+// rendered at all (UX-04, motion D14): the tap affordance ships with the destination, never
+// before it, and neither does the row.
+//
+// Motion (D8, D12): the root is the registry's ScreenColumn, and the four cards arrive in a
+// stagger (`enterRise`); the tappable header, stats row and settings rows give press feedback
+// (`pressable`). All end-state under Instant, so the golden tree sees no motion.
 
 // PREVIEW/DEMO fixture — the screen's preview seam. Not production data: the Room-backed
 // ProfileRepositoryImpl seeds its own realistic profile for the VM-backed ProfileRoute.
@@ -61,18 +68,17 @@ val sampleProfile = Profile(
 )
 
 // The settings rows (PROF-04). UX-04 took the tap OFF every one of them because none had a
-// destination; SET-01 gives three of them one, and the tap comes back WITH it — never before.
-// [opens] is the whole rule, encoded: a row is a control exactly when it goes somewhere.
-// Labels are presentation, never persisted domain data.
-private data class SettingsItem(val label: String, val tag: String, val opens: Boolean)
+// destination; SET-01 gave three of them one, and the tap came back WITH it. Motion D14 then
+// took the two that still went nowhere ("Connected apps", "Account") off the screen entirely:
+// an affordance is a promise, and a list row that does nothing is a row that should not be
+// there. Their tags return with the features. So every row here opens Settings — the rule is
+// encoded by membership, not by a flag. Labels are presentation, never persisted domain data.
+private data class SettingsItem(val label: String, val tag: String)
 
 private val settingsItems = listOf(
-    SettingsItem("Units & measurements", "profile_setting_units", opens = true),
-    SettingsItem("Supplement stack", "profile_setting_stack", opens = true),
-    SettingsItem("Reminders", "profile_setting_reminders", opens = true),
-    // Still nothing behind these, so still no tap.
-    SettingsItem("Connected apps", "profile_setting_connected", opens = false),
-    SettingsItem("Account", "profile_setting_account", opens = false),
+    SettingsItem("Units & measurements", "profile_setting_units"),
+    SettingsItem("Supplement stack", "profile_setting_stack"),
+    SettingsItem("Reminders", "profile_setting_reminders"),
 )
 
 /**
@@ -120,24 +126,20 @@ fun ProfileScreen(
 ) {
     var editing by remember { mutableStateOf<ProfileEdit?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .semantics { testTag = "profile_screen" },
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-        Spacer(Modifier.height(8.dp))
-        IdentityHeader(profile.identity, onEdit = { editing = ProfileEdit.NAME })
-        GoalsCard(
-            goals = profile.goals,
-            onEditCalories = { editing = ProfileEdit.CALORIES },
-            onEditProtein = { editing = ProfileEdit.PROTEIN },
-        )
-        StatsRow(profile.weeklyStats, onOpenWeek)
-        SettingsList(onOpenSettings)
-        Spacer(Modifier.height(8.dp))
+    // D12: the registry's root (`profile_screen`, PaddingPage, the token self-report) instead
+    // of a hand-rolled column. Scrollable: nothing inside scrolls itself.
+    ScreenColumn(screenTag = "profile", scrollable = true) {
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            IdentityHeader(profile.identity, onEdit = { editing = ProfileEdit.NAME }, modifier = Modifier.enterRise(0))
+            GoalsCard(
+                goals = profile.goals,
+                onEditCalories = { editing = ProfileEdit.CALORIES },
+                onEditProtein = { editing = ProfileEdit.PROTEIN },
+                modifier = Modifier.enterRise(1),
+            )
+            StatsRow(profile.weeklyStats, onOpenWeek, modifier = Modifier.enterRise(2))
+            SettingsList(onOpenSettings, modifier = Modifier.enterRise(3))
+        }
     }
 
     when (editing) {
@@ -224,13 +226,20 @@ private fun ValueEditorDialog(
 }
 
 @Composable
-private fun IdentityHeader(identity: ProfileIdentity, onEdit: () -> Unit) {
+private fun IdentityHeader(identity: ProfileIdentity, onEdit: () -> Unit, modifier: Modifier = Modifier) {
     // PERS-03: the header IS the name's editor door — tap to rename.
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
+            .pressable(interactionSource)
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClickLabel = "Edit your name", onClick = onEdit)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClickLabel = "Edit your name",
+                onClick = onEdit,
+            )
             .semantics { testTag = "profile_edit_name" },
     ) {
         Box(
@@ -257,9 +266,14 @@ private fun IdentityHeader(identity: ProfileIdentity, onEdit: () -> Unit) {
 }
 
 @Composable
-private fun GoalsCard(goals: ProfileGoals, onEditCalories: () -> Unit, onEditProtein: () -> Unit) {
+private fun GoalsCard(
+    goals: ProfileGoals,
+    onEditCalories: () -> Unit,
+    onEditProtein: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface),
@@ -294,12 +308,19 @@ private fun GoalRow(label: String, value: String, tag: String, onEdit: (() -> Un
 // makes its streak/avg-protein claims verifiable. The tap exists because the destination
 // does (UX-04's rule, satisfied in the other direction).
 @Composable
-private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit) {
+private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit, modifier: Modifier = Modifier) {
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .pressable(interactionSource)
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClickLabel = "Open progress", onClick = onOpenWeek)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClickLabel = "Open progress",
+                onClick = onOpenWeek,
+            )
             .semantics { testTag = "profile_progress_link" },
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -310,9 +331,9 @@ private fun StatsRow(stats: WeeklyStats, onOpenWeek: () -> Unit) {
 }
 
 @Composable
-private fun SettingsList(onOpenSettings: () -> Unit) {
+private fun SettingsList(onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface),
@@ -325,35 +346,33 @@ private fun SettingsList(onOpenSettings: () -> Unit) {
 }
 
 /**
- * SET-01/UX-04: a control when it opens something, a labelled value when it does not. The
- * three that now open Settings carry a chevron and a tap; the two that still go nowhere carry
- * neither, because a row that accepts a tap and does nothing is a broken promise, not a
- * placeholder.
+ * SET-01/UX-04: every row here is a control — it opens Settings, carries a chevron and a tap.
+ * A row that would accept a tap and do nothing is not rendered (motion D14), because that is a
+ * broken promise, not a placeholder.
  */
 @Composable
 private fun SettingsRow(item: SettingsItem, onOpenSettings: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .let {
-                if (item.opens) {
-                    it.clickable(onClickLabel = "Open ${item.label}", onClick = onOpenSettings)
-                } else {
-                    it
-                }
-            }
+            .pressable(interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClickLabel = "Open ${item.label}",
+                onClick = onOpenSettings,
+            )
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = item.tag },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(item.label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-        if (item.opens) {
-            Text(
-                text = "›",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = "›",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

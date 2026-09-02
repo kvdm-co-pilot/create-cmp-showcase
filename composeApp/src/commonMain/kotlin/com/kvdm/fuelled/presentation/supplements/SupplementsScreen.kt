@@ -6,19 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,8 +35,13 @@ import com.kvdm.fuelled.domain.model.label
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import com.kvdm.fuelled.presentation.components.AppHeader
+import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatBar
+import com.kvdm.fuelled.presentation.components.TickButton
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -125,10 +125,12 @@ val sampleSupplementStack = SupplementStackUi(
 @Composable
 fun SupplementsRoute(
     viewModel: SupplementsViewModel = koinViewModel(),
+    /** SUPP-14 (motion D16): the "Edit stack" door into the Settings editor. */
+    onEditStack: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ContentStateContainer(state = state, screenTag = "supplements") { stack ->
-        SupplementsScreen(stack = stack, onToggleTaken = viewModel::onToggleTaken)
+        SupplementsScreen(stack = stack, onToggleTaken = viewModel::onToggleTaken, onEditStack = onEditStack)
     }
 }
 
@@ -141,36 +143,43 @@ fun SupplementsRoute(
 fun SupplementsScreen(
     stack: SupplementStackUi = sampleSupplementStack,
     onToggleTaken: (id: String, taken: Boolean) -> Unit = { _, _ -> },
+    /** SUPP-14 (motion D16): open the stack editor — a second door to the Settings card. */
+    onEditStack: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .semantics { testTag = "supplements_screen" },
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-        Spacer(Modifier.height(8.dp))
-        Column {
-            Text(
-                text = "Supplements",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.semantics { testTag = "supplements_title" },
-            )
-            // SUPP-09: the subtitle names the day, because the stack now DEPENDS on the day.
-            Text(
-                text = stack.today?.let { "Due ${it.dayLabel()}" } ?: "Today's stack",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.semantics { testTag = "supplements_day" },
-            )
-        }
+    // D12: the registry's root and header (tags `supplements_screen`, `supplements_title`).
+    ScreenColumn(screenTag = "supplements", scrollable = true) {
+        AppHeader(
+            title = "Supplements",
+            screenTag = "supplements",
+            actions = {
+                // SUPP-14: the stack you are looking at is the stack you want to change; the
+                // editor stays in Settings, this is its second door.
+                AppTextButton(
+                    text = "Edit stack",
+                    onClick = onEditStack,
+                    modifier = Modifier.semantics { testTag = "supplements_edit_stack" },
+                )
+            },
+        )
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        // SUPP-09: the subtitle names the day, because the stack now DEPENDS on the day.
+        Text(
+            text = stack.today?.let { "Due ${it.dayLabel()}" } ?: "Today's stack",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "supplements_day" },
+        )
 
-        TakenSummary(taken = stack.takenCount, total = stack.total, progress = stack.progress)
+        // D8: the summary bar fills, then the groups rise in a stagger.
+        TakenSummary(
+            taken = stack.takenCount,
+            total = stack.total,
+            progress = stack.progress,
+            modifier = Modifier.enterRise(0),
+        )
 
-        stack.groups.forEach { group ->
-            TimingGroup(group, onToggleTaken)
+        stack.groups.forEachIndexed { i, group ->
+            TimingGroup(group, onToggleTaken, modifier = Modifier.enterRise(i + 1))
         }
 
         // SUPP-09: what is on the stack but not due today. Rendered rather than hidden — "did I
@@ -179,7 +188,7 @@ fun SupplementsScreen(
         if (stack.resting.isNotEmpty()) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.semantics { testTag = "supplements_resting" },
+                modifier = Modifier.enterRise(stack.groups.size + 1).semantics { testTag = "supplements_resting" },
             ) {
                 Text(
                     "NOT TODAY",
@@ -191,6 +200,7 @@ fun SupplementsScreen(
         }
         Spacer(Modifier.height(8.dp))
     }
+    }
 }
 
 /** "Monday 4 Aug" — the day the due list belongs to. */
@@ -201,9 +211,9 @@ private fun LocalDate.dayLabel(): String {
 }
 
 @Composable
-private fun TakenSummary(taken: Int, total: Int, progress: Float) {
+private fun TakenSummary(taken: Int, total: Int, progress: Float, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -223,13 +233,17 @@ private fun TakenSummary(taken: Int, total: Int, progress: Float) {
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
-        StatBar(progress = progress, color = FuelledColors.Primary)
+        StatBar(progress = progress, color = FuelledColors.Primary, fillFrom = 0f)
     }
 }
 
 @Composable
-private fun TimingGroup(group: SupplementGroup, onToggleTaken: (id: String, taken: Boolean) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun TimingGroup(
+    group: SupplementGroup,
+    onToggleTaken: (id: String, taken: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             group.timing.uppercase(),
             style = MaterialTheme.typography.labelSmall,
@@ -274,21 +288,17 @@ private fun SupplementRow(supp: Supplement, onToggle: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        IconButton(
+        // The registry's tick (MOTION-09): the burst on take, the same gesture as every other
+        // "I did the thing" in the app.
+        TickButton(
+            icon = Icons.Filled.Check,
+            checked = supp.taken,
+            contentDescription = if (supp.taken) "Taken" else "Mark taken",
             onClick = onToggle,
-            modifier = Modifier.size(48.dp).semantics { testTag = "supplements_take_${supp.id}" },
-        ) {
-            val ring = if (supp.taken) FuelledColors.Primary else MaterialTheme.colorScheme.surfaceContainerHigh
-            val tick = if (supp.taken) FuelledColors.OnPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-            Box(Modifier.size(28.dp).clip(CircleShape).background(ring), contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = if (supp.taken) "Taken" else "Mark taken",
-                    tint = tick,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
+            checkedTint = FuelledColors.Success,
+            uncheckedTint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "supplements_take_${supp.id}" },
+        )
     }
 }
 

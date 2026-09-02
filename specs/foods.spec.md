@@ -27,3 +27,11 @@
 - **FOODS-08** — Given the Foods screen renders, When its structure is inspected, Then the
   screen matches its committed golden tree (`qa/golden/foods.json`) — structural change must
   be intentional and declared.
+
+## The shared title (motion OD5)
+
+- **FOODS-09** — Given a food row (`foods_item_<id>`) opens its detail, Then the row's title
+  and the detail header's title (`food_detail_title`) are declared as ONE shared element under
+  the key `food-title-<id>` (`Modifier.sharedTitle`), so the name travels from the row into
+  the header on `Settle` rather than cutting; in isolation — previews, tests, no NavHost above
+  — the modifier is a no-op and both render as plain text.

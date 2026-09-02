@@ -67,6 +67,7 @@ import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
 import org.koin.compose.viewmodel.koinViewModel
@@ -173,16 +174,18 @@ fun SettingsScreen(
             modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {
-            UnitsCard(current = ui.settings.unitSystem, onSelect = actions.onUnitSystem)
-            PrepLeadCard(current = ui.settings.prepLeadMinutes, onSelect = actions.onPrepLead)
+            // Motion D8 (Settings): the cards rise in a stagger, top to bottom.
+            UnitsCard(current = ui.settings.unitSystem, onSelect = actions.onUnitSystem, modifier = Modifier.enterRise(0))
+            PrepLeadCard(current = ui.settings.prepLeadMinutes, onSelect = actions.onPrepLead, modifier = Modifier.enterRise(1))
             StackCard(
                 stack = ui.stack,
                 onSave = actions.onSaveSupplement,
                 onDelete = actions.onDeleteSupplement,
+                modifier = Modifier.enterRise(2),
             )
             // WORK-07: the training week, beside the stack. Both are "the routine you keep",
             // and splitting them across two screens would make one of them the forgotten one.
-            WorkoutWeekCard(week = ui.week, onSave = actions.onSaveWorkoutDay)
+            WorkoutWeekCard(week = ui.week, onSave = actions.onSaveWorkoutDay, modifier = Modifier.enterRise(3))
             // UPD-09: the way into the update surface. Rendered only where the platform can
             // actually install (UPD-08) — on iOS and desktop the row is ABSENT, not disabled,
             // because a disabled control advertises a capability the user cannot obtain.
@@ -198,7 +201,7 @@ fun SettingsScreen(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
-                    modifier = Modifier.semantics { testTag = "settings_updates" },
+                    modifier = Modifier.enterRise(4).semantics { testTag = "settings_updates" },
                 )
             }
             Spacer(Modifier.padding(bottom = 8.dp))
@@ -209,8 +212,8 @@ fun SettingsScreen(
 // ── Units (SET-02/SET-03) ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun UnitsCard(current: UnitSystem, onSelect: (UnitSystem) -> Unit) {
-    SettingsCard(title = "Units & measurements", tag = "settings_units") {
+private fun UnitsCard(current: UnitSystem, onSelect: (UnitSystem) -> Unit, modifier: Modifier = Modifier) {
+    SettingsCard(title = "Units & measurements", tag = "settings_units", modifier = modifier) {
         Text(
             // SET-03 stated where a human can see it. The rule is not obvious from the
             // controls, and the first person to "fix" the inconsistency will be someone who
@@ -239,8 +242,8 @@ private fun UnitsCard(current: UnitSystem, onSelect: (UnitSystem) -> Unit) {
 // ── The prep lead (SET-07/SET-08) ───────────────────────────────────────────────────────
 
 @Composable
-private fun PrepLeadCard(current: Int, onSelect: (Int) -> Unit) {
-    SettingsCard(title = "Meal reminders", tag = "settings_reminders") {
+private fun PrepLeadCard(current: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    SettingsCard(title = "Meal reminders", tag = "settings_reminders", modifier = modifier) {
         Text(
             text = if (current == 0) {
                 "Reminders fire at the meal time."
@@ -276,12 +279,13 @@ private fun StackCard(
     stack: List<Supplement>,
     onSave: (Supplement) -> Unit,
     onDelete: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // Which supplement's editor is open: an id, "" for the new-supplement form, or null for
     // none. One at a time — the entry row's accordion reasoning (ENTRY-03).
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
 
-    SettingsCard(title = "Supplement stack", tag = "settings_stack") {
+    SettingsCard(title = "Supplement stack", tag = "settings_stack", modifier = modifier) {
         SupplementTiming.entries.forEach { timing ->
             val group = stack.filter { it.timing == timing }
             if (group.isEmpty()) return@forEach
@@ -580,10 +584,14 @@ private fun SupplementEditor(
  * would make "add Sunday back" a control that has to exist somewhere else.
  */
 @Composable
-private fun WorkoutWeekCard(week: WorkoutWeek, onSave: (DayOfWeek, WorkoutDayPlan) -> Unit) {
+private fun WorkoutWeekCard(
+    week: WorkoutWeek,
+    onSave: (DayOfWeek, WorkoutDayPlan) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
 
-    SettingsCard(title = "Workout week", tag = "settings_week") {
+    SettingsCard(title = "Workout week", tag = "settings_week", modifier = modifier) {
         DayOfWeek.entries.forEach { day ->
             val plan = week[day]
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -806,9 +814,14 @@ private fun FieldLabel(text: String) {
 // ── Shared bits ─────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SettingsCard(title: String, tag: String, content: @Composable ColumnScope.() -> Unit) {
+private fun SettingsCard(
+    title: String,
+    tag: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)

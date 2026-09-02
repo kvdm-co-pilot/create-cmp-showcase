@@ -53,20 +53,26 @@
         {"tag": "trend_week_2026-07-02", "children": [
           {"text": "2 Jul"},
           {"text": "2014 kcal avg"},
-          {"text": "vs 2400"},
-          {"text": "1/7 protein · 32/42 meals"}
+          {"children": [
+            {"text": "vs 2400"},
+            {"text": "1/7 protein · 32/42 meals"}
+          ]}
         ]},
         {"tag": "trend_week_2026-07-09", "children": [
           {"text": "9 Jul"},
           {"text": "2310 kcal avg"},
-          {"text": "vs 2400"},
-          {"text": "6/7 protein · 40/42 meals"}
+          {"children": [
+            {"text": "vs 2400"},
+            {"text": "6/7 protein · 40/42 meals"}
+          ]}
         ]},
         {"tag": "trend_week_2026-07-16", "children": [
           {"text": "This week"},
           {"text": "2085 kcal avg"},
-          {"text": "vs 2400"},
-          {"text": "4/6 protein · 32/42 meals"}
+          {"children": [
+            {"text": "vs 2400"},
+            {"text": "4/6 protein · 32/42 meals"}
+          ]}
         ]}
       ]},
       {"tag": "weight_label", "text": "WEIGHT"},
@@ -81,8 +87,10 @@
       {"tag": "week_day_2026-07-16", "children": [
         {"text": "Thu 16"},
         {"text": "2350 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "176 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "176 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 6/6"},
         {"text": "WATER"},
@@ -95,8 +103,10 @@
       {"tag": "week_day_2026-07-17", "children": [
         {"text": "Fri 17"},
         {"text": "2180 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "168 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "168 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 5/6"},
         {"text": "WATER"},
@@ -109,8 +119,10 @@
       {"tag": "week_day_2026-07-18", "children": [
         {"text": "Sat 18"},
         {"text": "2410 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "181 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "181 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 6/6"},
         {"text": "WATER"},
@@ -123,8 +135,10 @@
       {"tag": "week_day_2026-07-19", "children": [
         {"text": "Sun 19"},
         {"text": "1580 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "92 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "92 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 2/6"},
         {"text": "WATER"},
@@ -135,8 +149,10 @@
       {"tag": "week_day_2026-07-20", "children": [
         {"text": "Mon 20"},
         {"text": "2290 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "174 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "174 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 6/6"},
         {"text": "WATER"},
@@ -149,8 +165,10 @@
       {"tag": "week_day_2026-07-21", "children": [
         {"text": "Tue 21"},
         {"text": "2330 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "179 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "179 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 5/6"},
         {"text": "WATER"},
@@ -163,8 +181,10 @@
       {"tag": "week_day_2026-07-22", "children": [
         {"text": "Today"},
         {"text": "1461 / 2400 kcal"},
-        {"text": "Protein"},
-        {"text": "121 / 180g"},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "121 / 180g"}
+        ]},
         {"text": "MEALS"},
         {"text": " 2/6"},
         {"text": "WATER"},

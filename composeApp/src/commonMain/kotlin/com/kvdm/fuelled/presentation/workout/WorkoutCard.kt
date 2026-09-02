@@ -1,19 +1,15 @@
 package com.kvdm.fuelled.presentation.workout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +21,7 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kvdm.fuelled.domain.model.WorkoutDay
+import com.kvdm.fuelled.presentation.components.TickButton
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Today's training card (WORK-03/WORK-04) ──────────────────────────────────────────────
@@ -70,23 +67,18 @@ fun TodayWorkoutCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        // The supplements take ring, one size up — the same gesture means the same thing, and
-        // a second vocabulary for "I did the thing" would be one to learn for no reason.
-        IconButton(
+        // The registry's tick (MOTION-09) — the same gesture as the meal, water and supplement
+        // ticks means the same thing, and a second vocabulary for "I did the thing" would be
+        // one to learn for no reason.
+        TickButton(
+            icon = Icons.Filled.Check,
+            checked = day.done,
+            contentDescription = if (day.done) "Done" else "Mark done",
             onClick = { onToggleDone(!day.done) },
-            modifier = Modifier.size(56.dp).semantics { testTag = "today_workout_done" },
-        ) {
-            val ring = if (day.done) FuelledColors.Primary else MaterialTheme.colorScheme.surface
-            val tick = if (day.done) FuelledColors.OnPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-            Box(Modifier.size(40.dp).clip(CircleShape).background(ring), contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = if (day.done) "Done" else "Mark done",
-                    tint = tick,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        }
+            checkedTint = FuelledColors.Success,
+            uncheckedTint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { testTag = "today_workout_done" },
+        )
     }
 }
 

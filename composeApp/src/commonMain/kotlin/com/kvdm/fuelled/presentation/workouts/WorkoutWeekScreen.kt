@@ -21,6 +21,7 @@ import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ListItemCard
 import com.kvdm.fuelled.presentation.components.ScreenColumn
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -101,7 +102,8 @@ fun WorkoutWeekScreen(
             modifier = Modifier.semantics { testTag = "training_summary" },
         )
 
-        model.days.forEach { day ->
+        // D8: the day cards rise in a stagger.
+        model.days.forEachIndexed { i, day ->
             val state = day.state(model.today)
             val isToday = day.date == model.today
             ListItemCard(
@@ -134,7 +136,7 @@ fun WorkoutWeekScreen(
                 // tag has to be something a flow can name in advance. The current day also
                 // carries `training_today`, so a flow can reach "the tickable row" without
                 // computing which weekday that is.
-                modifier = Modifier.semantics {
+                modifier = Modifier.enterRise(i).semantics {
                     testTag = if (isToday) "training_today" else "training_day_${day.date.dayOfWeek.name.lowercase().take(3)}"
                 },
             )
@@ -157,7 +159,7 @@ fun WorkoutWeekScreen(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
-            modifier = Modifier.semantics { testTag = "training_edit_week" },
+            modifier = Modifier.enterRise(model.days.size).semantics { testTag = "training_edit_week" },
         )
     }
 }

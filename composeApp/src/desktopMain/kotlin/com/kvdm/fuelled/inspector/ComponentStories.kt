@@ -1,5 +1,9 @@
 package com.kvdm.fuelled.inspector
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.filled.Check
+import com.kvdm.fuelled.presentation.components.TickButton
+import com.kvdm.fuelled.presentation.components.AnimatedNumber
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -264,6 +268,32 @@ fun componentStories(): List<ScreenPreview> = listOf(
     variantsStory("component.stat-tile", "StatTile") {
         StatTile(value = "12", label = "day streak")
         StatTile(value = "172g", label = "avg protein")
+    },
+    // Motion primitives (motion D4): rendered at their end state under Instant — the geometry
+    // and colour are what a story signs; the movement is judged on the dev-client.
+    variantsStory("component.animated-number", "AnimatedNumber") {
+        AnimatedNumber(value = 1865, countFrom = 0)
+        AnimatedNumber(value = 121, style = MaterialTheme.typography.displayMedium, format = { "$it g" })
+    },
+    variantsStory("component.tick-button", "TickButton") {
+        TickButton(
+            icon = Icons.Filled.Check,
+            checked = false,
+            contentDescription = "Mark Lunch done",
+            onClick = {},
+            uncheckedTint = FuelledColors.OnSurfaceVariant,
+            checkedTint = FuelledColors.Success,
+            modifier = Modifier.semantics { testTag = "story_tick_unchecked" },
+        )
+        TickButton(
+            icon = Icons.Filled.Check,
+            checked = true,
+            contentDescription = "Undo Lunch done",
+            onClick = {},
+            uncheckedTint = FuelledColors.OnSurfaceVariant,
+            checkedTint = FuelledColors.Success,
+            modifier = Modifier.semantics { testTag = "story_tick_checked" },
+        )
     },
     variantsStory("component.tag", "Tag") {
         Tag("P", "38g", FuelledColors.Protein)

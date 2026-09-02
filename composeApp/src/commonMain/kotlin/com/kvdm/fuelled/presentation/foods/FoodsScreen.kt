@@ -1,7 +1,9 @@
 package com.kvdm.fuelled.presentation.foods
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,14 +41,25 @@ import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.Tag
+import com.kvdm.fuelled.presentation.components.enterRise
+import com.kvdm.fuelled.presentation.components.pressable
+import com.kvdm.fuelled.presentation.components.sharedTitle
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import org.koin.compose.viewmodel.koinViewModel
 
-// ── Foods: the searchable catalog (the exemplar feature) ─────────────────────────────
+// ── Meals: the searchable catalog (the exemplar feature) ─────────────────────────────
 // Two entry points, the UI-first preview seam:
 //   • FoodsScreen — STATELESS, sample-defaulted. The preview registry renders it with no VM.
 //   • FoodsRoute  — the VM-backed wrapper the nav graph calls: search + Loading/Empty/Error
 //     are driven by FoodsViewModel through ContentStateContainer.
+//
+// Motion (motion D8, the exemplar's share of it): the screen never animates by hand — it
+// composes the registry's primitives. The search field and the list ARRIVE (`enterRise`, one
+// index apart so they rise in a stagger), rows give press feedback (`pressable`, paired with
+// the clickable that owns the interaction source), search results reorder and fade through
+// `animateItem`, and a row's title is declared a shared element (`sharedTitle`) so it travels
+// into the detail header rather than cutting (FOODS-09). Every one of these is a no-op or an
+// end state under the Instant scheme, so the golden tree and the screen tests see no motion.
 
 // PREVIEW/DEMO fixtures — the screen's preview seam. Not production data: the Room-backed
 // repository (FoodRepositoryImpl) seeds the same catalog for the VM-backed FoodsRoute.
@@ -61,14 +74,18 @@ val sampleFoods = listOf(
 )
 
 /**
- * The VM-backed Foods tab the nav graph hosts. Search query and the Loading/Content/Empty/
+ * The VM-backed Meals tab the nav graph hosts. Search query and the Loading/Content/Empty/
  * Error state machine live in [FoodsViewModel]; this wrapper only renders them. The stateless
  * [FoodsScreen] below stays VM-free for the preview registry.
+ *
+ * @param onBuildMeal Opens the meal builder (CAT-04) — the tab is called Meals, so the thing
+ *   that builds meals has a door here, beside the plan's.
  */
 @Composable
 fun FoodsRoute(
     onFoodClick: (Food) -> Unit,
     onAddFood: () -> Unit = {},
+    onBuildMeal: () -> Unit = {},
     viewModel: FoodsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,11 +93,20 @@ fun FoodsRoute(
 
     ScreenColumn(screenTag = "foods") {
         AppHeader(
-            title = "Foods",
+            // CAT-01 / motion D13: the tab has been called Meals since NAV-03; the header
+            // says the same word, so the two never disagree on a visit.
+            title = "Meals",
             screenTag = "foods",
             actions = {
-                // CAT-01: the catalog stops being closed. This is the Foods tab's real job
-                // now that logging is the tray's — it is where YOUR foods live.
+                // CAT-04 / motion D15: the builder builds MEALS, and this is the Meals tab —
+                // a person looking for it comes here first. The plan's own door stays.
+                AppTextButton(
+                    text = "Build a meal",
+                    onClick = onBuildMeal,
+                    modifier = Modifier.semantics { testTag = "foods_build" },
+                )
+                // CAT-01: the catalog stops being closed. This is the tab's real job now
+                // that logging is the tray's — it is where YOUR foods live.
                 AppTextButton(
                     text = "New food",
                     onClick = onAddFood,
@@ -88,10 +114,14 @@ fun FoodsRoute(
                 )
             },
         )
-        FoodSearchField(query = query, onQueryChange = viewModel::onQueryChange)
+        FoodSearchField(
+            query = query,
+            onQueryChange = viewModel::onQueryChange,
+            modifier = Modifier.enterRise(0),
+        )
         Spacer(Modifier.height(16.dp))
         ContentStateContainer(state = state, screenTag = "foods", onRetry = viewModel::load) { foods ->
-            FoodList(foods = foods, onFoodClick = onFoodClick)
+            FoodList(foods = foods, onFoodClick = onFoodClick, modifier = Modifier.enterRise(1))
         }
     }
 }
@@ -119,24 +149,24 @@ fun FoodsScreen(
     ) {
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Foods",
+            text = "Meals",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.semantics { testTag = "foods_title" },
         )
         Spacer(Modifier.height(16.dp))
-        FoodSearchField(query = query, onQueryChange = { query = it })
+        FoodSearchField(query = query, onQueryChange = { query = it }, modifier = Modifier.enterRise(0))
         Spacer(Modifier.height(16.dp))
-        FoodList(foods = filtered, onFoodClick = onFoodClick)
+        FoodList(foods = filtered, onFoodClick = onFoodClick, modifier = Modifier.enterRise(1))
     }
 }
 
 @Composable
-private fun FoodSearchField(query: String, onQueryChange: (String) -> Unit) {
+private fun FoodSearchField(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth().semantics { testTag = "foods_search" },
+        modifier = modifier.fillMaxWidth().semantics { testTag = "foods_search" },
         placeholder = { Text("Search foods") },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         singleLine = true,
@@ -151,13 +181,15 @@ private fun FoodSearchField(query: String, onQueryChange: (String) -> Unit) {
 }
 
 @Composable
-private fun FoodList(foods: List<Food>, onFoodClick: (Food) -> Unit) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun FoodList(foods: List<Food>, onFoodClick: (Food) -> Unit, modifier: Modifier = Modifier) {
+    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // Keyed on the id so `animateItem` can tell a row that MOVED (a search narrowing the
+        // list) from a row that left — reorders slide, departures fade (motion D8: Meals).
         items(foods, key = { it.id }) { food ->
             FoodRow(
                 food = food,
                 onClick = { onFoodClick(food) },
-                modifier = Modifier.semantics { testTag = "foods_item_${food.id}" },
+                modifier = Modifier.animateItem().semantics { testTag = "foods_item_${food.id}" },
             )
         }
     }
@@ -165,17 +197,28 @@ private fun FoodList(foods: List<Food>, onFoodClick: (Food) -> Unit) {
 
 @Composable
 private fun FoodRow(food: Food, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    // One interaction source, shared: the clickable OWNS it, `pressable` only listens.
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .pressable(interactionSource)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(food.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            // FOODS-09: the row's title and the detail's header title are ONE shared element
+            // under this key — the name travels into the header on a push. A no-op with no
+            // NavHost above (previews, tests): plain text.
+            Text(
+                text = food.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.sharedTitle("food-title-${food.id}"),
+            )
             Text(
                 text = "${food.brand} · ${food.serving}",
                 style = MaterialTheme.typography.bodyMedium,

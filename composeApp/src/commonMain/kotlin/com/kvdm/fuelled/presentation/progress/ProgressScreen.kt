@@ -2,7 +2,9 @@ package com.kvdm.fuelled.presentation.progress
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +51,7 @@ import com.kvdm.fuelled.domain.model.WorkoutDayPlan
 import com.kvdm.fuelled.domain.model.WorkoutDayState
 import com.kvdm.fuelled.domain.model.weightFromKg
 import com.kvdm.fuelled.domain.model.weightToKg
+import com.kvdm.fuelled.presentation.components.AnimatedNumber
 import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppTextButton
@@ -55,6 +59,8 @@ import com.kvdm.fuelled.presentation.components.ContentStateContainer
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatBar
 import com.kvdm.fuelled.presentation.components.Tag
+import com.kvdm.fuelled.presentation.components.enterRise
+import com.kvdm.fuelled.presentation.components.pressable
 import com.kvdm.fuelled.presentation.mealplan.litresLabel
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
@@ -237,20 +243,30 @@ fun ProgressScreen(
             // first: "how am I doing?" → "am I getting anywhere?" → "is it working?" →
             // "what happened on Sunday?". The day cards are LAST because they are the
             // detail you drill into, not the thing you open the screen for.
-            WeekSummaryCard(week)
+            //
+            // Motion D8 (Progress): the sections ARRIVE in that same order — one `enterRise`
+            // index apart, so the answers rise top to bottom — the week's numbers count up,
+            // and the bars fill one row at a time so the chart draws itself.
+            WeekSummaryCard(week, modifier = Modifier.enterRise(0))
             // WORK-05: training joins the verdict, immediately after it — it is a result of
             // the week, not a detail of a day, and it answers the same "how am I doing?".
             if (progress.training.any { it.isTraining }) {
-                TrainingSummaryCard(progress.training)
+                TrainingSummaryCard(progress.training, modifier = Modifier.enterRise(1))
             }
-            TrendSection(progress.history)
-            WeightSection(log = progress.weight, units = progress.units, onRecord = onRecordWeight)
+            TrendSection(progress.history, modifier = Modifier.enterRise(2))
+            WeightSection(
+                log = progress.weight,
+                units = progress.units,
+                onRecord = onRecordWeight,
+                modifier = Modifier.enterRise(3),
+            )
             SectionLabel("THE LAST SEVEN DAYS", "week_days_label")
-            week.days.forEach { day ->
+            week.days.forEachIndexed { i, day ->
                 WeekDayCard(
                     day = day,
                     training = progress.training.firstOrNull { it.date == day.date },
                     onOpen = { onOpenDay(day.date) },
+                    index = i,
                 )
             }
             Spacer(Modifier.padding(bottom = 8.dp))
@@ -271,9 +287,9 @@ private fun SectionLabel(text: String, tag: String) {
 
 /** The week's verdict in one card: protein days hit, meals kept, average intake. */
 @Composable
-private fun WeekSummaryCard(week: WeekReview) {
+private fun WeekSummaryCard(week: WeekReview, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -292,8 +308,10 @@ private fun WeekSummaryCard(week: WeekReview) {
             label = "meals kept",
             color = FuelledColors.Primary,
         )
-        SummaryStat(
-            value = "${week.avgConsumedKcal}",
+        // The one plain figure on the card counts up (motion D8); the two ratios carry
+        // their denominator and stay text.
+        SummaryCount(
+            value = week.avgConsumedKcal,
             label = "avg kcal",
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -309,12 +327,31 @@ private fun SummaryStat(value: String, label: String, color: androidx.compose.ui
             color = color,
             fontWeight = FontWeight.Bold,
         )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        SummaryLabel(label)
     }
+}
+
+@Composable
+private fun SummaryCount(value: Int, label: String, color: androidx.compose.ui.graphics.Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        AnimatedNumber(
+            value = value,
+            style = MaterialTheme.typography.headlineMedium,
+            color = color,
+            fontWeight = FontWeight.Bold,
+            countFrom = 0,
+        )
+        SummaryLabel(label)
+    }
+}
+
+@Composable
+private fun SummaryLabel(label: String) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /**
@@ -328,16 +365,26 @@ private fun SummaryStat(value: String, label: String, color: androidx.compose.ui
  * Today gets the focused-container border — same signal, same color.
  */
 @Composable
-private fun WeekDayCard(day: WeekDay, training: WorkoutDay? = null, onOpen: () -> Unit = {}) {
+private fun WeekDayCard(day: WeekDay, training: WorkoutDay? = null, onOpen: () -> Unit = {}, index: Int = 0) {
+    // The card is a door, so it gives press feedback; the clickable owns the source.
+    val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // Rises after the four sections above it; its bar fills in the same stagger.
+            .enterRise(index + 4)
+            .pressable(interactionSource)
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
             .let {
                 if (day.isToday) it.border(1.dp, FuelledColors.Primary, RoundedCornerShape(20.dp)) else it
             }
-            .clickable(onClickLabel = "Open ${day.rowLabel()}", onClick = onOpen)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClickLabel = "Open ${day.rowLabel()}",
+                onClick = onOpen,
+            )
             .padding(horizontal = 18.dp, vertical = 14.dp)
             .semantics { testTag = "week_day_${day.date}" },
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -361,6 +408,8 @@ private fun WeekDayCard(day: WeekDay, training: WorkoutDay? = null, onOpen: () -
             color = FuelledColors.Protein,
             label = "Protein",
             valueText = "${day.proteinG} / ${day.proteinGoalG}g",
+            fillFrom = 0f,
+            staggerIndex = index,
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -393,11 +442,11 @@ private fun WeekDayCard(day: WeekDay, training: WorkoutDay? = null, onOpen: () -
  * yet, and a past training day genuinely went missing. Only the last is a miss.
  */
 @Composable
-private fun TrainingSummaryCard(days: List<WorkoutDay>) {
+private fun TrainingSummaryCard(days: List<WorkoutDay>, modifier: Modifier = Modifier) {
     val today = days.lastOrNull()?.date ?: return
     val training = days.filter { it.isTraining }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -406,10 +455,12 @@ private fun TrainingSummaryCard(days: List<WorkoutDay>) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                "${training.count { it.done }}",
+            // Motion D8 (Progress): "the summary counts" — from 0 to the sessions kept.
+            AnimatedNumber(
+                value = training.count { it.done },
                 style = MaterialTheme.typography.displaySmall,
                 color = MaterialTheme.colorScheme.onSurface,
+                countFrom = 0,
             )
             Spacer(Modifier.width(6.dp))
             Text(
@@ -482,10 +533,10 @@ private fun TrainingDot(day: WorkoutDay, today: LocalDate) {
  * being the source of truth for how things look (history brief, rejected outright).
  */
 @Composable
-private fun TrendSection(history: History) {
+private fun TrendSection(history: History, modifier: Modifier = Modifier) {
     SectionLabel("THE LAST $TREND_WEEKS WEEKS", "trend_label")
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -494,13 +545,13 @@ private fun TrendSection(history: History) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         history.weeks.forEachIndexed { i, week ->
-            TrendWeekRow(week = week, isCurrent = i == history.weeks.lastIndex)
+            TrendWeekRow(week = week, isCurrent = i == history.weeks.lastIndex, index = i)
         }
     }
 }
 
 @Composable
-private fun TrendWeekRow(week: WeekTrend, isCurrent: Boolean) {
+private fun TrendWeekRow(week: WeekTrend, isCurrent: Boolean, index: Int = 0) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -531,6 +582,9 @@ private fun TrendWeekRow(week: WeekTrend, isCurrent: Boolean) {
                 color = FuelledColors.Primary,
                 label = "vs ${week.targetKcal}",
                 valueText = "${week.proteinDaysHit}/${week.proteinDaysJudged} protein · ${week.mealsDone}/${week.mealsTotal} meals",
+                // The four weeks fill oldest first — the chart draws itself (motion D8).
+                fillFrom = 0f,
+                staggerIndex = index,
             )
         }
     }
@@ -551,14 +605,19 @@ private fun LocalDate.monthAbbrev(): String =
  * failed at something you never opted into.
  */
 @Composable
-private fun WeightSection(log: WeightLog, units: UnitSystem, onRecord: (Double) -> Unit) {
+private fun WeightSection(
+    log: WeightLog,
+    units: UnitSystem,
+    onRecord: (Double) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var entering by rememberSaveable { mutableStateOf(false) }
     var typed by rememberSaveable { mutableStateOf("") }
     val suffix = if (units == UnitSystem.METRIC) "kg" else "lb"
 
     SectionLabel("WEIGHT", "weight_label")
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)

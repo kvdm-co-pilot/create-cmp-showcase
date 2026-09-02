@@ -175,10 +175,11 @@ class ProfileScreenTest {
         onNodeWithTag("profile_setting_reminders").assertExists().performClick()
         assertEquals(3, opened, "and reminders")
 
-        // Still nothing behind these two, so still no tap. A row that accepts a tap and does
-        // nothing is a broken promise, not a placeholder.
-        onNodeWithTag("profile_setting_connected").assertExists().assertHasNoClickAction()
-        onNodeWithTag("profile_setting_account").assertExists().assertHasNoClickAction()
+        // Still nothing behind "Connected apps" and "Account", so they are not rows at all
+        // (motion D14): an affordance is a promise, and the earlier form of this test — asserting
+        // that an inert row EXISTS — was asserting the defect. Their tags return with the features.
+        onNodeWithTag("profile_setting_connected").assertDoesNotExist()
+        onNodeWithTag("profile_setting_account").assertDoesNotExist()
     }
 
     // SPEC: JRN-02

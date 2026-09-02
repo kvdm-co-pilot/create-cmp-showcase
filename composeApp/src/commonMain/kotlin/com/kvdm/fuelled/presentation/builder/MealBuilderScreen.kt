@@ -42,6 +42,7 @@ import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.Tag
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
 import kotlinx.datetime.LocalDate
@@ -162,17 +163,19 @@ fun MealBuilderScreen(
             // The order is the order of the decisions: start from something known, adjust the
             // parts, then say where it goes. Presets first because the fastest correct answer
             // for most meals is one somebody already worked out (BFL-07).
-            PresetRow(actions.onPreset)
+            // Motion D8: the rows and cards rise in a stagger, in decision order.
+            PresetRow(actions.onPreset, modifier = Modifier.enterRise(0))
             BflCategory.entries.forEach { category ->
                 CategoryPicker(
                     category = category,
                     foods = ui.catalog[category].orEmpty(),
                     chosen = ui.meal[category],
                     onPick = actions.onPick,
+                    modifier = Modifier.enterRise(category.ordinal + 1),
                 )
             }
-            TotalCard(ui.meal)
-            TargetCard(ui = ui, actions = actions)
+            TotalCard(ui.meal, modifier = Modifier.enterRise(BflCategory.entries.size + 1))
+            TargetCard(ui = ui, actions = actions, modifier = Modifier.enterRise(BflCategory.entries.size + 2))
             PlanButton(ui = ui, onPlan = actions.onPlan, onReset = actions.onReset)
             Spacer(Modifier.padding(bottom = 8.dp))
         }
@@ -180,10 +183,10 @@ fun MealBuilderScreen(
 }
 
 @Composable
-private fun PresetRow(onPreset: (String) -> Unit) {
+private fun PresetRow(onPreset: (String) -> Unit, modifier: Modifier = Modifier) {
     SectionLabel("START FROM", "builder_presets_label")
     Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         MEAL_PRESETS.forEach { preset ->
@@ -217,11 +220,12 @@ private fun CategoryPicker(
     foods: List<Food>,
     chosen: Food?,
     onPick: (Food) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     if (foods.isEmpty()) return
     SectionLabel(category.plural.uppercase(), "builder_label_${category.name}")
     Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         foods.forEach { food ->
@@ -271,10 +275,10 @@ private fun CategoryPicker(
 
 /** BFL-05: the running total, and BFL-08's shape note — stated, never enforced. */
 @Composable
-private fun TotalCard(meal: ComposedMeal) {
+private fun TotalCard(meal: ComposedMeal, modifier: Modifier = Modifier) {
     val total = meal.total
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -318,10 +322,10 @@ private fun ShapeTag(label: String, present: Boolean) {
 
 /** BFL-06: which slot, and which days. The reason the whole surface exists. */
 @Composable
-private fun TargetCard(ui: BuilderUi, actions: BuilderActions) {
+private fun TargetCard(ui: BuilderUi, actions: BuilderActions, modifier: Modifier = Modifier) {
     SectionLabel("PUT IT IN", "builder_target_label")
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)

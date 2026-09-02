@@ -35,6 +35,7 @@ import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.StatBar
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
 
 // ── Updates: is this build stale? (UPD-01..09) ───────────────────────────────────────────
@@ -161,7 +162,7 @@ fun UpdateScreen(
 @Composable
 private fun InstalledRow(installed: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().semantics { testTag = "updates_installed" },
+        modifier = Modifier.fillMaxWidth().enterRise(0).semantics { testTag = "updates_installed" },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -330,6 +331,8 @@ private fun Card(tag: String, content: @Composable androidx.compose.foundation.l
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // Motion D8: the state card rises after the installed line (index 1 of 2).
+            .enterRise(1)
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
             .padding(20.dp)

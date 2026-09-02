@@ -7,7 +7,8 @@
 **Scope of this contract.** Custom foods, favourites, and recents. Barcode scanning and
 per-100g↔per-serving conversion are named next slices — nothing here claims them.
 
-- **CAT-01** — Given the Foods tab, When "New food" is activated, Then an editor opens
+- **CAT-01** — Given the Meals tab (its header reads "Meals" — `foods_title` — the tab's own
+  name since NAV-03, motion D13), When "New food" is activated, Then an editor opens
   (`food_editor_name`, `food_editor_serving`, `food_editor_kcal`, macros, veg switch) and
   saving writes a catalog food flagged **custom**; a blank name, a blank serving, or a
   non-positive calorie value is refused at the ViewModel — no write is attempted. Editing
@@ -22,3 +23,10 @@ per-100g↔per-serving conversion are named next slices — nothing here claims 
   logged foods first (`meal_tray_recents`), newest logical day first, resolved from the
   log's own `foodId` provenance; a recent whose food has since been deleted is silently
   omitted, never rendered as a broken row.
+
+## The builder's door (motion D15)
+
+- **CAT-04** — Given the Meals tab, Then its header carries a "Build a meal" action
+  (`foods_build`) that opens the meal builder (route `meal-builder`) — the same destination
+  the plan's `plan_build_meal` opens, which stays. The builder builds meals; the tab is called
+  Meals; a person looking for it goes there first.

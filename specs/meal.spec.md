@@ -8,9 +8,9 @@
 
 **Scope of this contract.** These clauses promise slices M1–M3 of the brief's plan: the data
 model (logical day, slot enum, status), the write path, and the add-to-meal tray. History
-browsing and motion tokens (M5–M6) are deliberately **not promised here** — they get their
-own clauses when those slices are specified, so the contract never claims behavior nobody is
-building yet.
+browsing (M5) is promised in `specs/history.spec.md`, and the motion layer (M6) in
+`specs/motion.spec.md` — each landed under its own contract, so this one never claimed
+behavior nobody was building yet.
 
 **What moved out.** Day navigation (M4) is now the meal-plan feature's day strip (PLAN-11),
 and the structure this ledger records into — the six containers, their times, water, focus

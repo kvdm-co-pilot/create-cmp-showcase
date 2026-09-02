@@ -1,46 +1,49 @@
 {"children": [
-  {"tag": "supplements_screen", "children": [
-    {"tag": "supplements_title", "text": "Supplements"},
-    {"tag": "supplements_day", "text": "Due Wednesday 22 Jul"},
-    {"tag": "supplements_summary", "children": [
-      {"text": "1"},
-      {"text": "of 3 due today taken"}
-    ]},
-    {"text": "MORNING"},
-    {"children": [
-      {"children": [
-        {"text": "G"}
+  {"children": [
+    {"tag": "supplements_screen", "children": [
+      {"tag": "supplements_title", "text": "Supplements"},
+      {"tag": "supplements_edit_stack", "role": "Button", "children": [
+        {"text": "Edit stack"}
       ]},
-      {"text": "Golden creatine"},
-      {"text": "5 g"},
-      {"tag": "supplements_take_1", "role": "Button", "children": [
+      {"tag": "supplements_day", "text": "Due Wednesday 22 Jul"},
+      {"tag": "supplements_summary", "children": [
+        {"text": "1"},
+        {"text": "of 3 due today taken"}
+      ]},
+      {"children": [
+        {"text": "MORNING"},
         {"children": [
-          {"role": "Image", "contentDescription": "Taken"}
+          {"children": [
+            {"text": "G"}
+          ]},
+          {"text": "Golden creatine"},
+          {"text": "5 g"},
+          {"tag": "supplements_take_1", "role": "Button", "children": [
+            {"role": "Image", "contentDescription": "Taken"}
+          ]}
+        ]},
+        {"children": [
+          {"children": [
+            {"text": "G"}
+          ]},
+          {"text": "Golden omega"},
+          {"text": "1 g"},
+          {"tag": "supplements_take_2", "role": "Button", "children": [
+            {"role": "Image", "contentDescription": "Mark taken"}
+          ]}
         ]}
-      ]}
-    ]},
-    {"children": [
-      {"children": [
-        {"text": "G"}
       ]},
-      {"text": "Golden omega"},
-      {"text": "1 g"},
-      {"tag": "supplements_take_2", "role": "Button", "children": [
-        {"children": [
-          {"role": "Image", "contentDescription": "Mark taken"}
-        ]}
-      ]}
-    ]},
-    {"text": "PRE-WORKOUT"},
-    {"children": [
       {"children": [
-        {"text": "G"}
-      ]},
-      {"text": "Golden caffeine"},
-      {"text": "200 mg"},
-      {"tag": "supplements_take_3", "role": "Button", "children": [
+        {"text": "PRE-WORKOUT"},
         {"children": [
-          {"role": "Image", "contentDescription": "Mark taken"}
+          {"children": [
+            {"text": "G"}
+          ]},
+          {"text": "Golden caffeine"},
+          {"text": "200 mg"},
+          {"tag": "supplements_take_3", "role": "Button", "children": [
+            {"role": "Image", "contentDescription": "Mark taken"}
+          ]}
         ]}
       ]}
     ]}

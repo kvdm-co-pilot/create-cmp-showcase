@@ -52,20 +52,6 @@
       "via": "console"
     },
     {
-      "artifact": "design-system",
-      "status": "approved",
-      "hash": "ce5091d6045e9286548fde2167d362efdbbbce3403ab76d89370409a795b204d",
-      "approvedAt": "2026-08-01T17:15:56.426Z",
-      "via": "console"
-    },
-    {
-      "artifact": "exemplar-spec",
-      "status": "approved",
-      "hash": "a40ccdb51a37d4dd6fecd7cdaeaaebef05b7fc8605bb48a9b01d117cf13b5f7d",
-      "approvedAt": "2026-08-01T17:15:57.908Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:first-run",
       "status": "approved",
       "hash": "f7f38b1b2ebd072d2ead7972935b4e6646699685b1d54553ad581e7f35c77bc5",
@@ -79,13 +65,6 @@
       "status": "approved",
       "hash": "53d0276bf95314699988a73a5abbd5bb20be6cb61dfaf95f300eb8949250b166",
       "approvedAt": "2026-08-01T18:16:43.451Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-spec:catalog",
-      "status": "approved",
-      "hash": "14b29da6dcb34e128904576c2304d1305cca76c3b8550baa9b0e4bdb6d9c3a1d",
-      "approvedAt": "2026-08-01T18:16:43.612Z",
       "via": "cli"
     },
     {
@@ -130,20 +109,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-spec:meal-plan",
-      "status": "approved",
-      "hash": "4267699f358801a0d0908916a8193efc98ff9ee99036f38807d29c75216acb3e",
-      "approvedAt": "2026-08-02T07:24:21.529Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "feature-spec:profile",
-      "status": "approved",
-      "hash": "3cfae7a49f9cc42605c4a503d49e436cf01726532628aa7777017c324343208d",
-      "approvedAt": "2026-08-02T07:24:21.607Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:dated-goals",
       "status": "approved",
       "hash": "7338053c395e48d71bce2b17e2c0a0f9a72c7681411477a86949e28ad626350a",
@@ -172,20 +137,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-spec:meal",
-      "status": "approved",
-      "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1",
-      "approvedAt": "2026-08-03T13:06:49.038Z",
-      "via": "cli"
-    },
-    {
-      "artifact": "exemplar-feature",
-      "status": "approved",
-      "hash": "6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99",
-      "approvedAt": "2026-08-03T13:06:49.309Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-brief:notifications",
       "status": "approved",
       "hash": "50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c",
@@ -208,27 +159,15 @@
       "status": "approved",
       "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b",
       "approvedAt": "2026-08-05T11:32:17.597Z",
-      "via": "console"
+      "via": "console",
+      "accepted": true,
+      "acceptedAt": "2026-08-27T20:36:44.909Z"
     },
     {
       "artifact": "feature-spec:notifications",
       "status": "approved",
       "hash": "fa8c4184cdf7ce1a208b91ec2c6b716f121ef996d68117f11edf7a369d88a303",
       "approvedAt": "2026-08-05T11:32:29.162Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-spec:supplements",
-      "status": "approved",
-      "hash": "236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1",
-      "approvedAt": "2026-08-05T11:32:37.446Z",
-      "via": "console"
-    },
-    {
-      "artifact": "components",
-      "status": "approved",
-      "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385",
-      "approvedAt": "2026-08-22T14:00:21.168Z",
       "via": "console"
     },
     {
@@ -296,20 +235,6 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:meal-plan",
-      "status": "approved",
-      "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b",
-      "approvedAt": "2026-08-25T10:47:58.114Z",
-      "via": "console"
-    },
-    {
-      "artifact": "feature-design:workouts",
-      "status": "approved",
-      "hash": "ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d",
-      "approvedAt": "2026-08-25T10:48:10.413Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-spec:navigation-ia",
       "status": "approved",
       "hash": "ffaca0399508bea39d7d5fe570db1f0f177c89e6dda9ac01f59cf0d3fc0adb3e",
@@ -317,18 +242,13 @@
       "via": "console"
     },
     {
-      "artifact": "feature-design:meal",
-      "status": "approved",
-      "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395",
-      "approvedAt": "2026-08-25T10:48:31.760Z",
-      "via": "console"
-    },
-    {
       "artifact": "feature-brief:catalog-and-editing",
       "status": "approved",
       "hash": "9c7d7a18f8f6f0eea16bfbbdea41fbb96dbf9f6f40490ef52411610fca1320ad",
       "approvedAt": "2026-08-25T11:51:59.439Z",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-08-27T20:36:41.172Z"
     },
     {
       "artifact": "feature-brief:app-updates",
@@ -338,13 +258,6 @@
       "via": "cli",
       "accepted": true,
       "acceptedAt": "2026-08-26T00:53:03.625Z"
-    },
-    {
-      "artifact": "feature-design:settings",
-      "status": "approved",
-      "hash": "e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af",
-      "approvedAt": "2026-08-25T21:32:05.911Z",
-      "via": "cli"
     },
     {
       "artifact": "feature-spec:settings",
@@ -361,12 +274,124 @@
       "via": "cli"
     },
     {
+      "artifact": "feature-design:motion",
+      "status": "approved",
+      "hash": "09471cfe2555efa62580e78558c1fbbdefc15d57268821dfc75b6cea8f539382",
+      "approvedAt": "2026-09-02T10:20:00.131Z",
+      "via": "console"
+    },
+    {
+      "artifact": "feature-brief:motion",
+      "status": "approved",
+      "hash": "ca4f010093a683d284b14919e3d8b62a3ca8d99e562ff5027ea02e78248ae436",
+      "approvedAt": "2026-09-02T14:18:43.025Z",
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-02T14:20:01.507Z"
+    },
+    {
+      "artifact": "feature-spec:motion",
+      "status": "approved",
+      "hash": "cc8870ca3045e4785682bc2d4ab91483bbc4a942801eec2d71d7ac0426ddfa71",
+      "approvedAt": "2026-09-02T14:18:43.104Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "exemplar-spec",
+      "status": "approved",
+      "hash": "ac5dbd55cbe8b96e06716df783e94fbafa57e50953de4b1386dc83664e014b88",
+      "approvedAt": "2026-09-02T14:18:43.179Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "exemplar-feature",
+      "status": "approved",
+      "hash": "665970f07920d32edfd75620a3aefe1492763d6fd60d35cd6056627b07180a0e",
+      "approvedAt": "2026-09-02T14:18:43.259Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "design-system",
+      "status": "approved",
+      "hash": "d8fbdce8b89a2fba836e84f4eda2975b339133f8865617d325a91b43ad4b5dfe",
+      "approvedAt": "2026-09-02T14:18:43.338Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "components",
+      "status": "approved",
+      "hash": "82705d987c2a234bc68a17a3ba99b156439bc216978cb9825716f4cdb4925127",
+      "approvedAt": "2026-09-02T14:18:43.416Z",
+      "via": "cli"
+    },
+    {
       "artifact": "feature-design:app-updates",
-      "status": "reopened",
-      "hash": "76422016a6c46080ae0cf036c5eaf72863338cb467d9d9c3fda0621d7c9af647",
-      "approvedAt": "2026-08-25T21:32:05.756Z",
-      "reopenedAt": "2026-08-27T20:13:50.952Z",
-      "reason": "UPD-02 bent to the fuelled-<semver>.apk convention: UpdateUi.Available carries the ordered SemVer alongside the display string, and toRelease() no longer fabricates a versionCode. Data-shape only — no visual change intended; re-approve on rendered output.",
+      "status": "approved",
+      "hash": "44d84fa0bfbfd71a6220a3d96a446ff47ef7a49129e65f2a42cf04226199260d",
+      "approvedAt": "2026-09-02T14:18:43.497Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal-plan",
+      "status": "approved",
+      "hash": "5c61c407be72490448b8f3b4a466b37fa94e919d166bf2d875c74ac3778f6dcd",
+      "approvedAt": "2026-09-02T14:18:43.574Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:meal",
+      "status": "approved",
+      "hash": "4e4efea1cd35765fe7f8387ad61be6b40254aa9d736aebe1256da00e0bc09a94",
+      "approvedAt": "2026-09-02T14:18:43.650Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "approved",
+      "hash": "6c796fc252b9d90bd0630f48b7ee4ef86cf73c45b5e2bab19e1364f19e30659d",
+      "approvedAt": "2026-09-02T14:18:43.726Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:workouts",
+      "status": "approved",
+      "hash": "fa25e95ca46f6f6236d42e127b8276e7e9f5b5371d113cd48145744d5156b299",
+      "approvedAt": "2026-09-02T14:18:43.803Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:catalog",
+      "status": "approved",
+      "hash": "9b12b456226b0bd69950d8493f76f68f2815d9d2dbe9e6fc81295fc529dde0b7",
+      "approvedAt": "2026-09-02T14:18:43.878Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:meal-plan",
+      "status": "approved",
+      "hash": "5eeeda1e97f8629d49a04b45b408588fdd3d9a9dbe71f26f3c89ded26f1d6213",
+      "approvedAt": "2026-09-02T14:18:43.957Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:meal",
+      "status": "approved",
+      "hash": "f87f9616eabaab9aef442b1f3dec94496d73621f90d512b0d0b5b729e8045ec6",
+      "approvedAt": "2026-09-02T14:18:44.036Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:profile",
+      "status": "approved",
+      "hash": "3cfae7a49f9cc42605c4a503d49e436cf01726532628aa7777017c324343208d",
+      "approvedAt": "2026-09-02T14:18:44.113Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:supplements",
+      "status": "approved",
+      "hash": "ee6930283bdede9d634951884711b933400261430838c1a2275738e66acd263a",
+      "approvedAt": "2026-09-02T14:18:44.192Z",
       "via": "cli"
     }
   ],

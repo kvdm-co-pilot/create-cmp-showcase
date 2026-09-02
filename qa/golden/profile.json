@@ -1,58 +1,54 @@
 {"children": [
-  {"tag": "profile_screen", "children": [
-    {"tag": "profile_edit_name", "children": [
-      {"children": [
-        {"text": "GU"}
-      ]},
-      {"tag": "profile_title", "text": "Golden User"},
-      {"text": "Cutting · 2,400 kcal target"}
-    ]},
-    {"children": [
-      {"tag": "profile_goal_calories", "children": [
-        {"text": "Calorie target"},
-        {"text": "2,400 kcal"}
-      ]},
-      {"tag": "profile_goal_protein", "children": [
-        {"text": "Protein goal"},
-        {"text": "180 g"}
-      ]},
-      {"tag": "profile_goal_activity", "children": [
-        {"text": "Activity"},
-        {"text": "Trains 5×/week"}
-      ]}
-    ]},
-    {"tag": "profile_progress_link", "children": [
-      {"children": [
-        {"text": "12"},
-        {"text": "day streak"}
+  {"children": [
+    {"tag": "profile_screen", "children": [
+      {"tag": "profile_edit_name", "children": [
+        {"children": [
+          {"text": "GU"}
+        ]},
+        {"tag": "profile_title", "text": "Golden User"},
+        {"text": "Cutting · 2,400 kcal target"}
       ]},
       {"children": [
-        {"text": "172g"},
-        {"text": "avg protein"}
+        {"tag": "profile_goal_calories", "children": [
+          {"text": "Calorie target"},
+          {"text": "2,400 kcal"}
+        ]},
+        {"tag": "profile_goal_protein", "children": [
+          {"text": "Protein goal"},
+          {"text": "180 g"}
+        ]},
+        {"tag": "profile_goal_activity", "children": [
+          {"text": "Activity"},
+          {"text": "Trains 5×/week"}
+        ]}
+      ]},
+      {"tag": "profile_progress_link", "children": [
+        {"children": [
+          {"text": "12"},
+          {"text": "day streak"}
+        ]},
+        {"children": [
+          {"text": "172g"},
+          {"text": "avg protein"}
+        ]},
+        {"children": [
+          {"text": "82.4"},
+          {"text": "kg"}
+        ]}
       ]},
       {"children": [
-        {"text": "82.4"},
-        {"text": "kg"}
-      ]}
-    ]},
-    {"children": [
-      {"tag": "profile_setting_units", "children": [
-        {"text": "Units & measurements"},
-        {"text": "›"}
-      ]},
-      {"tag": "profile_setting_stack", "children": [
-        {"text": "Supplement stack"},
-        {"text": "›"}
-      ]},
-      {"tag": "profile_setting_reminders", "children": [
-        {"text": "Reminders"},
-        {"text": "›"}
-      ]},
-      {"tag": "profile_setting_connected", "children": [
-        {"text": "Connected apps"}
-      ]},
-      {"tag": "profile_setting_account", "children": [
-        {"text": "Account"}
+        {"tag": "profile_setting_units", "children": [
+          {"text": "Units & measurements"},
+          {"text": "›"}
+        ]},
+        {"tag": "profile_setting_stack", "children": [
+          {"text": "Supplement stack"},
+          {"text": "›"}
+        ]},
+        {"tag": "profile_setting_reminders", "children": [
+          {"text": "Reminders"},
+          {"text": "›"}
+        ]}
       ]}
     ]}
   ]}

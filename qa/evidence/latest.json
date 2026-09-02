@@ -4,41 +4,90 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "bc54f13f341bae832b7fdd2cd623270ab66c6865",
+    "sha": "2c1a8ebe599ca1ae5ceedfb155456e6b60a6e717",
     "dirty": [
+      "CHANGELOG.md",
       "README.md",
-      "composeApp/src/androidMain/AndroidManifest.xml",
-      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
-      "composeApp/src/androidMain/res/xml/",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/data/remote/UpdateRepositoryImpl.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/AppRelease.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/model/SemVer.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCase.kt",
+      "composeApp/schemas/iosSimulatorArm64/com.kvdm.fuelled.data.local.AppDatabase/15.json",
+      "composeApp/src/androidMain/kotlin/com/kvdm/fuelled/presentation/theme/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/App.kt",
       "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateScreen.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/app-updates/UpdateViewModel.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/model/SemVerTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/domain/usecase/CheckForUpdateUseCaseTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/appupdates/UpdateViewModelTest.kt",
-      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/testing/fakes/FakeAppInstaller.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.desktop.kt",
-      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/core/updates/AppInstaller.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/brand/FuelledLogo.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/builder/MealBuilderScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AnimatedNumber.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppHeader.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ContentStateContainer.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/Motion.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ProgressRing.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/Shimmer.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/StatBar.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/TickButton.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodDetailScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/foods/FoodsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanDayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal-plan/MealPlanRoute.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/meal/MealTrayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/motion/",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppNavHost.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/navigation/AppShell.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/onboarding/OnboardingScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/progress/ProgressScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/settings/SettingsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/PlatformMotion.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Theme.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Tokens.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/GoalBloom.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/today/TodayScreen.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workout/WorkoutCard.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/workouts/WorkoutWeekScreen.kt",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/theme/",
+      "composeApp/src/commonTest/kotlin/com/kvdm/fuelled/presentation/today/GoalBloomTest.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewHarness.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/PreviewRegistry.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/presentation/theme/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/MotionConformanceTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/components/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/foods/MealsBuildDoorTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/mealplan/PlanReviewDoorTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/motion/",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/profile/ProfileScreenTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/supplements/SupplementsEditStackDoorTest.kt",
+      "composeApp/src/iosMain/kotlin/com/kvdm/fuelled/presentation/theme/",
       "docs/ARCHITECTURE.md",
+      "docs/DESIGN-SYSTEM.md",
+      "docs/features/motion.md",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
+      "qa/comments.json",
       "qa/evidence/latest.json",
       "qa/flight-recorder.jsonl",
-      "specs/app-updates.spec.md"
+      "qa/golden/foods.json",
+      "qa/golden/meal-plan.json",
+      "qa/golden/meal.json",
+      "qa/golden/profile.json",
+      "qa/golden/progress.json",
+      "qa/golden/supplements.json",
+      "qa/golden/today.json",
+      "specs/catalog.spec.md",
+      "specs/foods.spec.md",
+      "specs/meal-plan.spec.md",
+      "specs/meal.spec.md",
+      "specs/motion.spec.md",
+      "specs/supplements.spec.md"
     ]
   },
   "inputs": {
-    "hash": "fee17ed36fccb7110ffb06df2ca70bef8df6815683586bd7fa08ab13ee3c577c",
-    "fileCount": 460
+    "hash": "bf78b7a7a126a94cc0f3c195a01e5675947760fc660873d98982fae833d20a19",
+    "fileCount": 479
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 5,
+      "durationMs": 6,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -56,20 +105,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 34,
+      "durationMs": 41,
       "details": {
-        "clauses": 185,
+        "clauses": 202,
         "withdrawn": 3,
-        "tags": 397,
-        "files": 313,
-        "tierNote": "170 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
+        "tags": 428,
+        "files": 330,
+        "tierNote": "187 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-13, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
-      "verdict": "SKIP",
-      "reason": "Governed artifacts awaiting human approval (non-blocking — approve when ready):\n  [feature-design:app-updates] Feature design (app-updates — presentation/app-updates/*Screen.kt, signed on rendered output) — reopened for redesign at 2026-08-27T20:13:50.952Z (reason: UPD-02 bent to the fuelled-<semver>.apk convention: UpdateUi.Available carries the ordered SemVer alongside the display string, and toRelease() no longer fabricates a versionCode. Data-shape only — no visual change intended; re-approve on rendered output.) (non-blocking until re-approved). Approve: node qa/approve.mjs feature-design:app-updates",
-      "durationMs": 23,
+      "verdict": "PASS",
+      "durationMs": 28,
       "details": {
         "artifacts": [
           {
@@ -123,6 +171,11 @@
             "hash": "e6dfb40b8b5ae0c466532219ab8878e997ea2b9ff7b57997b99d6cc919628b5c"
           },
           {
+            "id": "feature-brief:motion",
+            "status": "approved",
+            "hash": "ca4f010093a683d284b14919e3d8b62a3ca8d99e562ff5027ea02e78248ae436"
+          },
+          {
             "id": "feature-brief:navigation-ia",
             "status": "approved",
             "hash": "2bdb1cb21d49c329f13eed50497fd41e1f7cf8fa6054f7914e0c3ecb9ab3a235"
@@ -170,47 +223,52 @@
           {
             "id": "exemplar-spec",
             "status": "approved",
-            "hash": "a40ccdb51a37d4dd6fecd7cdaeaaebef05b7fc8605bb48a9b01d117cf13b5f7d"
+            "hash": "ac5dbd55cbe8b96e06716df783e94fbafa57e50953de4b1386dc83664e014b88"
           },
           {
             "id": "exemplar-feature",
             "status": "approved",
-            "hash": "6d54016ccb67e7e95f976f9419b82a9293d8d29bef1c01056b9f23401d356c99"
+            "hash": "665970f07920d32edfd75620a3aefe1492763d6fd60d35cd6056627b07180a0e"
           },
           {
             "id": "design-system",
             "status": "approved",
-            "hash": "ce5091d6045e9286548fde2167d362efdbbbce3403ab76d89370409a795b204d"
+            "hash": "d8fbdce8b89a2fba836e84f4eda2975b339133f8865617d325a91b43ad4b5dfe"
           },
           {
             "id": "components",
             "status": "approved",
-            "hash": "99535a97e3d531d77cb7f30b48d0a6b3fffef51ca7a2b1cf182735dae82c8385"
+            "hash": "82705d987c2a234bc68a17a3ba99b156439bc216978cb9825716f4cdb4925127"
           },
           {
             "id": "feature-design:app-updates",
-            "status": "reopened",
-            "hash": "a270b13be80cb66e11c2f5c7d175ec01999f5fd991ff475e934f195c37b27da3"
+            "status": "approved",
+            "hash": "44d84fa0bfbfd71a6220a3d96a446ff47ef7a49129e65f2a42cf04226199260d"
           },
           {
             "id": "feature-design:meal-plan",
             "status": "approved",
-            "hash": "099b05841a9a84f8634680ddd639174640adbee120ee75e87ea84868c132889b"
+            "hash": "5c61c407be72490448b8f3b4a466b37fa94e919d166bf2d875c74ac3778f6dcd"
           },
           {
             "id": "feature-design:meal",
             "status": "approved",
-            "hash": "84ff37ad568719bb88a47073ff727cf1337263de6640922590cc35b13987a395"
+            "hash": "4e4efea1cd35765fe7f8387ad61be6b40254aa9d736aebe1256da00e0bc09a94"
+          },
+          {
+            "id": "feature-design:motion",
+            "status": "approved",
+            "hash": "09471cfe2555efa62580e78558c1fbbdefc15d57268821dfc75b6cea8f539382"
           },
           {
             "id": "feature-design:settings",
             "status": "approved",
-            "hash": "e8fcc024f5324485a1e80ef444e73a05971aa76b6044d143948a76249d10c6af"
+            "hash": "6c796fc252b9d90bd0630f48b7ee4ef86cf73c45b5e2bab19e1364f19e30659d"
           },
           {
             "id": "feature-design:workouts",
             "status": "approved",
-            "hash": "ee8931b978c9766dabd1999c436f88c826bfe2e9165cf9f16e597a212029b67d"
+            "hash": "fa25e95ca46f6f6236d42e127b8276e7e9f5b5371d113cd48145744d5156b299"
           },
           {
             "id": "feature-spec:app-updates",
@@ -225,7 +283,7 @@
           {
             "id": "feature-spec:catalog",
             "status": "approved",
-            "hash": "14b29da6dcb34e128904576c2304d1305cca76c3b8550baa9b0e4bdb6d9c3a1d"
+            "hash": "9b12b456226b0bd69950d8493f76f68f2815d9d2dbe9e6fc81295fc529dde0b7"
           },
           {
             "id": "feature-spec:daily-journeys",
@@ -255,12 +313,17 @@
           {
             "id": "feature-spec:meal-plan",
             "status": "approved",
-            "hash": "4267699f358801a0d0908916a8193efc98ff9ee99036f38807d29c75216acb3e"
+            "hash": "5eeeda1e97f8629d49a04b45b408588fdd3d9a9dbe71f26f3c89ded26f1d6213"
           },
           {
             "id": "feature-spec:meal",
             "status": "approved",
-            "hash": "23b40d54de2699c45642629bd46f7575caeff6939c64616a4c9bfe97ea0181a1"
+            "hash": "f87f9616eabaab9aef442b1f3dec94496d73621f90d512b0d0b5b729e8045ec6"
+          },
+          {
+            "id": "feature-spec:motion",
+            "status": "approved",
+            "hash": "cc8870ca3045e4785682bc2d4ab91483bbc4a942801eec2d71d7ac0426ddfa71"
           },
           {
             "id": "feature-spec:navigation-ia",
@@ -295,7 +358,7 @@
           {
             "id": "feature-spec:supplements",
             "status": "approved",
-            "hash": "236e4584fe68dd84f643b24d50fa9e8c7e41e6c4a74a2b67b8c7afd1b00fd3e1"
+            "hash": "ee6930283bdede9d634951884711b933400261430838c1a2275738e66acd263a"
           },
           {
             "id": "feature-spec:today",
@@ -318,10 +381,10 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
-        "components": 20,
-        "stories": 20,
+        "components": 22,
+        "stories": 22,
         "missing": [],
         "orphans": []
       }
@@ -329,7 +392,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 14,
+      "durationMs": 18,
       "details": {
         "features": [
           {
@@ -374,6 +437,13 @@
             "entryComposables": [
               "MealPlanDayScreen",
               "MealTimesScreen"
+            ]
+          },
+          {
+            "name": "motion",
+            "reachable": true,
+            "entryComposables": [
+              "IntroScreen"
             ]
           },
           {
@@ -443,7 +513,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 18,
       "details": {
         "sectionsChecked": 4
       }
@@ -459,19 +529,19 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1588
+      "durationMs": 2611
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 1746
+      "durationMs": 1868
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 10099,
+      "durationMs": 14026,
       "details": {
-        "tests": 362,
+        "tests": 391,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -480,39 +550,35 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2418
+      "durationMs": 2615
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3751
+      "durationMs": 3935
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
-      "reason": "inspector endpoint not reachable on :9500 (debug app not running?) — launch the debug build to enable the live tier",
-      "durationMs": 8346
+      "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
+      "durationMs": 23
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3094
+      "durationMs": 3841
     },
     {
       "name": "e2eSmoke",
-      "verdict": "PASS",
-      "durationMs": 49678
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb)",
+      "durationMs": 0
     },
     {
       "name": "androidChecks",
-      "verdict": "PASS",
-      "durationMs": 24704,
-      "details": {
-        "tests": 0,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0
-      }
+      "verdict": "SKIP",
+      "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
+      "durationMs": 21
     }
   ],
   "harness": {
@@ -523,16 +589,14 @@
     "intact": true
   },
   "strength": {
-    "onDeviceSteps": [
-      "e2eSmoke",
-      "androidChecks"
-    ]
+    "onDeviceSteps": []
   },
   "evidenceLevel": {
-    "rung": "L2",
-    "name": "device",
+    "rung": "L1",
+    "name": "desktop",
     "satisfiedBy": [
       "specCoverage",
+      "approvals",
       "componentStories",
       "reachability",
       "archDoc",
@@ -542,9 +606,7 @@
       "unitTests",
       "conformance",
       "goldenTrees",
-      "a11y",
-      "e2eSmoke",
-      "androidChecks"
+      "a11y"
     ]
   },
   "artifacts": [],
@@ -552,5 +614,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-08-27T20:16:42.271Z"
+  "generatedAt": "2026-09-02T14:19:50.455Z"
 }

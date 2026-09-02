@@ -16,7 +16,10 @@ import com.kvdm.fuelled.presentation.mealplan.MealPlanDayScreen
 import com.kvdm.fuelled.presentation.mealplan.MealTimesNotice
 import com.kvdm.fuelled.presentation.mealplan.MealTimesScreen
 import com.kvdm.fuelled.presentation.mealplan.toNotice
+import com.kvdm.fuelled.presentation.motion.IntroScreen
+import com.kvdm.fuelled.presentation.today.sampleHighlights
 import com.kvdm.fuelled.presentation.today.sampleHighlightsEmpty
+import com.kvdm.fuelled.domain.model.MacroProgress
 import com.kvdm.fuelled.presentation.mealplan.samplePlanEmpty
 import com.kvdm.fuelled.presentation.mealplan.samplePlanTomorrow
 import com.kvdm.fuelled.presentation.meal.TrayContents
@@ -78,6 +81,15 @@ data class ScreenPreview(
     val content: @Composable () -> Unit,
 )
 
+/**
+ * MOTION-10 / OD3 fixture: the mid-day sample with protein AT goal, so the `today@goal-hit`
+ * story renders the bloom's end state. Built here, in the preview surface, from the screen's
+ * own sample — never a second fixture in commonMain (ARCH-12).
+ */
+private val sampleHighlightsGoalHit = sampleHighlights.copy(
+    today = sampleHighlights.today.copy(protein = MacroProgress("Protein", 180, 180, "g")),
+)
+
 /** Every registered screen, in gallery order. Ids must be unique and filesystem-safe. */
 fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("shell", "App shell — bottom nav (first tab selected)") {
@@ -94,6 +106,11 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
     ScreenPreview("today", "Today tab — highlights (lunch focused, late)") { TabHost { TodayScreen() } },
     ScreenPreview("today@empty", "Today — fresh day (breakfast focused, add-in-card)") {
         TabHost { TodayScreen(sampleHighlightsEmpty) }
+    },
+    // MOTION-10 / OD3: the protein goal reached — the bloom's END state (Instant), so the
+    // story signs the card's geometry; the sweep itself is judged on the dev-client.
+    ScreenPreview("today@goal-hit", "Today tab — protein goal hit (the bloom's end state)") {
+        TabHost { TodayScreen(model = sampleHighlightsGoalHit) }
     },
     ScreenPreview("foods", "Meals tab — the catalog (NAV-04)") { TabHost { FoodsScreen() } },
     ScreenPreview("food-detail", "Food detail") { TabHost { FoodDetailScreen() } },
@@ -198,6 +215,9 @@ fun previewRegistry(): List<ScreenPreview> = listOf(
             )
         }
     },
+    // MOTION-13: the ignition at its END state (Instant) — the assembled mark, the full ring,
+    // the name — which is also what the loading screen holds while the gate resolves.
+    ScreenPreview("intro", "Ignition — the app's first frame (end state)") { IntroScreen() },
     // cmp:anchor preview-registry
 ) + componentStories() + placeholderScreenStories()
 

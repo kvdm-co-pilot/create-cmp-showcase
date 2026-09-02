@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.presentation.onboarding
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,9 +30,14 @@ import com.kvdm.fuelled.presentation.brand.FuelledWordmark
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.components.exposeTestTagsForAutomation
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.moves
+import com.kvdm.fuelled.presentation.theme.spring
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Onboarding: the first-run interview (START-01) ───────────────────────────────────────
@@ -59,6 +66,13 @@ fun OnboardingScreen(
     var kcal by remember { mutableStateOf("2400") }
     var protein by remember { mutableStateOf("180") }
 
+    // D7: the first frame is choreographed — the bolt draws itself in on `Lively`, then the
+    // title, the fields and the buttons rise in a stagger. Under Reduced and Instant the mark
+    // starts finished and nothing rises.
+    val motion = LocalMotion.current
+    val boltDraw = remember { Animatable(if (motion.moves) 0f else 1f) }
+    LaunchedEffect(Unit) { boltDraw.animateTo(1f, motion.spring(FuelledMotion.Springs.Lively)) }
+
     BaseScreen { innerPadding ->
         Column(
             modifier = Modifier
@@ -77,18 +91,19 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {
             Spacer(Modifier.height(48.dp))
-            FuelledWordmark(markSize = 34.dp)
+            FuelledWordmark(markSize = 34.dp, drawProgress = boltDraw.value, modifier = Modifier.enterRise(0))
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "Let's make the numbers yours.",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.semantics { testTag = "onboarding_title" },
+                modifier = Modifier.enterRise(1).semantics { testTag = "onboarding_title" },
             )
             Text(
                 text = "Three answers and you're logging. You can change any of them later.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.enterRise(2),
             )
             Spacer(Modifier.height(8.dp))
 
@@ -98,6 +113,7 @@ fun OnboardingScreen(
                 label = "Your name",
                 placeholder = "What should we call you?",
                 tag = "onboarding_name",
+                modifier = Modifier.enterRise(3),
             )
             Field(
                 value = kcal,
@@ -105,6 +121,7 @@ fun OnboardingScreen(
                 label = "Daily calorie target",
                 placeholder = "kcal",
                 tag = "onboarding_kcal",
+                modifier = Modifier.enterRise(4),
             )
             Field(
                 value = protein,
@@ -112,20 +129,21 @@ fun OnboardingScreen(
                 label = "Daily protein goal",
                 placeholder = "grams",
                 tag = "onboarding_protein",
+                modifier = Modifier.enterRise(5),
             )
 
             Spacer(Modifier.height(8.dp))
             AppPrimaryButton(
                 text = "Start tracking",
                 onClick = { onFinish(name, kcal.trim().toIntOrNull(), protein.trim().toIntOrNull()) },
-                modifier = Modifier.fillMaxWidth().semantics { testTag = "onboarding_start" },
+                modifier = Modifier.fillMaxWidth().enterRise(6).semantics { testTag = "onboarding_start" },
             )
             // Skipping is a real answer: the seeded targets are usable, so the interview must
             // never be a wall between someone and the app they just installed.
             AppTextButton(
                 text = "Skip for now",
                 onClick = onSkip,
-                modifier = Modifier.semantics { testTag = "onboarding_skip" },
+                modifier = Modifier.enterRise(7).semantics { testTag = "onboarding_skip" },
             )
             Spacer(Modifier.height(24.dp))
         }
@@ -139,11 +157,12 @@ private fun Field(
     label: String,
     placeholder: String,
     tag: String,
+    modifier: Modifier = Modifier,
 ) {
     // The label goes in M3's OWN label slot rather than a Text above it: a field labelled
     // only by a sibling is invisible to a screen reader (caught by audit_a11y on this very
     // screen, 2026-08-01 — the fields with a value read as unlabelled clickables).
-    Column(horizontalAlignment = Alignment.Start) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.Start) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,

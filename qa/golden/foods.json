@@ -1,6 +1,9 @@
 {"children": [
   {"tag": "foods_screen", "children": [
-    {"tag": "foods_title", "text": "Foods"},
+    {"tag": "foods_title", "text": "Meals"},
+    {"tag": "foods_build", "role": "Button", "children": [
+      {"text": "Build a meal"}
+    ]},
     {"tag": "foods_add", "role": "Button", "children": [
       {"text": "New food"}
     ]},
@@ -10,29 +13,31 @@
       ]}
     ]},
     {"children": [
-      {"tag": "foods_item_1", "children": [
-        {"text": "Golden chicken"},
-        {"text": "Baseline · 100 g"},
-        {"text": "P"},
-        {"text": " 31g"},
-        {"text": "C"},
-        {"text": " 0g"},
-        {"text": "F"},
-        {"text": " 4g"},
-        {"text": "165"},
-        {"text": "kcal"}
-      ]},
-      {"tag": "foods_item_2", "children": [
-        {"text": "Golden oats"},
-        {"text": "Baseline · 80 g"},
-        {"text": "P"},
-        {"text": " 11g"},
-        {"text": "C"},
-        {"text": " 54g"},
-        {"text": "F"},
-        {"text": " 6g"},
-        {"text": "303"},
-        {"text": "kcal"}
+      {"children": [
+        {"tag": "foods_item_1", "children": [
+          {"text": "Golden chicken"},
+          {"text": "Baseline · 100 g"},
+          {"text": "P"},
+          {"text": " 31g"},
+          {"text": "C"},
+          {"text": " 0g"},
+          {"text": "F"},
+          {"text": " 4g"},
+          {"text": "165"},
+          {"text": "kcal"}
+        ]},
+        {"tag": "foods_item_2", "children": [
+          {"text": "Golden oats"},
+          {"text": "Baseline · 80 g"},
+          {"text": "P"},
+          {"text": " 11g"},
+          {"text": "C"},
+          {"text": " 54g"},
+          {"text": "F"},
+          {"text": " 6g"},
+          {"text": "303"},
+          {"text": "kcal"}
+        ]}
       ]}
     ]}
   ]}

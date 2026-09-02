@@ -1,5 +1,10 @@
 package com.kvdm.fuelled.presentation.navigation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -10,29 +15,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.kvdm.fuelled.presentation.components.AppBottomBar
 import com.kvdm.fuelled.presentation.components.BaseScreen
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.moves
+import com.kvdm.fuelled.presentation.theme.tween
 
 /**
- * Generic bottom-nav shell. Parameterized by a [tabs] list — NOT role-hardcoded.
- * Hosts the selected tab's content inside a [BaseScreen] so each tab gets correct insets;
- * the bottom bar reserves the navigation-bar inset exactly once.
+ * The app shell: the bottom bar plus the selected tab's content, inside [BaseScreen] so
+ * the tabs inherit the insets once (SHELL-05). Selection is the shell's own state — a tab
+ * has no route argument to carry, and hoisting the index bought nothing when the last
+ * caller (Today's supplement highlight) became an ordinary push (NAV-05).
  *
- * The bar itself is [com.kvdm.fuelled.presentation.components.AppBottomBar] — promoted out of
- * this file into the governed component registry (§4.3 of the component-vocabulary
- * proposal): it was already a mature component, just invisible to the registry as a
- * `private` composable here.
- */
-/**
- * The shell owns its tab selection outright.
+ * Motion (D5, MOTION-05): tab content swaps with a Material fade-through — the outgoing tab
+ * fades on `Quick`/`Exit`, the incoming fades in on `Standard`/`Enter` from `TabScale`. Under
+ * Reduced it is a plain cross-fade; under Instant a cut.
  *
- * `selectedIndex`/`onSelectTab` used to be hoisted for exactly one caller — Today's supplement
- * highlight moving the user to the Supplements TAB (TODAY-11). NAV-05 took Supplements off the
- * bar and made that an ordinary push, leaving the parameters with no caller; they are removed
- * rather than left as a pair nothing passes.
+ * Constructible without a DI container: its screen tests build it directly, which is why
+ * the day-rollover wake lives in [AppNavHost] rather than here.
  */
 @Composable
 fun AppShell(tabs: List<AppTab>) {
     var selected by rememberSaveable { mutableIntStateOf(0) }
     val select: (Int) -> Unit = { selected = it }
+    val motion = LocalMotion.current
 
     BaseScreen(
         // testTag exposure for automation is applied once on the NavHost in AppNavHost.kt —
@@ -48,8 +53,20 @@ fun AppShell(tabs: List<AppTab>) {
             )
         },
     ) {
-        Box(Modifier.fillMaxSize()) {
-            tabs.getOrNull(selected)?.content?.invoke()
+        AnimatedContent(
+            targetState = selected,
+            modifier = Modifier.fillMaxSize(),
+            transitionSpec = {
+                val enter = fadeIn(motion.tween(FuelledMotion.Duration.Standard, FuelledMotion.Easings.Enter))
+                    .let { if (motion.moves) it + scaleIn(motion.tween(FuelledMotion.Duration.Standard, FuelledMotion.Easings.Enter), initialScale = FuelledMotion.TabScale) else it }
+                val exit = fadeOut(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit))
+                enter togetherWith exit
+            },
+            label = "tab",
+        ) { index ->
+            Box(Modifier.fillMaxSize()) {
+                tabs.getOrNull(index)?.content?.invoke()
+            }
         }
     }
 }

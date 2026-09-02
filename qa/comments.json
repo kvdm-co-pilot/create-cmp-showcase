@@ -105,6 +105,26 @@
       "resolvedAt": "2026-08-26T00:31:57.105Z",
       "resolvedBy": "agent-cli",
       "resolutionNote": "Done, and the second half was genuinely outstanding until now. specs/app-updates.spec.md carries UPD-01..09, all cited. The declared settings amendment had NOT been made — the code grew a settings_updates row that no clause described — so specs/settings.spec.md now carries SET-09, with a desktopTest citing it in both directions (row present where installing is possible, ABSENT where it is not). SET-09 was first written promising the row shows the installed version, which the code does not do; corrected to describe what is true rather than leaving an unkept promise."
+    },
+    {
+      "id": "c9",
+      "target": {
+        "type": "general"
+      },
+      "text": "arrival feature-design:app-updates: handle it now",
+      "author": "human-console",
+      "createdAt": "2026-08-27T20:36:57.288Z",
+      "status": "open"
+    },
+    {
+      "id": "c10",
+      "target": {
+        "type": "general"
+      },
+      "text": "Proceed with motion: contract: write the clauses in specs/motion.spec.md + specs/meal.spec.md + reopen & amend specs/catalog.spec.md, specs/profile.spec.md, specs/supplements.spec.md, specs/meal.spec.md (declared)",
+      "author": "human-console",
+      "createdAt": "2026-09-02T08:50:41.597Z",
+      "status": "open"
     }
   ]
 }

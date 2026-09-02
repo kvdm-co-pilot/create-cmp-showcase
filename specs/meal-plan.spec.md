@@ -151,3 +151,10 @@ those slices are built.
 - **PLAN-18** — Given the plan screen renders, When its structure is inspected, Then it
   matches its committed golden tree (`qa/golden/meal-plan.json`) — structural change must be
   intentional and declared.
+
+## The review's door (motion D17, OD2)
+
+- **PLAN-19** — Given the Week tab's plan screen, Then its header carries a "Review" action
+  (`plan_review`) that opens the Progress surface (route `progress`); Profile's
+  `profile_progress_link` stays. A person planning the week is one thought from "how did last
+  week go", and the answer was two screens away.

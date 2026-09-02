@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
  * @param screenTag Feature slug; derives the `<screenTag>_title` and `<screenTag>_back` tags.
  * @param onBack Non-null renders a 48 dp back affordance left of the title.
  * @param actions Trailing slot at the row's end, for per-screen controls.
+ * @param titleModifier Applied to the title text — `Modifier.sharedTitle(key)` when the title
+ *   arrives from the row that opened this screen (FOODS-09).
  */
 @Composable
 fun AppHeader(
@@ -39,6 +41,7 @@ fun AppHeader(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    titleModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(bottom = 12.dp),
@@ -56,7 +59,7 @@ fun AppHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.weight(1f).semantics { testTag = "${screenTag}_title" },
+            modifier = Modifier.weight(1f).then(titleModifier).semantics { testTag = "${screenTag}_title" },
         )
         actions()
     }

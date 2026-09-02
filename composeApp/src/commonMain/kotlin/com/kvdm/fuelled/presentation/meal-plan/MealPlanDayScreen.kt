@@ -1,5 +1,13 @@
 package com.kvdm.fuelled.presentation.mealplan
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,8 +53,14 @@ import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
 import com.kvdm.fuelled.presentation.components.ScreenColumn
 import com.kvdm.fuelled.presentation.components.Tag
+import com.kvdm.fuelled.presentation.components.TickButton
+import com.kvdm.fuelled.presentation.components.enterRise
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.spring
+import com.kvdm.fuelled.presentation.theme.tween
 
 // ── Meal plan: the structured day (DESIGN DRAFT — feature-design:meal-plan) ──────────────
 // The Body-for-LIFE day as a fixed grid (docs/features/meal-plan.md): six meal containers —
@@ -205,6 +220,8 @@ data class PlanDayActions(
     val onEntryServings: (String, Int) -> Unit = { _, _ -> },
     /** BFL-05: open the meal builder — compose once, plan it across the week. */
     val onBuildMeal: () -> Unit = {},
+    /** PLAN-19 (motion D17): open the retrospective — the week's verdict, from the week itself. */
+    val onOpenReview: () -> Unit = {},
 ) {
     companion object {
         /** Inert actions for gallery renders and golden trees: the structure, without wiring. */
@@ -235,6 +252,15 @@ fun MealPlanDayScreen(
             title = "Meal plan",
             screenTag = "meal_plan",
             actions = {
+                // PLAN-19 (motion D17): "how did last week go" is one thought away from the
+                // week you are planning, so the retrospective gets a door here. Profile's
+                // stats row keeps its own.
+                AppTextButton(
+                    text = "Review",
+                    onClick = actions.onOpenReview,
+                    modifier = Modifier.semantics { testTag = "plan_review" },
+                )
+                Spacer(Modifier.width(8.dp))
                 // BFL-05: the fast path to a planned week sits ON the surface a week is
                 // planned from. Copy-forward repeats a day you already built by hand; this is
                 // how you build it.
@@ -278,6 +304,7 @@ fun MealPlanDayScreen(
             modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),
         ) {
+            // D8: the slot cards rise in a stagger, each water row with the card above it.
             day.meals.forEachIndexed { i, meal ->
                 PlanMealCard(
                     meal = meal,
@@ -287,11 +314,13 @@ fun MealPlanDayScreen(
                     onEntryServings = actions.onEntryServings,
                     expandedEntryId = expandedEntryId,
                     onToggleEntryExpanded = { id -> expandedEntryId = if (expandedEntryId == id) null else id },
+                    modifier = Modifier.enterRise(i),
                 )
                 day.waters.getOrNull(i)?.let { water ->
                     WaterRow(
                         water = water,
                         onToggle = { actions.onToggleWater(water.index, !water.done) },
+                        modifier = Modifier.enterRise(i),
                     )
                 }
             }
@@ -367,18 +396,22 @@ internal fun PlanMealCard(
     // (TODAY-07). One composable, so the two can never drift visually; two tag namespaces, so
     // a test can still say which surface it is asserting on.
     tagPrefix: String = "plan",
+    modifier: Modifier = Modifier,
 ) {
+    val motion = LocalMotion.current
     val borderColor = when (meal.state) {
         PlanSlotState.FOCUSED -> FuelledColors.Primary
         PlanSlotState.FOCUSED_LATE -> FuelledColors.Warning
         else -> null
     }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.surface)
             .let { if (borderColor != null) it.border(1.dp, borderColor, RoundedCornerShape(20.dp)) else it }
+            // ENTRY-03: the card grows and shrinks with its entry editor on `Settle`.
+            .animateContentSize(animationSpec = motion.spring(FuelledMotion.Springs.Settle))
             .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { testTag = "${tagPrefix}_slot_${meal.key}" },
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -410,11 +443,13 @@ internal fun PlanMealCard(
             // A completion you cannot reverse turns a mis-tap into a permanently wrong day,
             // and un-ticking clears only the completion: the entries it logged stay logged,
             // because they were eaten (see MealPlanRepositoryImpl.setSlotDone).
-            AppIconButton(
+            TickButton(
                 icon = Icons.Filled.Check,
+                checked = meal.done,
                 contentDescription = if (meal.done) "Undo ${meal.label} done" else "Mark ${meal.label} done",
                 onClick = onToggleDone,
-                tint = if (meal.done) FuelledColors.Success else MaterialTheme.colorScheme.onSurfaceVariant,
+                checkedTint = FuelledColors.Success,
+                uncheckedTint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.semantics { testTag = "${tagPrefix}_done_${meal.key}" },
             )
             // PLAN-19: a MISSED container keeps its add control — it is back-fillable, not
@@ -479,6 +514,7 @@ private fun PlanEntryRow(
     onServings: (Int) -> Unit,
     tagPrefix: String = "plan",
 ) {
+    val motion = LocalMotion.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -503,7 +539,15 @@ private fun PlanEntryRow(
                 Text("${entry.proteinG}g P", style = MaterialTheme.typography.labelMedium, color = FuelledColors.Protein)
             }
         }
-        if (expanded) {
+        // The editor's nodes are present exactly when it is open (the golden and the tests
+        // read them at rest); the reveal itself is a Standard expand, the close a Quick shrink.
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(motion.tween(FuelledMotion.Duration.Standard, FuelledMotion.Easings.Enter)) +
+                expandVertically(motion.tween(FuelledMotion.Duration.Standard, FuelledMotion.Easings.Enter)),
+            exit = fadeOut(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)) +
+                shrinkVertically(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)),
+        ) {
             // ENTRY-01: the serving is editable WHERE IT IS. Fixing "I actually had two" was
             // delete-and-re-add before this — four taps and a trip to the tray for a number
             // already on screen.
@@ -563,26 +607,35 @@ private fun PlanEntryRow(
  */
 @Composable
 internal fun UndoBar(name: String, onUndo: () -> Unit, tagPrefix: String = "plan") {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .semantics { testTag = "${tagPrefix}_undo" },
-        verticalAlignment = Alignment.CenterVertically,
+    val motion = LocalMotion.current
+    // D8: slides up on `Settle` as it appears. Its content is composed from the first frame
+    // (the target state is already true), so the tree at rest is unchanged.
+    AnimatedVisibility(
+        visibleState = remember { MutableTransitionState(false).apply { targetState = true } },
+        enter = slideInVertically(motion.spring(FuelledMotion.Springs.Settle)) { it } +
+            fadeIn(motion.tween(FuelledMotion.Duration.Standard)),
     ) {
-        Text(
-            text = "Removed $name",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-        )
-        AppTextButton(
-            text = "Undo",
-            onClick = onUndo,
-            modifier = Modifier.semantics { testTag = "${tagPrefix}_undo_action" },
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .semantics { testTag = "${tagPrefix}_undo" },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Removed $name",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            AppTextButton(
+                text = "Undo",
+                onClick = onUndo,
+                modifier = Modifier.semantics { testTag = "${tagPrefix}_undo_action" },
+            )
+        }
     }
 }
 
@@ -592,9 +645,14 @@ internal fun UndoBar(name: String, onUndo: () -> Unit, tagPrefix: String = "plan
  * from the neighbouring meal times (decision 5); the tick is the only interaction.
  */
 @Composable
-internal fun WaterRow(water: PlanWaterUi, onToggle: () -> Unit = {}, tagPrefix: String = "plan") {
+internal fun WaterRow(
+    water: PlanWaterUi,
+    onToggle: () -> Unit = {},
+    tagPrefix: String = "plan",
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(FuelledTokens.RadiusCard))
             .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -612,11 +670,13 @@ internal fun WaterRow(water: PlanWaterUi, onToggle: () -> Unit = {}, tagPrefix: 
         Spacer(Modifier.weight(1f))
         // Tappable in both states, for the same reason the meal tick is: six of these a day
         // means mis-taps, and 0.5 L you did not drink is a lie the day's total would keep.
-        AppIconButton(
+        TickButton(
             icon = Icons.Filled.Check,
+            checked = water.done,
             contentDescription = if (water.done) "Undo water ${water.index}" else "Mark water ${water.index} done",
             onClick = onToggle,
-            tint = if (water.done) FuelledColors.Success else MaterialTheme.colorScheme.onSurfaceVariant,
+            checkedTint = FuelledColors.Info,
+            uncheckedTint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.semantics { testTag = "${tagPrefix}_water_done_${water.index}" },
         )
     }

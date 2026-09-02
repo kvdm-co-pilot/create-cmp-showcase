@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.presentation.components.AnimatedNumber
 import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppHeader
@@ -192,6 +193,9 @@ fun MealTrayScreen(
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard)) {
                     items(foods, key = { it.id }) { food ->
                         TrayFoodRow(
+                            // Motion D8 (Tray): a search narrowing the list slides the rows
+                            // that stay and fades the ones that leave — keyed on the id.
+                            modifier = Modifier.animateItem(),
                             food = food,
                             // The line, when checked — its servings drive the stepper (UX-01).
                             line = tray.lines.firstOrNull { it.food.id == food.id },
@@ -274,12 +278,13 @@ private fun TrayFoodRow(
     line: TrayLine?,
     onToggle: () -> Unit,
     onServingsChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     ListItemCard(
         title = food.name,
         subtitle = "${food.brand} · ${food.serving}",
         onClick = onToggle,
-        modifier = Modifier.semantics { testTag = "meal_tray_item_${food.id}" },
+        modifier = modifier.semantics { testTag = "meal_tray_item_${food.id}" },
         trailing = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -327,12 +332,15 @@ private fun ServingStepper(foodId: String, servings: Int, onServingsChanged: (In
             onClick = { onServingsChanged(servings - 1) },
             modifier = Modifier.semantics { testTag = "meal_tray_minus_$foodId" },
         )
-        Text(
-            text = "${servings}×",
+        // Motion D8 (Tray): the count is an AnimatedNumber — a step counts to the new value
+        // rather than swapping. Under Instant it is the target on frame 0 (MOTION-07).
+        AnimatedNumber(
+            value = servings,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.semantics { testTag = "meal_tray_servings_$foodId" },
+            format = { "${it}×" },
         )
         AppIconButton(
             icon = Icons.Filled.Add,
@@ -379,12 +387,15 @@ private fun TrayTotalBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(
-                    text = "${total.items} ${if (total.items == 1) "item" else "items"} · ${total.kcal} kcal",
+                // Motion D8 (Tray): the total COUNTS as rows are ticked. The item count is
+                // part of the format, so the headline reads exactly as it did.
+                AnimatedNumber(
+                    value = total.kcal,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.semantics { testTag = "meal_tray_total" },
+                    format = { kcal -> "${total.items} ${if (total.items == 1) "item" else "items"} · $kcal kcal" },
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(FuelledTokens.GapCard),

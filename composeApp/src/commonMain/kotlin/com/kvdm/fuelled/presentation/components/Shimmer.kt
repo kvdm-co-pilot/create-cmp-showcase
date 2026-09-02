@@ -1,6 +1,5 @@
 package com.kvdm.fuelled.presentation.components
 
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -22,36 +21,45 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.loops
 
 /**
  * A left-to-right shimmer sweep: an infinite transition driving a linear-gradient brush.
  * Hand-rolled with zero dependencies — Accompanist's `placeholder` artifact is
  * deprecated and Android-only, so no library option exists for this project's
  * commonMain. Apply to any box that stands in for loading content.
+ *
+ * The one permitted loop in the app (motion principle 5), on the `ShimmerSweep` token.
+ * Under Reduced and Instant it does not run: the skeleton is a static block, which is what a
+ * person who asked for less motion asked for, and what a golden tree should never see moving.
  */
 fun Modifier.shimmer(): Modifier = composed {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateX by transition.animateFloat(
-        initialValue = -1000f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "shimmerTranslate",
-    )
-    background(
-        Brush.linearGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.surfaceVariant,
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                MaterialTheme.colorScheme.surfaceVariant,
+    val motion = LocalMotion.current
+    val base = MaterialTheme.colorScheme.surfaceVariant
+    if (!motion.loops) {
+        background(base)
+    } else {
+        val transition = rememberInfiniteTransition(label = "shimmer")
+        val translateX by transition.animateFloat(
+            initialValue = -1000f,
+            targetValue = 1000f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = FuelledMotion.Duration.ShimmerSweep, easing = FuelledMotion.Easings.Linear),
+                repeatMode = RepeatMode.Restart,
             ),
-            start = Offset(translateX, 0f),
-            end = Offset(translateX + 400f, 400f),
-        ),
-    )
+            label = "shimmerTranslate",
+        )
+        background(
+            Brush.linearGradient(
+                colors = listOf(base, base.copy(alpha = 0.4f), base),
+                start = Offset(translateX, 0f),
+                end = Offset(translateX + 400f, 400f),
+            ),
+        )
+    }
 }
 
 /**

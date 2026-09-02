@@ -1,8 +1,20 @@
 package com.kvdm.fuelled.presentation.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalDensity
+import com.kvdm.fuelled.presentation.components.LocalNavAnimatedVisibilityScope
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.moves
+import com.kvdm.fuelled.presentation.theme.tween
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -38,9 +50,27 @@ import com.kvdm.fuelled.presentation.workouts.WorkoutWeekRoute
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val motion = LocalMotion.current
+    val density = LocalDensity.current
+    // Motion D6 (MOTION-04): one transition set for the whole graph, declared here and
+    // inherited by every destination — the same reasoning that put the automation exposure on
+    // the host. A push slides in ScreenSlide from the trailing edge with a fade on
+    // Emphasized/Enter while the outgoing screen fades on Quick/Exit leading by ScreenLead;
+    // a pop mirrors both. Under Reduced the slides are zero and only the fades remain.
+    val slide = with(density) { if (motion.moves) FuelledMotion.ScreenSlide.roundToPx() else 0 }
+    val lead = with(density) { if (motion.moves) FuelledMotion.ScreenLead.roundToPx() else 0 }
+    val pushEnter = fadeIn(motion.tween(FuelledMotion.Duration.Emphasized, FuelledMotion.Easings.Enter)) +
+        slideInHorizontally(motion.tween(FuelledMotion.Duration.Emphasized, FuelledMotion.Easings.Enter)) { slide }
+    val pushExit = fadeOut(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)) +
+        slideOutHorizontally(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)) { -lead }
+    val popEnter = fadeIn(motion.tween(FuelledMotion.Duration.Emphasized, FuelledMotion.Easings.Enter)) +
+        slideInHorizontally(motion.tween(FuelledMotion.Duration.Emphasized, FuelledMotion.Easings.Enter)) { -lead }
+    val popExit = fadeOut(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)) +
+        slideOutHorizontally(motion.tween(FuelledMotion.Duration.Quick, FuelledMotion.Easings.Exit)) { slide }
 
     // The other half of the day-rollover fix, at the app root rather than inside AppShell —
     // the shell is a generic presentation component and must stay constructible without a DI
@@ -84,12 +114,20 @@ fun AppNavHost() {
     // here (food detail, the meal tray) had testTags that no id-selector could see, so Maestro
     // could not assert arrival on them at all. Applied here, a destination added later inherits
     // it without anyone remembering to. Desktop: no-op.
+    // OD5 (FOODS-09): `App` hosts the SharedTransitionLayout (it has to span the intro gate
+    // too, MOTION-13); each destination here publishes its own visibility scope, so a row's
+    // title can travel into the header of the screen it opens.
     NavHost(
         navController = navController,
         startDestination = Screen.Shell.route,
         modifier = Modifier.exposeTestTagsForAutomation(),
+        enterTransition = { pushEnter },
+        exitTransition = { pushExit },
+        popEnterTransition = { popEnter },
+        popExitTransition = { popExit },
     ) {
         composable(Screen.Shell.route) {
+          CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
             // NAV-01: five tabs, and the shell keeps its own selection again. The
             // selectedIndex/onSelectTab hoisting lived here for exactly one caller — Today's
             // supplement highlight moving the user to the Supplements TAB — and NAV-05 turned
@@ -112,6 +150,8 @@ fun AppNavHost() {
                 week = {
                     MealPlanRoute(
                         onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
+                        // PLAN-19 (motion D17): the review, one tap from the week you plan.
+                        onOpenReview = { navController.navigate(Routes.PROGRESS) },
                         onAddToMeal = { d, slot -> navController.navigate(Routes.mealTray(d, slot)) },
                         onOpenTimes = { navController.navigate(Routes.MEAL_TIMES) },
                         // SHELL-05: AppShell already owns this tab's insets.
@@ -123,6 +163,8 @@ fun AppNavHost() {
                         onFoodClick = { navController.navigate(Routes.foodDetail(it.id)) },
                         // CAT-01: the catalog tab's own job — your custom entries.
                         onAddFood = { navController.navigate(Routes.foodEditor()) },
+                        // CAT-04 (motion D15): the builder's door on the tab called Meals.
+                        onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
                     )
                 },
                 // NAV-06: the training week gets a home. The tick stays on Today's card
@@ -139,6 +181,7 @@ fun AppNavHost() {
                 },
             )
             AppShell(tabs = tabs)
+          }
         }
 
         composable(
@@ -146,11 +189,13 @@ fun AppNavHost() {
             arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val foodId = backStackEntry.arguments?.read { getStringOrNull("foodId") }.orEmpty()
-            FoodDetailRoute(
-                foodId = foodId,
-                onBack = { navController.popBackStack() },
-                onEdit = { navController.navigate(Routes.foodEditor(it)) },
-            )
+            CompositionLocalProvider(LocalNavAnimatedVisibilityScope provides this) {
+                FoodDetailRoute(
+                    foodId = foodId,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Routes.foodEditor(it)) },
+                )
+            }
         }
 
         // The add-to-meal tray, ALREADY TARGETED (TODAY-07/TODAY-08). The target rides the
@@ -199,6 +244,7 @@ fun AppNavHost() {
             } else {
                 MealPlanRoute(
                     onBuildMeal = { navController.navigate(Routes.MEAL_BUILDER) },
+                    onOpenReview = { navController.navigate(Routes.PROGRESS) },
                     // PLAN-24: the route's date SEEDS the ViewModel and is never re-applied
                     // — same shape as the tray's target above, and for the same reason.
                     viewModel = koinViewModel { parametersOf(date) },
@@ -256,7 +302,9 @@ fun AppNavHost() {
         // a destination rather than a tab (SHELL-05) — which is exactly what NAV-05 changed.
         composable(Screen.Supplements.route) {
             BaseScreen {
-                SupplementsRoute()
+                // SUPP-14 (motion D16): the stack's editor stays a Settings card; this is its
+                // second door, from the screen that shows the doses it defines.
+                SupplementsRoute(onEditStack = { navController.navigate(Routes.SETTINGS) })
             }
         }
         // UPD-09: the update surface. UpdateRoute owns its insets (SHELL-05).

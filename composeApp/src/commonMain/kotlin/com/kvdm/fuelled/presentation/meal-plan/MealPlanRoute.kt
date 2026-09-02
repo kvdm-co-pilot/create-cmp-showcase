@@ -131,13 +131,15 @@ fun MealPlanRoute(
      * and read as an unrouted feature (caught by the lane, 2026-08-24).
      */
     ownsInsets: Boolean = true,
+    /** PLAN-19 (motion D17): the "Review" door into the retrospective. */
+    onOpenReview: () -> Unit = {},
 ) {
     if (ownsInsets) {
         BaseScreen { MealPlanBody(
-            onAddToMeal, onOpenTimes, viewModel, onBuildMeal,
+            onAddToMeal, onOpenTimes, viewModel, onBuildMeal, onOpenReview,
         ) }
     } else {
-        MealPlanBody(onAddToMeal, onOpenTimes, viewModel, onBuildMeal)
+        MealPlanBody(onAddToMeal, onOpenTimes, viewModel, onBuildMeal, onOpenReview)
     }
 }
 
@@ -152,6 +154,7 @@ private fun MealPlanBody(
     onOpenTimes: () -> Unit,
     viewModel: MealPlanViewModel,
     onBuildMeal: () -> Unit,
+    onOpenReview: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lastDeleted by viewModel.lastDeleted.collectAsStateWithLifecycle()
@@ -180,6 +183,7 @@ private fun MealPlanBody(
                 onCopyForward = { viewModel.copyForward(days = 6) },
                 onOpenTimes = onOpenTimes,
                 onBuildMeal = onBuildMeal,
+                onOpenReview = onOpenReview,
                 // UX-02: the observed state re-derives the day after the delete (RS-01) —
                 // totals, focus, and the veg count follow without a reload.
                 onDeleteEntry = viewModel::deleteEntry,

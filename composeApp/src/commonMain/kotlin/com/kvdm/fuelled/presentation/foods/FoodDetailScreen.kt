@@ -1,5 +1,6 @@
 package com.kvdm.fuelled.presentation.foods
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kvdm.fuelled.domain.model.Food
 import com.kvdm.fuelled.domain.model.MealSlot
+import com.kvdm.fuelled.presentation.components.AnimatedNumber
 import com.kvdm.fuelled.presentation.components.AppButtonDefaults
 import com.kvdm.fuelled.presentation.components.AppIconButton
 import com.kvdm.fuelled.presentation.components.AppTextButton
@@ -44,8 +46,14 @@ import com.kvdm.fuelled.presentation.components.AppHeader
 import com.kvdm.fuelled.presentation.components.AppPrimaryButton
 import com.kvdm.fuelled.presentation.components.BaseScreen
 import com.kvdm.fuelled.presentation.components.ContentStateContainer
+import com.kvdm.fuelled.presentation.components.enterRise
+import com.kvdm.fuelled.presentation.components.sharedTitle
 import com.kvdm.fuelled.presentation.theme.FuelledColors
+import com.kvdm.fuelled.presentation.theme.FuelledMotion
 import com.kvdm.fuelled.presentation.theme.FuelledTokens
+import com.kvdm.fuelled.presentation.theme.LocalMotion
+import com.kvdm.fuelled.presentation.theme.moves
+import com.kvdm.fuelled.presentation.theme.spring
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Food detail: the full nutritional breakdown + log action ─────────────────────────
@@ -140,6 +148,13 @@ private fun FoodDetailContent(
     val fKcal = food.fatG * 9
     val totalMacroKcal = (pKcal + cKcal + fKcal).coerceAtLeast(1)
 
+    // Motion D8 (Meals): the macro bar GROWS from the left on Weighty, once per entry — the
+    // proportions draw themselves rather than appearing. Read through the scheme (MOTION-01):
+    // under Reduced and Instant it starts, and stays, at its full width.
+    val motion = LocalMotion.current
+    val grow = remember { Animatable(if (motion.moves) 0f else 1f) }
+    LaunchedEffect(Unit) { grow.animateTo(1f, motion.spring(FuelledMotion.Springs.Weighty)) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -151,6 +166,8 @@ private fun FoodDetailContent(
             title = food.name,
             screenTag = "food_detail",
             onBack = onBack,
+            // FOODS-09: the same key the row declared — the name travels here on a push.
+            titleModifier = Modifier.sharedTitle("food-title-${food.id}"),
             actions = {
                 // CAT-02: one tap to pin. A favourite leads every list this catalog feeds,
                 // which is the difference between searching for your whey every day and not.
@@ -179,19 +196,20 @@ private fun FoodDetailContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        // Hero calories
+        // Hero calories — the first thing to arrive; the figure counts itself up from 0.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .enterRise(0)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(24.dp),
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = food.kcal.toString(),
+                AnimatedNumber(
+                    value = food.kcal,
                     style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    countFrom = 0,
                 )
                 Text(
                     text = " kcal",
@@ -206,13 +224,17 @@ private fun FoodDetailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(20.dp))
-            // Stacked macro proportion bar
-            Row(
+            // Stacked macro proportion bar. The clip owns the full width; the segments sit in
+            // a row that widens with `grow`, so the bar extends from the left at its final
+            // proportions rather than each segment stretching on its own.
+            Box(
                 modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
             ) {
-                MacroSegment(pKcal, totalMacroKcal, FuelledColors.Protein)
-                MacroSegment(cKcal, totalMacroKcal, FuelledColors.Carbs)
-                MacroSegment(fKcal, totalMacroKcal, FuelledColors.Fat)
+                Row(modifier = Modifier.fillMaxWidth(grow.value).height(10.dp)) {
+                    MacroSegment(pKcal, totalMacroKcal, FuelledColors.Protein)
+                    MacroSegment(cKcal, totalMacroKcal, FuelledColors.Carbs)
+                    MacroSegment(fKcal, totalMacroKcal, FuelledColors.Fat)
+                }
             }
             Spacer(Modifier.height(20.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -226,6 +248,7 @@ private fun FoodDetailContent(
             logState = logState,
             onLogSlot = onLogSlot,
             pickerInitiallyOpen = logPickerInitiallyOpen,
+            modifier = Modifier.enterRise(1),
         )
         Spacer(Modifier.height(8.dp))
     }
@@ -259,10 +282,11 @@ private fun LogAction(
     logState: FoodLogState,
     onLogSlot: (MealSlot) -> Unit,
     pickerInitiallyOpen: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     var pickerOpen by remember { mutableStateOf(pickerInitiallyOpen) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         AppPrimaryButton(
             text = when (logState) {
                 is FoodLogState.Logged -> "Added to ${logState.slot.pickerLabel} ✓"

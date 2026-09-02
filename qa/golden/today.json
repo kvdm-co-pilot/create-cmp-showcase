@@ -1,52 +1,60 @@
 {"children": [
-  {"tag": "today_screen", "children": [
-    {"tag": "brand_mark", "contentDescription": "Fuelled"},
-    {"text": "Fuelled"},
-    {"tag": "today_title", "text": "WEDNESDAY, JUL 22"},
-    {"children": [
-      {"text": "1865"},
-      {"text": "kcal left"},
-      {"text": "Protein"},
-      {"text": "39 / 180g"},
-      {"text": "Carbs"},
-      {"text": "79 / 260g"},
-      {"text": "Fat"},
-      {"text": "9 / 70g"}
-    ]},
-    {"children": [
-      {"text": "PROTEIN"},
-      {"text": "39"},
-      {"text": " / 180 g"},
-      {"text": "141g"},
-      {"text": "to go"}
-    ]},
-    {"tag": "today_up_next", "text": "UP NEXT"},
-    {"tag": "today_water_total", "text": "Water 0.0 / 3.0 L"},
-    {"tag": "today_veg_total", "text": "Veg 0 of 2"},
-    {"tag": "today_slot_lunch", "children": [
-      {"text": "Lunch"},
-      {"text": "12:00"},
-      {"text": "LATE"},
-      {"text": " since 12:00"},
-      {"tag": "today_done_lunch", "role": "Button", "children": [
-        {"role": "Image", "contentDescription": "Mark Lunch done"}
-      ]},
-      {"tag": "today_add_lunch", "role": "Button", "children": [
-        {"text": "Add food"}
-      ]}
-    ]},
-    {"tag": "today_water_1", "children": [
-      {"text": "Water"},
-      {"text": "500 ml · 08:15"},
-      {"tag": "today_water_done_1", "role": "Button", "children": [
-        {"role": "Image", "contentDescription": "Mark water 1 done"}
-      ]}
-    ]},
-    {"tag": "today_workout", "children": [
-      {"tag": "today_workout_label", "text": "Cardio"},
-      {"text": "Today's training"},
-      {"tag": "today_workout_done", "role": "Button", "children": [
+  {"children": [
+    {"tag": "today_screen", "children": [
+      {"tag": "brand_mark", "contentDescription": "Fuelled"},
+      {"text": "Fuelled"},
+      {"tag": "today_title", "text": "WEDNESDAY, JUL 22"},
+      {"children": [
         {"children": [
+          {"text": "1865"},
+          {"text": "kcal left"}
+        ]},
+        {"children": [
+          {"text": "Protein"},
+          {"text": "39 / 180g"}
+        ]},
+        {"children": [
+          {"text": "Carbs"},
+          {"text": "79 / 260g"}
+        ]},
+        {"children": [
+          {"text": "Fat"},
+          {"text": "9 / 70g"}
+        ]}
+      ]},
+      {"children": [
+        {"text": "PROTEIN"},
+        {"text": "39"},
+        {"text": " / 180 g"},
+        {"text": "141g"},
+        {"text": "to go"}
+      ]},
+      {"tag": "today_up_next", "text": "UP NEXT"},
+      {"tag": "today_water_total", "text": "Water 0.0 / 3.0 L"},
+      {"tag": "today_veg_total", "text": "Veg 0 of 2"},
+      {"tag": "today_slot_lunch", "children": [
+        {"text": "Lunch"},
+        {"text": "12:00"},
+        {"text": "LATE"},
+        {"text": " since 12:00"},
+        {"tag": "today_done_lunch", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark Lunch done"}
+        ]},
+        {"tag": "today_add_lunch", "role": "Button", "children": [
+          {"text": "Add food"}
+        ]}
+      ]},
+      {"tag": "today_water_1", "children": [
+        {"text": "Water"},
+        {"text": "500 ml · 08:15"},
+        {"tag": "today_water_done_1", "role": "Button", "children": [
+          {"role": "Image", "contentDescription": "Mark water 1 done"}
+        ]}
+      ]},
+      {"tag": "today_workout", "children": [
+        {"tag": "today_workout_label", "text": "Cardio"},
+        {"text": "Today's training"},
+        {"tag": "today_workout_done", "role": "Button", "children": [
           {"role": "Image", "contentDescription": "Mark done"}
         ]}
       ]}
