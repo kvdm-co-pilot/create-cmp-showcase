@@ -95,7 +95,7 @@ the kind a future contributor would otherwise re-introduce.
 
 ## The ignition (brief D18)
 
-- **MOTION-13** — Given the app comes to the foreground, Then the ignition (`intro_screen`)
+- **MOTION-13** [tier: device] — Given the app comes to the foreground, Then the ignition (`intro_screen`)
   plays: on a cold process start, and on a return to the foreground after the app has been
   away for at least `IntroReplayAfter`. Coming straight back — glancing at a notification,
   answering a message — does NOT replay it, and neither does a configuration change. The

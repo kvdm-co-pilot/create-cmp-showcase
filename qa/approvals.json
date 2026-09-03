@@ -297,13 +297,6 @@
       "acceptedAt": "2026-09-02T16:50:18.946Z"
     },
     {
-      "artifact": "feature-spec:motion",
-      "status": "approved",
-      "hash": "883e75afeae5bba39cd38a4f6047a5102bb99f21a6e5a296d1e596bcf1c61b24",
-      "approvedAt": "2026-09-02T15:51:10.414Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:motion",
       "status": "approved",
       "hash": "981fc6378748c17ce57ba72e04be4a6a68c99beee425ecce7527136779a8b1b9",
@@ -392,6 +385,13 @@
       "status": "approved",
       "hash": "a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86",
       "approvedAt": "2026-09-02T22:34:50.323Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-spec:motion",
+      "status": "approved",
+      "hash": "77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9",
+      "approvedAt": "2026-09-03T09:50:18.328Z",
       "via": "cli"
     }
   ],

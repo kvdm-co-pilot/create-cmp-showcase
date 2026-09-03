@@ -5,39 +5,24 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "a736ea8c7532fc9a8773f10007fd28d7bcbadc1c",
+    "sha": "0322ffaa13fc81613b02291edfc645964661bf7c",
     "dirty": [
-      ".gitignore",
-      "CLAUDE.md",
-      "qa/approve.mjs",
-      "qa/harness-local.patch",
-      "qa/harness.lock.json",
-      "qa/lib/approvals.mjs",
-      "qa/lib/evidence-level.mjs",
-      "qa/lib/flight-recorder.mjs",
-      "qa/lib/inputs-hash.mjs",
-      "qa/lib/lane-narrator.mjs",
-      "qa/lib/lane-runner.mjs",
-      "qa/lib/plan.mjs",
-      "qa/lib/receipt-validate.mjs",
-      "qa/lib/spec-coverage.mjs",
-      "qa/lib/step-cache.mjs",
-      "qa/lib/step-outcomes.mjs",
-      "qa/lib/steps-cmp.mjs",
-      "qa/lib/walk.mjs",
-      "qa/receipt-check.mjs",
-      "qa/verify.mjs",
-      "specs/README.md"
+      "composeApp/src/androidInstrumentedTest/kotlin/com/kvdm/fuelled/IgnitionLifecycleTest.kt",
+      "qa/approvals.json",
+      "qa/approvals.log.jsonl",
+      "qa/evidence/latest.json",
+      "qa/flight-recorder.jsonl",
+      "specs/motion.spec.md"
     ]
   },
   "inputs": {
-    "hash": "6e1b0a095c23667a997b614acde3029307518972cfcb27ac48770ebcc5242e47",
-    "fileCount": 485
+    "hash": "7794037c3fd450ee665b867442ca9baa117d6f69add9c99146d6c1515043e303",
+    "fileCount": 486
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 5,
+      "durationMs": 16,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -55,19 +40,19 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 36,
+      "durationMs": 113,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
-        "tags": 432,
-        "files": 331,
-        "tierNote": "188 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-13, MOTION-15, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
+        "tags": 434,
+        "files": 332,
+        "tierNote": "187 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-15, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       }
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 24,
+      "durationMs": 48,
       "details": {
         "artifacts": [
           {
@@ -273,7 +258,7 @@
           {
             "id": "feature-spec:motion",
             "status": "approved",
-            "hash": "883e75afeae5bba39cd38a4f6047a5102bb99f21a6e5a296d1e596bcf1c61b24"
+            "hash": "77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9"
           },
           {
             "id": "feature-spec:navigation-ia",
@@ -331,7 +316,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 10,
       "details": {
         "components": 22,
         "stories": 22,
@@ -342,7 +327,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 42,
       "details": {
         "features": [
           {
@@ -463,7 +448,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 61,
       "details": {
         "sectionsChecked": 4
       }
@@ -471,7 +456,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 67,
+      "durationMs": 172,
       "details": {
         "schemaDirs": 3
       }
@@ -479,12 +464,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 26400
+      "durationMs": 2380
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 15638,
+      "durationMs": 12105,
       "details": {
         "tests": 395,
         "failures": 0,
@@ -495,28 +480,28 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 4460
+      "durationMs": 2906
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 5100
+      "durationMs": 3745
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 134
+      "durationMs": 23
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 4471
+      "durationMs": 3125
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 3683
+      "durationMs": 3003
     },
     {
       "name": "e2eSmoke",
@@ -528,7 +513,7 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 29
+      "durationMs": 21
     }
   ],
   "harness": {
@@ -564,5 +549,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-03T09:28:05.706Z"
+  "generatedAt": "2026-09-03T09:50:46.779Z"
 }

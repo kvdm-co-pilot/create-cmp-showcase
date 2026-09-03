@@ -237,3 +237,4 @@
 {"at":"2026-09-02T16:50:18.956Z","verb":"accept","artifact":"feature-brief:motion","via":"cli"}
 {"at":"2026-09-02T22:34:50.242Z","verb":"approve","artifact":"components","hash":"9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d","via":"cli"}
 {"at":"2026-09-02T22:34:50.325Z","verb":"approve","artifact":"feature-design:workouts","hash":"a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86","via":"cli"}
+{"at":"2026-09-03T09:50:18.332Z","verb":"approve","artifact":"feature-spec:motion","hash":"77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9","via":"cli"}
