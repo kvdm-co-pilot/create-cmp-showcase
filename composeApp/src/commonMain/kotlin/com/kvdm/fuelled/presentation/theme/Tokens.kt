@@ -17,7 +17,7 @@ object FuelledTokens {
     val PaddingCard = 16.dp
     val GapCard     = 12.dp
 
-    val BottomNavHeight = 72.dp
+    val BottomNavHeight = 80.dp
 
     val RadiusCard  = 16.dp
     val RadiusPill  = 999.dp

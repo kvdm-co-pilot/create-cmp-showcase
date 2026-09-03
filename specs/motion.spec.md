@@ -44,10 +44,14 @@ judged on the dev-client; only its wiring is promised here.
   trailing edge with a fade; the outgoing screen fades leading by `ScreenLead`; a pop mirrors
   both; under `Reduced` the slide distances are zero.
 - **MOTION-05** — Given the bottom bar renders, Then the selected item reports `selected`
-  to assistive tech and only it does, the indicator pill is DRAWN behind the row (never a
-  semantics node, so `app_bottom_nav`'s children stay exactly the `nav_<slug>` items), and
-  selecting another item moves the pill to it on `Settle` while the shell fades the tab
-  content through (`Quick` out, `Standard` in from `TabScale`).
+  to assistive tech and only it does; the indicator pill is DRAWN, never composed, so it
+  contributes no semantics node and the only TAGGED descendants of `app_bottom_nav` are the
+  `nav_<slug>` items; and selecting another item moves the pill to it on `Settle` while the
+  shell fades the tab content through (`Quick` out, `Standard` in from `TabScale`).
+  The bar is M3's `NavigationBar`, which groups its items in a `selectableGroup()` — that
+  node is the platform's own structure for a mutually-exclusive tab set, so the clause is
+  written about tagged descendants rather than direct children. It said "children" while the
+  bar was hand-rolled, which made an accessibility improvement look like a regression.
 
 ## The primitives (brief D4)
 

@@ -5,9 +5,16 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "0322ffaa13fc81613b02291edfc645964661bf7c",
+    "sha": "651096a5b2c7a30880ef92e430ce56af5d03e505",
     "dirty": [
-      "composeApp/src/androidInstrumentedTest/kotlin/com/kvdm/fuelled/IgnitionLifecycleTest.kt",
+      "README.md",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ListItemCard.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Shape.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Theme.kt",
+      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Tokens.kt",
+      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/components/MotionPrimitivesTest.kt",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
       "qa/evidence/latest.json",
@@ -16,13 +23,13 @@
     ]
   },
   "inputs": {
-    "hash": "7794037c3fd450ee665b867442ca9baa117d6f69add9c99146d6c1515043e303",
+    "hash": "6200c87257267e2aafe5ac03dde4435d1a235bc8ad9591281e123efb42e4cbf3",
     "fileCount": 486
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 16,
+      "durationMs": 6,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
@@ -40,7 +47,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 113,
+      "durationMs": 35,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
@@ -52,7 +59,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 48,
+      "durationMs": 24,
       "details": {
         "artifacts": [
           {
@@ -168,12 +175,12 @@
           {
             "id": "design-system",
             "status": "approved",
-            "hash": "d8fbdce8b89a2fba836e84f4eda2975b339133f8865617d325a91b43ad4b5dfe"
+            "hash": "44bf599a87478230f5349db1be335dd9febbc5035b78b632ac10e198880c1f7f"
           },
           {
             "id": "components",
             "status": "approved",
-            "hash": "9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d"
+            "hash": "ee9cc5044eb6f3eda9b0cbfd2542d16930a800e6ec2fc86960a9938e39e81818"
           },
           {
             "id": "feature-design:app-updates",
@@ -258,7 +265,7 @@
           {
             "id": "feature-spec:motion",
             "status": "approved",
-            "hash": "77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9"
+            "hash": "6d5739dc67067eb3dc49b86bb222ee88d7c72064700938bce1fe14781bd2301b"
           },
           {
             "id": "feature-spec:navigation-ia",
@@ -316,7 +323,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 10,
+      "durationMs": 3,
       "details": {
         "components": 22,
         "stories": 22,
@@ -327,7 +334,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 42,
+      "durationMs": 15,
       "details": {
         "features": [
           {
@@ -448,7 +455,7 @@
     {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 61,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       }
@@ -456,7 +463,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 172,
+      "durationMs": 60,
       "details": {
         "schemaDirs": 3
       }
@@ -464,12 +471,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 2380
+      "durationMs": 1942
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 12105,
+      "durationMs": 12241,
       "details": {
         "tests": 395,
         "failures": 0,
@@ -480,28 +487,28 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2906
+      "durationMs": 2595
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3745
+      "durationMs": 3579
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 23
+      "durationMs": 24
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3125
+      "durationMs": 3272
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 3003
+      "durationMs": 256986
     },
     {
       "name": "e2eSmoke",
@@ -513,7 +520,7 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 21
+      "durationMs": 23
     }
   ],
   "harness": {
@@ -549,5 +556,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-03T09:50:46.779Z"
+  "generatedAt": "2026-09-03T10:56:08.563Z"
 }

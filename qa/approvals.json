@@ -311,13 +311,6 @@
       "via": "cli"
     },
     {
-      "artifact": "design-system",
-      "status": "approved",
-      "hash": "d8fbdce8b89a2fba836e84f4eda2975b339133f8865617d325a91b43ad4b5dfe",
-      "approvedAt": "2026-09-02T15:51:49.960Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:app-updates",
       "status": "approved",
       "hash": "44d84fa0bfbfd71a6220a3d96a446ff47ef7a49129e65f2a42cf04226199260d",
@@ -374,13 +367,6 @@
       "via": "cli"
     },
     {
-      "artifact": "components",
-      "status": "approved",
-      "hash": "9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d",
-      "approvedAt": "2026-09-02T22:34:50.240Z",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-design:workouts",
       "status": "approved",
       "hash": "a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86",
@@ -388,10 +374,24 @@
       "via": "cli"
     },
     {
+      "artifact": "design-system",
+      "status": "approved",
+      "hash": "44bf599a87478230f5349db1be335dd9febbc5035b78b632ac10e198880c1f7f",
+      "approvedAt": "2026-09-03T10:40:37.596Z",
+      "via": "cli"
+    },
+    {
       "artifact": "feature-spec:motion",
       "status": "approved",
-      "hash": "77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9",
-      "approvedAt": "2026-09-03T09:50:18.328Z",
+      "hash": "6d5739dc67067eb3dc49b86bb222ee88d7c72064700938bce1fe14781bd2301b",
+      "approvedAt": "2026-09-03T10:40:37.754Z",
+      "via": "cli"
+    },
+    {
+      "artifact": "components",
+      "status": "approved",
+      "hash": "ee9cc5044eb6f3eda9b0cbfd2542d16930a800e6ec2fc86960a9938e39e81818",
+      "approvedAt": "2026-09-03T10:51:27.310Z",
       "via": "cli"
     }
   ],

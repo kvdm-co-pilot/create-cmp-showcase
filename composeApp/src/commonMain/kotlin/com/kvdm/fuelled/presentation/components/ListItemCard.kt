@@ -52,7 +52,7 @@ fun ListItemCard(
                     "radius" to "${FuelledTokens.RadiusCard.value.toInt()}dp",
                     "elevation" to "${FuelledTokens.ElevationCard.value.toInt()}dp",
                     "padding" to "${FuelledTokens.PaddingCard.value.toInt()}dp",
-                    "color" to "#FFFFFFFF",
+                    "color" to "#FF121614",
                 ),
             )
             .clickable(onClick = onClick),

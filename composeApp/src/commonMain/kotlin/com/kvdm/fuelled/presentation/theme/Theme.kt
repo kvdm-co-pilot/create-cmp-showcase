@@ -46,6 +46,12 @@ object FuelledColors {
 
     val OnSurface        = Color(0xFFF3F6F4)
     val OnSurfaceVariant = Color(0xFFA7B2AC)
+    // The bottom bar's selected-tab pill: lime composited onto Surface at 35%, stored
+    // OPAQUE. At the 14% it used to be drawn at, it read 1.44:1 against the bar — a smudge,
+    // not a pill. This lands at 2.9:1 against the bar while the lime icon still reads
+    // 5.3:1 on it, which is M3's secondaryContainer / onSecondaryContainer relationship.
+    val NavIndicator     = Color(0xFF4C6822)
+
     val Outline          = Color(0xFF333B37)
     val OutlineVariant   = Color(0xFF232A26)
     val Divider          = Color(0xFF232A26)

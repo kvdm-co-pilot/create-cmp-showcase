@@ -238,3 +238,8 @@
 {"at":"2026-09-02T22:34:50.242Z","verb":"approve","artifact":"components","hash":"9ccc385b69bf0bc77ba0882f0846db5bb594f6fcb56fb779b4f6209f1a7c8f6d","via":"cli"}
 {"at":"2026-09-02T22:34:50.325Z","verb":"approve","artifact":"feature-design:workouts","hash":"a7c15b397bc58fd65c5167974391b03fc97d4a9ff2fce2b2085aaec962116d86","via":"cli"}
 {"at":"2026-09-03T09:50:18.332Z","verb":"approve","artifact":"feature-spec:motion","hash":"77b53411bd937cc4b8fde77a64950ceeccd4f879833f90dbec0f3457d7a464a9","via":"cli"}
+{"at":"2026-09-03T10:38:51.050Z","verb":"reopen","artifact":"feature-spec:motion","reason":"MOTION-05 promised app_bottom_nav's children are exactly the nav items. That was over-specified to the hand-rolled bar: M3's NavigationBar wraps its items in a selectableGroup(), which is the correct a11y structure for a mutually-exclusive tab set. The promise the clause actually cares about — the indicator adds no semantics node — still holds. Rewording to say that, and to require the nav items be the only TAGGED descendants. Karel's call to adopt M3, 2026-09-03.","via":"cli"}
+{"at":"2026-09-03T10:40:37.597Z","verb":"approve","artifact":"design-system","hash":"44bf599a87478230f5349db1be335dd9febbc5035b78b632ac10e198880c1f7f","via":"cli"}
+{"at":"2026-09-03T10:40:37.678Z","verb":"approve","artifact":"components","hash":"fbd51cc4a907de5bbcdd5046c1eb1ae6638c2430c010171bc61905009f2f4125","via":"cli"}
+{"at":"2026-09-03T10:40:37.755Z","verb":"approve","artifact":"feature-spec:motion","hash":"6d5739dc67067eb3dc49b86bb222ee88d7c72064700938bce1fe14781bd2301b","via":"cli"}
+{"at":"2026-09-03T10:51:27.311Z","verb":"approve","artifact":"components","hash":"ee9cc5044eb6f3eda9b0cbfd2542d16930a800e6ec2fc86960a9938e39e81818","via":"cli"}

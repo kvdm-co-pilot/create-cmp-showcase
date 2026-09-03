@@ -108,20 +108,24 @@ fun componentStories(): List<ScreenPreview> = listOf(
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     },
-    variantsStory("component.nav-item", "NavItem") {
-        NavItem(label = "Selected", selected = true, onClick = {}) {
+    story("component.nav-item", "NavItem") {
+        // NavItem is a RowScope member (M3's NavigationBarItem is), so the story supplies
+        // the bar that scopes it — rendered as the app renders it, not in a vacuum.
+        androidx.compose.material3.NavigationBar(containerColor = FuelledColors.Surface) {
+        NavItem(scope = this, label = "Selected", selected = true, onClick = {}) {
             Icon(
                 Icons.Filled.Home,
                 contentDescription = "Selected",
                 tint = FuelledColors.Primary,
             )
         }
-        NavItem(label = "Unselected", selected = false, onClick = {}) {
+        NavItem(scope = this, label = "Unselected", selected = false, onClick = {}) {
             Icon(
                 Icons.Filled.Person,
                 contentDescription = "Unselected",
                 tint = FuelledColors.OnSurfaceVariant,
             )
+        }
         }
     },
     // Buttons.

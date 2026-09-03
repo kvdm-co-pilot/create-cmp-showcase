@@ -100,8 +100,19 @@ class MotionPrimitivesTest {
         awaitNode(hasTestTag("nav_today"))
         onNodeWithTag("nav_today").assertIsSelected()
         onNodeWithTag("nav_week").assertIsNotSelected()
-        // The pill is drawn, never composed: the bar's children are exactly the items.
-        onNodeWithTag("app_bottom_nav").onChildren().assertCountEquals(3)
+        // The pill is drawn, never composed, so it contributes no semantics node: the only
+        // TAGGED descendants of the bar are the three items. M3's NavigationBar groups them
+        // in a selectableGroup() — the platform's structure for a mutually-exclusive tab
+        // set — so this asserts on tagged descendants, not direct children (MOTION-05).
+        val bar = onNodeWithTag("app_bottom_nav", useUnmergedTree = true).fetchSemanticsNode()
+        val tagged = mutableListOf<String>()
+        fun walk(n: androidx.compose.ui.semantics.SemanticsNode) {
+            val t = n.config.getOrNull(SemanticsProperties.TestTag)
+            if (t != null && t != "app_bottom_nav") tagged += t
+            n.children.forEach(::walk)
+        }
+        walk(bar)
+        assertEquals(listOf("nav_today", "nav_week", "nav_meals"), tagged, "only the items carry tags")
         onNodeWithTag("nav_week").performClick()
         awaitNode(hasTestTag("nav_week") and SemanticsMatcher.expectValue(SemanticsProperties.Selected, true))
         onNodeWithTag("nav_week").assertIsSelected()
