@@ -12,6 +12,9 @@ import kotlin.test.fail
  */
 class MotionConformanceTest {
 
+    /** "/" + "*" — see the NOTE at its use site. */
+    private val BLOCK_OPEN = "/" + "*"
+
     private val commonMain = File("src/commonMain/kotlin")
 
     private fun sources(root: File): List<File> =
@@ -23,7 +26,13 @@ class MotionConformanceTest {
         file.readLines()
             .filterNot {
                 val t = it.trimStart()
-                t.startsWith("//") || t.startsWith("*") || t.startsWith("/*")
+            // NOTE: the two-character sequences that open and close a block comment are
+            // built rather than written as literals. The lane's citation scanner counts
+            // those pairs without skipping string literals, so a written "/" + "*" here
+            // makes it believe a block comment opened and silently drops every `// SPEC:`
+            // tag below it in this file (it dropped all four, 2026-09-03). Reported
+            // upstream; this keeps the file's citations visible meanwhile.
+                t.startsWith("//") || t.startsWith("*") || t.startsWith(BLOCK_OPEN)
             }
             .map { it.replace(trailingLineComment, "") }
 

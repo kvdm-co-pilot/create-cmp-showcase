@@ -45,6 +45,51 @@ export function readReceipt(root, relPath = RECEIPT_REL_PATH) {
  *   FAIL verdict), so callers don't pay for a hash they don't need.
  * @returns {{valid: boolean, reason: string, profile: (string|undefined), recomputed?: {hash: string, fileCount: number}}}
  */
+/**
+ * Does this receipt's own row-level evidence support its PASS?
+ *
+ * The receipt is necessarily excluded from the inputs hash it carries — a file
+ * cannot hash itself — so steps[] is the only thing between this gate and a text
+ * editor, and the top-level verdict is the most editable field on it.
+ *
+ * Two failures this catches, both observed downstream (payment-blueprint F2/F3):
+ * a receipt whose verdict was hand-edited from FAIL to PASS while its rows still
+ * said otherwise, and a lane made green by DELETING harness.lock.json, which
+ * downgraded harnessIntegrity from FAIL to SKIP and took the lane's verdict with
+ * it — a lane vouching for a tree with nothing vouching for the lane.
+ *
+ * @param {{verdict?: string, steps?: Array<{name?: string, verdict?: string}>}} receipt
+ * @returns {{ok: boolean, detail: string}}
+ */
+export function checkLaneVouching(receipt) {
+  const steps = Array.isArray(receipt?.steps) ? receipt.steps : null;
+  if (!steps || steps.length === 0) {
+    return { ok: false, detail: "receipt lists no verify-lane steps — a PASS over nothing attests nothing" };
+  }
+  const failed = steps.filter((s) => s && (s.verdict === "FAIL" || s.verdict === "ERROR"));
+  if (failed.length > 0) {
+    const names = failed.map((s) => `${s.name ?? "?"} (${s.verdict})`).join(", ");
+    return {
+      ok: false,
+      detail: `the receipt's verdict is PASS but ${failed.length} step(s) did not pass: ${names} — the row is the more specific truth`,
+    };
+  }
+  const integrity = steps.find((s) => s && s.name === "harnessIntegrity");
+  if (!integrity) {
+    return {
+      ok: false,
+      detail: "receipt has no harnessIntegrity row — nothing vouches that the lane's own code is the code that ran",
+    };
+  }
+  if (integrity.verdict !== "PASS") {
+    return {
+      ok: false,
+      detail: `harnessIntegrity is ${integrity.verdict}, not PASS — the lane did not vouch for itself, so its PASS over the tree cannot be trusted`,
+    };
+  }
+  return { ok: true, detail: "lane vouched for itself (harnessIntegrity PASS, no failing rows)" };
+}
+
 export function evaluateReceipt(receipt, recompute) {
   const profile = receipt.profile;
 
@@ -81,6 +126,13 @@ export function evaluateReceipt(receipt, recompute) {
       reason: `receipt verdict is "${receipt.verdict}", not PASS (attesting profile: ${profile ?? "unknown"})`,
       profile,
     };
+  }
+
+  // Did the lane vouch for ITSELF? See checkLaneVouching — the top-level verdict
+  // is the most editable field on a file the hash cannot cover.
+  const vouching = checkLaneVouching(receipt);
+  if (!vouching.ok) {
+    return { valid: false, reason: `${vouching.detail} (attesting profile: ${profile ?? "unknown"})`, profile, recomputed };
   }
 
   return { valid: true, reason: `receipt is valid — PASS, attesting profile: ${profile ?? "unknown"}`, profile, recomputed };

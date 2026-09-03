@@ -134,7 +134,13 @@ function refuseIfUnresolvable() {
 
 if (args.includes("--accept-defaults")) {
   refuseIfUnresolvable();
-  const { approved, skipped } = approveAllDefaults(ROOT);
+  const expressAsIdx = args.indexOf("--as");
+  const expressSigner = expressAsIdx >= 0 ? args[expressAsIdx + 1] : undefined;
+  if (!expressSigner || expressSigner.startsWith("--")) {
+    console.error('--accept-defaults needs a signer: node qa/approve.mjs --accept-defaults --as "Your Name <you@example.com>"');
+    process.exit(1);
+  }
+  const { approved, skipped } = approveAllDefaults(ROOT, expressSigner);
   for (const id of approved) {
     console.log(`✓ approved ${id} [defaults-accepted]`);
   }
@@ -246,7 +252,22 @@ if (args.length === 0) {
 refuseIfUnresolvable();
 
 const artifactId = args[0];
-const result = approveArtifact(ROOT, artifactId, { via: "cli" });
+// The signer is REQUIRED, not optional: see approveArtifact's refusal. Parsed
+// here rather than defaulted from git config on purpose — `git config user.name`
+// is whatever the machine says, and an agent running on a developer's laptop
+// would sign with that developer's name. An approval must be typed by whoever
+// is answerable for it.
+const asIndex = args.indexOf("--as");
+const approvedBy = asIndex >= 0 ? args[asIndex + 1] : undefined;
+if (!approvedBy || approvedBy.startsWith("--")) {
+  console.error(
+    'approve needs a signer: node qa/approve.mjs <artifact> --as "Your Name <you@example.com>"\n' +
+      "An approval is a signature on a hash; a row that records no signer cannot tell a human's\n" +
+      "sign-off from an agent's.",
+  );
+  process.exit(1);
+}
+const result = approveArtifact(ROOT, artifactId, { via: "cli", approvedBy });
 if (!result.ok) {
   console.error(`error: ${result.reason}`);
   process.exit(1);

@@ -18,6 +18,9 @@ import kotlin.test.fail
  */
 class ArchitectureConformanceTest {
 
+    /** "/" + "*" — see the NOTE at its use site. */
+    private val BLOCK_OPEN = "/" + "*"
+
     private val commonMain = File("src/commonMain/kotlin")
     private val commonTest = File("src/commonTest/kotlin")
 
@@ -42,7 +45,13 @@ class ArchitectureConformanceTest {
         file.readLines()
             .filterNot {
                 val t = it.trimStart()
-                t.startsWith("//") || t.startsWith("*") || t.startsWith("/*")
+            // NOTE: the two-character sequences that open and close a block comment are
+            // built rather than written as literals. The lane's citation scanner counts
+            // those pairs without skipping string literals, so a written "/" + "*" here
+            // makes it believe a block comment opened and silently drops every `// SPEC:`
+            // tag below it in this file (it dropped all four, 2026-09-03). Reported
+            // upstream; this keeps the file's citations visible meanwhile.
+                t.startsWith("//") || t.startsWith("*") || t.startsWith(BLOCK_OPEN)
             }
             .map { it.replace(trailingLineComment, "") }
 
@@ -119,7 +128,6 @@ class ArchitectureConformanceTest {
         )
     }
 
-    // SPEC: ARCH-04
     // Component-derived tags (component-system-deep-dive.md §6.4) count as tag provenance:
     // a screen built entirely from registry components (ScreenColumn/AppHeader/
     // ContentStateContainer/…) is automation-reachable through the tags THOSE components
@@ -138,6 +146,7 @@ class ArchitectureConformanceTest {
         return text.contains("testTag") || (importsComponents && screenTagArgument.containsMatchIn(text))
     }
 
+    // SPEC: ARCH-04
     @Test
     fun `ARCH-04 every feature composable file is automation-reachable - literal testTag or screenTag provenance`() {
         // Scoped by CONTENT (contains @Composable), not by *Screen.kt filename: real apps

@@ -1177,6 +1177,15 @@ const stepsForProfile = {
   // scaffold: what `create-cmp --verify` proves at stamp time — specCoverage,
   // the full JVM tier (unit + conformance + golden + UI tests) plus the Android build.
   scaffold: [stepHarnessIntegrity, stepSpecCoverageMemo, stepApprovalsMemo, stepComponentStoriesMemo, stepReachabilityMemo, stepArchDocMemo, stepSchemaHistory, stepBuild, stepUnitTests],
+  // smoke (docs/GATE-RULES.md Rule 0, docs/PRINCIPLES.md #2): the smallest
+  // end-to-end lane — every pure-Node step through the REAL runner, marker,
+  // receipt and journal, and NO Gradle, no device, no network. Its job is to
+  // prove the framework RETURNS, fast, in both directions, before any real
+  // work is pointed at it. scripts/framework-check.mjs drives it: PASS on a
+  // fresh scaffold, then FAIL BY NAME on one planted spec edit, each bounded
+  // in seconds. Its receipt is refused as done-evidence (qa/receipt-check.mjs)
+  // exactly like --fast: it proves the instrument, never the change.
+  smoke: [stepHarnessIntegrity, stepSpecCoverageMemo, stepApprovalsMemo, stepComponentStoriesMemo, stepReachabilityMemo, stepArchDocMemo, stepSchemaHistory],
   local: [
     // First, always: every verdict below is only worth what the lane issuing
     // it is worth.

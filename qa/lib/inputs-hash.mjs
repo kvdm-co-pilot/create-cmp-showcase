@@ -17,8 +17,19 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-// Directories / files INCLUDED in the verified surface (relative to project ROOT).
+// Directories / files included in the verified surface (relative to project ROOT).
 // Principle: every tracked file whose content can change the lane's verdict.
+//
+// THIS IS A DEFAULT, NOT A LAW (evidence-economics S8, 2026-09-03). It is the
+// surface of a Compose Multiplatform app, and it used to be hardcoded inside
+// this module — which is the SPINE, shared by every adopter. A repo whose code
+// lives in services/ or src/ that vendored this file had its verified surface
+// silently shrink to whatever happened to match: no error, no failed step, a
+// receipt that still validated and still looked identical, and a hash that had
+// quietly stopped covering the application. A gate that attests less while
+// looking the same is the worst failure this harness can have, so the surface
+// is now resolved per project (see resolveVerifiedSurface) and an empty one is
+// refused rather than hashed.
 export const VERIFIED_SURFACE = [
   "composeApp",
   "specs",
@@ -147,9 +158,52 @@ function walkAllFiles(dir) {
   return out;
 }
 
+/** Where a project may declare its own verified surface (see resolveVerifiedSurface). */
+export const SURFACE_CONFIG_REL = "qa/verified-surface.json";
+
+/**
+ * The surface THIS project attests — its own declaration when it has one, the
+ * Compose Multiplatform default otherwise.
+ *
+ * Read from a file rather than passed as an argument on purpose: qa/verify.mjs
+ * (which writes inputs.hash) and qa/receipt-check.mjs (which recomputes it)
+ * must never disagree about what was hashed, and two call sites taking a
+ * parameter is two places to get it wrong. The file lives under qa/, so it is
+ * itself inside the surface — changing the definition invalidates receipts,
+ * which is correct: the tree's coverage changed.
+ *
+ * Shape: {"surface": ["services", "docs", "build-logic", ".github", "qa"]}.
+ * Malformed or empty content is REFUSED, never silently defaulted — a project
+ * that tried to declare a surface and failed must not fall back to a smaller
+ * one behind the operator's back.
+ *
+ * @param {string} root project root
+ * @returns {string[]} surface entries, relative to root
+ */
+export function resolveVerifiedSurface(root) {
+  const p = path.join(root, SURFACE_CONFIG_REL);
+  let raw;
+  try {
+    raw = fs.readFileSync(p, "utf8");
+  } catch {
+    return VERIFIED_SURFACE; // no declaration — the CMP default, unchanged
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`${SURFACE_CONFIG_REL} is not valid JSON (${err.message}) — refusing to hash a surface this project failed to declare.`);
+  }
+  const list = parsed && Array.isArray(parsed.surface) ? parsed.surface.filter((x) => typeof x === "string" && x.trim() !== "") : null;
+  if (!list || list.length === 0) {
+    throw new Error(`${SURFACE_CONFIG_REL} declares no surface — expected {"surface": ["dir", …]}. Refusing to hash nothing.`);
+  }
+  return list;
+}
+
 // Resolve the verified surface to a flat, sorted list of paths (relative to
 // root, POSIX-style `/` separators) that currently exist on disk.
-function resolveSurfaceFiles(root) {
+function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
   const gitFiles = tryGitLsFiles(root);
 
   if (gitFiles) {
@@ -189,7 +243,20 @@ export function computeInputsHash(root) {
   // on iteration order, and ICU collation varies with the machine's locale
   // (e.g. a da_DK machine orders "aa" after "z"; en orders case-insensitively
   // where code units do not) — the same tree must hash identically everywhere.
-  const files = [...new Set(resolveSurfaceFiles(root))].sort();
+  const surface = resolveVerifiedSurface(root);
+  const files = [...new Set(resolveSurfaceFiles(root, surface))].sort();
+
+  // A surface that matches NOTHING is a misconfiguration, not a valid hash.
+  // Hashing zero files yields a stable, confident-looking digest that attests
+  // the empty set — the silent shrink this whole change exists to prevent, in
+  // its most extreme form. Refuse, and name what was looked for.
+  if (files.length === 0) {
+    throw new Error(
+      `the verified surface matched no files under ${root} — nothing would be attested. ` +
+        `Surface: ${surface.join(", ")}. ` +
+        `A project whose code lives elsewhere declares its own in ${SURFACE_CONFIG_REL}: {"surface": ["services", "qa", …]}.`,
+    );
+  }
 
   const overall = createHash("sha256");
   for (const relPath of files) {

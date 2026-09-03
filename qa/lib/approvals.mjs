@@ -781,6 +781,7 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
       hash: recomputed.hash,
       storedHash: storedRecord.hash ?? null,
       approvedAt: storedRecord.approvedAt ?? null,
+      approvedBy: storedRecord.approvedBy ?? null,
       fileCount: recomputed.fileCount,
       missing: recomputed.missing,
       resolvable,
@@ -801,6 +802,7 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
       hash: recomputed.hash,
       storedHash: null,
       approvedAt: null,
+      approvedBy: null,
       fileCount: recomputed.fileCount,
       missing: recomputed.missing,
       resolvable,
@@ -834,6 +836,10 @@ export function resolveArtifactStatus(root, artifact, storedRecord) {
     hash: recomputed.hash,
     storedHash: storedRecord.hash,
     approvedAt: storedRecord.approvedAt,
+    // WHO signed. Null on rows written before signers were recorded; the gate
+    // treats a signed-by-nobody approval as FAIL, because that row cannot tell
+    // a human's sign-off from an agent's.
+    approvedBy: storedRecord.approvedBy ?? null,
     fileCount: recomputed.fileCount,
     missing: recomputed.missing,
     resolvable,
@@ -920,7 +926,23 @@ export function approveArtifact(root, artifactId, options = {}) {
   const state = loadApprovals(root);
   const others = state.artifacts.filter((a) => a.artifact !== artifactId);
   const approvedAt = new Date().toISOString();
-  const record = { artifact: artifactId, status: "approved", hash: resolved.hash, approvedAt };
+  if (!options.approvedBy || !String(options.approvedBy).trim()) {
+    return {
+      ok: false,
+      reason:
+        `cannot approve "${artifactId}" — no signer was given. An approval is a person's ` +
+        "signature on a hash; a row that records no signer cannot distinguish a human's sign-off " +
+        "from an agent's, and an agent that invalidates an approval can clear it by re-approving. " +
+        "Pass the signer: `node qa/approve.mjs <artifact> --as \"Name <email>\"`.",
+    };
+  }
+  const record = {
+    artifact: artifactId,
+    status: "approved",
+    hash: resolved.hash,
+    approvedAt,
+    approvedBy: String(options.approvedBy).trim(),
+  };
   if (options.mode) record.mode = options.mode;
   if (options.via) record.via = options.via;
   others.push(record);
@@ -929,10 +951,11 @@ export function approveArtifact(root, artifactId, options = {}) {
     verb: "approve",
     artifact: artifactId,
     hash: resolved.hash,
+    approvedBy: String(options.approvedBy).trim(),
     ...(options.via ? { via: options.via } : {}),
     ...(options.mode ? { mode: options.mode } : {}),
   });
-  return { ok: true, artifact: artifactId, hash: resolved.hash, approvedAt, ...(options.mode ? { mode: options.mode } : {}) };
+  return { ok: true, artifact: artifactId, hash: resolved.hash, approvedAt, approvedBy: record.approvedBy, ...(options.mode ? { mode: options.mode } : {}) };
 }
 
 /**
@@ -945,7 +968,7 @@ export function approveArtifact(root, artifactId, options = {}) {
  * @param {string} root
  * @returns {{ok: true, approved: string[], skipped: Array<{id: string, reason: string}>}}
  */
-export function approveAllDefaults(root) {
+export function approveAllDefaults(root, approvedBy) {
   const registry = listGovernedArtifacts(root);
   const state = loadApprovals(root);
   const byId = new Map(state.artifacts.map((a) => [a.artifact, a]));
@@ -954,7 +977,7 @@ export function approveAllDefaults(root) {
   for (const artifact of registry) {
     const live = resolveArtifactStatus(root, artifact, byId.get(artifact.id));
     if (live.status === "approved") continue; // already settled — never overwritten by the express lane
-    const result = approveArtifact(root, artifact.id, { mode: "defaults-accepted" });
+    const result = approveArtifact(root, artifact.id, { mode: "defaults-accepted", approvedBy });
     if (result.ok) approved.push(artifact.id);
     else skipped.push({ id: artifact.id, reason: result.reason });
   }
@@ -1143,6 +1166,21 @@ export function evaluateApprovalsGate(root) {
   const statuses = getApprovalStatuses(root);
   const mismatched = statuses.filter((s) => s.status === "changed-since-approval");
   const pending = statuses.filter((s) => s.status === "unreviewed" || s.status === "reopened");
+  // An "approved" row with no signer attests nothing about WHO signed, which is
+  // the one fact an approval exists to record. It cannot distinguish a human's
+  // sign-off from an agent's, and an agent that invalidates an approval can
+  // clear it by re-approving — the gate then guards only against accident, not
+  // against the population it is pointed at. Rows written before signers were
+  // recorded land here; the fix is one re-approval each, and the message says so.
+  const unsigned = statuses.filter((s) => s.status === "approved" && !s.approvedBy);
+
+  if (unsigned.length > 0) {
+    const lines = ["Approval recorded without a signer — re-approve to say who signed:"];
+    for (const s of unsigned) {
+      lines.push(`  [${s.id}] ${s.label} — approved ${shortHash(s.storedHash)} by nobody. Re-approve: node qa/approve.mjs ${s.id} --as "Your Name <you@example.com>"`);
+    }
+    return { verdict: "FAIL", reason: lines.join("\n"), statuses };
+  }
 
   if (mismatched.length > 0) {
     const lines = ["Approval invalidated — a governed artifact changed after sign-off:"];

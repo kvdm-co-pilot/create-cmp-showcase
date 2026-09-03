@@ -30,6 +30,78 @@ export const TIERS_SATISFYING = Object.freeze({
 });
 
 const TAG_LINE_RE = /^(?:\/\/|#)\s*SPEC:/;
+
+// A citation is a claim that a TEST covers a clause, so it has to sit on one.
+// Counting the tag wherever it appears makes a red specCoverage curable with a
+// comment and zero assertions — the one escape this gate exists to close. It is
+// not hypothetical: payment-blueprint hit a citation that had drifted onto a
+// class declaration, where it counted for the whole file while testing nothing.
+//
+// So a tag counts only when a test declaration follows it within
+// BINDING_WINDOW non-blank lines. The window is small enough that the tag must
+// be attached to the test, and loose enough for the @DisplayName / annotation
+// stack that idiomatically sits between them.
+export const BINDING_WINDOW = 5;
+
+// Kotlin @Test, a backticked test function, and the node:test / Maestro-adjacent
+// `test(` / `it(` call forms. Deliberately syntactic: a citation's binding must
+// be readable without compiling anything.
+const TEST_DECL_RE = /@Test\b|\bfun\s+`[^`]+`\s*\(|\b(?:test|it)\s*\(/;
+
+// A tag whose first meaningful line declares a TYPE is documenting that type,
+// not claiming a test — and it must be refused structurally rather than by
+// distance, because a short class body puts a real @Test inside the window and
+// would otherwise launder the citation. This is exactly payment-blueprint's
+// drift: `// SPEC: PP-07` sat on `class PaymentWorkerTest`, three properties
+// above a genuine @Test, and vouched for the whole file.
+const TYPE_DECL_RE = /^(?:@\w+\s+)*(?:public\s+|internal\s+|private\s+|abstract\s+|open\s+|sealed\s+|data\s+|enum\s+)*(?:class|object|interface)\b/;
+
+// A YAML flow's own shape counts as its test: a Maestro file IS the test, so a
+// tag in one binds to the flow rather than to a declaration inside it.
+const FLOW_EXTS = [".yaml", ".yml"];
+
+/**
+ * Does a test declaration follow `index` within BINDING_WINDOW non-blank lines,
+ * skipping block-comment bodies (a tag inside one is documentation, not a claim)?
+ * @param {string[]} lines
+ * @param {number} index line the tag sits on
+ * @returns {boolean}
+ */
+export function citationIsBound(lines, index) {
+  let seen = 0;
+  let inBlockComment = false;
+  for (let i = index + 1; i < lines.length && seen < BINDING_WINDOW; i += 1) {
+    const line = lines[i].trim();
+    if (line === "") continue;
+    if (inBlockComment) {
+      if (line.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (line.startsWith("/*")) {
+      if (!line.includes("*/")) inBlockComment = true;
+      continue;
+    }
+    if (line.startsWith("//") || line.startsWith("*")) continue;
+    seen += 1;
+    // The FIRST meaningful line decides whether this tag is on a test at all.
+    if (seen === 1 && TYPE_DECL_RE.test(line)) return false;
+    if (TEST_DECL_RE.test(line)) return true;
+  }
+  return false;
+}
+
+/** Is this tag inside a block comment that began earlier in the file? */
+function insideBlockComment(lines, index) {
+  let open = false;
+  for (let i = 0; i < index; i += 1) {
+    const line = lines[i];
+    for (let c = 0; c < line.length - 1; c += 1) {
+      if (!open && line[c] === "/" && line[c + 1] === "*") open = true;
+      else if (open && line[c] === "*" && line[c + 1] === "/") open = false;
+    }
+  }
+  return open;
+}
 const TAG_IDS_RE = /SPEC:\s*([A-Z0-9,\s-]+)/;
 const CLAUSE_ID_RE = /^[A-Z][A-Z0-9]*-\d{2,}$/;
 
@@ -105,11 +177,14 @@ export function scanCitations(root) {
     const tier = tierForFile(rel);
     fs.readFileSync(f, "utf8")
       .split("\n")
-      .forEach((line, i) => {
+      .forEach((line, i, lines) => {
         const trimmed = line.trim();
         if (!TAG_LINE_RE.test(trimmed)) return;
         const m = trimmed.match(TAG_IDS_RE);
         if (!m) return;
+        // A flow file IS its test; anything else must have a test under the tag.
+        const isFlow = FLOW_EXTS.some((ext) => rel.endsWith(ext));
+        if (!isFlow && (insideBlockComment(lines, i) || !citationIsBound(lines, i))) return;
         const ids = m[1]
           .split(/[,\s]+/)
           .map((s) => s.trim())

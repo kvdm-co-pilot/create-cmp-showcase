@@ -5,25 +5,31 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "651096a5b2c7a30880ef92e430ce56af5d03e505",
+    "sha": "81b1762bcae96d49a0ab4085fd45052471d587a0",
     "dirty": [
+      "CLAUDE.md",
       "README.md",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/AppBottomBar.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/components/ListItemCard.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Shape.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Theme.kt",
-      "composeApp/src/commonMain/kotlin/com/kvdm/fuelled/presentation/theme/Tokens.kt",
-      "composeApp/src/desktopMain/kotlin/com/kvdm/fuelled/inspector/ComponentStories.kt",
-      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/presentation/components/MotionPrimitivesTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/ArchitectureConformanceTest.kt",
+      "composeApp/src/desktopTest/kotlin/com/kvdm/fuelled/conformance/MotionConformanceTest.kt",
       "qa/approvals.json",
       "qa/approvals.log.jsonl",
+      "qa/approve.mjs",
       "qa/evidence/latest.json",
       "qa/flight-recorder.jsonl",
-      "specs/motion.spec.md"
+      "qa/harness-local.patch",
+      "qa/harness.lock.json",
+      "qa/lib/approvals.mjs",
+      "qa/lib/inputs-hash.mjs",
+      "qa/lib/receipt-validate.mjs",
+      "qa/lib/spec-coverage.mjs",
+      "qa/lib/steps-cmp.mjs",
+      "qa/lib/walk.mjs",
+      "qa/receipt-check.mjs",
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "6200c87257267e2aafe5ac03dde4435d1a235bc8ad9591281e123efb42e4cbf3",
+    "hash": "5a853da499aa1737ef8ba4b55f34064837d126132ce8d0a8e0960500157e9aa6",
     "fileCount": 486
   },
   "steps": [
@@ -34,8 +40,8 @@
         "status": "intact",
         "name": "@create-cmp/harness",
         "version": "0.16.0",
-        "sha256": "aef1678a78cf791e774e6688d53a7147c941d9f26576664038b37f84c344dbf7",
-        "recordedSha256": "aef1678a78cf791e774e6688d53a7147c941d9f26576664038b37f84c344dbf7",
+        "sha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
+        "recordedSha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
         "modified": [],
         "missing": [],
         "extra": [],
@@ -47,7 +53,7 @@
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 35,
+      "durationMs": 48,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
@@ -59,7 +65,7 @@
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 24,
+      "durationMs": 23,
       "details": {
         "artifacts": [
           {
@@ -323,7 +329,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "details": {
         "components": 22,
         "stories": 22,
@@ -334,7 +340,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 15,
+      "durationMs": 16,
       "details": {
         "features": [
           {
@@ -463,7 +469,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 60,
+      "durationMs": 59,
       "details": {
         "schemaDirs": 3
       }
@@ -471,12 +477,12 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 1942
+      "durationMs": 3189
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 12241,
+      "durationMs": 12722,
       "details": {
         "tests": 395,
         "failures": 0,
@@ -487,28 +493,28 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 2595
+      "durationMs": 3196
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 3579
+      "durationMs": 4313
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 24
+      "durationMs": 131
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3272
+      "durationMs": 3457
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 256986
+      "durationMs": 3507
     },
     {
       "name": "e2eSmoke",
@@ -520,13 +526,13 @@
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 23
+      "durationMs": 22
     }
   ],
   "harness": {
     "name": "@create-cmp/harness",
     "version": "0.16.0",
-    "sha256": "aef1678a78cf791e774e6688d53a7147c941d9f26576664038b37f84c344dbf7",
+    "sha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
     "status": "intact",
     "intact": true
   },
@@ -556,5 +562,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-03T10:56:08.563Z"
+  "generatedAt": "2026-09-03T12:35:26.768Z"
 }

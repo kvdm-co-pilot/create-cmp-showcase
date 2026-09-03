@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The verify lane — this project's single verification gate.
 //
-//   node qa/verify.mjs [--profile scaffold|local|ci|nightly|release] [--fast] [--json]
+//   node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json]
 //
 // Runs every verification step this project carries, aggregates a typed
 // PASS/FAIL verdict, and writes the evidence receipt to qa/evidence/latest.json.
@@ -51,7 +51,7 @@ const ARTIFACTS_DIR = path.join(ROOT, "qa-artifacts");
 // killed). Same refusal-over-fabrication stance as qa/approve.mjs, which
 // refuses an unknown artifact by name rather than guessing: an unknown
 // argument here is refused by name, not swallowed into "run everything".
-const USAGE = `node qa/verify.mjs [--profile scaffold|local|ci|nightly|release] [--fast] [--json] [--help]
+const USAGE = `node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json] [--help]
 
 The verify lane — this project's single verification gate. Runs every
 verification step this project carries, aggregates a typed PASS/FAIL
@@ -59,7 +59,7 @@ verdict, and writes the evidence receipt to qa/evidence/latest.json (commit
 it with your change — see CLAUDE.md). Exit code: 0 = PASS, 1 = FAIL.
 
 Flags:
-  --profile <scaffold|local|ci|nightly|release>
+  --profile <smoke|scaffold|local|ci|nightly|release>
                                  which step set to run (default: local)
   --fast                         INNER LOOP ONLY — run the resolved profile
                                   minus the device/release tier (releaseBuild,
@@ -101,6 +101,10 @@ Flags:
                                   running anything
 
 Profiles:
+  smoke     the smallest end-to-end lane: every pure-Node gate through the real
+            runner, receipt and journal — no Gradle, no device. Seconds. Proves the
+            FRAMEWORK returns, both ways; never the change (its receipt is refused
+            as done-evidence). Driven by scripts/framework-check.mjs.
   scaffold  spec coverage + build + unit tests (what \`create-cmp --verify\`
             proves at stamp time)
   local     everything; device-dependent steps SKIP when no device is
@@ -321,7 +325,7 @@ const { stepsForProfile, DEVICE_STEPS, FAST_EXCLUDED_NAMES, STEP_FN_BY_NAME } = 
 
 
 if (!stepsForProfile[profile]) {
-  console.error(`Unknown profile "${profile}" — use scaffold | local | ci | nightly | release.`);
+  console.error(`Unknown profile "${profile}" — use smoke | scaffold | local | ci | nightly | release.`);
   process.exit(2);
 }
 
@@ -499,7 +503,7 @@ const inputs = computeInputsHash(ROOT);
 // more than its stage allows. scaffold → scaffold, local → change (per commit),
 // ci → merge, nightly → nightly (proves the harness, never a change), release →
 // release. Receipts predating this field are read as their profile's stage.
-const STAGE_OF_PROFILE = { scaffold: "scaffold", local: "change", ci: "merge", nightly: "nightly", release: "release" };
+const STAGE_OF_PROFILE = { smoke: "smoke", scaffold: "scaffold", local: "change", ci: "merge", nightly: "nightly", release: "release" };
 const receipt = {
   schema: "cmp-evidence/1",
   profile,
