@@ -49,3 +49,7 @@ keystore/
 # hard-excluded from the receipt's hashed input surface (qa/lib/inputs-hash.mjs).
 qa/.request.json
 qa/.plan.json
+
+# The closed-chain trail (drive-narration N5): local because it carries raw
+# human prompts — the committed journal for lane runs stays qa/flight-recorder.jsonl.
+qa/.plan-history.jsonl

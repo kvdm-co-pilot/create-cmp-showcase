@@ -57,6 +57,7 @@ export const VERIFIED_SURFACE = [
 const EXCLUDED_PREFIXES = [
   "qa/.plan.json",
   "qa/.request.json",
+  "qa/.plan-history.jsonl",
   "qa/evidence",
   "qa-artifacts",
   "qa/comments.json",

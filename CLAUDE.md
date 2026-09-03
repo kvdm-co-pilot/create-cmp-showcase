@@ -37,6 +37,13 @@ it; CI still enforces it).
 New behavior begins as a spec clause in `specs/<feature>.spec.md`: Given/When/Then with a
 stable id (see [`specs/README.md`](./specs/README.md)). Propose the clause, get it confirmed,
 then implement. Durable tests cite their clause (`// SPEC: HOME-02`).
+
+**A clause about device behavior must say so.** A citation proves a test *exists*; it cannot
+prove that test could ever *observe* the promise. Add `[tier: device]` (or `[tier: e2e]`)
+after the id when the claim is about OS facts a host JVM cannot see — lifecycle, alarms,
+notifications, permissions, real navigation. `specCoverage` then requires a citation from
+`androidInstrumentedTest` or `qa/e2e` and FAILS without one, rather than accepting a
+desktop test that is structurally blind to the claim.
 [`specs/app-base.spec.md`](./specs/app-base.spec.md) states the architecture and shell
 invariants the conformance gates enforce.
 
@@ -89,8 +96,15 @@ the tree. The governed `architecture` artifact (below) hashes the document along
   if the test itself is wrong, say so in your summary and justify the change.
 
 **Platform behavior tests live in `composeApp/src/androidInstrumentedTest`** — when a
-feature touches alarms, notifications, lock-screen intents, or audio routing, its behavior
-test goes there, because no desktop tier can see those OS facts. Assertion helpers:
+feature touches alarms, notifications, lock-screen intents, audio routing, **or app/process
+lifecycle** (cold start vs warm resume, "once per process start", process death and
+restore, `ON_STOP`/`ON_START`), its behavior test goes there, because no desktop tier can
+see those OS facts. A desktop Compose test has no process lifecycle *at all*, so a claim
+about one is unobservable there by construction — and `ProcessControl` below is the organ
+that puts the device into the state such a claim is about. **Declare it on the clause**:
+`- **MOTION-13** [tier: device] — Given a cold start, …`. The lane's `specCoverage` then
+FAILS unless a test from a tier that can actually see it cites the clause, instead of
+accepting a citation from a tier that cannot. Assertion helpers:
 `NotificationAsserts`, `AlarmAsserts`, `SystemState`. **Runtime state control** — put the
 device into the state your claim is about, instead of waiting for it: `TimeWarp` (clock,
 timezone), `DozeControl` (forced idle), `PermissionControl`, `ProcessControl`,
@@ -196,6 +210,20 @@ tweak, redesign — every entry point) states in one or two plain sentences what
 understood the change to be, which lane it takes, and why, before any tool runs. The human
 can overrule the lane in a word; a silent route is a routing error even when the lane was
 right.
+
+**Grill before the brief** (the `grill-me` plugin skill; the rule holds without the plugin):
+on the brief lane, after the triage restatement and before a word of the brief is drafted,
+settle the load-bearing questions. Read what the repo already answers first — a signed brief
+or spec is a CLOSED decision: cite it, never re-ask it. Then ask the frontier of unsettled
+decisions as a numbered list, at most five per round, each with why it matters and a
+recommended answer — and WAIT for the answers before anything else. Stop when no remaining
+question would change the work; three rounds is the ceiling (more means the request needs
+splitting). Answers land in the brief — settled calls become **Decisions** with their why,
+the human's own calls the **Open decisions** section; the brief's signature closes them. The
+direct lane is not grilled (one inline question at most, only when the restatement cannot
+be made unambiguous); a bug fix or an emergency fix, never. While the grill is open, the
+chain's first step reads `settle the open questions` (declare it before the first round;
+re-declare when the answers reshape the steps).
 
 **Brief lane** — when the change carries **decisions a future contributor could plausibly
 "simplify" away** ("the day boundary is configurable, default 04:00 — not midnight") OR
@@ -329,12 +357,21 @@ steps you just printed:
 node qa/plan.mjs --set "sign the brief | draft screens | agree the promises | build | full check | your sign-off" --title "navigation redesign"
 ```
 
+**The chain is an offer, not an announcement** (drive-narration N6): show the declared
+steps in your first reply and invite the reshape in one breath — "say the word and I'll
+reorder" — then start work immediately; the chain gates nothing, so the offer never
+blocks. If the human redirects, re-declare (`--set` again) without ceremony: their
+reshape IS the new chain.
+
 **The chain stays current** — this is part of the contract, not a nicety: advance it
 with `node qa/plan.mjs --step N` as each step lands and `--done` when the request
-lands. The current request itself is recorded mechanically (the per-prompt hook), the
-steps are yours to declare, and every surface shows the declaration's age — a stale
-chain reads as stale to the human watching the studio, which is worse than no chain.
-The chain gates nothing; the walk stays the truth for doneness.
+lands (closing writes the request's line into the local trail the studio's Recent
+requests fold shows). The current request itself is recorded mechanically (the
+per-prompt hook), the steps are yours to declare, and every surface shows the
+declaration's age — a stale chain reads as stale to the human watching the studio,
+which is worse than no chain. While the full check runs, the chain's observed line
+narrates the lane's own position (step, elapsed, usual cost) — quote THAT, never an
+estimate. The chain gates nothing; the walk stays the truth for doneness.
 
 **The studio is a standing check:** every injected context opens with a `[studio: …]`
 line. If it says DOWN or not running, restore it before proceeding — call the
@@ -476,6 +513,7 @@ conventions) · [`CONTRIBUTING.md`](./CONTRIBUTING.md) (workflow, Conventional C
 | `./gradlew :composeApp:assembleRelease` | Android release build — R8 + `lintVital`, the variant the lane's `releaseBuild` step proves. Produces an **unsigned** APK; signing needs a keystore, which is yours to create and keep out of the repo. |
 | `./gradlew :composeApp:hotRunDesktop --auto` | Desktop dev-client with hot reload |
 | `./gradlew :composeApp:connectedDebugAndroidTest` | Instrumented behavior tests on the attached device (the lane's `androidChecks` step) |
+| `node qa/verify.mjs --profile nightly` | Scheduled stage: everything `ci` proves with the determinism probe forced on. Proves the harness, never a change — its receipt (`stage: "nightly"`) is refused as done-evidence, exactly like `--fast`. Schedule it; never wait on it |
 | `node qa/verify.mjs --profile release` | Ship-time lane: everything `ci` proves plus the audit-cadence report (`auditCadence` — which androidMain subsystems changed since their last recorded `cmp-audit`; a nudge, never a gate) and the release-APK Maestro smoke (`releaseSmoke`) |
 | `node qa/verify.mjs --determinism` | Timezone determinism probe, alone: runs the JVM test tier twice under UTC-12 and UTC+14 and FAILs naming any test whose outcome differs — the dynamic net behind ARCH-13's static one. Opt-in inside a lane via `--profile ci --determinism`; never with `--fast`; writes no receipt on its own |
 | `node qa/record-audit.mjs <subsystem>` | Record that a `cmp-audit` of an androidMain subsystem happened (appends subsystem + HEAD sha + timestamp to `qa/audits.jsonl`; refuses dirty/unknown targets). `--list` shows every derived subsystem and its audit status |

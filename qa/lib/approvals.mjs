@@ -1066,13 +1066,33 @@ export function reopenFeature(root, name, options = {}) {
   // The spec side of the family follows the brief's own pairing (a multi-spec
   // brief reopens every spec its promises live in), defaulting to the name.
   const specIds = (derived?.specNames ?? [name]).map((n) => `feature-spec:${n}`);
-  const set = [briefId, ...specIds, `${FEATURE_DESIGN_PREFIX}${name}`, ...(derived ? derived.touches : [])];
+  // WHAT A FEATURE REOPEN WALKS BACK (evidence-economics S5, aligning this
+  // function with CHANGE-FLOW-DESIGN.md §"touches": "hashes enforce,
+  // declaration lets the console tell as-planned from undeclared blast").
+  //
+  //   reopened     the brief, its declared spec(s), and its design when the
+  //                brief declares a UI surface — the documents the change
+  //                will AMEND. Their signatures are walked back on purpose.
+  //   stillSigned  the declared `touches`. Before this, every one of them was
+  //                reopened too, and every one came back byte-identical:
+  //                twelve signatures for zero changes (design-system
+  //                d8fbdce8 → d8fbdce8). An `approved` artifact is, by
+  //                definition, one whose bytes still match what was signed —
+  //                so reopening it re-asks a question the hash has already
+  //                answered. Worse than wasted: it trains the signer to
+  //                approve without reading, the exact habit approvals exist
+  //                to prevent. They stay signed. If the change DOES move one,
+  //                its hash flips it to `changed` and demands a fresh
+  //                signature — the enforcement the doc always assigned to the
+  //                hash, not to this verb.
+  const amendSet = [briefId, ...specIds, ...(derived?.screens ? [`${FEATURE_DESIGN_PREFIX}${name}`] : [])];
+  const touchSet = (derived ? derived.touches : []).filter((id) => !amendSet.includes(id));
   const byId = new Map(getApprovalStatuses(root).map((s) => [s.id, s]));
   const reopened = [];
   const skipped = [];
-  for (const id of [...new Set(set)]) {
+  for (const id of [...new Set(amendSet)]) {
     const live = byId.get(id);
-    if (!live) continue; // declared touch that resolves to no governed artifact — nothing to reopen
+    if (!live) continue; // resolves to no governed artifact — nothing to reopen
     if (live.status !== "approved") {
       skipped.push({ id, status: live.status });
       continue;
@@ -1081,15 +1101,21 @@ export function reopenFeature(root, name, options = {}) {
     if (result.ok) reopened.push(id);
     else skipped.push({ id, status: `refused: ${result.reason}` });
   }
+  const stillSigned = [];
+  for (const id of [...new Set(touchSet)]) {
+    const live = byId.get(id);
+    if (!live) continue;
+    stillSigned.push({ id, status: live.status, hash: typeof live.hash === "string" ? live.hash.slice(0, 8) : null });
+  }
   if (reopened.length === 0) {
     return {
       ok: false,
       reason:
-        `nothing in "${name}"'s set is currently approved — there is no signature to walk back. ` +
-        `Set: ${[...new Set(set)].join(", ")}; states: ${skipped.map((s) => `${s.id}=${s.status}`).join(", ") || "(unresolved)"}`,
+        `nothing in "${name}"'s amend set is currently approved — there is no signature to walk back. ` +
+        `Set: ${[...new Set(amendSet)].join(", ")}; states: ${skipped.map((s) => `${s.id}=${s.status}`).join(", ") || "(unresolved)"}`,
     };
   }
-  return { ok: true, feature: name, reopened, skipped };
+  return { ok: true, feature: name, reopened, skipped, stillSigned };
 }
 
 // ── The verify-lane gate ─────────────────────────────────────────────────────

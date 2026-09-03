@@ -138,7 +138,7 @@ export function loadStepCache(root) {
 export function lookupCachedPass(root, stepName, inputsHash) {
   const entry = loadStepCache(root).steps[stepName];
   if (!entry || typeof entry !== "object") return null;
-  if (entry.verdict !== "PASS") return null; // FAIL/SKIP are never reused
+  if (entry.verdict !== "PASS") return null; // FAIL/SKIP/ERROR are never reused
   if (typeof inputsHash !== "string" || entry.inputsHash !== inputsHash) return null;
   if (typeof entry.at !== "string") return null;
   return entry;

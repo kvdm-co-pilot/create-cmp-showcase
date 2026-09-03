@@ -93,7 +93,14 @@ export function buildFlightEntry({ profile, mode, verdict, evidenceLevel, steps,
     verdict,
     evidenceRung: evidenceLevel?.rung ?? null,
     durationMs,
-    steps: stepList.map((s) => ({ name: s.name, verdict: s.verdict })),
+    // durationMs per step (additive, schema id unchanged — old entries stay
+    // readable): the source for the lane's own "usually ~Ns" narration
+    // (drive-narration N4). Quoted from the journal, never from memory.
+    steps: stepList.map((s) => ({
+      name: s.name,
+      verdict: s.verdict,
+      ...(typeof s.durationMs === "number" && s.durationMs >= 0 ? { durationMs: s.durationMs } : {}),
+    })),
     // SKIP reasons verbatim — the journal's core signal (see file header).
     skips: stepList.filter((s) => s.verdict === "SKIP").map((s) => ({ step: s.name, reason: s.reason ?? "" })),
     deviceSteps: Array.isArray(onDeviceSteps) ? onDeviceSteps : [],
@@ -198,7 +205,15 @@ export function summarizeFlightJournal(entries, { now = new Date() } = {}) {
       // JSON-array key: reasons are arbitrary text, so a delimiter-joined
       // string key would be ambiguous — and ambiguity here merges two
       // different problems into one count.
-      const key = JSON.stringify([s.step ?? "?", s.reason ?? ""]);
+      //
+      // Grouped on the reason's FIRST LINE, which is exactly what the report
+      // prints. Several gates (approvals above all) end their reason with a
+      // variable list of artifact names, so keying on the whole string split
+      // ONE recurring reason into seven near-identical rows carrying the same
+      // visible text — a count the reader had to add up by eye. The detail is
+      // not lost: the verbatim reasons are still in the journal, which is the
+      // artifact that owes verbatim. The REPORT owes legibility.
+      const key = JSON.stringify([s.step ?? "?", (s.reason ?? "").split("\n")[0]]);
       skipGroups.set(key, (skipGroups.get(key) ?? 0) + 1);
     }
   }
@@ -256,6 +271,36 @@ export function summarizeFlightJournal(entries, { now = new Date() } = {}) {
     },
     device: { reachedRuns: deviceReached.length, highestRung },
   };
+}
+
+/**
+ * Steps that SKIPped in THIS run and have skipped in EVERY recorded full run —
+ * a tier that has never executed on this machine.
+ *
+ * A single SKIP is a fact; skipping every recorded run is a different fact,
+ * and only the journal can tell them apart. maestro was never installed on one
+ * machine, so e2eSmoke skipped on all 37 recorded runs while the lane said
+ * PASS each time — the end-to-end flow had never run once, and nothing said so.
+ *
+ * Needs a journal long enough to mean something: below `floor` recorded runs
+ * carrying the step, "every time" is a coincidence, not a pattern.
+ *
+ * @param {Array<{name: string, verdict: string, reason?: string}>} steps this run's results
+ * @param {object[]} entries parsed journal entries (any mode; fast runs are ignored)
+ * @param {{floor?: number}} [opts]
+ * @returns {Array<{name: string, runs: number, reason: string}>}
+ */
+export function neverRunTiers(steps, entries, { floor = 3 } = {}) {
+  const full = (Array.isArray(entries) ? entries : []).filter((e) => e && e.mode !== "fast" && Array.isArray(e.steps));
+  const out = [];
+  for (const st of (Array.isArray(steps) ? steps : []).filter((x) => x && x.verdict === "SKIP")) {
+    const seen = full.filter((e) => e.steps.some((s) => s && s.name === st.name));
+    // "Ran" means produced a verdict about the tree: PASS or FAIL. An ERROR
+    // tried and could not; it is not evidence that the tier works here.
+    const ran = seen.filter((e) => e.steps.some((s) => s && s.name === st.name && (s.verdict === "PASS" || s.verdict === "FAIL")));
+    if (seen.length >= floor && ran.length === 0) out.push({ name: st.name, runs: seen.length, reason: st.reason ?? "" });
+  }
+  return out;
 }
 
 /**

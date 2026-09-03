@@ -14,6 +14,20 @@ import path from "node:path";
 
 /** `- **HOME-01** — …` (live) or `- ~~**HOME-01**~~ — …` (withdrawn). */
 export const CLAUSE_LINE_RE = /^-\s+(~~)?\*\*([A-Z][A-Z0-9]*-\d{2,})\*\*/;
+// An OPTIONAL tier requirement on the clause line itself:
+//
+//   - **MOTION-13** [tier: device] — Given a cold start, When … Then …
+//
+// The clause declares what it takes to OBSERVE it, which is a property of the
+// promise, not of whatever test happened to cite it. Note this attaches to the
+// clause line, not to `[enforced: …]` — that tags docs/ARCHITECTURE.md prose and
+// is a different grammar entirely.
+const CLAUSE_TIER_RE = /\[tier:\s*(device|e2e)\]/i;
+/** Which citing tiers satisfy a declared requirement. */
+export const TIERS_SATISFYING = Object.freeze({
+  device: ["androidInstrumentedTest", "e2e"],
+  e2e: ["e2e"],
+});
 
 const TAG_LINE_RE = /^(?:\/\/|#)\s*SPEC:/;
 const TAG_IDS_RE = /SPEC:\s*([A-Z0-9,\s-]+)/;
@@ -45,7 +59,12 @@ export function scanSpecClauses(root) {
     for (const line of fs.readFileSync(abs, "utf8").split("\n")) {
       const m = line.match(CLAUSE_LINE_RE);
       if (!m) continue;
-      clauses.set(m[2], { file: path.relative(root, abs), withdrawn: Boolean(m[1]) });
+      const tierMatch = line.match(CLAUSE_TIER_RE);
+      clauses.set(m[2], {
+        file: path.relative(root, abs),
+        withdrawn: Boolean(m[1]),
+        requiredTier: tierMatch ? tierMatch[1].toLowerCase() : null,
+      });
     }
   }
   return clauses;
@@ -108,6 +127,9 @@ export function scanCitations(root) {
  * (commonTest/desktopTest) — behavior claims no device-tier evidence backs.
  * `summaryLine` is the one line the lane's specCoverage step (and any other
  * consumer) can print verbatim; null when nothing is desktop-only.
+ * `unmetTier` is the PRESCRIPTIVE half — clauses that declared `[tier: …]` and
+ * have no citation from a tier that could observe them. specCoverage FAILS on it:
+ * "instrument before you police" was the right first move, and this is the second.
  * @param {Map<string, {file: string, withdrawn: boolean}>} clauses from scanSpecClauses
  * @param {Array<{id: string, tier: string}>} tags from scanCitations
  * @returns {{tiersByClause: Record<string, string[]>, desktopOnly: string[], summaryLine: string|null}}
@@ -117,6 +139,17 @@ export function clauseTierCoverage(clauses, tags) {
   for (const t of tags) {
     (tiersByClause[t.id] ??= []).includes(t.tier) || tiersByClause[t.id].push(t.tier);
   }
+  // The gate input. A clause that DECLARED the tier it needs and has no citation
+  // from that tier is not covered — it is cited by tests structurally incapable
+  // of observing it, which is the exact hole `desktopOnly` below could only ever
+  // describe. MOTION-13 promised an animation "plays once per process start" and
+  // was cited by a desktop Compose test, a tier with no process lifecycle at all:
+  // the citation existed, the gate went green, and nothing ever observed the
+  // promise. Declared requirements are checked; undeclared clauses are unchanged.
+  const unmetTier = [...clauses.entries()]
+    .filter(([, c]) => !c.withdrawn && c.requiredTier)
+    .map(([id, c]) => ({ id, requiredTier: c.requiredTier, tiers: tiersByClause[id] ?? [], file: c.file }))
+    .filter((u) => !(TIERS_SATISFYING[u.requiredTier] ?? []).some((t) => u.tiers.includes(t)));
   const desktopOnly = [...clauses.entries()]
     .filter(([, c]) => !c.withdrawn)
     .map(([id]) => id)
@@ -127,5 +160,5 @@ export function clauseTierCoverage(clauses, tags) {
   const summaryLine = desktopOnly.length
     ? `${desktopOnly.length} clause${desktopOnly.length === 1 ? "" : "s"} cited only from desktop-tier tests (${desktopOnly.join(", ")})`
     : null;
-  return { tiersByClause, desktopOnly, summaryLine };
+  return { tiersByClause, desktopOnly, unmetTier, summaryLine };
 }

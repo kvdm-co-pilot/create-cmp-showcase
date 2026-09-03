@@ -84,7 +84,9 @@ const RUNG_NAMES = { L0: "scaffold", L1: "desktop", L2: "device", L3: "release" 
 export function evidenceLevel(stepResults, profile, { mode } = {}) { // eslint-disable-line no-unused-vars
   if (mode === "fast") return null; // the inner loop derives no rung — ever
   const steps = Array.isArray(stepResults) ? stepResults.filter((s) => s && typeof s.name === "string") : [];
-  if (steps.some((s) => s.verdict === "FAIL")) return null; // a failed lane has no rung
+  // A failed lane has no rung — and a lane with a step that could not run
+  // (ERROR) has none either: a rung is evidence, and "could not check" is not.
+  if (steps.some((s) => s.verdict === "FAIL" || s.verdict === "ERROR")) return null;
   const passed = new Set(steps.filter((s) => s.verdict === "PASS").map((s) => s.name));
 
   if (!L0_REQUIRED.every((name) => passed.has(name))) return null; // not even a stamp-time green build

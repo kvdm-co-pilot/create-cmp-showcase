@@ -201,9 +201,16 @@ if (reopenFeatureFlagIdx !== -1) {
     console.error(`error: ${result.reason}`);
     process.exit(1);
   }
+  const inScope = result.reopened.length + result.skipped.length + (result.stillSigned ?? []).length;
   console.log(`↺ reopened feature "${result.feature}" as one change — reason: ${reason.trim()}`);
+  console.log(`  ${inScope} in scope · ${result.reopened.length} reopened · ${(result.stillSigned ?? []).length} still signed`);
   for (const id of result.reopened) console.log(`  ↺ ${id}`);
   for (const s of result.skipped) console.log(`  → skipped ${s.id} (${s.status})`);
+  // The declared blast radius is reported, not walked back: a signature is
+  // demanded again only if the change actually moves the bytes it covers.
+  for (const t of result.stillSigned ?? []) {
+    console.log(`  ✓ ${t.id} still signed (${t.status}${t.hash ? ` @${t.hash}` : ""}) — re-signature demanded only if it changes; the hash enforces that`);
+  }
   process.exit(0);
 }
 

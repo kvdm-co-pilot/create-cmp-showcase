@@ -145,7 +145,7 @@ function walkOfFeature(root, f, lane = null) {
     // recorded history (the lane journals every run), so it says what it
     // costs — measured, never the agent's memory of it.
     if (s.key === "prove" && lane)
-      return { ...s, state, note: `${humanDuration(lane.durationMs)} last full run` };
+      return { ...s, state, note: laneCostPhrase(lane) };
     return { ...s, state };
   });
 
@@ -224,20 +224,54 @@ export function laneTiming(root) {
   } catch {
     return null;
   }
-  const lines = text.split("\n");
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (line === "") continue;
+  // EVERY recorded full run, not just the last one. A single "last run" figure
+  // is dominated by Gradle's cache state: a run that changed nothing reports the
+  // no-op cost (a 2s releaseBuild cache hit), and the operator plans a real
+  // change around it. Observed spread on one project: last 25s, median 140s,
+  // worst 558s. The distribution is the honest answer to "what will this cost";
+  // `durationMs` stays the last run so existing callers keep their meaning.
+  const full = [];
+  for (const line of text.split("\n")) {
+    if (line.trim() === "") continue;
     let e;
     try {
       e = JSON.parse(line);
     } catch {
       continue;
     }
-    if (e && e.mode !== "fast" && typeof e.durationMs === "number" && e.durationMs > 0)
-      return { durationMs: e.durationMs, verdict: e.verdict ?? null };
+    if (e && e.mode !== "fast" && typeof e.durationMs === "number" && e.durationMs > 0) full.push(e);
   }
-  return null;
+  if (full.length === 0) return null;
+  const sorted = full.map((e) => e.durationMs).sort((a, b) => a - b);
+  const last = full[full.length - 1];
+  return {
+    durationMs: last.durationMs,
+    verdict: last.verdict ?? null,
+    runs: sorted.length,
+    // Median over an even count takes the lower of the two middles — a measured
+    // run rather than an average of two, so every figure quoted is one that
+    // actually happened.
+    medianMs: sorted[Math.floor((sorted.length - 1) / 2)],
+    maxMs: sorted[sorted.length - 1],
+  };
+}
+
+/**
+ * What a full check costs, said honestly: the last run when that is all there
+ * is, and last + typical + worst once the journal can support a spread. Never
+ * an estimate — every number here is a run that happened (walk-legibility L4).
+ * @param {{durationMs: number, medianMs?: number, maxMs?: number, runs?: number}|null} lane
+ * @returns {string|null} null when nothing was ever recorded
+ */
+export function laneCostPhrase(lane) {
+  if (!lane || !(lane.durationMs > 0)) return null;
+  const last = `${humanDuration(lane.durationMs)} last full run`;
+  // One or two runs is not a distribution; saying "typical" over them would be
+  // the same overclaim in a new costume.
+  if (!(lane.runs > 2) || !(lane.medianMs > 0)) return `${last} (measured)`;
+  const spread =
+    lane.maxMs > lane.medianMs ? `, typically ${humanDuration(lane.medianMs)}, worst ${humanDuration(lane.maxMs)}` : `, typically ${humanDuration(lane.medianMs)}`;
+  return `${last}${spread} (measured over ${lane.runs} full runs)`;
 }
 
 /** "98s" under two minutes, "~5 min" above — for humans deciding whether to wait. */
@@ -251,10 +285,17 @@ export function humanDuration(ms) {
  * record the console itself writes — a CROSS-PACKAGE CONTRACT with the
  * inspector's preview-service.mjs (consoleRegistryPath): sha1(resolved
  * root).slice(0,12), `cmp-console-<key>.json` in os.tmpdir(), fields
- * {pid, port, url}. pid-liveness only, no HTTP — this runs inside a
+ * {pid, port, url, buildStale}. pid-liveness only, no HTTP — this runs inside a
  * statusline with a <300ms budget.
- * @returns {{url: string} | {stale: true} | null} null = no record at all
- *   (never started, or stopped cleanly — silence, not an alarm)
+ *
+ * `buildStale` is the console's OWN verdict on itself (studio-self-renewal R5):
+ * a console serving code that is no longer the code on disk. It is carried on
+ * the record rather than recomputed here on purpose — the harness cannot hash
+ * the inspector's sources (in a scaffolded app the inspector is an npm package
+ * elsewhere), and a per-prompt hook must not make an HTTP call. The process
+ * that owns the fact publishes it; every consumer stays dumb.
+ * @returns {{url: string, buildStale: boolean} | {stale: true} | null} null = no
+ *   record at all (never started, or stopped cleanly — silence, not an alarm)
  */
 export function consoleState(root) {
   try {
@@ -266,7 +307,10 @@ export function consoleState(root) {
     } catch (err) {
       if (!(err && err.code === "EPERM")) return { stale: true }; // record left by a crashed console
     }
-    return { url: typeof rec.url === "string" ? rec.url : `http://127.0.0.1:${rec.port}/` };
+    return {
+      url: typeof rec.url === "string" ? rec.url : `http://127.0.0.1:${rec.port}/`,
+      buildStale: rec.buildStale === true,
+    };
   } catch {
     return null;
   }
@@ -376,7 +420,7 @@ export function renderStatusline({ available, walks, arrivals, console: consoleR
   // L6: the always-visible surface reports the other surface's death. A stale
   // record means the console CRASHED (a clean stop removes it) — the failure
   // mode was silence, and silence is the one thing this line never does.
-  const down = consoleRec && consoleRec.stale ? " · console down" : "";
+  const down = consoleRec && consoleRec.stale ? " · console down" : consoleRec && consoleRec.buildStale ? " · console stale" : "";
   if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}${down}`;
   const now =
     w.currentStage === "build" && w.promises.total > 0
@@ -397,7 +441,7 @@ export function renderCard(w, ctx = {}) {
     .join("  ");
   const gloss = STAGE_GLOSS[w.currentStage] ? ` — ${STAGE_GLOSS[w.currentStage]}` : "";
   const laneNote =
-    w.currentStage === "prove" && ctx.lane ? ` (takes ${humanDuration(ctx.lane.durationMs)} here, measured)` : "";
+    w.currentStage === "prove" && ctx.lane ? ` (${laneCostPhrase(ctx.lane)} here)` : "";
   const nowLine =
     w.currentStage === "build" && w.promises.current
       ? `Now: keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)} of ${w.promises.total} — “${w.promises.current.title || w.promises.current.id}”`
@@ -426,6 +470,12 @@ export function renderCard(w, ctx = {}) {
  * standing instruction, not a discovery).
  */
 function studioLine(consoleRec) {
+  // Order matters: a console that is UP but drawing from old code is not
+  // healthy, and reporting it as "running" is the clean bill of health that
+  // let this go unnoticed for a whole session. It heals itself (the worker
+  // renews on quiescence), so say what is true and why it may be waiting.
+  if (consoleRec && consoleRec.url && consoleRec.buildStale)
+    return `[studio: running at ${consoleRec.url} but STALE — it is serving code older than the tree, and everything it shows was drawn by that older code. It renews itself once no render or lane is in flight; if it stays stale, say so rather than citing what it shows.]`;
   if (consoleRec && consoleRec.url) return `[studio: running at ${consoleRec.url}]`;
   if (consoleRec && consoleRec.stale)
     return "[studio: DOWN — it crashed (stale registry record). Restore it now: call the cmp-inspector `preview { projectDir }` tool (it starts a detached resident console), or tell the human it is down. Do not proceed silently.]";
@@ -452,8 +502,8 @@ export function renderInject(data) {
   const chainText = renderChain(chain);
   parts.push(
     chainText !== ""
-      ? `[the chain — the current request's steps. Keep it CURRENT: advance with \`node qa/plan.mjs --step N\` as steps land, \`--done\` when the request lands. A stale chain misleads the human watching the studio.]\n${chainText}`
-      : '[no chain declared. At kickoff, declare the request\'s steps so the human can watch position live: `node qa/plan.mjs --set "step | step | …" --title "<the ask, restated>"` — mirror the itinerary you print in chat.]',
+      ? `[the chain — the current request's steps. Keep it CURRENT: advance with \`node qa/plan.mjs --step N\` as steps land, \`--done\` when the request lands. If the human redirects, re-declare (\`--set\` again) — the chain is an offer they can reshape, not an announcement. A stale chain misleads the human watching the studio.]\n${chainText}`
+      : '[no chain declared. At kickoff, declare the request\'s steps and show them in your first reply AS AN OFFER — the human can reorder or redirect, and you re-declare without ceremony; work starts immediately either way: `node qa/plan.mjs --set "step | step | …" --title "<the ask, restated>"`.]',
   );
   if (walks.length > 0) {
     parts.push("[walk-status — derived from the ledgers; render this state, never your own memory of it]");

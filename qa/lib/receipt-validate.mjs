@@ -134,7 +134,10 @@ export function checkExecutionPlausibility(receipt, { minExecutedMs = DEFAULT_PO
   if (!steps || steps.length === 0) {
     return { ok: false, detail: "receipt lists no verify-lane steps — nothing was executed" };
   }
-  const executed = steps.filter((s) => s && s.verdict !== "SKIP");
+  // Executed = produced a verdict about the tree. SKIP did not try; ERROR
+  // tried and could not (a deadline, zero tests, a throw) — neither measured
+  // anything, so neither counts toward "this lane verified something".
+  const executed = steps.filter((s) => s && s.verdict !== "SKIP" && s.verdict !== "ERROR");
   if (executed.length === 0) {
     return { ok: false, detail: "every step in the receipt is a SKIP — the lane verified nothing" };
   }

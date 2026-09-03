@@ -28,6 +28,39 @@ const args = process.argv.slice(2);
 const asHook = args.includes("--hook");
 const asJson = args.includes("--json");
 
+// The lane's own in-flight marker (verify.mjs stamps it, rewriting it at each
+// step start with the step name and index). Mirrors qa/watch.mjs's bound.
+const LANE_MARKER_REL = ["composeApp", "build", ".cmp-lane-in-progress"];
+const LANE_MARKER_STALE_MS = 30 * 60 * 1000;
+
+/**
+ * The full check running RIGHT NOW, or null. The gate must still refuse — a
+ * lane in flight has not produced a receipt yet — but it must not tell the
+ * agent to start one. Repeating "run the lane" at a session whose lane is
+ * already ten minutes into its release build is an instruction to do the wrong
+ * thing, and it fired ~8 times in one observed session.
+ * @returns {{step: string|null, index: number|null, total: number|null}|null}
+ */
+function laneInFlight() {
+  try {
+    const p = path.join(ROOT, ...LANE_MARKER_REL);
+    const st = fs.statSync(p);
+    if (Date.now() - st.mtimeMs >= LANE_MARKER_STALE_MS) return null;
+    // Content is a bonus, never a requirement: legacy markers hold "pid iso".
+    try {
+      const n = JSON.parse(fs.readFileSync(p, "utf8"));
+      if (n && typeof n === "object") {
+        return { step: n.step ?? null, index: n.index ?? null, total: n.total ?? null };
+      }
+    } catch {
+      /* legacy marker — its EXISTENCE is the fact that matters */
+    }
+    return { step: null, index: null, total: null };
+  } catch {
+    return null;
+  }
+}
+
 function readStdinJson() {
   try {
     const raw = fs.readFileSync(0, "utf8");
@@ -56,6 +89,16 @@ function evaluate() {
       profile: receipt.profile,
     };
   }
+  // A nightly receipt proves the HARNESS and the tree's invariants under a
+  // forced double-run — never a change. Refused as done-evidence for the same
+  // reason --fast is: the receipt's own stage says what it is allowed to mean.
+  if (receipt.stage === "nightly" || receipt.profile === "nightly") {
+    return {
+      valid: false,
+      reason: "the last verify run was the nightly stage (it proves the harness, not this change); run the change-stage lane (`node qa/verify.mjs`) before finishing",
+      profile: receipt.profile,
+    };
+  }
   const result = evaluateReceipt(receipt, () => computeInputsHash(ROOT));
   // Surface the receipt's evidence rung (the ladder — qa/lib/evidence-level.mjs)
   // alongside the verdict: the rung is the receipt's own derived field, read
@@ -78,10 +121,20 @@ if (asHook) {
     // The walk's vocabulary (walk-legibility L3): this gate IS the Prove
     // stage refusing to close — same fact, same enforcement, words that match
     // every other surface. The precise reason stays verbatim beneath.
+    //
+    // The REFUSAL never changes with a lane in flight — no receipt yet means
+    // not done, and that is the whole point of the gate. What changes is the
+    // INSTRUCTION: "run the lane" is wrong advice when one is already running,
+    // and a gate that tells you to do the thing you are doing trains you to
+    // stop reading it.
+    const flight = laneInFlight();
+    const act = flight
+      ? `A full check is ALREADY RUNNING${flight.step ? ` (${flight.step}${flight.index && flight.total ? `, step ${flight.index} of ${flight.total}` : ""})` : ""} — ` +
+        `wait for it to finish and commit its receipt. Do NOT start a second one; two lanes fight over the same build directory.`
+      : "Run `node qa/verify.mjs` (it checks every promise and writes the receipt), " +
+        "commit the receipt, or see README §Verification enforcement to bypass.";
     process.stderr.write(
-      `■ Prove — not done: the promises are not yet checked against this tree. ` +
-        `${result.reason}. Run \`node qa/verify.mjs\` (it checks every promise and writes the receipt), ` +
-        `commit the receipt, or see README §Verification enforcement to bypass.\n`,
+      `■ Prove — not done: the promises are not yet checked against this tree. ${result.reason}. ${act}\n`,
     );
     process.exit(2);
   }
