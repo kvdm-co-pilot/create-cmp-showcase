@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 262" width="920" height="262" role="img" aria-labelledby="t d">
+<title id="t">Fuelled's four easing curves</title><desc id="d">Standard, Enter, Exit and Linear, each plotted and replayed on a puck.</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+  .ex0{animation:ex0 2200ms linear infinite}
+  @keyframes ex0{
+    0%,38.6364%{transform:translateX(176px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0)}
+    86.3636%,100%{transform:translateX(176px)}
+  }
+  .ey0{animation:ey0 2200ms infinite}
+  @keyframes ey0{
+    0%,38.6364%{transform:translateY(-72px)}
+    40.9091%{transform:translateY(0)}
+    45.4545%{transform:translateY(0);animation-timing-function:cubic-bezier(0.2, 0, 0, 1)}
+    86.3636%,100%{transform:translateY(-72px)}
+  }
+  .ep0{animation:ep0 2200ms infinite}
+  @keyframes ep0{
+    0%,38.6364%{transform:translateX(148px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0);animation-timing-function:cubic-bezier(0.2, 0, 0, 1)}
+    86.3636%,100%{transform:translateX(148px)}
+  }
+  .ef0{animation:ef0 2200ms infinite}
+  @keyframes ef0{
+    0%,31.8182%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    38.6364%,43.6364%{opacity:0}
+    45.4545%,100%{opacity:1}
+  }
+  .ex1{animation:ex1 2200ms linear infinite}
+  @keyframes ex1{
+    0%,38.6364%{transform:translateX(176px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0)}
+    86.3636%,100%{transform:translateX(176px)}
+  }
+  .ey1{animation:ey1 2200ms infinite}
+  @keyframes ey1{
+    0%,38.6364%{transform:translateY(-72px)}
+    40.9091%{transform:translateY(0)}
+    45.4545%{transform:translateY(0);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    86.3636%,100%{transform:translateY(-72px)}
+  }
+  .ep1{animation:ep1 2200ms infinite}
+  @keyframes ep1{
+    0%,38.6364%{transform:translateX(148px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    86.3636%,100%{transform:translateX(148px)}
+  }
+  .ef1{animation:ef1 2200ms infinite}
+  @keyframes ef1{
+    0%,31.8182%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    38.6364%,43.6364%{opacity:0}
+    45.4545%,100%{opacity:1}
+  }
+  .ex2{animation:ex2 2200ms linear infinite}
+  @keyframes ex2{
+    0%,38.6364%{transform:translateX(176px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0)}
+    86.3636%,100%{transform:translateX(176px)}
+  }
+  .ey2{animation:ey2 2200ms infinite}
+  @keyframes ey2{
+    0%,38.6364%{transform:translateY(-72px)}
+    40.9091%{transform:translateY(0)}
+    45.4545%{transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    86.3636%,100%{transform:translateY(-72px)}
+  }
+  .ep2{animation:ep2 2200ms infinite}
+  @keyframes ep2{
+    0%,38.6364%{transform:translateX(148px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    86.3636%,100%{transform:translateX(148px)}
+  }
+  .ef2{animation:ef2 2200ms infinite}
+  @keyframes ef2{
+    0%,31.8182%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    38.6364%,43.6364%{opacity:0}
+    45.4545%,100%{opacity:1}
+  }
+  .ex3{animation:ex3 2200ms linear infinite}
+  @keyframes ex3{
+    0%,38.6364%{transform:translateX(176px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0)}
+    86.3636%,100%{transform:translateX(176px)}
+  }
+  .ey3{animation:ey3 2200ms infinite}
+  @keyframes ey3{
+    0%,38.6364%{transform:translateY(-72px)}
+    40.9091%{transform:translateY(0)}
+    45.4545%{transform:translateY(0);animation-timing-function:linear}
+    86.3636%,100%{transform:translateY(-72px)}
+  }
+  .ep3{animation:ep3 2200ms infinite}
+  @keyframes ep3{
+    0%,38.6364%{transform:translateX(148px)}
+    40.9091%{transform:translateX(0)}
+    45.4545%{transform:translateX(0);animation-timing-function:linear}
+    86.3636%,100%{transform:translateX(148px)}
+  }
+  .ef3{animation:ef3 2200ms infinite}
+  @keyframes ef3{
+    0%,31.8182%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    38.6364%,43.6364%{opacity:0}
+    45.4545%,100%{opacity:1}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="262" rx="18" fill="#0A0C0B"/>
+<text class="sans eyebrow" x="20" y="26">THE CURVES — SHOWN AT 900 MS SO THEY READ; THE APP RUNS THEM AT 120–400 MS</text>
+<g>
+  <rect x="20" y="48" width="208" height="196" rx="14" fill="#121614"/>
+  <text class="sans" x="36" y="76" font-size="15" font-weight="600">Easings.Standard</text>
+  <text class="mono lime" x="36" y="96" font-size="10.5">cubic-bezier(0.2, 0, 0, 1)</text>
+  <rect x="36" y="116" width="176" height="72" fill="none" stroke="#232A26"/>
+  <polyline points="36 188 38.93 187.82 41.87 187.18 44.8 185.95 47.73 183.89 50.67 180.83 53.6 176.75 56.53 172.02 59.47 167.23 62.4 162.76 65.33 158.74 68.27 155.18 71.2 152 74.13 149.16 77.07 146.6 80 144.28 82.93 142.17 85.87 140.24 88.8 138.46 91.73 136.82 94.67 135.3 97.6 133.9 100.53 132.59 103.47 131.37 106.4 130.24 109.33 129.17 112.27 128.18 115.2 127.25 118.13 126.38 121.07 125.56 124 124.8 126.93 124.08 129.87 123.4 132.8 122.77 135.73 122.18 138.67 121.63 141.6 121.11 144.53 120.62 147.47 120.17 150.4 119.74 153.33 119.35 156.27 118.98 159.2 118.64 162.13 118.33 165.07 118.03 168 117.77 170.93 117.52 173.87 117.29 176.8 117.09 179.73 116.91 182.67 116.74 185.6 116.59 188.53 116.46 191.47 116.35 194.4 116.25 197.33 116.18 200.27 116.11 203.2 116.06 206.13 116.03 209.07 116.01 212 116" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <g class="ef0"><g class="ex0" style="transform:translateX(176px)"><g class="ey0" style="transform:translateY(-72px)">
+    <circle cx="36" cy="188" r="4" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="36" y="206" width="176" height="4" rx="2" fill="#232A26"/>
+  <g class="ef0"><g class="ep0" style="transform:translateX(148px)">
+    <rect x="36" y="200" width="28" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="36" y="232" font-size="11.5">colour and state swaps</text>
+</g>
+<g>
+  <rect x="244" y="48" width="208" height="196" rx="14" fill="#121614"/>
+  <text class="sans" x="260" y="76" font-size="15" font-weight="600">Easings.Enter</text>
+  <text class="mono lime" x="260" y="96" font-size="10.5">cubic-bezier(0.05, 0.7, 0.1, 1)</text>
+  <rect x="260" y="116" width="176" height="72" fill="none" stroke="#232A26"/>
+  <polyline points="260 188 262.93 173.12 265.87 162.84 268.8 155.77 271.73 150.57 274.67 146.53 277.6 143.26 280.53 140.54 283.47 138.22 286.4 136.22 289.33 134.47 292.27 132.92 295.2 131.53 298.13 130.28 301.07 129.15 304 128.13 306.93 127.19 309.87 126.34 312.8 125.55 315.73 124.82 318.67 124.15 321.6 123.53 324.53 122.96 327.47 122.42 330.4 121.93 333.33 121.46 336.27 121.03 339.2 120.63 342.13 120.26 345.07 119.91 348 119.58 350.93 119.28 353.87 118.99 356.8 118.73 359.73 118.48 362.67 118.25 365.6 118.04 368.53 117.84 371.47 117.65 374.4 117.48 377.33 117.32 380.27 117.17 383.2 117.03 386.13 116.91 389.07 116.79 392 116.68 394.93 116.59 397.87 116.5 400.8 116.42 403.73 116.35 406.67 116.28 409.6 116.23 412.53 116.18 415.47 116.13 418.4 116.1 421.33 116.07 424.27 116.04 427.2 116.02 430.13 116.01 433.07 116 436 116" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <g class="ef1"><g class="ex1" style="transform:translateX(176px)"><g class="ey1" style="transform:translateY(-72px)">
+    <circle cx="260" cy="188" r="4" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="260" y="206" width="176" height="4" rx="2" fill="#232A26"/>
+  <g class="ef1"><g class="ep1" style="transform:translateX(148px)">
+    <rect x="260" y="200" width="28" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="260" y="232" font-size="11.5">anything arriving</text>
+</g>
+<g>
+  <rect x="468" y="48" width="208" height="196" rx="14" fill="#121614"/>
+  <text class="sans" x="484" y="76" font-size="15" font-weight="600">Easings.Exit</text>
+  <text class="mono lime" x="484" y="96" font-size="10.5">cubic-bezier(0.3, 0, 0.8, 0.15)</text>
+  <rect x="484" y="116" width="176" height="72" fill="none" stroke="#232A26"/>
+  <polyline points="484 188 486.93 187.99 489.87 187.96 492.8 187.9 495.73 187.82 498.67 187.72 501.6 187.6 504.53 187.46 507.47 187.29 510.4 187.1 513.33 186.89 516.27 186.65 519.2 186.39 522.13 186.1 525.07 185.79 528 185.46 530.93 185.09 533.87 184.71 536.8 184.29 539.73 183.85 542.67 183.38 545.6 182.88 548.53 182.35 551.47 181.79 554.4 181.19 557.33 180.57 560.27 179.91 563.2 179.21 566.13 178.48 569.07 177.72 572 176.91 574.93 176.07 577.87 175.18 580.8 174.25 583.73 173.27 586.67 172.25 589.6 171.17 592.53 170.05 595.47 168.87 598.4 167.63 601.33 166.33 604.27 164.97 607.2 163.54 610.13 162.04 613.07 160.46 616 158.8 618.93 157.05 621.87 155.2 624.8 153.26 627.73 151.2 630.67 149.02 633.6 146.7 636.53 144.24 639.47 141.61 642.4 138.8 645.33 135.78 648.27 132.52 651.2 128.97 654.13 125.09 657.07 120.8 660 116" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <g class="ef2"><g class="ex2" style="transform:translateX(176px)"><g class="ey2" style="transform:translateY(-72px)">
+    <circle cx="484" cy="188" r="4" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="484" y="206" width="176" height="4" rx="2" fill="#232A26"/>
+  <g class="ef2"><g class="ep2" style="transform:translateX(148px)">
+    <rect x="484" y="200" width="28" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="484" y="232" font-size="11.5">anything leaving</text>
+</g>
+<g>
+  <rect x="692" y="48" width="208" height="196" rx="14" fill="#121614"/>
+  <text class="sans" x="708" y="76" font-size="15" font-weight="600">Easings.Linear</text>
+  <text class="mono lime" x="708" y="96" font-size="10.5">linear</text>
+  <rect x="708" y="116" width="176" height="72" fill="none" stroke="#232A26"/>
+  <polyline points="708 188 710.93 186.8 713.87 185.6 716.8 184.4 719.73 183.2 722.67 182 725.6 180.8 728.53 179.6 731.47 178.4 734.4 177.2 737.33 176 740.27 174.8 743.2 173.6 746.13 172.4 749.07 171.2 752 170 754.93 168.8 757.87 167.6 760.8 166.4 763.73 165.2 766.67 164 769.6 162.8 772.53 161.6 775.47 160.4 778.4 159.2 781.33 158 784.27 156.8 787.2 155.6 790.13 154.4 793.07 153.2 796 152 798.93 150.8 801.87 149.6 804.8 148.4 807.73 147.2 810.67 146 813.6 144.8 816.53 143.6 819.47 142.4 822.4 141.2 825.33 140 828.27 138.8 831.2 137.6 834.13 136.4 837.07 135.2 840 134 842.93 132.8 845.87 131.6 848.8 130.4 851.73 129.2 854.67 128 857.6 126.8 860.53 125.6 863.47 124.4 866.4 123.2 869.33 122 872.27 120.8 875.2 119.6 878.13 118.4 881.07 117.2 884 116" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <g class="ef3"><g class="ex3" style="transform:translateX(176px)"><g class="ey3" style="transform:translateY(-72px)">
+    <circle cx="708" cy="188" r="4" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="708" y="206" width="176" height="4" rx="2" fill="#232A26"/>
+  <g class="ef3"><g class="ep3" style="transform:translateX(148px)">
+    <rect x="708" y="200" width="28" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="708" y="232" font-size="11.5">the wordmark timeline</text>
+</g>
+</svg>

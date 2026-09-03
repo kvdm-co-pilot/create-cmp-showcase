@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 336" width="920" height="336" role="img" aria-labelledby="t d">
+<title id="t">The arrival stagger</title><desc id="d">Eight list rows arriving 40 ms apart, rising 16 dp over 240 ms, with the per-item delay capped at item 6.</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+  .r0{animation:r0 2600ms infinite}
+  @keyframes r0{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    55.7692%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    65%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r1{animation:r1 2600ms infinite}
+  @keyframes r1{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    57.3077%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    66.5385%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r2{animation:r2 2600ms infinite}
+  @keyframes r2{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    58.8462%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    68.0769%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r3{animation:r3 2600ms infinite}
+  @keyframes r3{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    60.3846%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    69.6154%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r4{animation:r4 2600ms infinite}
+  @keyframes r4{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    61.9231%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    71.1538%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r5{animation:r5 2600ms infinite}
+  @keyframes r5{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    63.4615%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    72.6923%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r6{animation:r6 2600ms infinite}
+  @keyframes r6{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    65%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    74.2308%,100%{opacity:1;transform:translateY(0)}
+  }
+  .r7{animation:r7 2600ms infinite}
+  @keyframes r7{
+    0%,46.1538%{opacity:1;transform:translateY(0);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    53.8462%{opacity:0;transform:translateY(16px)}
+    65%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    74.2308%,100%{opacity:1;transform:translateY(0)}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="336" rx="18" fill="#0A0C0B"/>
+<text class="sans eyebrow" x="20" y="30">THE ARRIVAL — MOTION-06</text>
+<text class="sans dim" x="20" y="52" font-size="12">Modifier.enterRise(index) · every list in the app uses this one primitive</text>
+  <g class="r0">
+    <rect x="20" y="78" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="91" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="91" font-size="12.5">Oats, 80 g</text>
+    <text class="mono dim" x="542" y="91" font-size="11" text-anchor="end">+0 ms</text>
+  </g>
+  <g class="r1">
+    <rect x="20" y="108" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="121" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="121" font-size="12.5">Greek yoghurt, 170 g</text>
+    <text class="mono dim" x="542" y="121" font-size="11" text-anchor="end">+40 ms</text>
+  </g>
+  <g class="r2">
+    <rect x="20" y="138" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="151" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="151" font-size="12.5">Banana</text>
+    <text class="mono dim" x="542" y="151" font-size="11" text-anchor="end">+80 ms</text>
+  </g>
+  <g class="r3">
+    <rect x="20" y="168" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="181" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="181" font-size="12.5">Chicken breast, 200 g</text>
+    <text class="mono dim" x="542" y="181" font-size="11" text-anchor="end">+120 ms</text>
+  </g>
+  <g class="r4">
+    <rect x="20" y="198" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="211" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="211" font-size="12.5">Rice, 250 g</text>
+    <text class="mono dim" x="542" y="211" font-size="11" text-anchor="end">+160 ms</text>
+  </g>
+  <g class="r5">
+    <rect x="20" y="228" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="241" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="241" font-size="12.5">Olive oil, 15 g</text>
+    <text class="mono dim" x="542" y="241" font-size="11" text-anchor="end">+200 ms</text>
+  </g>
+  <g class="r6">
+    <rect x="20" y="258" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="271" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="271" font-size="12.5">Whey, 30 g</text>
+    <text class="mono dim" x="542" y="271" font-size="11" text-anchor="end">+240 ms</text>
+  </g>
+  <g class="r7">
+    <rect x="20" y="288" width="536" height="26" rx="9" fill="#121614"/>
+    <circle cx="38" cy="301" r="3.5" fill="#B8FF3C"/>
+    <text class="sans" x="54" y="301" font-size="12.5">Almonds, 25 g</text>
+    <text class="mono lime" x="542" y="301" font-size="11" text-anchor="end">+240 ms · capped</text>
+  </g>
+<line x1="580" y1="30" x2="580" y2="306" stroke="#232A26"/>
+<text class="sans eyebrow" x="604" y="30">WHY THE CAP</text>
+<text class="sans dim" x="604" y="58" font-size="12">A list is dealt, not painted. Item i fades in</text>
+<text class="sans dim" x="604" y="75" font-size="12">and rises 16 dp over 240 ms on the Enter curve,</text>
+<text class="sans dim" x="604" y="92" font-size="12">delayed i × 40 ms.</text>
+<text class="sans dim" x="604" y="126" font-size="12">Past item 6 the delay stops growing. Without</text>
+<text class="sans dim" x="604" y="143" font-size="12">that cap a 40-row day would spend 1.6 s</text>
+<text class="sans dim" x="604" y="160" font-size="12">arriving, and the stagger would read as lag.</text>
+<text class="sans dim" x="604" y="194" font-size="12">It fires once per entry into the composition</text>
+<text class="sans dim" x="604" y="211" font-size="12">— never on recomposition, never on scroll.</text>
+<text class="mono lime" x="604" y="252" font-size="11">StaggerStepMs = 40</text>
+<text class="mono lime" x="604" y="270" font-size="11">StaggerCap    = 6</text>
+<text class="mono lime" x="604" y="288" font-size="11">EnterRise     = 16.dp</text>
+</svg>

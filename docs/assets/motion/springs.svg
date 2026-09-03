@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" width="920" height="300" role="img" aria-labelledby="t d">
+<title id="t">Fuelled's three springs</title><desc id="d">Settle: damping ratio 1, stiffness 1500, settling in 179 ms. Weighty: damping ratio 1, stiffness 200, settling in 477 ms. Lively: damping ratio 0.6, stiffness 400, settling in 320 ms</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+  .eyebrow{font-size:10px}
+  .px0{animation:px0 2600ms linear infinite}
+  @keyframes px0{
+    0%,51.9231%{transform:translateX(244px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0)}
+    64.5769%,100%{transform:translateX(244px)}
+  }
+  .py0{animation:py0 2600ms infinite}
+  @keyframes py0{
+    0%,51.9231%{transform:translateY(-63.96px)}
+    53.8462%{transform:translateY(0)}
+    57.6923%{transform:translateY(0);animation-timing-function:var(--sp-settle)}
+    64.5769%,100%{transform:translateY(-63.96px)}
+  }
+  .puck0{animation:puck0 2600ms infinite}
+  @keyframes puck0{
+    0%,51.9231%{transform:translateX(212px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0);animation-timing-function:var(--sp-settle)}
+    64.5769%,100%{transform:translateX(212px)}
+  }
+  .fade0{animation:fade0 2600ms infinite}
+  @keyframes fade0{
+    0%,46.1538%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    51.9231%,56.1538%{opacity:0}
+    57.6923%,100%{opacity:1}
+  }
+  .px1{animation:px1 2600ms linear infinite}
+  @keyframes px1{
+    0%,51.9231%{transform:translateX(244px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0)}
+    76.0385%,100%{transform:translateX(244px)}
+  }
+  .py1{animation:py1 2600ms infinite}
+  @keyframes py1{
+    0%,51.9231%{transform:translateY(-63.96px)}
+    53.8462%{transform:translateY(0)}
+    57.6923%{transform:translateY(0);animation-timing-function:var(--sp-weighty)}
+    76.0385%,100%{transform:translateY(-63.96px)}
+  }
+  .puck1{animation:puck1 2600ms infinite}
+  @keyframes puck1{
+    0%,51.9231%{transform:translateX(212px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0);animation-timing-function:var(--sp-weighty)}
+    76.0385%,100%{transform:translateX(212px)}
+  }
+  .fade1{animation:fade1 2600ms infinite}
+  @keyframes fade1{
+    0%,46.1538%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    51.9231%,56.1538%{opacity:0}
+    57.6923%,100%{opacity:1}
+  }
+  .px2{animation:px2 2600ms linear infinite}
+  @keyframes px2{
+    0%,51.9231%{transform:translateX(244px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0)}
+    70%,100%{transform:translateX(244px)}
+  }
+  .py2{animation:py2 2600ms infinite}
+  @keyframes py2{
+    0%,51.9231%{transform:translateY(-63.96px)}
+    53.8462%{transform:translateY(0)}
+    57.6923%{transform:translateY(0);animation-timing-function:var(--sp-lively)}
+    70%,100%{transform:translateY(-63.96px)}
+  }
+  .puck2{animation:puck2 2600ms infinite}
+  @keyframes puck2{
+    0%,51.9231%{transform:translateX(212px)}
+    53.8462%{transform:translateX(0)}
+    57.6923%{transform:translateX(0);animation-timing-function:var(--sp-lively)}
+    70%,100%{transform:translateX(212px)}
+  }
+  .fade2{animation:fade2 2600ms infinite}
+  @keyframes fade2{
+    0%,46.1538%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    51.9231%,56.1538%{opacity:0}
+    57.6923%,100%{opacity:1}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="300" rx="18" fill="#0A0C0B"/>
+<text class="sans eyebrow" x="20" y="28">THE SPRINGS — INTEGRATED FROM THE TOKENS, NOT DRAWN BY HAND</text>
+<g>
+  <rect x="20" y="48" width="280" height="232" rx="14" fill="#121614"/>
+  <text class="sans" x="38" y="76" font-size="16" font-weight="600">Springs.Settle</text>
+  <text class="mono lime" x="38" y="97" font-size="11">ζ 1 · k 1500 · settles in 179 ms</text>
+  <line x1="38" y1="130.04" x2="282" y2="130.04" stroke="#333B37" stroke-dasharray="3 3"/>
+  <line x1="38" y1="194" x2="282" y2="194" stroke="#232A26"/>
+  <polyline points="38 194 40.03 193.9 42.07 193.6 44.1 193.14 46.13 192.53 48.17 191.79 50.2 190.94 52.23 189.99 54.27 188.95 56.3 187.84 58.33 186.67 60.37 185.45 62.4 184.18 64.43 182.89 66.47 181.57 68.5 180.23 70.53 178.88 72.57 177.52 74.6 176.16 76.63 174.8 78.67 173.46 80.7 172.12 82.73 170.79 84.77 169.48 86.8 168.19 88.83 166.92 90.87 165.67 92.9 164.45 94.93 163.25 96.97 162.08 99 160.93 101.03 159.82 103.07 158.73 105.1 157.67 107.13 156.63 109.17 155.63 111.2 154.65 113.23 153.71 115.27 152.79 117.3 151.9 119.33 151.04 121.37 150.21 123.4 149.4 125.43 148.62 127.47 147.87 129.5 147.15 131.53 146.44 133.57 145.77 135.6 145.12 137.63 144.49 139.67 143.88 141.7 143.3 143.73 142.74 145.77 142.2 147.8 141.68 149.83 141.18 151.87 140.7 153.9 140.24 155.93 139.8 157.97 139.37 160 138.96 162.03 138.57 164.07 138.19 166.1 137.83 168.13 137.49 170.17 137.16 172.2 136.84 174.23 136.53 176.27 136.24 178.3 135.96 180.33 135.69 182.37 135.44 184.4 135.19 186.43 134.96 188.47 134.73 190.5 134.52 192.53 134.31 194.57 134.12 196.6 133.93 198.63 133.75 200.67 133.58 202.7 133.41 204.73 133.26 206.77 133.11 208.8 132.96 210.83 132.83 212.87 132.69 214.9 132.57 216.93 132.45 218.97 132.34 221 132.23 223.03 132.12 225.07 132.03 227.1 131.93 229.13 131.84 231.17 131.76 233.2 131.67 235.23 131.6 237.27 131.52 239.3 131.45 241.33 131.38 243.37 131.32 245.4 131.26 247.43 131.2 249.47 131.14 251.5 131.09 253.53 131.04 255.57 130.99 257.6 130.94 259.63 130.9 261.67 130.86 263.7 130.82 265.73 130.78 267.77 130.74 269.8 130.71 271.83 130.68 273.87 130.65 275.9 130.62 277.93 130.59 279.97 130.56 282 130.53" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+  <g class="fade0"><g class="px0" style="transform:translateX(244px)"><g class="py0" style="transform:translateY(-63.96px)">
+    <circle cx="38" cy="194" r="4.5" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="38" y="212" width="244" height="4" rx="2" fill="#232A26"/>
+  <g class="fade0"><g class="puck0" style="transform:translateX(212px)">
+    <rect x="38" y="206" width="32" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="38" y="248" font-size="12">Layout, the tab indicator, press feedback.</text>
+  <text class="mono dim" x="38" y="266" font-size="10.5">critically damped</text>
+</g>
+<g>
+  <rect x="320" y="48" width="280" height="232" rx="14" fill="#121614"/>
+  <text class="sans" x="338" y="76" font-size="16" font-weight="600">Springs.Weighty</text>
+  <text class="mono lime" x="338" y="97" font-size="11">ζ 1 · k 200 · settles in 477 ms</text>
+  <line x1="338" y1="130.04" x2="582" y2="130.04" stroke="#333B37" stroke-dasharray="3 3"/>
+  <line x1="338" y1="194" x2="582" y2="194" stroke="#232A26"/>
+  <polyline points="338 194 340.03 193.9 342.07 193.62 344.1 193.19 346.13 192.61 348.17 191.9 350.2 191.09 352.23 190.17 354.27 189.18 356.3 188.12 358.33 186.99 360.37 185.81 362.4 184.6 364.43 183.35 366.47 182.07 368.5 180.77 370.53 179.46 372.57 178.14 374.6 176.82 376.63 175.5 378.67 174.18 380.7 172.87 382.73 171.58 384.77 170.29 386.8 169.02 388.83 167.78 390.87 166.55 392.9 165.34 394.93 164.15 396.97 162.99 399 161.86 401.03 160.75 403.07 159.66 405.1 158.61 407.13 157.58 409.17 156.57 411.2 155.6 413.23 154.65 415.27 153.73 417.3 152.84 419.33 151.97 421.37 151.13 423.4 150.32 425.43 149.53 427.47 148.77 429.5 148.03 431.53 147.32 433.57 146.63 435.6 145.96 437.63 145.32 439.67 144.7 441.7 144.11 443.73 143.53 445.77 142.98 447.8 142.44 449.83 141.93 451.87 141.43 453.9 140.95 455.93 140.5 457.97 140.05 460 139.63 462.03 139.22 464.07 138.83 466.1 138.45 468.13 138.09 470.17 137.75 472.2 137.41 474.23 137.09 476.27 136.79 478.3 136.49 480.33 136.21 482.37 135.94 484.4 135.68 486.43 135.43 488.47 135.19 490.5 134.96 492.53 134.74 494.57 134.53 496.6 134.33 498.63 134.14 500.67 133.96 502.7 133.78 504.73 133.61 506.77 133.45 508.8 133.3 510.83 133.15 512.87 133.01 514.9 132.87 516.93 132.74 518.97 132.62 521 132.5 523.03 132.39 525.07 132.28 527.1 132.18 529.13 132.08 531.17 131.98 533.2 131.89 535.23 131.81 537.27 131.73 539.3 131.65 541.33 131.57 543.37 131.5 545.4 131.43 547.43 131.37 549.47 131.31 551.5 131.25 553.53 131.19 555.57 131.14 557.6 131.08 559.63 131.03 561.67 130.99 563.7 130.94 565.73 130.9 567.77 130.86 569.8 130.82 571.83 130.78 573.87 130.75 575.9 130.71 577.93 130.68 579.97 130.65 582 130.62" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+  <g class="fade1"><g class="px1" style="transform:translateX(244px)"><g class="py1" style="transform:translateY(-63.96px)">
+    <circle cx="338" cy="194" r="4.5" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="338" y="212" width="244" height="4" rx="2" fill="#232A26"/>
+  <g class="fade1"><g class="puck1" style="transform:translateX(212px)">
+    <rect x="338" y="206" width="32" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="338" y="248" font-size="12">The ring, the bars, the animated numbers.</text>
+  <text class="mono dim" x="338" y="266" font-size="10.5">critically damped</text>
+</g>
+<g>
+  <rect x="620" y="48" width="280" height="232" rx="14" fill="#121614"/>
+  <text class="sans" x="638" y="76" font-size="16" font-weight="600">Springs.Lively</text>
+  <text class="mono lime" x="638" y="97" font-size="11">ζ 0.6 · k 400 · settles in 320 ms</text>
+  <line x1="638" y1="130.04" x2="882" y2="130.04" stroke="#333B37" stroke-dasharray="3 3"/>
+  <line x1="638" y1="194" x2="882" y2="194" stroke="#232A26"/>
+  <polyline points="638 194 640.03 193.91 642.07 193.65 644.1 193.23 646.13 192.67 648.17 191.96 650.2 191.13 652.23 190.18 654.27 189.13 656.3 187.98 658.33 186.74 660.37 185.42 662.4 184.03 664.43 182.57 666.47 181.07 668.5 179.51 670.53 177.92 672.57 176.29 674.6 174.64 676.63 172.96 678.67 171.27 680.7 169.57 682.73 167.87 684.77 166.17 686.8 164.48 688.83 162.8 690.87 161.13 692.9 159.47 694.93 157.84 696.97 156.24 699 154.66 701.03 153.11 703.07 151.59 705.1 150.11 707.13 148.67 709.17 147.26 711.2 145.89 713.23 144.57 715.27 143.28 717.3 142.04 719.33 140.85 721.37 139.69 723.4 138.59 725.43 137.52 727.47 136.51 729.5 135.53 731.53 134.61 733.57 133.73 735.6 132.89 737.63 132.1 739.67 131.35 741.7 130.64 743.73 129.97 745.77 129.35 747.8 128.77 749.83 128.22 751.87 127.72 753.9 127.25 755.93 126.82 757.97 126.43 760 126.07 762.03 125.74 764.07 125.45 766.1 125.18 768.13 124.95 770.17 124.74 772.2 124.56 774.23 124.41 776.27 124.28 778.3 124.18 780.33 124.1 782.37 124.04 784.4 124 786.43 123.98 788.47 123.98 790.5 123.99 792.53 124.02 794.57 124.07 796.6 124.13 798.63 124.2 800.67 124.28 802.7 124.38 804.73 124.48 806.77 124.59 808.8 124.71 810.83 124.84 812.87 124.97 814.9 125.11 816.93 125.26 818.97 125.41 821 125.56 823.03 125.71 825.07 125.87 827.1 126.03 829.13 126.19 831.17 126.35 833.2 126.51 835.23 126.67 837.27 126.83 839.3 126.99 841.33 127.15 843.37 127.31 845.4 127.46 847.43 127.61 849.47 127.76 851.5 127.91 853.53 128.05 855.57 128.19 857.6 128.32 859.63 128.46 861.67 128.58 863.7 128.71 865.73 128.83 867.77 128.94 869.8 129.06 871.83 129.16 873.87 129.27 875.9 129.37 877.93 129.46 879.97 129.55 882 129.64" fill="none" stroke="#B8FF3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+  <g class="fade2"><g class="px2" style="transform:translateX(244px)"><g class="py2" style="transform:translateY(-63.96px)">
+    <circle cx="638" cy="194" r="4.5" fill="#B8FF3C"/>
+  </g></g></g>
+  <rect x="638" y="212" width="244" height="4" rx="2" fill="#232A26"/>
+  <g class="fade2"><g class="puck2" style="transform:translateX(212px)">
+    <rect x="638" y="206" width="32" height="16" rx="8" fill="#B8FF3C"/>
+  </g></g>
+  <text class="sans dim" x="638" y="248" font-size="12">The tick pop, tag pop-in, the goal hit.</text>
+  <text class="mono dim" x="638" y="266" font-size="10.5">under-damped · +9.5% overshoot</text>
+</g>
+</svg>

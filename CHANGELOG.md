@@ -5,6 +5,29 @@ versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **The README now shows the app and its motion layer.** Five real screens (rendered
+  headlessly by `:composeApp:renderScreens`, no device involved) and six animated figures:
+  the ignition, the duration scale, the easing curves, the springs, the arrival stagger and
+  the bottom bar.
+- **`docs/assets/motion/generate.mjs`** — the figures are GENERATED from
+  `presentation/theme/Tokens.kt` and `Theme.kt`, not drawn. The spring curves are integrated
+  from the same damped harmonic oscillator Compose integrates (same damping ratio and
+  stiffness, mass 1, Compose's own `0.01` visibility threshold) and emitted as sampled CSS
+  `linear()` easings, so a retuned spring changes the pictures on the next run rather than
+  quietly making them wrong. It refuses to draw with a token it could not find.
+- **`docs/motion-lab.html`** — the same six figures inlined on one self-contained page with
+  the full token catalogue.
+
+### Notes
+- Every figure's FIRST frame is its finished state, and it rewinds to replay. An animated SVG
+  is shown as a still more often than it looks — a throttled tab, a renderer that does not run
+  CSS in an `<img>` — and the obvious construction makes the hero's still a black rectangle.
+  The same choice makes `prefers-reduced-motion` correct for free: with motion reduced each
+  figure renders as the end of the story, which is the promise MOTION-02 makes inside the app.
+- Documentation only. No file in the verified surface (`composeApp/`, `specs/`, `qa/`, the
+  Gradle build files) was touched.
+
 ## [0.7.2] — the rows breathe again
 
 ### Fixed

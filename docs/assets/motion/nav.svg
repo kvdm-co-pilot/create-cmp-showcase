@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 210" width="920" height="210" role="img" aria-labelledby="t d">
+<title id="t">The bottom bar indicator</title><desc id="d">A lime pill sliding between the five tabs — Today, Week, Meals, Training, Profile — on the Settle spring, while the selected label and icon swap colour over 120 ms.</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+  .cc{fill:currentColor}
+  .ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .pill{animation:pill 5400ms infinite}
+  @keyframes pill{
+    0%{transform:translateX(0px)}
+    16.6667%{transform:translateX(0px);animation-timing-function:var(--sp-settle)}
+    19.9815%{transform:translateX(176px)}
+    33.3333%{transform:translateX(176px);animation-timing-function:var(--sp-settle)}
+    36.6481%{transform:translateX(352px)}
+    50%{transform:translateX(352px);animation-timing-function:var(--sp-settle)}
+    53.3148%{transform:translateX(528px)}
+    66.6667%{transform:translateX(528px);animation-timing-function:var(--sp-settle)}
+    69.9815%{transform:translateX(704px)}
+    83.3333%{transform:translateX(704px);animation-timing-function:var(--sp-settle)}
+    86.6481%{transform:translateX(0px)}
+    100%{transform:translateX(0px)}
+  }
+  .t0{animation:t0 5400ms infinite}
+  @keyframes t0{
+    0%{color:#B8FF3C}
+    16.6667%{color:#B8FF3C}
+    18.8889%{color:#A7B2AC}
+    83.3333%{color:#A7B2AC}
+    85.5556%{color:#B8FF3C}
+    100%{color:#B8FF3C}
+  }
+  .t1{animation:t1 5400ms infinite}
+  @keyframes t1{
+    0%{color:#A7B2AC}
+    16.6667%{color:#A7B2AC}
+    18.8889%{color:#B8FF3C}
+    33.3333%{color:#B8FF3C}
+    35.5556%{color:#A7B2AC}
+    100%{color:#A7B2AC}
+  }
+  .t2{animation:t2 5400ms infinite}
+  @keyframes t2{
+    0%{color:#A7B2AC}
+    33.3333%{color:#A7B2AC}
+    35.5556%{color:#B8FF3C}
+    50%{color:#B8FF3C}
+    52.2222%{color:#A7B2AC}
+    100%{color:#A7B2AC}
+  }
+  .t3{animation:t3 5400ms infinite}
+  @keyframes t3{
+    0%{color:#A7B2AC}
+    50%{color:#A7B2AC}
+    52.2222%{color:#B8FF3C}
+    66.6667%{color:#B8FF3C}
+    68.8889%{color:#A7B2AC}
+    100%{color:#A7B2AC}
+  }
+  .t4{animation:t4 5400ms infinite}
+  @keyframes t4{
+    0%{color:#A7B2AC}
+    66.6667%{color:#A7B2AC}
+    68.8889%{color:#B8FF3C}
+    83.3333%{color:#B8FF3C}
+    85.5556%{color:#A7B2AC}
+    100%{color:#A7B2AC}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="210" rx="18" fill="#0A0C0B"/>
+<text class="sans eyebrow" x="20" y="32">THE BOTTOM BAR — MOTION-05</text>
+<text class="sans dim" x="20" y="52" font-size="12">Material 3's NavigationBar, 80 dp, ripple and Tab role intact — with one indicator that SLIDES instead of five that cross-fade</text>
+<rect x="20" y="62" width="880" height="80" rx="18" fill="#121614"/>
+<g class="pill"><rect x="76" y="74" width="64" height="32" rx="16" fill="#4C6822"/></g>
+<g class="t0" style="color:#B8FF3C">
+  <g class="ic" transform="translate(96 78)"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9.5h18"/><rect x="7" y="12.5" width="6.5" height="5" rx="1.2" fill="currentColor" stroke="none"/></g>
+  <text class="sans cc" x="108" y="122" font-size="12" font-weight="500" text-anchor="middle">Today</text>
+</g>
+<g class="t1" style="color:#A7B2AC">
+  <g class="ic" transform="translate(272 78)"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9.5h18"/><circle cx="8" cy="13.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="13.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="13.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8" cy="17.6" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="17.6" r="1.3" fill="currentColor" stroke="none"/></g>
+  <text class="sans cc" x="284" y="122" font-size="12" font-weight="500" text-anchor="middle">Week</text>
+</g>
+<g class="t2" style="color:#A7B2AC">
+  <g class="ic" transform="translate(448 78)"><path d="M6.6 3v5.4a2.2 2.2 0 0 0 4.4 0V3"/><path d="M8.8 10.6V21"/><path d="M17.4 3c1.9 2.4 1.9 6.4 0 8.3V21"/></g>
+  <text class="sans cc" x="460" y="122" font-size="12" font-weight="500" text-anchor="middle">Meals</text>
+</g>
+<g class="t3" style="color:#A7B2AC">
+  <g class="ic" transform="translate(624 78)"><path d="M4 9.5v5M7 7v10M17 7v10M20 9.5v5M7 12h10"/></g>
+  <text class="sans cc" x="636" y="122" font-size="12" font-weight="500" text-anchor="middle">Training</text>
+</g>
+<g class="t4" style="color:#A7B2AC">
+  <g class="ic" transform="translate(800 78)"><circle cx="12" cy="8" r="3.6"/><path d="M5 20.2c0-3.9 3.1-6.3 7-6.3s7 2.4 7 6.3"/></g>
+  <text class="sans cc" x="812" y="122" font-size="12" font-weight="500" text-anchor="middle">Profile</text>
+</g>
+<text class="mono dim" x="20" y="168" font-size="11">pill: Springs.Settle (ζ 1 · k 1500 · 179 ms) · icon and label: 120 ms colour swap · the pill is DRAWN behind the bar, so it adds no node</text>
+</svg>

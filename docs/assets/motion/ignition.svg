@@ -1,0 +1,243 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="t d">
+<title id="t">The Fuelled ignition</title><desc id="d">A lime spark ignites, sweeps the day ring, reveals the brand mark and raises the seven letters of "Fuelled" 40 ms apart — beside the four beats of the choreography and their timings.</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+
+  .stage{animation:stage 4620ms infinite}
+  @keyframes stage{
+    0%,28.1385%{opacity:1;animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    33.7662%,36.5801%{opacity:0}
+    36.7965%,100%{opacity:1}
+  }
+
+  .arc{animation:arc 4620ms infinite}
+  @keyframes arc{
+    0%,33.7662%{stroke-dashoffset:0}
+    34.632%{stroke-dashoffset:477.5}
+    43.7229%{stroke-dashoffset:477.5;animation-timing-function:var(--sp-weighty)}
+    54.0476%,100%{stroke-dashoffset:0}
+  }
+  .head-fade{animation:headFade 4620ms infinite}
+  @keyframes headFade{
+    0%,43.7229%{opacity:0}
+    44.5887%,54.0476%{opacity:1}
+    58.8745%,100%{opacity:0}
+  }
+  .head-spin{animation:headSpin 4620ms infinite;transform-origin:196px 152px}
+  @keyframes headSpin{
+    0%,33.7662%{transform:rotate(270deg)}
+    34.632%{transform:rotate(-90deg)}
+    43.7229%{transform:rotate(-90deg);animation-timing-function:var(--sp-weighty)}
+    54.0476%,100%{transform:rotate(270deg)}
+  }
+
+  .spark{transform:scale(0);animation:spark 4620ms infinite;transform-origin:196px 152px}
+  @keyframes spark{
+    0%,36.7965%{transform:scale(0);animation-timing-function:var(--sp-lively)}
+    43.7229%,58.8745%{transform:scale(1);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    67.5325%,100%{transform:scale(0)}
+  }
+
+  .reveal{animation:reveal 4620ms infinite;transform-origin:196px 152px}
+  @keyframes reveal{
+    0%,33.7662%{transform:scale(1)}
+    34.632%{transform:scale(0)}
+    58.8745%{transform:scale(0);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    67.5325%,100%{transform:scale(1)}
+  }
+  .mark{animation:mark 4620ms infinite;transform-origin:196px 152px}
+  @keyframes mark{
+    0%,33.7662%{transform:scale(1)}
+    34.632%{transform:scale(.8)}
+    58.8745%{transform:scale(.8);animation-timing-function:var(--sp-lively)}
+    65.8009%,100%{transform:scale(1)}
+  }
+
+  .l0{animation:l0 4620ms infinite}
+  @keyframes l0{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    67.5325%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    72.7273%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l1{animation:l1 4620ms infinite}
+  @keyframes l1{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    68.3983%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    73.5931%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l2{animation:l2 4620ms infinite}
+  @keyframes l2{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    69.2641%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    74.4589%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l3{animation:l3 4620ms infinite}
+  @keyframes l3{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    70.1299%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    75.3247%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l4{animation:l4 4620ms infinite}
+  @keyframes l4{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    70.9957%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    76.1905%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l5{animation:l5 4620ms infinite}
+  @keyframes l5{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    71.8615%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    77.0563%,100%{opacity:1;transform:translateY(0)}
+  }
+  .l6{animation:l6 4620ms infinite}
+  @keyframes l6{
+    0%,33.7662%{opacity:1;transform:translateY(0)}
+    34.632%{opacity:0;transform:translateY(16px)}
+    72.7273%{opacity:0;transform:translateY(16px);animation-timing-function:cubic-bezier(0.05, 0.7, 0.1, 1)}
+    77.9221%,100%{opacity:1;transform:translateY(0)}
+  }
+
+  .b0{animation:b0 4620ms infinite}
+  @keyframes b0{
+    0%,33.7662%{opacity:1}
+    34.632%{opacity:.3}
+    36.7965%{opacity:.3}
+    39.3939%,100%{opacity:1}
+  }
+  .d0{animation:d0 4620ms infinite}
+  @keyframes d0{
+    0%,33.7662%{fill:#B8FF3C}
+    34.632%{fill:#333B37}
+    36.7965%{fill:#333B37}
+    39.3939%,100%{fill:#B8FF3C}
+  }
+  .b1{animation:b1 4620ms infinite}
+  @keyframes b1{
+    0%,33.7662%{opacity:1}
+    34.632%{opacity:.3}
+    43.7229%{opacity:.3}
+    46.3203%,100%{opacity:1}
+  }
+  .d1{animation:d1 4620ms infinite}
+  @keyframes d1{
+    0%,33.7662%{fill:#B8FF3C}
+    34.632%{fill:#333B37}
+    43.7229%{fill:#333B37}
+    46.3203%,100%{fill:#B8FF3C}
+  }
+  .b2{animation:b2 4620ms infinite}
+  @keyframes b2{
+    0%,33.7662%{opacity:1}
+    34.632%{opacity:.3}
+    58.8745%{opacity:.3}
+    61.4719%,100%{opacity:1}
+  }
+  .d2{animation:d2 4620ms infinite}
+  @keyframes d2{
+    0%,33.7662%{fill:#B8FF3C}
+    34.632%{fill:#333B37}
+    58.8745%{fill:#333B37}
+    61.4719%,100%{fill:#B8FF3C}
+  }
+  .b3{animation:b3 4620ms infinite}
+  @keyframes b3{
+    0%,33.7662%{opacity:1}
+    34.632%{opacity:.3}
+    67.5325%{opacity:.3}
+    70.1299%,100%{opacity:1}
+  }
+  .d3{animation:d3 4620ms infinite}
+  @keyframes d3{
+    0%,33.7662%{fill:#B8FF3C}
+    34.632%{fill:#333B37}
+    67.5325%{fill:#333B37}
+    70.1299%,100%{fill:#B8FF3C}
+  }
+
+  .play{transform:translateX(396px);animation:play 4620ms linear infinite}
+  @keyframes play{
+    0%,33.7662%{transform:translateX(396px)}
+    34.632%{transform:translateX(0)}
+    36.7965%{transform:translateX(0)}
+    80.5195%,100%{transform:translateX(396px)}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="340" rx="18" fill="#0A0C0B"/>
+<defs>
+  <radialGradient id="amb"><stop offset="0" stop-color="#B8FF3C" stop-opacity=".07"/><stop offset="1" stop-color="#B8FF3C" stop-opacity="0"/></radialGradient>
+  <radialGradient id="hd"><stop offset="0" stop-color="#B8FF3C" stop-opacity=".45"/><stop offset="1" stop-color="#B8FF3C" stop-opacity="0"/></radialGradient>
+  <clipPath id="mask"><circle class="reveal" cx="196" cy="152" r="54"/></clipPath>
+</defs>
+<g class="stage">
+  <ellipse cx="196" cy="152" rx="250" ry="215" fill="url(#amb)"/>
+  <circle cx="196" cy="152" r="76" fill="none" stroke="#232A26" stroke-width="16"/>
+  <circle class="arc" cx="196" cy="152" r="76" fill="none" stroke="#B8FF3C" stroke-width="16"
+          stroke-linecap="round" stroke-dasharray="477.5" stroke-dashoffset="0"
+          transform="rotate(-90 196 152)"/>
+  <g class="head-fade" opacity="0"><g class="head-spin" transform="rotate(270 196 152)">
+    <circle cx="272" cy="152" r="16" fill="url(#hd)"/>
+  </g></g>
+  <circle class="spark" cx="196" cy="152" r="7" fill="#B8FF3C"/>
+  <g class="mark" clip-path="url(#mask)">
+    <rect x="160" y="116" width="72" height="72" rx="20.2" fill="#B8FF3C"/>
+    <path d="M201.76 120.32 L177.28 155.6 L193.84 155.6 L188.8 183.68 L217.6 146.24 L199.6 146.24 Z" fill="#0C1500"/>
+  </g>
+  <g class="sans" font-size="42" font-weight="700" text-anchor="middle">
+    <text class="l0" x="135.8" y="288">F</text>
+    <text class="l1" x="160.5" y="288">u</text>
+    <text class="l2" x="184.9" y="288">e</text>
+    <text class="l3" x="202.3" y="288">l</text>
+    <text class="l4" x="213.6" y="288">l</text>
+    <text class="l5" x="230.9" y="288">e</text>
+    <text class="l6" x="255.4" y="288">d</text>
+  </g>
+
+  <line x1="452" y1="46" x2="452" y2="296" stroke="#232A26"/>
+  <text class="sans eyebrow" x="492" y="62">IGNITION — THE APP'S FIRST FRAME</text>
+  <text class="sans dim" x="492" y="90" font-size="12">MOTION-13 · an instrument powering up, from parts the app owns</text>
+  <g class="b0">
+    <circle class="d0" cx="497" cy="136" r="4.5" fill="#B8FF3C"/>
+    <text class="sans" x="514" y="136" font-size="15" font-weight="600">spark</text>
+    <text class="mono dim" x="888" y="136" font-size="11.5" text-anchor="end">Springs.Lively · 320 ms</text>
+  </g>
+  <g class="b1">
+    <circle class="d1" cx="497" cy="178" r="4.5" fill="#B8FF3C"/>
+    <text class="sans" x="514" y="178" font-size="15" font-weight="600">ring sweep</text>
+    <text class="mono dim" x="888" y="178" font-size="11.5" text-anchor="end">Springs.Weighty · 477 ms</text>
+  </g>
+  <g class="b2">
+    <circle class="d2" cx="497" cy="220" r="4.5" fill="#B8FF3C"/>
+    <text class="sans" x="514" y="220" font-size="15" font-weight="600">mark reveal</text>
+    <text class="mono dim" x="888" y="220" font-size="11.5" text-anchor="end">Emphasized 400 ms · Enter</text>
+  </g>
+  <g class="b3">
+    <circle class="d3" cx="497" cy="262" r="4.5" fill="#B8FF3C"/>
+    <text class="sans" x="514" y="262" font-size="15" font-weight="600">wordmark</text>
+    <text class="mono dim" x="888" y="262" font-size="11.5" text-anchor="end">Standard 240 ms · +40 ms/letter</text>
+  </g>
+  <rect x="492" y="304" width="396" height="3" rx="1.5" fill="#232A26"/>
+  <rect x="492" y="301" width="1.5" height="9" fill="#333B37"/>
+  <rect x="554.7" y="301" width="1.5" height="9" fill="#333B37"/>
+  <rect x="692" y="301" width="1.5" height="9" fill="#333B37"/>
+  <rect x="770.4" y="301" width="1.5" height="9" fill="#333B37"/>
+  <g class="play"><rect x="491" y="300" width="2.5" height="11" rx="1.25" fill="#B8FF3C"/></g>
+  <text class="mono dim" x="492" y="326" font-size="10.5">0 ms</text>
+  <text class="mono dim" x="888" y="326" font-size="10.5" text-anchor="end">2020 ms · then it hands the ring to Today</text>
+</g>
+</svg>

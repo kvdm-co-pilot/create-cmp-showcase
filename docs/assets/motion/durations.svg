@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 316" width="920" height="316" role="img" aria-labelledby="t d">
+<title id="t">The duration scale</title><desc id="d">Quick 120 ms, Standard 240 ms, Emphasized 400 ms, Expressive 700 ms, Celebration 1100 ms, ShimmerSweep 1200 ms — drawn on a shared time axis and filled at their real speeds.</desc>
+<style>
+  svg{--sp-settle:linear(0, 0.0163 2.78%, 0.0576 5.56%, 0.1146 8.33%, 0.1806 11.11%, 0.2506 13.89%, 0.3212 16.67%, 0.3901 19.44%, 0.4557 22.22%, 0.517 25%, 0.5735 27.78%, 0.6251 30.56%, 0.6716 33.33%, 0.7134 36.11%, 0.7506 38.89%, 0.7836 41.67%, 0.8127 44.44%, 0.8382 47.22%, 0.8605 50%, 0.88 52.78%, 0.8969 55.56%, 0.9116 58.33%, 0.9243 61.11%, 0.9353 63.89%, 0.9447 66.67%, 0.9528 69.44%, 0.9598 72.22%, 0.9658 75%, 0.9709 77.78%, 0.9753 80.56%, 0.979 83.33%, 0.9822 86.11%, 0.9849 88.89%, 0.9872 91.67%, 0.9892 94.44%, 0.9908 97.22%, 1);--sp-weighty:linear(0, 0.0155 2.78%, 0.0549 5.56%, 0.1096 8.33%, 0.1732 11.11%, 0.241 13.89%, 0.3099 16.67%, 0.3773 19.44%, 0.4419 22.22%, 0.5025 25%, 0.5588 27.78%, 0.6103 30.56%, 0.6571 33.33%, 0.6993 36.11%, 0.7371 38.89%, 0.7707 41.67%, 0.8006 44.44%, 0.8269 47.22%, 0.8501 50%, 0.8703 52.78%, 0.8881 55.56%, 0.9035 58.33%, 0.917 61.11%, 0.9287 63.89%, 0.9388 66.67%, 0.9475 69.44%, 0.955 72.22%, 0.9615 75%, 0.9671 77.78%, 0.9719 80.56%, 0.976 83.33%, 0.9796 86.11%, 0.9826 88.89%, 0.9852 91.67%, 0.9874 94.44%, 0.9893 97.22%, 1);--sp-lively:linear(0, 0.0147 2.78%, 0.0545 5.56%, 0.1136 8.33%, 0.1864 11.11%, 0.2684 13.89%, 0.3553 16.67%, 0.4439 19.44%, 0.5312 22.22%, 0.6151 25%, 0.6938 27.78%, 0.766 30.56%, 0.8311 33.33%, 0.8884 36.11%, 0.9379 38.89%, 0.9796 41.67%, 1.0139 44.44%, 1.0412 47.22%, 1.0621 50%, 1.0772 52.78%, 1.0872 55.56%, 1.0929 58.33%, 1.0948 61.11%, 1.0936 63.89%, 1.09 66.67%, 1.0846 69.44%, 1.0778 72.22%, 1.0701 75%, 1.0618 77.78%, 1.0535 80.56%, 1.0452 83.33%, 1.0372 86.11%, 1.0297 88.89%, 1.0228 91.67%, 1.0165 94.44%, 1.011 97.22%, 1)}
+  .sans{font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  text{fill:#F3F6F4;dominant-baseline:middle}
+  .dim{fill:#A7B2AC}
+  .lime{fill:#B8FF3C}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.4px;fill:#A7B2AC}
+  .bar0{animation:bar0 3200ms infinite;transform-origin:250px 84px}
+  @keyframes bar0{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    52.1875%,100%{transform:scaleX(1)}
+  }
+  .bar1{animation:bar1 3200ms infinite;transform-origin:250px 118px}
+  @keyframes bar1{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    55.9375%,100%{transform:scaleX(1)}
+  }
+  .bar2{animation:bar2 3200ms infinite;transform-origin:250px 152px}
+  @keyframes bar2{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    60.9375%,100%{transform:scaleX(1)}
+  }
+  .bar3{animation:bar3 3200ms infinite;transform-origin:250px 186px}
+  @keyframes bar3{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    70.3125%,100%{transform:scaleX(1)}
+  }
+  .bar4{animation:bar4 3200ms infinite;transform-origin:250px 220px}
+  @keyframes bar4{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    82.8125%,100%{transform:scaleX(1)}
+  }
+  .bar5{animation:bar5 3200ms infinite;transform-origin:250px 254px}
+  @keyframes bar5{
+    0%,40.625%{transform:scaleX(1);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:scaleX(0)}
+    48.4375%{transform:scaleX(0);animation-timing-function:linear}
+    85.9375%,100%{transform:scaleX(1)}
+  }
+  .head{transform:translateX(600px);animation:head 3200ms infinite}
+  @keyframes head{
+    0%,40.625%{transform:translateX(600px);animation-timing-function:cubic-bezier(0.3, 0, 0.8, 0.15)}
+    45.3125%{transform:translateX(0)}
+    48.4375%{transform:translateX(0);animation-timing-function:linear}
+    85.9375%,100%{transform:translateX(600px)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important}
+  }
+</style>
+<rect width="920" height="316" rx="18" fill="#0A0C0B"/>
+<text class="sans eyebrow" x="20" y="30">THE DURATION SCALE — ONE TIME AXIS, EVERY BAR AT ITS TRUE SPEED</text>
+<text class="sans dim" x="20" y="52" font-size="12">Six durations, six jobs. Nothing in the app animates for a length that is not one of these.</text>
+<g>
+  <text class="sans" x="20" y="78" font-size="13" font-weight="600">Quick</text>
+  <text class="sans dim" x="20" y="93" font-size="10.5">press feedback, colour and state swaps, outgoing fades</text>
+  <rect x="250" y="79" width="60" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar0" x="250" y="79" width="60" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="84" font-size="11" text-anchor="end">120 ms</text>
+</g>
+<g>
+  <text class="sans" x="20" y="112" font-size="13" font-weight="600">Standard</text>
+  <text class="sans dim" x="20" y="127" font-size="10.5">fades, rises, cross-fades, expand and collapse</text>
+  <rect x="250" y="113" width="120" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar1" x="250" y="113" width="120" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="118" font-size="11" text-anchor="end">240 ms</text>
+</g>
+<g>
+  <text class="sans" x="20" y="146" font-size="13" font-weight="600">Emphasized</text>
+  <text class="sans dim" x="20" y="161" font-size="10.5">screen pushes and pops, tab fade-through</text>
+  <rect x="250" y="147" width="200" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar2" x="250" y="147" width="200" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="152" font-size="11" text-anchor="end">400 ms</text>
+</g>
+<g>
+  <text class="sans" x="20" y="180" font-size="13" font-weight="600">Expressive</text>
+  <text class="sans dim" x="20" y="195" font-size="10.5">the ring's sweep, the bars' first fill, count-ups</text>
+  <rect x="250" y="181" width="350" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar3" x="250" y="181" width="350" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="186" font-size="11" text-anchor="end">700 ms</text>
+</g>
+<g>
+  <text class="sans" x="20" y="214" font-size="13" font-weight="600">Celebration</text>
+  <text class="sans dim" x="20" y="229" font-size="10.5">the goal bloom — once per logical day, nothing else</text>
+  <rect x="250" y="215" width="550" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar4" x="250" y="215" width="550" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="220" font-size="11" text-anchor="end">1100 ms</text>
+</g>
+<g>
+  <text class="sans" x="20" y="248" font-size="13" font-weight="600">ShimmerSweep</text>
+  <text class="sans dim" x="20" y="263" font-size="10.5">the loading shimmer — the one loop in the app</text>
+  <rect x="250" y="249" width="600" height="10" rx="5" fill="#232A26"/>
+  <rect class="bar5" x="250" y="249" width="600" height="10" rx="5" fill="#B8FF3C"/>
+  <text class="mono dim" x="900" y="254" font-size="11" text-anchor="end">1200 ms</text>
+</g>
+<line x1="250" y1="288" x2="850" y2="288" stroke="#232A26"/>
+<line x1="250" y1="284" x2="250" y2="292" stroke="#333B37"/>
+<text class="mono dim" x="250" y="304" font-size="10" text-anchor="middle">0</text>
+<line x1="400" y1="284" x2="400" y2="292" stroke="#333B37"/>
+<text class="mono dim" x="400" y="304" font-size="10" text-anchor="middle">300</text>
+<line x1="550" y1="284" x2="550" y2="292" stroke="#333B37"/>
+<text class="mono dim" x="550" y="304" font-size="10" text-anchor="middle">600</text>
+<line x1="700" y1="284" x2="700" y2="292" stroke="#333B37"/>
+<text class="mono dim" x="700" y="304" font-size="10" text-anchor="middle">900</text>
+<line x1="850" y1="284" x2="850" y2="292" stroke="#333B37"/>
+<text class="mono dim" x="850" y="304" font-size="10" text-anchor="middle">1200</text>
+<g class="head"><rect x="249" y="72" width="2" height="216" fill="#B8FF3C" opacity=".45"/></g>
+</svg>
