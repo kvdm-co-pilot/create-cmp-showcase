@@ -5,54 +5,80 @@
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "cb079ff7ffb99cc8e5f184db0e5f6ba3d60d0133",
+    "sha": "a85624a41df3de8970799f2ae96a346fef55436a",
     "dirty": [
-      "CHANGELOG.md",
-      "README.md",
-      "docs/assets/",
-      "docs/motion-lab.html",
-      "qa/approvals.json",
-      "qa/approvals.log.jsonl"
+      "qa/evidence/latest.json",
+      "qa/flight-recorder.jsonl",
+      "qa/harness-local.patch",
+      "qa/harness.lock.json",
+      "qa/lib/affected-tests.mjs",
+      "qa/lib/evidence-badge.mjs",
+      "qa/lib/evidence-level.mjs",
+      "qa/lib/inputs-hash.mjs",
+      "qa/lib/lane-runner.mjs",
+      "qa/lib/steps-cmp.mjs",
+      "qa/verify.mjs"
     ]
   },
   "inputs": {
-    "hash": "5a853da499aa1737ef8ba4b55f34064837d126132ce8d0a8e0960500157e9aa6",
-    "fileCount": 486
+    "hash": "0462ea0d2b564b5dd138e67ca73ba0623c741221aab685c2cd6289f4c020262b",
+    "fileCount": 486,
+    "undeclared": [
+      ".claude",
+      ".githooks",
+      ".github",
+      ".gitignore",
+      "AGENTS.md",
+      "CHANGELOG.md",
+      "CLAUDE.md",
+      "CONTRIBUTING.md",
+      "README.md",
+      "create-cmp.json",
+      "docs",
+      "gradle",
+      "gradlew",
+      "gradlew.bat",
+      "iosApp",
+      "local.properties.example",
+      "scripts"
+    ]
   },
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 10,
+      "durationMs": 9,
       "harness": {
         "status": "intact",
         "name": "@create-cmp/harness",
         "version": "0.16.0",
-        "sha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
-        "recordedSha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
+        "sha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
+        "recordedSha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
         "modified": [],
         "missing": [],
         "extra": [],
         "fileCount": 44
       },
       "verdict": "PASS",
-      "note": "@create-cmp/harness 0.16.0 — 44 files verified"
+      "note": "@create-cmp/harness 0.16.0 — 44 files verified",
+      "layer": "spine"
     },
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 61,
+      "durationMs": 58,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
         "tags": 434,
         "files": 332,
         "tierNote": "187 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-15, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 36,
+      "durationMs": 27,
       "details": {
         "artifacts": [
           {
@@ -311,23 +337,25 @@
             "hash": "44221bcf83fbb4d85f4eed4e77ffa8f3284ce0d44bc815a75aff02e929ea009f"
           }
         ]
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 5,
+      "durationMs": 4,
       "details": {
         "components": 22,
         "stories": 22,
         "missing": [],
         "orphans": []
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 16,
+      "durationMs": 17,
       "details": {
         "features": [
           {
@@ -443,7 +471,8 @@
             ]
           }
         ]
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "archDoc",
@@ -451,75 +480,86 @@
       "durationMs": 19,
       "details": {
         "sectionsChecked": 4
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 85,
+      "durationMs": 67,
       "details": {
         "schemaDirs": 3
-      }
+      },
+      "layer": "spine"
     },
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 10105
+      "durationMs": 5303,
+      "layer": "compose"
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 36231,
+      "durationMs": 14557,
       "details": {
         "tests": 395,
         "failures": 0,
         "errors": 0,
         "skipped": 0
-      }
+      },
+      "layer": "compose"
     },
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 13083
+      "durationMs": 3133,
+      "layer": "compose"
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 21286
+      "durationMs": 4409,
+      "layer": "compose"
     },
     {
       "name": "tokenDrift",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 118
+      "durationMs": 29,
+      "layer": "device"
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 13782
+      "durationMs": 3664,
+      "layer": "compose"
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 8806
+      "durationMs": 3750,
+      "layer": "compose"
     },
     {
       "name": "e2eSmoke",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb)",
-      "durationMs": 0
+      "durationMs": 0,
+      "layer": "device"
     },
     {
       "name": "androidChecks",
       "verdict": "SKIP",
       "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 43
+      "durationMs": 22,
+      "layer": "device"
     }
   ],
   "harness": {
     "name": "@create-cmp/harness",
     "version": "0.16.0",
-    "sha256": "66b2cf599e6d305d0a2c021347167b429a763f2f886484fd064ce7b9e0b62feb",
+    "sha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
     "status": "intact",
     "intact": true
   },
@@ -549,5 +589,5 @@
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-03T17:35:00.663Z"
+  "generatedAt": "2026-09-03T17:41:36.603Z"
 }

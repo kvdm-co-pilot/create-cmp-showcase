@@ -35,7 +35,15 @@ import path from "node:path";
  * principle as inputs-hash.mjs's EXCLUDED_PREFIXES: lane outputs are not
  * verdict inputs).
  */
-export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts"];
+// qa/flight-recorder.jsonl is a lane output in the strictest sense: the lane
+// appends one line to it AFTER the receipt is written, on every run. It is
+// committed (the journal is the cost record), so after the first run it sits
+// in the changed set as a modified tracked file under qa/ — and qa/** is the
+// "harness itself" escape hatch. Uncounted here, every --fast run after the
+// first fell open to the full suite, visible only in one parenthetical.
+// Found by payment-blueprint's spine adoption (2026-09-03), where the same
+// line also landed in their locked region.
+export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/flight-recorder.jsonl"];
 
 function isLaneOutput(p) {
   return LANE_OUTPUT_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));

@@ -32,6 +32,8 @@ import { DETERMINISM_TIMEZONES, compareOutcomes, parseJUnitOutcomes } from "./de
 import { evaluateAuditCadence } from "./audit-cadence.mjs";
 import { androidChecksOutcome } from "./step-outcomes.mjs";
 import { checkHarnessIntegrity, describeIntegrity, LOCK_PATH } from "./harness-lock.mjs";
+import { stepDisplayName } from "./lane-runner.mjs";
+import { CMP_LADDER } from "./evidence-level.mjs";
 
 /**
  * @param {object} ctx
@@ -1253,6 +1255,28 @@ stepsForProfile.release = [...stepsForProfile.ci, stepAuditCadence, stepReleaseS
 // what differs is what is forced, and what the receipt is allowed to mean.
 stepsForProfile.nightly = [...stepsForProfile.ci];
 
+// Which layer of the stack each step proves — stamped onto the receipt row by
+// the runner (lane-runner.mjs) so the Evidence pane can group by it and a
+// multi-pack lane (a Compose app over a Kotlin backend) reads as one lane
+// with per-layer tallies. Three layers for this pack: `spine` — the harness
+// proving itself and the governed record (integrity, spec coverage,
+// approvals, the architecture doc, the schema history, the audit cadence);
+// `compose` — the JVM tier of the app (build, tests, conformance, goldens,
+// a11y, release compile); `device` — anything that needs an emulator or a
+// physical device. Layer names are free-form strings on the wire; these are
+// this pack's. Derived by NAME after the lists are built so a step listed in
+// two profiles is tagged once, and a step nobody listed is never tagged.
+const SPINE_STEP_NAMES = new Set(["harnessIntegrity", "specCoverage", "approvals", "componentStories", "reachability", "archDoc", "schemaHistory", "auditCadence", "determinism"]);
+function layerForStep(name) {
+  if (DEVICE_STEPS.includes(name)) return "device";
+  if (SPINE_STEP_NAMES.has(name)) return "spine";
+  return "compose";
+}
+for (const fn of new Set(Object.values(stepsForProfile).flat())) {
+  const name = stepDisplayName(fn);
+  if (name) fn.layer = layerForStep(name);
+}
+
 const FAST_EXCLUDED_NAMES = [...DEVICE_STEPS, "releaseBuild"];
 const STEP_FN_BY_NAME = {
   e2eSmoke: stepE2eSmoke,
@@ -1275,6 +1299,10 @@ for (const name of FAST_EXCLUDED_NAMES) {
     FAST_EXCLUDED_NAMES,
     STEP_FN_BY_NAME,
     stepDeterminism,
+    // The ladder this pack's steps can earn (evidence-level.mjs). A pack that
+    // returns none earns no rung — the spine never grades a pack by another
+    // pack's step names.
+    evidenceLadder: CMP_LADDER,
     // The device lease is held to the very end of the run (see the scope
     // decision above); the spine releases it in the runner's finally.
     releaseLease: () => {

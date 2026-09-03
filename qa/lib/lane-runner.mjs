@@ -145,6 +145,13 @@ export function runLane(ctx) {
       } catch (err) {
         result = stepErrorResult(name, err, Date.now() - stepStarted);
       }
+      // Layer tag: a pack may mark a step function with the layer of the
+      // stack it proves (`fn.layer = "backend"`). The runner stamps it onto
+      // the row so the receipt carries it and the console can group by it —
+      // a step that set its own `layer` in the result keeps its word.
+      if (result && typeof result === "object" && typeof step.layer === "string" && step.layer && typeof result.layer !== "string") {
+        result.layer = step.layer;
+      }
       results.push(result);
       if (print) {
         print(

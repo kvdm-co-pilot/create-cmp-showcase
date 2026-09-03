@@ -31,7 +31,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { computeInputsHash } from "./lib/inputs-hash.mjs";
+import { computeInputsHash, undeclaredTopLevel } from "./lib/inputs-hash.mjs";
 import { evidenceLevel } from "./lib/evidence-level.mjs";
 import { updateReadmeBadge, README_REL_PATH } from "./lib/evidence-badge.mjs";
 import { appendFlightRecord, buildFlightEntry, neverRunTiers, readFlightJournal } from "./lib/flight-recorder.mjs";
@@ -450,7 +450,10 @@ const strengthLabel = onDeviceSteps.length ? `on-device: ${onDeviceSteps.join("+
 // fine print; the rung is added alongside, never in place of it. null on FAIL —
 // a failed lane has no rung. null on a --fast run too: the inner loop is a
 // signal, never evidence, so a fast receipt derives NO rung at all.
-const level = evidenceLevel(steps, profile, { mode });
+// The ladder is the PACK's: a pack that declares none earns no rung (a
+// backend graded by Compose step names was L0 by construction — wrong, not
+// conservative).
+const level = evidenceLevel(steps, profile, { mode, ladder: pack.evidenceLadder ?? null });
 
 // Artifacts: hash whatever the run left under qa-artifacts/ (never committed).
 const artifacts = [];
@@ -494,6 +497,15 @@ function harnessForReceipt() {
 }
 
 const inputs = computeInputsHash(ROOT);
+// What the surface does NOT cover, at the top level. A surface is an allowlist,
+// and a new top-level directory is simply unmatched: no error, silently
+// unattested (payment-blueprint's finding, 2026-09-03). This is a REPORT on the
+// receipt, never a gate — the Compose default deliberately leaves docs/, the
+// README and the wrapper out — so a reader can see the gap and decide.
+const undeclared = undeclaredTopLevel(ROOT);
+if (undeclared.length) {
+  console.log(`  ⓘ inputs: ${undeclared.length} top-level entr${undeclared.length === 1 ? "y is" : "ies are"} outside the verified surface (unattested): ${undeclared.join(", ")}`);
+}
 
 // The receipt. Deterministic key order; ONE volatile timestamp field.
 // commit.sha is the parent HEAD at run time (you cannot know the sha of the
@@ -520,6 +532,10 @@ const receipt = {
   inputs: {
     hash: inputs.hash,
     fileCount: inputs.fileCount,
+    // Top-level entries the surface leaves unattested (see above). Absent when
+    // there are none, so a receipt whose surface covers everything keeps its
+    // exact prior shape.
+    ...(undeclared.length ? { undeclared } : {}),
   },
   steps,
   // WHICH LANE issued this verdict. A receipt that cannot name its own harness

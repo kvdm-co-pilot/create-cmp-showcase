@@ -66,6 +66,27 @@ const RELEASE_EXECUTION = "releaseSmoke";
 const RUNG_NAMES = { L0: "scaffold", L1: "desktop", L2: "device", L3: "release" };
 
 /**
+ * The Compose Multiplatform pack's ladder — the step names above, as one
+ * object a pack hands to the spine. THE LADDER IS THE PACK'S, NOT THE SPINE'S
+ * (2026-09-03): vendored into a Kotlin backend, these names graded its
+ * strongest run — detekt, Konsist, mutation, gitleaks — as L0 "scaffold" and
+ * made L1 unreachable by construction. A fixed-amount understatement is not
+ * conservative, it is wrong, and receipts are where labels get quoted. So a
+ * pack declares its ladder (`evidenceLadder` on createXSteps' return); a pack
+ * that declares none earns no rung at all, which is the honest grade for a
+ * ladder nobody has calibrated. Every field is a list of step names except
+ * `release`, one name. `names` maps rung → label.
+ */
+export const CMP_LADDER = Object.freeze({
+  scaffoldCore: Object.freeze(SCAFFOLD_CORE),
+  l0Required: Object.freeze(L0_REQUIRED),
+  l1Required: Object.freeze(L1_REQUIRED),
+  deviceExecution: Object.freeze(DEVICE_EXECUTION),
+  release: RELEASE_EXECUTION,
+  names: Object.freeze(RUNG_NAMES),
+});
+
+/**
  * Derive the receipt's evidence rung from the lane's step results.
  *
  * @param {Array<{name: string, verdict: string}>} stepResults the lane's steps
@@ -81,8 +102,18 @@ const RUNG_NAMES = { L0: "scaffold", L1: "desktop", L2: "device", L3: "release" 
  *   was not earned. `satisfiedBy` lists the PASSed steps the rung counts as
  *   its evidence, in lane order.
  */
-export function evidenceLevel(stepResults, profile, { mode } = {}) { // eslint-disable-line no-unused-vars
+export function evidenceLevel(stepResults, profile, { mode, ladder } = {}) { // eslint-disable-line no-unused-vars
   if (mode === "fast") return null; // the inner loop derives no rung — ever
+  // `ladder` absent → the Compose ladder (every caller before packs declared
+  // one). `ladder: null` → the pack declares none: no rung, by decision.
+  if (ladder === null) return null;
+  const L = ladder ?? CMP_LADDER;
+  const SCAFFOLD_CORE = L.scaffoldCore ?? [];
+  const L0_REQUIRED = L.l0Required ?? [];
+  const L1_REQUIRED = L.l1Required ?? [];
+  const DEVICE_EXECUTION = L.deviceExecution ?? [];
+  const RELEASE_EXECUTION = L.release ?? null;
+  const RUNG_NAMES = L.names ?? CMP_LADDER.names;
   const steps = Array.isArray(stepResults) ? stepResults.filter((s) => s && typeof s.name === "string") : [];
   // A failed lane has no rung — and a lane with a step that could not run
   // (ERROR) has none either: a rung is evidence, and "could not check" is not.
@@ -108,7 +139,7 @@ export function evidenceLevel(stepResults, profile, { mode } = {}) { // eslint-d
 
       // Only a PASSed releaseSmoke lifts to L3 — a SKIP (unsigned keystore,
       // no device) never does.
-      if (passed.has(RELEASE_EXECUTION)) {
+      if (RELEASE_EXECUTION && passed.has(RELEASE_EXECUTION)) {
         rung = "L3";
         counted.add(RELEASE_EXECUTION);
       }

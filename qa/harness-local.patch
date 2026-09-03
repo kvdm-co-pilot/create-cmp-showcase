@@ -16,503 +16,8 @@
 # Better still: upstream the change so the next upgrade carries it for you.
 # Delete this file once you have decided.
 
-diff --git a/qa/lib/walk.mjs b/qa/lib/walk.mjs
-index 05a503a..8685c7a 100644
---- a/qa/lib/walk.mjs
-+++ b/qa/lib/walk.mjs
-@@ -13,11 +13,14 @@
- // test is that promise kept, provenDone is all of them kept with the receipt
- // attesting this tree.
- 
-+import crypto from "node:crypto";
- import fs from "node:fs";
-+import os from "node:os";
- import path from "node:path";
- 
- import { getFeatureBoard, getApprovalStatuses, readJournal } from "./approvals.mjs";
- import { CLAUSE_LINE_RE } from "./spec-coverage.mjs";
-+import { deriveChain, renderChain } from "./plan.mjs";
- 
- /** The six stages, in walk order. `label` is the only user-facing name (D2). */
- export const STAGES = [
-@@ -29,6 +32,32 @@ export const STAGES = [
-   { key: "signoff", label: "Sign-off" },
- ];
- 
-+/**
-+ * Plain-language glosses (walk-legibility L3) — what each stage IS, for a
-+ * reader who did not build the harness. Rendered beside the stage name
-+ * wherever a human reads; the keys and ids underneath never change.
-+ */
-+export const STAGE_GLOSS = {
-+  decide: "choosing what to build, and why",
-+  design: "how it looks — judged on rendered screens",
-+  contract: "agreeing what it promises",
-+  build: "keeping the promises",
-+  prove: "checking every promise",
-+  signoff: "your sign-off",
-+};
-+
-+/**
-+ * A governed artifact id in plain words (L3): `feature-spec:meal` reads as
-+ * "the promises for meal". Ledger ids stay ids; only the human rendering
-+ * translates. Unknown shapes pass through untouched — never invented prose.
-+ */
-+export function humanArtifact(id) {
-+  const m = /^feature-(brief|design|spec):(.+)$/.exec(String(id));
-+  if (!m) return String(id);
-+  const what = m[1] === "brief" ? "the decisions for" : m[1] === "design" ? "the design of" : "the promises for";
-+  return `${what} ${m[2]}`;
-+}
-+
- /** nextStep.key -> the stage that step belongs to. `closed` maps to none. */
- const STEP_STAGE = {
-   "sign-brief": "decide",
-@@ -105,21 +134,50 @@ function remainingStops(stages, currentIdx) {
-  * provenDone) to ONE next act — stages before it are done, after it pending.
-  * Design is `skipped` when the feature honestly has no UI surface (D2).
-  */
--function walkOfFeature(root, f) {
-+function walkOfFeature(root, f, lane = null) {
-   const currentKey = STEP_STAGE[f.nextStep?.key] ?? null; // null => closed
-   const currentIdx = currentKey ? STAGES.findIndex((s) => s.key === currentKey) : STAGES.length;
-   const stages = STAGES.map((s, i) => {
-     if (s.key === "design" && f.design === null)
-       return { ...s, state: "skipped", note: "no UI surface" };
--    return { ...s, state: i < currentIdx ? "done" : i === currentIdx ? "current" : "pending" };
-+    const state = i < currentIdx ? "done" : i === currentIdx ? "current" : "pending";
-+    // Time is part of position (L4): Prove is the one stage with its own
-+    // recorded history (the lane journals every run), so it says what it
-+    // costs — measured, never the agent's memory of it.
-+    if (s.key === "prove" && lane)
-+      return { ...s, state, note: laneCostPhrase(lane) };
-+    return { ...s, state };
-   });
- 
--  const promises = listPromises(root, f.specRel).filter((p) => !p.withdrawn);
-+  // The paired specs (L1): promises concatenate across every spec the brief
-+  // names, in declaration order — same pairing the board derivation used.
-+  const specRels = f.specRels ?? [f.specRel];
-+  const promises = specRels.flatMap((rel) => listPromises(root, rel)).filter((p) => !p.withdrawn);
-   // The promise being kept NOW: first live clause without a citing test —
-   // board clause order, titles from the spec's own words.
-   const citedIds = new Set(f.clauses.filter((c) => c.cited).map((c) => c.id));
-   const current = promises.find((p) => !citedIds.has(p.id)) ?? null;
- 
-+  // The signature the current step is waiting for, when it IS a signature —
-+  // so a surface with a signing control (the console) can put the button on
-+  // the walk card itself instead of pointing at a CLI incantation (L5).
-+  // Derived from the board's own step key, never a fourth approve path.
-+  const signable = (() => {
-+    switch (f.nextStep?.key) {
-+      case "sign-brief":
-+      case "re-approve":
-+        return [{ verb: "approve", artifact: `feature-brief:${f.name}` }];
-+      case "sign-design":
-+        return [{ verb: "approve", artifact: `feature-design:${f.name}` }];
-+      case "sign-spec":
-+        return (f.specNames ?? [f.name]).map((n) => ({ verb: "approve", artifact: `feature-spec:${n}` }));
-+      case "accept":
-+        return [{ verb: "accept", artifact: f.name }];
-+      default:
-+        return [];
-+    }
-+  })();
-+
-   // Whose turn (D4): from the board's own owner, never re-derived.
-   const owner = f.nextStep?.owner ?? null;
-   const you =
-@@ -137,13 +195,127 @@ function walkOfFeature(root, f) {
-     open: f.phase !== "accepted",
-     stages,
-     currentStage: currentKey,
--    promises: { total: f.total, kept: f.covered, current },
--    you,
-+    // `all` is the full promise list with per-promise kept state (L5) — the
-+    // console renders the promises themselves, not only the tally.
-+    promises: {
-+      total: f.total,
-+      kept: f.covered,
-+      current,
-+      all: promises.map((p) => ({ ...p, kept: citedIds.has(p.id) })),
-+    },
-+    you: { ...you, signable },
-     stops: remainingStops(stages, currentIdx),
-     doneReason: f.doneReason,
-   };
- }
- 
-+/**
-+ * What a full verify-lane run costs HERE, from the lane's own journal
-+ * (qa/flight-recorder.jsonl) — the most recent non-fast run's wall time and
-+ * verdict. Walk-legibility L4: any surface quoting the lane quotes this,
-+ * never a memory of it (the observed failure: a 3× overestimate, spoken
-+ * while the human was deciding whether a run was worth it, lost the run).
-+ * @returns {{durationMs: number, verdict: (string|null)} | null}
-+ */
-+export function laneTiming(root) {
-+  let text;
-+  try {
-+    text = fs.readFileSync(path.join(root, "qa/flight-recorder.jsonl"), "utf8");
-+  } catch {
-+    return null;
-+  }
-+  // EVERY recorded full run, not just the last one. A single "last run" figure
-+  // is dominated by Gradle's cache state: a run that changed nothing reports the
-+  // no-op cost (a 2s releaseBuild cache hit), and the operator plans a real
-+  // change around it. Observed spread on one project: last 25s, median 140s,
-+  // worst 558s. The distribution is the honest answer to "what will this cost";
-+  // `durationMs` stays the last run so existing callers keep their meaning.
-+  const full = [];
-+  for (const line of text.split("\n")) {
-+    if (line.trim() === "") continue;
-+    let e;
-+    try {
-+      e = JSON.parse(line);
-+    } catch {
-+      continue;
-+    }
-+    if (e && e.mode !== "fast" && typeof e.durationMs === "number" && e.durationMs > 0) full.push(e);
-+  }
-+  if (full.length === 0) return null;
-+  const sorted = full.map((e) => e.durationMs).sort((a, b) => a - b);
-+  const last = full[full.length - 1];
-+  return {
-+    durationMs: last.durationMs,
-+    verdict: last.verdict ?? null,
-+    runs: sorted.length,
-+    // Median over an even count takes the lower of the two middles — a measured
-+    // run rather than an average of two, so every figure quoted is one that
-+    // actually happened.
-+    medianMs: sorted[Math.floor((sorted.length - 1) / 2)],
-+    maxMs: sorted[sorted.length - 1],
-+  };
-+}
-+
-+/**
-+ * What a full check costs, said honestly: the last run when that is all there
-+ * is, and last + typical + worst once the journal can support a spread. Never
-+ * an estimate — every number here is a run that happened (walk-legibility L4).
-+ * @param {{durationMs: number, medianMs?: number, maxMs?: number, runs?: number}|null} lane
-+ * @returns {string|null} null when nothing was ever recorded
-+ */
-+export function laneCostPhrase(lane) {
-+  if (!lane || !(lane.durationMs > 0)) return null;
-+  const last = `${humanDuration(lane.durationMs)} last full run`;
-+  // One or two runs is not a distribution; saying "typical" over them would be
-+  // the same overclaim in a new costume.
-+  if (!(lane.runs > 2) || !(lane.medianMs > 0)) return `${last} (measured)`;
-+  const spread =
-+    lane.maxMs > lane.medianMs ? `, typically ${humanDuration(lane.medianMs)}, worst ${humanDuration(lane.maxMs)}` : `, typically ${humanDuration(lane.medianMs)}`;
-+  return `${last}${spread} (measured over ${lane.runs} full runs)`;
-+}
-+
-+/** "98s" under two minutes, "~5 min" above — for humans deciding whether to wait. */
-+export function humanDuration(ms) {
-+  if (!(ms > 0)) return "unknown";
-+  return ms < 120000 ? `${Math.round(ms / 1000)}s` : `~${Math.round(ms / 60000)} min`;
-+}
-+
-+/**
-+ * The studio console currently registered for `root`, from the same tmp-dir
-+ * record the console itself writes — a CROSS-PACKAGE CONTRACT with the
-+ * inspector's preview-service.mjs (consoleRegistryPath): sha1(resolved
-+ * root).slice(0,12), `cmp-console-<key>.json` in os.tmpdir(), fields
-+ * {pid, port, url, buildStale}. pid-liveness only, no HTTP — this runs inside a
-+ * statusline with a <300ms budget.
-+ *
-+ * `buildStale` is the console's OWN verdict on itself (studio-self-renewal R5):
-+ * a console serving code that is no longer the code on disk. It is carried on
-+ * the record rather than recomputed here on purpose — the harness cannot hash
-+ * the inspector's sources (in a scaffolded app the inspector is an npm package
-+ * elsewhere), and a per-prompt hook must not make an HTTP call. The process
-+ * that owns the fact publishes it; every consumer stays dumb.
-+ * @returns {{url: string, buildStale: boolean} | {stale: true} | null} null = no
-+ *   record at all (never started, or stopped cleanly — silence, not an alarm)
-+ */
-+export function consoleState(root) {
-+  try {
-+    const key = crypto.createHash("sha1").update(path.resolve(root)).digest("hex").slice(0, 12);
-+    const rec = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), `cmp-console-${key}.json`), "utf8"));
-+    if (!rec || typeof rec.pid !== "number") return null;
-+    try {
-+      process.kill(rec.pid, 0); // signal 0: existence probe, touches nothing
-+    } catch (err) {
-+      if (!(err && err.code === "EPERM")) return { stale: true }; // record left by a crashed console
-+    }
-+    return {
-+      url: typeof rec.url === "string" ? rec.url : `http://127.0.0.1:${rec.port}/`,
-+      buildStale: rec.buildStale === true,
-+    };
-+  } catch {
-+    return null;
-+  }
-+}
-+
- /**
-  * Everything the status surfaces render (D5): open walks, plus ARRIVALS (D7)
-  * — governed artifacts drifted or reopened that NO open walk accounts for
-@@ -167,15 +339,22 @@ export function deriveWalks(root) {
-   // worked on today (seen on the showcase: bfl-catalog, alphabetical, outshouted
-   // the live navigation-ia walk in the statusline).
-   const journalForOrder = readJournal(root);
-+  const byName = new Map(board.features.map((f) => [f.name, f]));
-   const lastActivity = (name) => {
--    const family = new Set([`feature-brief:${name}`, `feature-design:${name}`, `feature-spec:${name}`]);
-+    const specNames = byName.get(name)?.specNames ?? [name];
-+    const family = new Set([
-+      `feature-brief:${name}`,
-+      `feature-design:${name}`,
-+      ...specNames.map((n) => `feature-spec:${n}`),
-+    ]);
-     for (let i = journalForOrder.length - 1; i >= 0; i--) {
-       if (family.has(journalForOrder[i].artifact)) return i;
-     }
-     return -1;
-   };
-+  const lane = laneTiming(root);
-   const walks = board.features
--    .map((f) => walkOfFeature(root, f))
-+    .map((f) => walkOfFeature(root, f, lane))
-     .filter((w) => w.open)
-     .sort((a, b) => lastActivity(b.name) - lastActivity(a.name));
- 
-@@ -187,7 +366,9 @@ export function deriveWalks(root) {
-     if (f.phase === "accepted") continue;
-     owned.add(`feature-brief:${f.name}`);
-     owned.add(`feature-design:${f.name}`);
--    owned.add(`feature-spec:${f.name}`);
-+    // The spec side follows the brief's own pairing (L1) — a reopened spec a
-+    // multi-spec walk owns is that walk's Contract stage, never an arrival.
-+    for (const n of f.specNames ?? [f.name]) owned.add(`feature-spec:${n}`);
-     for (const t of f.touches) owned.add(t.id);
-   }
-   const journal = journalForOrder;
-@@ -206,7 +387,13 @@ export function deriveWalks(root) {
-       reason: s.status === "reopened" ? lastReopenReason(s.id) : "changed since its signature",
-     }));
- 
--  return { available: true, walks, arrivals };
-+  // `lane` (L4) and `console` (L6) ride along so every rendering can say
-+  // what a check costs and where the buttons are — both derived, never
-+  // remembered, and both null-safe for projects that have neither yet.
-+  // The live CHAIN (studio-drive-mode) rides along too: request + declared
-+  // step plan + what is actually running. Declared state, labeled as such by
-+  // every renderer; it gates nothing and the walk stays the truth.
-+  return { available: true, walks, arrivals, lane, console: consoleState(root), chain: deriveChain(root) };
- }
- 
- // ── Renderings — one grammar, four slots (D4) ────────────────────────────────
-@@ -225,35 +412,51 @@ function loudest(walks) {
-  * The always-on one-liner (statusline). "" when there is nothing to say — an
-  * ungoverned project's statusline stays silent, never fabricated.
-  */
--export function renderStatusline({ available, walks, arrivals }) {
-+export function renderStatusline({ available, walks, arrivals, console: consoleRec }) {
-   if (!available || walks.length === 0) return "";
-   const w = loudest(walks);
-   const extra = walks.length > 1 ? ` · +${walks.length - 1} walk${walks.length > 2 ? "s" : ""}` : "";
-   const arrived = arrivals.length > 0 ? ` · ▲${arrivals.length} arrived` : "";
--  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}`;
-+  // L6: the always-visible surface reports the other surface's death. A stale
-+  // record means the console CRASHED (a clean stop removes it) — the failure
-+  // mode was silence, and silence is the one thing this line never does.
-+  const down = consoleRec && consoleRec.stale ? " · console down" : consoleRec && consoleRec.buildStale ? " · console stale" : "";
-+  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}${down}`;
-   const now =
-     w.currentStage === "build" && w.promises.total > 0
-       ? `keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)}/${w.promises.total}`
-       : stageLabel(w);
--  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}`;
-+  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}${down}`;
- }
- 
--/** One walk's full card — the CLI default and the loud stop-card's body. */
--export function renderCard(w) {
-+/**
-+ * One walk's full card — the CLI default and the loud stop-card's body.
-+ * `ctx` carries the derivation's ride-alongs ({console, lane} from
-+ * deriveWalks): with a live console, a human gate leads with the console
-+ * (L5 — the product ships buttons; the CLI stays as the fallback beneath).
-+ */
-+export function renderCard(w, ctx = {}) {
-   const line = w.stages
--    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.state === "skipped" ? ` (${s.note})` : ""}`)
-+    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.note ? ` (${s.note})` : ""}`)
-     .join("  ");
-+  const gloss = STAGE_GLOSS[w.currentStage] ? ` — ${STAGE_GLOSS[w.currentStage]}` : "";
-+  const laneNote =
-+    w.currentStage === "prove" && ctx.lane ? ` (${laneCostPhrase(ctx.lane)} here)` : "";
-   const nowLine =
-     w.currentStage === "build" && w.promises.current
-       ? `Now: keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)} of ${w.promises.total} — “${w.promises.current.title || w.promises.current.id}”`
--      : `Now: ${w.you.act ?? w.doneReason}`;
-+      : `Now: ${w.you.act ?? w.doneReason}${laneNote}`;
-+  const consoleLine =
-+    w.you.turn === "you" && ctx.console && ctx.console.url
-+      ? `\n→ Easiest: the studio console at ${ctx.console.url} — the row carries the button. CLI fallback below.`
-+      : "";
-   const youLine =
-     w.you.turn === "you"
--      ? `■ YOUR TURN: ${w.you.act}`
-+      ? `■ YOUR TURN: ${w.you.act}${consoleLine}`
-       : w.you.turn === "agent"
-         ? `You: nothing needed${w.stops.length ? ` · next stop${w.stops.length > 1 ? "s" : ""} for you: ${w.stops.join(", ")}` : ""}`
-         : "Closed.";
--  return `${w.name} — stage: ${stageLabel(w)}\n${line}\n${nowLine}\n${youLine}`;
-+  return `${w.name} — stage: ${stageLabel(w)}${gloss}\n${line}\n${nowLine}\n${youLine}`;
- }
- 
- /**
-@@ -261,17 +464,55 @@ export function renderCard(w) {
-  * standing protocol reminders, re-delivered every turn so the narration rules
-  * are decay-proof — re-told, never remembered (D5/D6).
-  */
--export function renderInject({ available, walks, arrivals }) {
-+/**
-+ * The studio's status, said plainly every prompt (studio-drive-mode: the
-+ * agent ALWAYS knows whether the human's window exists, and healing it is a
-+ * standing instruction, not a discovery).
-+ */
-+function studioLine(consoleRec) {
-+  // Order matters: a console that is UP but drawing from old code is not
-+  // healthy, and reporting it as "running" is the clean bill of health that
-+  // let this go unnoticed for a whole session. It heals itself (the worker
-+  // renews on quiescence), so say what is true and why it may be waiting.
-+  if (consoleRec && consoleRec.url && consoleRec.buildStale)
-+    return `[studio: running at ${consoleRec.url} but STALE — it is serving code older than the tree, and everything it shows was drawn by that older code. It renews itself once no render or lane is in flight; if it stays stale, say so rather than citing what it shows.]`;
-+  if (consoleRec && consoleRec.url) return `[studio: running at ${consoleRec.url}]`;
-+  if (consoleRec && consoleRec.stale)
-+    return "[studio: DOWN — it crashed (stale registry record). Restore it now: call the cmp-inspector `preview { projectDir }` tool (it starts a detached resident console), or tell the human it is down. Do not proceed silently.]";
-+  return "[studio: not running. If the cmp-inspector tools are available, start it now with `preview { projectDir }` — the human's window should exist whenever work is happening. If they are absent, say so once.]";
-+}
-+
-+export function renderInject(data) {
-+  const { available, walks, arrivals, chain } = data;
-   if (!available || (walks.length === 0 && arrivals.length === 0)) return "";
-   const parts = [];
-+  // L2 — chat is a walk surface: the reply opens with the derivation's OWN
-+  // one-liner, pasted verbatim. Machinery-authored so it cannot drift, and
-+  // transcript-persistent, which the statusline never is.
-+  const header = renderStatusline(data);
-+  if (header !== "") {
-+    parts.push(`[chat header — open your reply with this exact line (verbatim, then a blank line):]\n${header}`);
-+  }
-+  // The studio's status is stated EVERY prompt — its absence was silent once
-+  // (the walk-wiring lesson) and never gets to be silent again.
-+  parts.push(studioLine(data.console));
-+  // The live chain (studio-drive-mode): the current request and the declared
-+  // step plan, with its age. Declared by the agent — which is exactly why it
-+  // is re-shown every turn: keeping it current is part of the contract.
-+  const chainText = renderChain(chain);
-+  parts.push(
-+    chainText !== ""
-+      ? `[the chain — the current request's steps. Keep it CURRENT: advance with \`node qa/plan.mjs --step N\` as steps land, \`--done\` when the request lands. If the human redirects, re-declare (\`--set\` again) — the chain is an offer they can reshape, not an announcement. A stale chain misleads the human watching the studio.]\n${chainText}`
-+      : '[no chain declared. At kickoff, declare the request\'s steps and show them in your first reply AS AN OFFER — the human can reorder or redirect, and you re-declare without ceremony; work starts immediately either way: `node qa/plan.mjs --set "step | step | …" --title "<the ask, restated>"`.]',
-+  );
-   if (walks.length > 0) {
-     parts.push("[walk-status — derived from the ledgers; render this state, never your own memory of it]");
--    for (const w of walks) parts.push(renderCard(w));
-+    for (const w of walks) parts.push(renderCard(w, data));
-   }
-   for (const a of arrivals)
-     parts.push(`▲ ARRIVED, UNPLANNED — ${a.label} (${a.status}): ${a.reason ?? "no recorded reason"}. Offer: handle now, or after the current walk lands (recommended: after).`);
-   parts.push(
--    "Protocol: speak stages as Decide·Design·Contract·Build·Prove·Sign-off and clauses as promises. Quiet while working (one line per stage transition). At any human gate, render the full stop card (stage, what it is in plain words, exactly what to do, what comes after). Never open a second walk silently.",
-+    "Protocol: open every reply with the chat header line above, verbatim. Speak stages as Decide·Design·Contract·Build·Prove·Sign-off — with their plain-words gloss on first mention — and clauses as promises. Declare the chain at kickoff and advance it as you go; if the studio line above says DOWN or not running, restore it (preview tool) or surface it before proceeding. Quiet between headers (one line per stage transition). At any human gate, render the full stop card: stage, what it is in plain words, then the easiest act first (the studio console when it is up; the CLI as fallback), then what comes after. Quote the lane's cost only from the measured figure in the card — never estimate it. Never open a second walk silently.",
-   );
-   return parts.join("\n\n");
- }
-
-diff --git a/qa/receipt-check.mjs b/qa/receipt-check.mjs
-index db67715..f4c5df3 100644
---- a/qa/receipt-check.mjs
-+++ b/qa/receipt-check.mjs
-@@ -28,6 +28,39 @@ const args = process.argv.slice(2);
- const asHook = args.includes("--hook");
- const asJson = args.includes("--json");
- 
-+// The lane's own in-flight marker (verify.mjs stamps it, rewriting it at each
-+// step start with the step name and index). Mirrors qa/watch.mjs's bound.
-+const LANE_MARKER_REL = ["composeApp", "build", ".cmp-lane-in-progress"];
-+const LANE_MARKER_STALE_MS = 30 * 60 * 1000;
-+
-+/**
-+ * The full check running RIGHT NOW, or null. The gate must still refuse — a
-+ * lane in flight has not produced a receipt yet — but it must not tell the
-+ * agent to start one. Repeating "run the lane" at a session whose lane is
-+ * already ten minutes into its release build is an instruction to do the wrong
-+ * thing, and it fired ~8 times in one observed session.
-+ * @returns {{step: string|null, index: number|null, total: number|null}|null}
-+ */
-+function laneInFlight() {
-+  try {
-+    const p = path.join(ROOT, ...LANE_MARKER_REL);
-+    const st = fs.statSync(p);
-+    if (Date.now() - st.mtimeMs >= LANE_MARKER_STALE_MS) return null;
-+    // Content is a bonus, never a requirement: legacy markers hold "pid iso".
-+    try {
-+      const n = JSON.parse(fs.readFileSync(p, "utf8"));
-+      if (n && typeof n === "object") {
-+        return { step: n.step ?? null, index: n.index ?? null, total: n.total ?? null };
-+      }
-+    } catch {
-+      /* legacy marker — its EXISTENCE is the fact that matters */
-+    }
-+    return { step: null, index: null, total: null };
-+  } catch {
-+    return null;
-+  }
-+}
-+
- function readStdinJson() {
-   try {
-     const raw = fs.readFileSync(0, "utf8");
-@@ -56,6 +89,16 @@ function evaluate() {
-       profile: receipt.profile,
-     };
-   }
-+  // A nightly receipt proves the HARNESS and the tree's invariants under a
-+  // forced double-run — never a change. Refused as done-evidence for the same
-+  // reason --fast is: the receipt's own stage says what it is allowed to mean.
-+  if (receipt.stage === "nightly" || receipt.profile === "nightly") {
-+    return {
-+      valid: false,
-+      reason: "the last verify run was the nightly stage (it proves the harness, not this change); run the change-stage lane (`node qa/verify.mjs`) before finishing",
-+      profile: receipt.profile,
-+    };
-+  }
-   const result = evaluateReceipt(receipt, () => computeInputsHash(ROOT));
-   // Surface the receipt's evidence rung (the ladder — qa/lib/evidence-level.mjs)
-   // alongside the verdict: the rung is the receipt's own derived field, read
-@@ -75,8 +118,23 @@ if (asHook) {
-     process.exit(0);
-   }
-   if (!result.valid) {
-+    // The walk's vocabulary (walk-legibility L3): this gate IS the Prove
-+    // stage refusing to close — same fact, same enforcement, words that match
-+    // every other surface. The precise reason stays verbatim beneath.
-+    //
-+    // The REFUSAL never changes with a lane in flight — no receipt yet means
-+    // not done, and that is the whole point of the gate. What changes is the
-+    // INSTRUCTION: "run the lane" is wrong advice when one is already running,
-+    // and a gate that tells you to do the thing you are doing trains you to
-+    // stop reading it.
-+    const flight = laneInFlight();
-+    const act = flight
-+      ? `A full check is ALREADY RUNNING${flight.step ? ` (${flight.step}${flight.index && flight.total ? `, step ${flight.index} of ${flight.total}` : ""})` : ""} — ` +
-+        `wait for it to finish and commit its receipt. Do NOT start a second one; two lanes fight over the same build directory.`
-+      : "Run `node qa/verify.mjs` (it checks every promise and writes the receipt), " +
-+        "commit the receipt, or see README §Verification enforcement to bypass.";
-     process.stderr.write(
--      `Not done: ${result.reason}. Run \`node qa/verify.mjs\` and commit the receipt, or see README §Verification enforcement to bypass.\n`,
-+      `■ Prove — not done: the promises are not yet checked against this tree. ${result.reason}. ${act}\n`,
-     );
-     process.exit(2);
-   }
-
 diff --git a/qa/verify.mjs b/qa/verify.mjs
-index e22e385..b9f4ac5 100644
+index e22e385..9ad6767 100644
 --- a/qa/verify.mjs
 +++ b/qa/verify.mjs
 @@ -1,7 +1,7 @@
@@ -520,7 +25,7 @@ index e22e385..b9f4ac5 100644
  // The verify lane — this project's single verification gate.
  //
 -//   node qa/verify.mjs [--profile scaffold|local|ci|release] [--fast] [--json]
-+//   node qa/verify.mjs [--profile scaffold|local|ci|nightly|release] [--fast] [--json]
++//   node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json]
  //
  // Runs every verification step this project carries, aggregates a typed
  // PASS/FAIL verdict, and writes the evidence receipt to qa/evidence/latest.json.
@@ -569,7 +74,7 @@ index e22e385..b9f4ac5 100644
  // refuses an unknown artifact by name rather than guessing: an unknown
  // argument here is refused by name, not swallowed into "run everything".
 -const USAGE = `node qa/verify.mjs [--profile scaffold|local|ci|release] [--fast] [--json] [--help]
-+const USAGE = `node qa/verify.mjs [--profile scaffold|local|ci|nightly|release] [--fast] [--json] [--help]
++const USAGE = `node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json] [--help]
  
  The verify lane — this project's single verification gate. Runs every
  verification step this project carries, aggregates a typed PASS/FAIL
@@ -578,11 +83,20 @@ index e22e385..b9f4ac5 100644
  
  Flags:
 -  --profile <scaffold|local|ci|release>
-+  --profile <scaffold|local|ci|nightly|release>
++  --profile <smoke|scaffold|local|ci|nightly|release>
                                   which step set to run (default: local)
    --fast                         INNER LOOP ONLY — run the resolved profile
                                    minus the device/release tier (releaseBuild,
-@@ -112,6 +106,10 @@ Profiles:
+@@ -107,11 +101,19 @@ Flags:
+                                   running anything
+ 
+ Profiles:
++  smoke     the smallest end-to-end lane: every pure-Node gate through the real
++            runner, receipt and journal — no Gradle, no device. Seconds. Proves the
++            FRAMEWORK returns, both ways; never the change (its receipt is refused
++            as done-evidence). Driven by scripts/framework-check.mjs.
+   scaffold  spec coverage + build + unit tests (what \`create-cmp --verify\`
+             proves at stamp time)
    local     everything; device-dependent steps SKIP when no device is
              attached
    ci        everything; SKIPs are recorded so the pipeline stays honest
@@ -593,7 +107,7 @@ index e22e385..b9f4ac5 100644
    release   everything ci proves PLUS the release-APK smoke (releaseSmoke) —
              the ship-time profile; run it before cutting a release, never
              per-change
-@@ -161,7 +159,9 @@ const mode = fast ? "fast" : "full";
+@@ -161,7 +163,9 @@ const mode = fast ? "fast" : "full";
  //    lane row; asking for it in local/scaffold is refused with the two ways
  //    that DO work, instead of silently running a step the requested profile
  //    does not own.
@@ -604,7 +118,7 @@ index e22e385..b9f4ac5 100644
  const profileExplicit = args.includes("--profile");
  if (determinism && fast) {
    console.error(
-@@ -190,11 +190,31 @@ const GRADLEW = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
+@@ -190,11 +194,31 @@ const GRADLEW = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
  // do its job; full mode keeps it, byte-identical to before.
  const RERUN = fast ? "" : " --rerun";
  
@@ -637,7 +151,7 @@ index e22e385..b9f4ac5 100644
    const ok = res.status === 0 && !res.error;
    return { ok, status: res.status, error: res.error?.message, out: `${res.stdout ?? ""}${res.stderr ?? ""}`, durationMs: Date.now() - started };
  }
-@@ -292,1147 +312,16 @@ function tryGitLines(cmd) {
+@@ -292,1147 +316,16 @@ function tryGitLines(cmd) {
    }
  }
  
@@ -1788,11 +1302,11 @@ index e22e385..b9f4ac5 100644
  
  if (!stepsForProfile[profile]) {
 -  console.error(`Unknown profile "${profile}" — use scaffold | local | ci | release.`);
-+  console.error(`Unknown profile "${profile}" — use scaffold | local | ci | nightly | release.`);
++  console.error(`Unknown profile "${profile}" — use smoke | scaffold | local | ci | nightly | release.`);
    process.exit(2);
  }
  
-@@ -1448,7 +337,7 @@ if (determinism && !profileExplicit) {
+@@ -1448,7 +341,7 @@ if (determinism && !profileExplicit) {
    fs.writeFileSync(LANE_MARKER, `${process.pid} ${new Date().toISOString()}\n`);
    let probe;
    try {
@@ -1801,7 +1315,7 @@ index e22e385..b9f4ac5 100644
    } finally {
      fs.rmSync(LANE_MARKER, { force: true });
    }
-@@ -1476,21 +365,6 @@ if (determinism && !profileExplicit) {
+@@ -1476,21 +369,6 @@ if (determinism && !profileExplicit) {
  // convention: mode "fast" is
  // recorded, no evidence rung is derived (qa/lib/evidence-level.mjs), and
  // qa/receipt-check.mjs refuses a fast receipt as done evidence.
@@ -1823,7 +1337,7 @@ index e22e385..b9f4ac5 100644
  const FAST_EXCLUDED_FNS = new Set(FAST_EXCLUDED_NAMES.map((name) => STEP_FN_BY_NAME[name]));
  const laneSteps = fast
    ? stepsForProfile[profile].filter((fn) => !FAST_EXCLUDED_FNS.has(fn))
-@@ -1512,36 +386,51 @@ if (fast) {
+@@ -1512,36 +390,51 @@ if (fast) {
  
  // Stamp the lane marker for the run's duration (coexistence defense 1 above);
  // always removed, even on a failing step, so the eyes only ever defer briefly.
@@ -1899,7 +1413,7 @@ index e22e385..b9f4ac5 100644
  
  // Receipt STRENGTH — a desktop-only green and an on-device green are different
  // claims, and the difference should never live only in the SKIP lines. Device-
-@@ -1605,9 +494,16 @@ const inputs = computeInputsHash(ROOT);
+@@ -1605,9 +498,16 @@ const inputs = computeInputsHash(ROOT);
  // The receipt. Deterministic key order; ONE volatile timestamp field.
  // commit.sha is the parent HEAD at run time (you cannot know the sha of the
  // commit the receipt will be part of); commit.dirty lists what was uncommitted.
@@ -1908,7 +1422,7 @@ index e22e385..b9f4ac5 100644
 +// more than its stage allows. scaffold → scaffold, local → change (per commit),
 +// ci → merge, nightly → nightly (proves the harness, never a change), release →
 +// release. Receipts predating this field are read as their profile's stage.
-+const STAGE_OF_PROFILE = { scaffold: "scaffold", local: "change", ci: "merge", nightly: "nightly", release: "release" };
++const STAGE_OF_PROFILE = { smoke: "smoke", scaffold: "scaffold", local: "change", ci: "merge", nightly: "nightly", release: "release" };
  const receipt = {
    schema: "cmp-evidence/1",
    profile,
@@ -1916,7 +1430,7 @@ index e22e385..b9f4ac5 100644
    // "full" is the done-gate; "fast" (--fast) excluded the device/release tier
    // and is REFUSED by qa/receipt-check.mjs — a fast run can never end a session
    // as "done". Receipts predating this field are treated as full.
-@@ -1708,6 +604,28 @@ if (asJson) {
+@@ -1708,6 +608,28 @@ if (asJson) {
    console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict}${level ? ` · ${level.rung} ${level.name}` : ""} (${strengthLabel}) — receipt written to qa/evidence/latest.json${badge.changed ? ` and ${README_REL_PATH}'s evidence badge refreshed` : ""} (commit ${badge.changed ? "them" : "it"} with your change)`);
  }
  

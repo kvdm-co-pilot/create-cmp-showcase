@@ -6,7 +6,7 @@
 </p>
 
 <!-- cmp:generated evidence -->
-[![Evidence L1 — desktop](https://img.shields.io/badge/evidence-L1_desktop-42A5F5)](https://github.com/kvdm-co-pilot/create-cmp) — the verify lane passed at `cb079ff` on 2026-09-03 at rung **L1 · desktop**. Earned by: `specCoverage`, `approvals`, `componentStories`, `reachability`, `archDoc`, `schemaHistory`, `build`, `unitTests`, `conformance`, `goldenTrees`, `a11y`, `releaseBuild`. The tree had 6 uncommitted files at attestation, so this describes that run, not that commit. The rung describes that run; it says nothing about changes made since.
+[![Evidence L1 — desktop](https://img.shields.io/badge/evidence-L1_desktop-42A5F5)](https://github.com/kvdm-co-pilot/create-cmp) — the verify lane passed at `a85624a` on 2026-09-03 at rung **L1 · desktop**. Earned by: `specCoverage`, `approvals`, `componentStories`, `reachability`, `archDoc`, `schemaHistory`, `build`, `unitTests`, `conformance`, `goldenTrees`, `a11y`, `releaseBuild`. The tree had 11 uncommitted files at attestation, so this describes that run, not that commit. The rung describes that run; it says nothing about changes made since.
 <!-- /cmp:generated -->
 
 

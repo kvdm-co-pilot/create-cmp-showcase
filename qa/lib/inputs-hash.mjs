@@ -233,6 +233,33 @@ function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
 }
 
 /**
+ * Top-level entries (first path segment of every file git would commit) that
+ * NO surface entry covers — the files the receipt does not attest. An
+ * allowlist is silent about what it omits: a new top-level directory is simply
+ * unmatched, no error, unattested (payment-blueprint, 2026-09-03). This names
+ * the omission so the receipt can carry it and a reader can decide whether
+ * it belongs in qa/verified-surface.json. Sorted; [] when git is unavailable
+ * (the walk fallback has no notion of "what git sees") or everything is
+ * covered. Lane outputs (EXCLUDED_PREFIXES) are not "undeclared" — they are
+ * excluded by decision.
+ * @param {string} root
+ * @param {string[]} [surface] defaults to resolveVerifiedSurface(root)
+ * @returns {string[]}
+ */
+export function undeclaredTopLevel(root, surface = resolveVerifiedSurface(root)) {
+  const gitFiles = tryGitLsFiles(root);
+  if (!gitFiles) return [];
+  const covered = (relPath) => surface.some((entry) => relPath === entry || relPath.startsWith(`${entry}/`)) || isExcluded(relPath);
+  const out = new Set();
+  for (const raw of gitFiles) {
+    const relPath = raw.split(path.sep).join("/");
+    if (covered(relPath)) continue;
+    out.add(relPath.includes("/") ? relPath.slice(0, relPath.indexOf("/")) : relPath);
+  }
+  return [...out].sort();
+}
+
+/**
  * Compute the sha256 hash of the verified surface for the project rooted at `root`.
  * Deterministic: same tree (same file paths + same file bytes) → same hash.
  * @param {string} root absolute path to the project root
