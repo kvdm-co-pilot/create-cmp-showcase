@@ -294,3 +294,31 @@
 {"at":"2026-09-03T12:34:35.547Z","verb":"approve","artifact":"design-system","hash":"44bf599a87478230f5349db1be335dd9febbc5035b78b632ac10e198880c1f7f","approvedBy":"Karel van der Merwe <karelvdmmisc@gmail.com>","via":"cli"}
 {"at":"2026-09-03T12:34:35.621Z","verb":"approve","artifact":"feature-spec:motion","hash":"6d5739dc67067eb3dc49b86bb222ee88d7c72064700938bce1fe14781bd2301b","approvedBy":"Karel van der Merwe <karelvdmmisc@gmail.com>","via":"cli"}
 {"at":"2026-09-03T12:34:35.699Z","verb":"approve","artifact":"components","hash":"ee9cc5044eb6f3eda9b0cbfd2542d16930a800e6ec2fc86960a9938e39e81818","approvedBy":"Karel van der Merwe <karelvdmmisc@gmail.com>","via":"cli"}
+{"at":"2026-09-03T16:50:01.036Z","verb":"accept","artifact":"feature-brief:app-updates"}
+{"at":"2026-09-03T16:50:04.291Z","verb":"accept","artifact":"feature-brief:bfl-catalog"}
+{"at":"2026-09-03T16:50:05.157Z","verb":"accept","artifact":"feature-brief:catalog-and-editing"}
+{"at":"2026-09-03T16:50:06.000Z","verb":"accept","artifact":"feature-brief:daily-journeys"}
+{"at":"2026-09-03T16:50:06.921Z","verb":"accept","artifact":"feature-brief:dated-goals"}
+{"at":"2026-09-03T16:50:07.742Z","verb":"accept","artifact":"feature-brief:history"}
+{"at":"2026-09-03T16:50:08.580Z","verb":"accept","artifact":"feature-brief:meal-plan"}
+{"at":"2026-09-03T16:50:09.488Z","verb":"accept","artifact":"feature-brief:first-run"}
+{"at":"2026-09-03T16:50:20.248Z","verb":"accept","artifact":"feature-brief:meal"}
+{"at":"2026-09-03T16:50:21.133Z","verb":"accept","artifact":"feature-brief:motion"}
+{"at":"2026-09-03T16:50:21.974Z","verb":"accept","artifact":"feature-brief:navigation-ia"}
+{"at":"2026-09-03T16:50:23.186Z","verb":"accept","artifact":"feature-brief:notifications"}
+{"at":"2026-09-03T16:50:26.677Z","verb":"accept","artifact":"feature-brief:supplement-schedules"}
+{"at":"2026-09-03T16:50:27.519Z","verb":"accept","artifact":"feature-brief:settings"}
+{"at":"2026-09-03T16:50:28.293Z","verb":"accept","artifact":"feature-brief:personalization"}
+{"at":"2026-09-03T16:50:31.169Z","verb":"accept","artifact":"feature-brief:reactive-state"}
+{"at":"2026-09-03T16:50:32.370Z","verb":"accept","artifact":"feature-brief:notifications"}
+{"at":"2026-09-03T16:50:42.094Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-09-03T16:50:42.932Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:50:43.858Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:50:51.498Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:50:52.512Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-09-03T16:50:56.060Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:51:01.538Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-09-03T16:51:12.067Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-09-03T16:51:13.234Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:51:17.085Z","verb":"accept","artifact":"feature-brief:workouts"}
+{"at":"2026-09-03T16:51:17.800Z","verb":"accept","artifact":"feature-brief:usability-pass"}

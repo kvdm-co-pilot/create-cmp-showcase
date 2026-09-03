@@ -7,7 +7,9 @@
       "hash": "e6dfb40b8b5ae0c466532219ab8878e997ea2b9ff7b57997b99d6cc919628b5c",
       "approvedAt": "2026-09-03T12:34:31.909Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:20.247Z"
     },
     {
       "artifact": "feature-brief:meal-plan",
@@ -15,7 +17,9 @@
       "hash": "e2ee819050a6d5890826e105ce3ee19f252346a80501ef1aa08f6da02860e0bf",
       "approvedAt": "2026-09-03T12:34:31.987Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:08.579Z"
     },
     {
       "artifact": "feature-brief:reactive-state",
@@ -23,7 +27,9 @@
       "hash": "e129c5395e3dad5d5aa7f8fdf7fa6517b3813b16aac788251d4b4ac18a0b5b76",
       "approvedAt": "2026-09-03T12:34:32.062Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:31.168Z"
     },
     {
       "artifact": "feature-spec:reactive-state",
@@ -39,7 +45,9 @@
       "hash": "cb449b6416f1e24d5235cebed44788cbb7cce1d511700b00f62a85e73fca1791",
       "approvedAt": "2026-09-03T12:34:32.211Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:51:17.800Z"
     },
     {
       "artifact": "feature-spec:usability-pass",
@@ -55,7 +63,9 @@
       "hash": "f7f38b1b2ebd072d2ead7972935b4e6646699685b1d54553ad581e7f35c77bc5",
       "approvedAt": "2026-09-03T12:34:32.361Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:09.488Z"
     },
     {
       "artifact": "feature-spec:first-run",
@@ -71,7 +81,9 @@
       "hash": "4e254323de473e0953ee5f231da0e0faf15909ade5c6eeeecd682eddd23d586d",
       "approvedAt": "2026-09-03T12:34:32.514Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:28.293Z"
     },
     {
       "artifact": "feature-spec:personalization",
@@ -87,7 +99,9 @@
       "hash": "806d0c3dfbf2110ce356a803028108158c207878775e0d9113a9234056500f0e",
       "approvedAt": "2026-09-03T12:34:32.670Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:07.742Z"
     },
     {
       "artifact": "feature-brief:settings",
@@ -95,7 +109,9 @@
       "hash": "d86fbedcd4bccc7f21bed964f5dc5b01ce8cfac60576af0ab7864307aad3740a",
       "approvedAt": "2026-09-03T12:34:32.744Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:27.519Z"
     },
     {
       "artifact": "feature-spec:entry-editing",
@@ -143,7 +159,9 @@
       "hash": "50b33982425c5a3ac3a3396aad666c0880a1b99c3674283794cab6a923bb425c",
       "approvedAt": "2026-09-03T12:34:33.201Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:32.366Z"
     },
     {
       "artifact": "feature-brief:workouts",
@@ -151,7 +169,9 @@
       "hash": "5d42595eeea866854693e00d6b2dc5c923b08b7e3fd26983c56ed10e24a2990b",
       "approvedAt": "2026-09-03T12:34:33.275Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:51:17.085Z"
     },
     {
       "artifact": "feature-brief:supplement-schedules",
@@ -159,7 +179,9 @@
       "hash": "548ef4ee204d235092adba228ef483e2bb6e9e5c5ee116a57717aa190c17b27b",
       "approvedAt": "2026-09-03T12:34:33.352Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:26.677Z"
     },
     {
       "artifact": "feature-spec:notifications",
@@ -183,7 +205,9 @@
       "hash": "3f49420207a81557841c1c8734b981fe3c2a71489f507151c5cc6a1732b7190d",
       "approvedAt": "2026-09-03T12:34:33.583Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:04.290Z"
     },
     {
       "artifact": "feature-brief:daily-journeys",
@@ -191,7 +215,9 @@
       "hash": "cc206aec77b502f36f1c70a051a573d575edafb67c12cd26ace4b652fddb285d",
       "approvedAt": "2026-09-03T12:34:33.659Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:05.999Z"
     },
     {
       "artifact": "feature-brief:dated-goals",
@@ -199,7 +225,9 @@
       "hash": "3bee2fb332474a4b366c884a24bb1736665881f94c51f6509b1548e521a2e0fa",
       "approvedAt": "2026-09-03T12:34:33.733Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:06.920Z"
     },
     {
       "artifact": "feature-brief:navigation-ia",
@@ -207,7 +235,9 @@
       "hash": "2bdb1cb21d49c329f13eed50497fd41e1f7cf8fa6054f7914e0c3ecb9ab3a235",
       "approvedAt": "2026-09-03T12:34:33.808Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:21.973Z"
     },
     {
       "artifact": "feature-spec:today",
@@ -247,7 +277,9 @@
       "hash": "9c7d7a18f8f6f0eea16bfbbdea41fbb96dbf9f6f40490ef52411610fca1320ad",
       "approvedAt": "2026-09-03T12:34:34.181Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:05.156Z"
     },
     {
       "artifact": "feature-brief:app-updates",
@@ -255,7 +287,9 @@
       "hash": "8418d57c2fe9603c3306671127aef2efebe21f1e695f600598eaa5ac993cd391",
       "approvedAt": "2026-09-03T12:34:34.257Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:01.035Z"
     },
     {
       "artifact": "feature-spec:settings",
@@ -295,7 +329,9 @@
       "hash": "ca4f010093a683d284b14919e3d8b62a3ca8d99e562ff5027ea02e78248ae436",
       "approvedAt": "2026-09-03T12:34:34.635Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
+      "via": "cli",
+      "accepted": true,
+      "acceptedAt": "2026-09-03T16:50:21.133Z"
     },
     {
       "artifact": "feature-design:motion",
