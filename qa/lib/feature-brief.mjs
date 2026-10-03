@@ -50,6 +50,7 @@ import path from "node:path";
 
 import { computeInputsHash } from "./inputs-hash.mjs";
 import { CLAUSE_LINE_RE, scanCitations } from "./spec-coverage.mjs";
+import { requireSpecModel } from "./spec-model.mjs";
 
 export const FEATURES_DIR_REL = "docs/features";
 
@@ -197,7 +198,7 @@ export function parseFeatureBlock(markdown) {
         ...new Set(
           parsed.specs
             .filter((s) => typeof s === "string" && s.trim() !== "")
-            .map((s) => s.trim().replace(/^specs\//, "").replace(/\.spec\.md$/, "")),
+            .map((s) => s.trim().replace(/^[A-Za-z0-9_./-]*?specs\//, "").replace(/\.spec\.md$/, "")),
         ),
       ]
     : [];
@@ -223,10 +224,10 @@ export function parseFeatureBlock(markdown) {
  *   caller already has one (avoids re-parsing; same answer either way)
  * @returns {string[]} spec names, e.g. ["catalog", "entry-editing"]
  */
-export function pairedSpecNames(markdown, name, block) {
+export function pairedSpecNames(markdown, name, block, specsDir = "specs") {
   const declared = (block ?? parseFeatureBlock(markdown)).specs ?? [];
   if (declared.length > 0) return declared;
-  const fromHeader = specHeaderNames(markdown);
+  const fromHeader = specHeaderNames(markdown, specsDir);
   if (fromHeader.length > 0) return fromHeader;
   return [name];
 }
@@ -236,7 +237,7 @@ export function pairedSpecNames(markdown, name, block) {
  * paragraph — the line starting `**Spec:**` through the next blank line, so
  * later prose that merely MENTIONS a spec path never redirects the pairing.
  */
-function specHeaderNames(markdown) {
+function specHeaderNames(markdown, specsDir = "specs") {
   if (typeof markdown !== "string") return [];
   const lines = markdown.split("\n");
   const start = lines.findIndex((l) => /^\*\*Spec:?\*\*/.test(l.trim()));
@@ -244,7 +245,7 @@ function specHeaderNames(markdown) {
   const para = [];
   for (let i = start; i < lines.length && lines[i].trim() !== ""; i++) para.push(lines[i]);
   const out = [];
-  for (const m of para.join("\n").matchAll(/specs\/([A-Za-z0-9_-]+)\.spec\.md/g)) {
+  for (const m of para.join("\n").matchAll(new RegExp(`${specsDir}/([A-Za-z0-9_-]+)\\.spec\\.md`, "g"))) {
     if (!out.includes(m[1])) out.push(m[1]);
   }
   return out;
@@ -315,6 +316,25 @@ export function receiptAttestation(root) {
  *   shared scans (callers resolving many features pass these once)
  * @returns {object}
  */
+/**
+ * Where this stack's journey for `name` is written — the profile's flow
+ * directory when it declares one, else the tier's own name.
+ *
+ * Stage 0 PR 6c: the doneReason used to say "write the journey in
+ * qa/e2e/<name>.yaml" on every stack, which is a Maestro flow path. The
+ * sentence a human is told to act on must name a file their project could
+ * actually have.
+ * @param {import("./spec-model.mjs").SpecModel} model
+ * @param {string} name
+ * @returns {string}
+ */
+function journeyWhere(model, name) {
+  if (model.flows && model.flows.dir && model.flows.exts.length) {
+    return `write it in ${model.flows.dir}/${name}${model.flows.exts[0]} and cite the clause it proves`;
+  }
+  return `add a ${model.tiers.journey} test that cites one of its clauses`;
+}
+
 export function deriveFeatureStatus(root, brief, pre = {}) {
   let markdown = "";
   let readable = true;
@@ -330,19 +350,44 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
   // The paired specs (walk-legibility L1): usually one, by filename; a brief
   // may name several. Clauses concatenate in declaration order — "done" means
   // every live clause across ALL of them is cited.
-  const specNames = pairedSpecNames(markdown, brief.name, block);
-  const specRels = specNames.map((n) => `specs/${n}.spec.md`);
+  // The MODEL first, because the spec directory is the profile's and this
+  // module used to hardcode `specs/`. A project declaring `"specs": "docs/specs"`
+  // — a legal, validated manifest field the lane's own scanner honours — had
+  // `deriveFeatureStatus` looking somewhere else entirely: specExists false,
+  // total 0, provenDone false forever, and the Features view telling a human to
+  // start writing a spec that already existed. The header of spec-coverage.mjs
+  // says these two readers exist so the Features view and the lane can never
+  // disagree about the same clause. They disagreed.
+  const model = pre.model ?? requireSpecModel(root);
+  const specNames = pairedSpecNames(markdown, brief.name, block, model.specsDir);
+  const specRels = specNames.map((n) => `${model.specsDir}/${n}.spec.md`);
   const specExists = specRels.every((rel) => fs.existsSync(path.join(root, rel)));
   const specRel = specRels.join(" + ");
-  const citedIds = new Set((pre.citations ?? scanCitations(root)).map((t) => t.id));
+  const citations = pre.citations ?? scanCitations(root, model);
+  const citedIds = new Set(citations.map((t) => t.id));
+  // Which clauses a JOURNEY proves: citations from the profile's journey tier
+  // (mobile: flows under qa/e2e). A UI feature (screens: true) is not done
+  // until at least one of its live clauses is cited from that tier: JVM tests
+  // prove logic and structure, the journey proves it on the target.
+  const journeyTier = model.tiers.journey;
+  const e2eCitedIds = new Set(citations.filter((t) => journeyTier && t.tier === journeyTier).map((t) => t.id));
   const clauses = specRels
     .flatMap((rel) => clausesOfSpec(root, rel))
-    .map((c) => ({ ...c, cited: citedIds.has(c.id) }));
+    .map((c) => ({ ...c, cited: citedIds.has(c.id), e2eCited: e2eCitedIds.has(c.id) }));
   const live = clauses.filter((c) => !c.withdrawn);
   const covered = live.filter((c) => c.cited).length;
+  const e2eCovered = live.filter((c) => c.e2eCited).length;
+  // A journey is only required when the profile HAS a journey tier.
+  // `tiers.journey` is documented as nullable ("or null when this stack has no
+  // journey tier") and the citation filter above already yields nothing for
+  // null — but this condition never asked, so on a backend, a CLI or a library
+  // every feature with a surface was permanently un-done and the remedy printed
+  // was literally "add a null test that cites one of its clauses".
+  const needsJourney = block.screens === true && block.unrouted !== true && Boolean(model.tiers.journey);
 
   const receipt = pre.receipt ?? receiptAttestation(root);
-  const provenDone = live.length > 0 && covered === live.length && receipt.verdict === "PASS" && receipt.attestsTree;
+  const provenDone =
+    live.length > 0 && covered === live.length && (!needsJourney || e2eCovered > 0) && receipt.verdict === "PASS" && receipt.attestsTree;
 
   return {
     name: brief.name,
@@ -361,6 +406,8 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
     specExists,
     clauses,
     covered,
+    e2eCovered,
+    needsJourney,
     total: live.length,
     receipt,
     provenDone,
@@ -372,6 +419,8 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
         ? `no spec yet (${specRel}) — behavior starts as clauses there`
         : live.length === 0
           ? `${specRel} has no live clauses — nothing is promised yet`
+          : needsJourney && covered === live.length && e2eCovered === 0
+            ? `${covered}/${live.length} clauses cited, but none from the ${journeyTier} tier — a feature with a surface is proven where it runs, not only on the host: ${journeyWhere(model, brief.name)}`
           : covered < live.length
             ? `${covered}/${live.length} clauses cited — ${live.length - covered} promise(s) have no citing test`
             : !receipt.present
@@ -391,6 +440,7 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
 export function deriveAllFeatures(root) {
   const briefs = listFeatureBriefs(root);
   if (briefs.length === 0) return [];
-  const pre = { citations: scanCitations(root), receipt: receiptAttestation(root) };
+  const model = requireSpecModel(root);
+  const pre = { model, citations: scanCitations(root, model), receipt: receiptAttestation(root) };
   return briefs.map((b) => deriveFeatureStatus(root, b, pre));
 }

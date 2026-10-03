@@ -38,7 +38,16 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const STEP_CACHE_REL_PATH = "composeApp/build/.cmp-step-cache.json";
-export const STEP_CACHE_SCHEMA = "cmp-step-cache/1";
+export const STEP_CACHE_SCHEMA = "prooflane-step-cache/1";
+
+/**
+ * Schema names a cache file may carry. Unlike the comments ledger, nothing here
+ * is at stake but time: an unrecognised schema makes `loadStepCache` return an
+ * EMPTY cache, which is correct — a cache you cannot read is a cache you do not
+ * have. Accepting the old name only spares every existing adopter one needless
+ * cold rebuild on the run after they upgrade.
+ */
+export const STEP_CACHE_SCHEMAS = Object.freeze(["cmp-step-cache/1", STEP_CACHE_SCHEMA]);
 
 function toPosix(p) {
   return p.split(path.sep).join("/");
@@ -116,7 +125,7 @@ export function computeStepInputsHash(root, inputs) {
 export function loadStepCache(root) {
   try {
     const parsed = JSON.parse(fs.readFileSync(path.join(root, STEP_CACHE_REL_PATH), "utf8"));
-    if (!parsed || parsed.schema !== STEP_CACHE_SCHEMA || typeof parsed.steps !== "object" || parsed.steps === null || Array.isArray(parsed.steps)) {
+    if (!parsed || !STEP_CACHE_SCHEMAS.includes(parsed.schema) || typeof parsed.steps !== "object" || parsed.steps === null || Array.isArray(parsed.steps)) {
       return { schema: STEP_CACHE_SCHEMA, steps: {} };
     }
     return { schema: STEP_CACHE_SCHEMA, steps: parsed.steps };

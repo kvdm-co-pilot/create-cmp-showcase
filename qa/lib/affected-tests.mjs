@@ -14,11 +14,18 @@
 //     and the caller reports which case it was in the step's output and the
 //     receipt, so a filtered run can never be mistaken for the full suite.
 //   - The BLAST-RADIUS ESCAPE HATCH is mandatory: some paths fan out too
-//     widely to subset safely (build files rewire compilation, DI rewires
-//     object graphs, theme/tokens and shared components render into every
-//     screen, qa/ is the harness judging itself, and anything outside
-//     composeApp/src is by definition not a scoped source edit). Any one such
-//     change disables filtering for the run.
+//     widely to subset safely. qa/ is the harness judging itself — that one is
+//     the core's, on every stack. WHICH OTHER paths fan out, and how a changed
+//     source maps to a test filter, are facts about one build tool and one
+//     source layout, so they come from the PROFILE (Stage 0 PR 6d;
+//     profiles/cmp/affected.mjs). Any one broad-impact change disables
+//     filtering for the run.
+//
+// A profile that supplies no mapping gets `mode: "all"` with that as the
+// reason — fail open, said out loud. Vendored into a repo whose sources are
+// not under composeApp/src, the old hardcoded rules did something worse than
+// nothing: every path failed the layout test, so every fast run fell open to
+// the full suite with the optimisation silently off.
 //
 // Pure functions over path lists — git access is injected/separate so the
 // engine suite can test every branch with no repo state.
@@ -43,50 +50,40 @@ import path from "node:path";
 // first fell open to the full suite, visible only in one parenthetical.
 // Found by payment-blueprint's spine adoption (2026-09-03), where the same
 // line also landed in their locked region.
-export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/flight-recorder.jsonl"];
+// qa/.lane-in-progress is the lane's own marker (qa/lib/lane-markers.mjs) —
+// present, untracked, for exactly the duration of the run that would read it.
+// qa/.lane-steps.ndjson is that marker's sibling: the run's own step stream,
+// appended to WHILE the lane runs so the console can render it. Same reason —
+// a lane's own progress is not a change to the tree it is checking.
+export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/flight-recorder.jsonl", "qa/.lane-in-progress", "qa/.lane-steps.ndjson"];
 
 function isLaneOutput(p) {
   return LANE_OUTPUT_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
 }
 
 /**
- * The mandatory blast-radius escape hatch: paths whose change fans out too
- * widely to subset the suite safely. Returns the human-readable category when
- * `p` is broad-impact, else null. Checked in order; the first match names the
- * reason.
+ * The core's own blast-radius rule, on every stack: a change under qa/ is the
+ * harness judging itself, so nothing may be subsetted by it.
  * @param {string} p POSIX relpath from the project root
  * @returns {string|null}
  */
-export function broadImpactReason(p) {
-  if (p.endsWith(".gradle.kts") || p === "gradle.properties" || p === "gradle/libs.versions.toml") {
-    return "build files rewire compilation";
-  }
-  if (/(^|\/)di\//.test(p)) return "DI rewires the object graph";
-  if (/(^|\/)theme\//.test(p)) return "theme/tokens render into every screen";
-  if (p.includes("presentation/components/")) return "shared components render into every screen";
+export function coreBroadImpactReason(p) {
   if (p === "qa" || p.startsWith("qa/")) return "qa/ is the harness itself";
-  if (!p.startsWith("composeApp/src/")) return "outside composeApp/src";
   return null;
 }
 
 /**
  * Derive the fast-mode unit-test filter from a list of changed paths.
  *
- * Mapping (deliberately simple and defensible): each changed `.kt` file under
- * composeApp/src contributes its package's last segment — the parent
- * directory name (`…/presentation/home/HomeViewModel.kt` → `home`, which the
- * template's package-mirrors-path conformance makes a package segment) — and
- * the union becomes Gradle `--tests "*<seg>*"` patterns matched against test
- * class FQNs. Coarse on purpose: `*home*` runs every test whose FQN mentions
- * the feature, which over-selects a little and under-maintains nothing.
- *
  * @param {string[]} changedPaths relpaths (either separator style) — tracked
  *   diffs plus untracked files, as from changedWorkingTreePaths()
+ * @param {{broadImpact: (p: string) => (string|null), patternsFor: (paths: string[]) => {patterns: string[], sourcePaths: string[]}}} [mapping]
+ *   the profile's rules (profiles/<id>/affected.mjs). Absent = no subsetting.
  * @returns {{mode: "filtered", patterns: string[], sourcePaths: string[]} |
  *   {mode: "all", reason: string, patterns: [], sourcePaths: string[]}}
  *   mode "all" ALWAYS carries the honest reason to report.
  */
-export function deriveAffectedFilter(changedPaths) {
+export function deriveAffectedFilter(changedPaths, mapping = null) {
   const paths = [...new Set((changedPaths ?? [])
     .filter((p) => typeof p === "string" && p.length > 0)
     .map((p) => p.split(path.sep).join("/")))]
@@ -97,32 +94,93 @@ export function deriveAffectedFilter(changedPaths) {
     return { mode: "all", reason: "no working-tree changes to scope by", patterns: [], sourcePaths: [] };
   }
 
+  // No mapping, no subsetting — and the reason says which half is missing, so
+  // a profile author sees the optimisation is off rather than wondering why
+  // the fast lane costs what the full one does.
+  if (!mapping || typeof mapping.broadImpact !== "function" || typeof mapping.patternsFor !== "function") {
+    return { mode: "all", reason: "this profile declares no affected-test mapping — every fast run tests everything", patterns: [], sourcePaths: paths };
+  }
+
   for (const p of paths) {
-    const broad = broadImpactReason(p);
+    const broad = coreBroadImpactReason(p) ?? mapping.broadImpact(p);
     if (broad) {
       return { mode: "all", reason: `broad-impact change — ${broad} (${p})`, patterns: [], sourcePaths: paths };
     }
   }
 
-  // Every remaining path is a scoped file under composeApp/src. Only .kt
-  // files map to test patterns; a change that maps to nothing (resources,
-  // manifests) falls open to the full suite below.
-  const ktPaths = paths.filter((p) => p.endsWith(".kt"));
-  const segments = new Set();
-  for (const p of ktPaths) {
-    const seg = path.posix.basename(path.posix.dirname(p));
-    if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(seg)) segments.add(seg);
-  }
-
-  if (segments.size === 0) {
+  // Every remaining path is a scoped source edit by the profile's own reckoning.
+  // A change that maps to no pattern (resources, manifests) falls open below.
+  const { patterns, sourcePaths } = mapping.patternsFor(paths);
+  if (!Array.isArray(patterns) || patterns.length === 0) {
     return { mode: "all", reason: "changed files map to no test filter", patterns: [], sourcePaths: paths };
   }
 
-  return {
-    mode: "filtered",
-    patterns: [...segments].sort().map((s) => `*${s}*`),
-    sourcePaths: ktPaths,
-  };
+  return { mode: "filtered", patterns, sourcePaths: Array.isArray(sourcePaths) ? sourcePaths : paths };
+}
+
+/**
+ * Must the expensive tier run for this change?
+ *
+ * The most costly thing an agent does is run a device or journey tier — minutes
+ * of emulator, build and flow — to prove something about a change that tier
+ * cannot see. Running it anyway is not rigour, it is latency, and latency is
+ * how an agent ends up CLAIMING instead of deriving (G1, G2).
+ *
+ * THE DECLARATION IS OF IRRELEVANCE, NOT OF RELEVANCE, and getting that
+ * backwards turns this into the defect it prevents. The first version of this
+ * function asked "is any changed path under a root that FEEDS the tier?" and
+ * answered "not required" when none matched — an allowlist, so anything nobody
+ * thought to list was silently deferred. `cmp` declares
+ * `sourceRoots: ["composeApp/src"]`, which excludes `build.gradle.kts` and
+ * `gradle/libs.versions.toml` — both of which absolutely change what runs on a
+ * device. A dependency bump would have skipped the device tier and said so
+ * confidently (ADR-0009, "what would make this wrong").
+ *
+ * So: the tier RUNS unless every changed path is under something explicitly
+ * declared unable to affect it. A path nobody classified obliges the tier,
+ * which is the safe direction — being wrong toward running costs minutes, being
+ * wrong toward deferring costs a regression nobody saw.
+ *
+ * This does not skip anything; it answers a question and always carries the
+ * reason, so a caller can record it and a reader can disagree with it. An
+ * unrecorded skip is a lie; a recorded one is evidence.
+ *
+ * @param {string[]|null} changedPaths relpaths, or null when git could not say
+ * @param {{irrelevantRoots?: string[], tierName?: string}} [decl] paths declared
+ *   unable to affect the tier: a `dir/` prefix, or a `*.ext` suffix
+ * @returns {{required: boolean, reason: string, obliging: string[]}}
+ */
+export function deriveTierNeed(changedPaths, { irrelevantRoots = [], tierName = "the device tier" } = {}) {
+  if (!Array.isArray(changedPaths)) {
+    return { required: true, reason: `cannot tell what changed — ${tierName} runs`, obliging: [] };
+  }
+  const paths = changedPaths
+    .filter((p) => typeof p === "string" && p.length > 0)
+    .map((p) => p.split(path.sep).join("/"))
+    .filter((p) => !isLaneOutput(p));
+  if (paths.length === 0) {
+    return { required: true, reason: `no change to reason about — ${tierName} runs`, obliging: [] };
+  }
+  // The harness judging itself is always broad impact — the same rule the
+  // fast-lane filter uses, so the two cannot disagree about the same edit.
+  const core = paths.find((p) => coreBroadImpactReason(p));
+  if (core) {
+    return { required: true, reason: `broad-impact change — ${coreBroadImpactReason(core)} (${core})`, obliging: [core] };
+  }
+  const declared = (irrelevantRoots ?? []).filter((r) => typeof r === "string" && r.length > 0);
+  if (declared.length === 0) {
+    return { required: true, reason: `nothing is declared unable to affect ${tierName} — it runs`, obliging: paths };
+  }
+  const isIrrelevant = (p) =>
+    declared.some((r) => (r.startsWith("*.") ? p.endsWith(r.slice(1)) : p === r.replace(/\/$/, "") || p.startsWith(r.endsWith("/") ? r : `${r}/`)));
+  const obliging = paths.filter((p) => !isIrrelevant(p));
+  return obliging.length > 0
+    ? {
+        required: true,
+        reason: `${obliging.length} changed path(s) are not declared irrelevant to ${tierName}: ${obliging.slice(0, 3).join(", ")}${obliging.length > 3 ? ", …" : ""}`,
+        obliging,
+      }
+    : { required: false, reason: `every changed path is declared unable to affect ${tierName} (${declared.join(", ")})`, obliging: [] };
 }
 
 function defaultRunGit(args, root) {

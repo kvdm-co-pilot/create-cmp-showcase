@@ -38,7 +38,7 @@ platform seams get JVM implementations in `composeApp/src/desktopMain`:
 |---|---|
 | `NetworkMonitor` | Always-online stub (`NetworkMonitor.desktop.kt`) |
 | Room database | Real Room via `BundledSQLiteDriver`, stored in the OS temp dir (`DatabaseBuilder.desktop.kt`) |
-| Firebase | **Not wired at all** — the dev-client never initializes or contacts Firebase |
+| Firebase | **Never initialized** — none in the default scaffold, and after `create-cmp add firebase` the dev-client still never initializes or contacts it |
 | `ItemRepository` (example feature) | The same in-memory `ItemRepositoryImpl` every platform binds |
 
 When you add a real remote-backed repository, bind a desktop fake for it in

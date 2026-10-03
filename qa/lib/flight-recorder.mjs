@@ -52,12 +52,43 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const FLIGHT_JOURNAL_REL_PATH = "qa/flight-recorder.jsonl";
-export const FLIGHT_SCHEMA = "cmp-flight/1";
+// ADR-0007's principle, applied to the journal. The receipt's rename left this
+// behind, and the reason that ADR gave for deferring LOCK_SCHEMA — "it finishes
+// that journey with the package work" — does NOT carry over: a journal is
+// APPEND-ONLY and is never rewritten, so deferring it is deciding never. It is
+// committed in every stamped app, so a Go project's repo carried `cmp` on every
+// line of it. Nothing reads this field (readFlightJournal accepts any object),
+// so old entries and new ones coexist in one file and both stay readable.
+export const FLIGHT_SCHEMA = "prooflane-flight/1";
 
 // Below this many entries the report carries an explicit shortness note —
 // two entries are two facts, not a trend, and the report must say so rather
 // than let a reader infer a pattern from a journal that cannot support one.
 const SHORT_JOURNAL_FLOOR = 5;
+
+/**
+ * The highest rung recorded, said the only way it can honestly be said: with
+ * the pack that graded it.
+ *
+ * One pack — "L2 (pack cmp)". Several — each named, because §8.9 makes "the
+ * highest of an L2 and an L1 from different packs" a question with no answer.
+ * A rung whose entry predates pack recording is `unattributed`, never quietly
+ * credited to whichever pack is present.
+ *
+ * @param {{highestRung: string|null, highestRungByPack?: Record<string,string>}} device
+ * @returns {string} "" when nothing was recorded
+ */
+export function describeHighestRung(device) {
+  const byPack = device?.highestRungByPack ?? {};
+  const entries = Object.entries(byPack);
+  if (entries.length === 0) return "";
+  if (entries.length === 1) {
+    const [pack, rung] = entries[0];
+    return ` (highest evidence rung recorded: ${rung}, pack ${pack})`;
+  }
+  const parts = entries.sort(([a], [b]) => a.localeCompare(b)).map(([pack, rung]) => `${rung} (${pack})`);
+  return ` (highest evidence rung per pack — not comparable across them: ${parts.join(", ")})`;
+}
 
 /**
  * Shape one lane run into a journal entry. Pure — verify.mjs passes what it
@@ -71,6 +102,11 @@ const SHORT_JOURNAL_FLOOR = 5;
  * @param {{rung: string}|null} run.evidenceLevel the derived rung (or null —
  *   fast runs and FAILed lanes carry none, and the journal records that
  *   honestly rather than borrowing a rung from elsewhere)
+ * @param {{id: string}|null} run.pack WHICH PACK graded that rung. A rung is
+ *   comparable only within its pack (NORTH-STAR §8.9): a `cmp` L2 and a
+ *   backend pack's L2 are different claims. An entry that stored a rung with
+ *   no pack could not be compared to anything without inventing the missing
+ *   half, and `highestRung` below did exactly that across every entry.
  * @param {Array<{name: string, verdict: string, reason?: string}>} run.steps
  *   the lane's step results, verbatim
  * @param {string|null} run.sha parent HEAD at run time (null before git init)
@@ -82,7 +118,7 @@ const SHORT_JOURNAL_FLOOR = 5;
  *   (self-heals, fallbacks) — each a short verbatim description
  * @returns {object} one journal entry (JSON-serializable)
  */
-export function buildFlightEntry({ profile, mode, verdict, evidenceLevel, steps, sha, durationMs, onDeviceSteps, degraded }) {
+export function buildFlightEntry({ profile, mode, verdict, evidenceLevel, pack, steps, sha, durationMs, onDeviceSteps, degraded }) {
   const stepList = Array.isArray(steps) ? steps.filter((s) => s && typeof s.name === "string") : [];
   return {
     schema: FLIGHT_SCHEMA,
@@ -92,6 +128,10 @@ export function buildFlightEntry({ profile, mode, verdict, evidenceLevel, steps,
     mode,
     verdict,
     evidenceRung: evidenceLevel?.rung ?? null,
+    // The grader, beside the grade. Null on an entry that earned no rung, and
+    // on one written before packs were recorded — absent is honest, invented is
+    // not, and the summary below refuses to compare what it cannot attribute.
+    pack: typeof pack?.id === "string" ? pack.id : null,
     durationMs,
     // durationMs per step (additive, schema id unchanged — old entries stay
     // readable): the source for the lane's own "usually ~Ns" narration
@@ -231,11 +271,31 @@ export function summarizeFlightJournal(entries, { now = new Date() } = {}) {
 
   const fullRuns = runs.filter((e) => e.mode === "full");
   const deviceReached = runs.filter((e) => Array.isArray(e.deviceSteps) && e.deviceSteps.length > 0);
+  // THE HIGHEST RUNG, PER PACK — never across them.
+  //
+  // This used to take the maximum over every entry in the journal, which is a
+  // cross-pack comparison in a single line: if the journal held a `cmp` L2 and
+  // a backend pack's L1, it reported "L2" as though one number described both.
+  // §8.9 forbids exactly that, and the fix is not a smarter sort — it is
+  // refusing to put two incomparable claims in one ordering.
+  //
+  // An entry with a rung and no pack (written before packs were recorded)
+  // cannot be attributed, so it is counted under `null` and reported as
+  // unattributed rather than folded into whichever pack happens to be present.
   const rungOrder = { L0: 0, L1: 1, L2: 2, L3: 3 };
-  const highestRung = runs
-    .map((e) => e.evidenceRung)
-    .filter((r) => typeof r === "string" && r in rungOrder)
-    .sort((a, b) => rungOrder[b] - rungOrder[a])[0] ?? null;
+  const highestRungByPack = new Map();
+  for (const e of runs) {
+    const r = e.evidenceRung;
+    if (typeof r !== "string" || !(r in rungOrder)) continue;
+    const id = typeof e.pack === "string" ? e.pack : null;
+    const seen = highestRungByPack.get(id);
+    if (!seen || rungOrder[r] > rungOrder[seen]) highestRungByPack.set(id, r);
+  }
+  // The single-value form survives ONLY where the journal holds one pack, which
+  // is every project that has not changed profiles. With more than one it is
+  // null, and the per-pack map is the answer — a reader asking for one number
+  // over two packs is asking a question §8.9 says has no answer.
+  const highestRung = highestRungByPack.size === 1 ? [...highestRungByPack.values()][0] : null;
 
   // Longest stretch with no full lane — only computable BETWEEN two recorded
   // full runs. One full run is a date, not a stretch; the report says so
@@ -269,7 +329,7 @@ export function summarizeFlightJournal(entries, { now = new Date() } = {}) {
       lastAgoMs: lastFullAgoMs,
       longestGap: longestFullGap,
     },
-    device: { reachedRuns: deviceReached.length, highestRung },
+    device: { reachedRuns: deviceReached.length, highestRung, highestRungByPack: Object.fromEntries([...highestRungByPack].map(([k, v]) => [k ?? "unattributed", v])) },
   };
 }
 
@@ -338,7 +398,11 @@ export function renderFlightReport(summary, { malformed = 0 } = {}) {
 
   if (summary.device.reachedRuns > 0) {
     lines.push(
-      `device tier: reached in ${summary.device.reachedRuns} of ${summary.total} run(s)${summary.device.highestRung ? ` (highest evidence rung recorded: ${summary.device.highestRung})` : ""}`,
+      // A rung is shown WITH its pack, always — an unqualified "L2" is a claim
+      // about a grader nobody named (§8.9, §6.5). With more than one pack in
+      // the journal there is no single highest, and each is printed on its own
+      // rather than one being chosen to stand for both.
+      `device tier: reached in ${summary.device.reachedRuns} of ${summary.total} run(s)${describeHighestRung(summary.device)}`,
     );
   } else {
     lines.push("device tier: never reached in any recorded run (no device-tier step ever PASSed)");

@@ -16,8 +16,1255 @@
 # Better still: upstream the change so the next upgrade carries it for you.
 # Delete this file once you have decided.
 
+diff --git a/qa/approve.mjs b/qa/approve.mjs
+index 03fcfe6..a190a69 100644
+--- a/qa/approve.mjs
++++ b/qa/approve.mjs
+@@ -134,7 +134,13 @@ function refuseIfUnresolvable() {
+ 
+ if (args.includes("--accept-defaults")) {
+   refuseIfUnresolvable();
+-  const { approved, skipped } = approveAllDefaults(ROOT);
++  const expressAsIdx = args.indexOf("--as");
++  const expressSigner = expressAsIdx >= 0 ? args[expressAsIdx + 1] : undefined;
++  if (!expressSigner || expressSigner.startsWith("--")) {
++    console.error('--accept-defaults needs a signer: node qa/approve.mjs --accept-defaults --as "Your Name <you@example.com>"');
++    process.exit(1);
++  }
++  const { approved, skipped } = approveAllDefaults(ROOT, expressSigner);
+   for (const id of approved) {
+     console.log(`✓ approved ${id} [defaults-accepted]`);
+   }
+@@ -201,9 +207,16 @@ if (reopenFeatureFlagIdx !== -1) {
+     console.error(`error: ${result.reason}`);
+     process.exit(1);
+   }
++  const inScope = result.reopened.length + result.skipped.length + (result.stillSigned ?? []).length;
+   console.log(`↺ reopened feature "${result.feature}" as one change — reason: ${reason.trim()}`);
++  console.log(`  ${inScope} in scope · ${result.reopened.length} reopened · ${(result.stillSigned ?? []).length} still signed`);
+   for (const id of result.reopened) console.log(`  ↺ ${id}`);
+   for (const s of result.skipped) console.log(`  → skipped ${s.id} (${s.status})`);
++  // The declared blast radius is reported, not walked back: a signature is
++  // demanded again only if the change actually moves the bytes it covers.
++  for (const t of result.stillSigned ?? []) {
++    console.log(`  ✓ ${t.id} still signed (${t.status}${t.hash ? ` @${t.hash}` : ""}) — re-signature demanded only if it changes; the hash enforces that`);
++  }
+   process.exit(0);
+ }
+ 
+@@ -239,7 +252,22 @@ if (args.length === 0) {
+ refuseIfUnresolvable();
+ 
+ const artifactId = args[0];
+-const result = approveArtifact(ROOT, artifactId, { via: "cli" });
++// The signer is REQUIRED, not optional: see approveArtifact's refusal. Parsed
++// here rather than defaulted from git config on purpose — `git config user.name`
++// is whatever the machine says, and an agent running on a developer's laptop
++// would sign with that developer's name. An approval must be typed by whoever
++// is answerable for it.
++const asIndex = args.indexOf("--as");
++const approvedBy = asIndex >= 0 ? args[asIndex + 1] : undefined;
++if (!approvedBy || approvedBy.startsWith("--")) {
++  console.error(
++    'approve needs a signer: node qa/approve.mjs <artifact> --as "Your Name <you@example.com>"\n' +
++      "An approval is a signature on a hash; a row that records no signer cannot tell a human's\n" +
++      "sign-off from an agent's.",
++  );
++  process.exit(1);
++}
++const result = approveArtifact(ROOT, artifactId, { via: "cli", approvedBy });
+ if (!result.ok) {
+   console.error(`error: ${result.reason}`);
+   process.exit(1);
+
+diff --git a/qa/lib/affected-tests.mjs b/qa/lib/affected-tests.mjs
+index 4115357..89450dd 100644
+--- a/qa/lib/affected-tests.mjs
++++ b/qa/lib/affected-tests.mjs
+@@ -35,7 +35,15 @@ import path from "node:path";
+  * principle as inputs-hash.mjs's EXCLUDED_PREFIXES: lane outputs are not
+  * verdict inputs).
+  */
+-export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts"];
++// qa/flight-recorder.jsonl is a lane output in the strictest sense: the lane
++// appends one line to it AFTER the receipt is written, on every run. It is
++// committed (the journal is the cost record), so after the first run it sits
++// in the changed set as a modified tracked file under qa/ — and qa/** is the
++// "harness itself" escape hatch. Uncounted here, every --fast run after the
++// first fell open to the full suite, visible only in one parenthetical.
++// Found by payment-blueprint's spine adoption (2026-09-03), where the same
++// line also landed in their locked region.
++export const LANE_OUTPUT_PREFIXES = ["qa/evidence", "qa-artifacts", "qa/flight-recorder.jsonl"];
+ 
+ function isLaneOutput(p) {
+   return LANE_OUTPUT_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
+
+diff --git a/qa/lib/evidence-badge.mjs b/qa/lib/evidence-badge.mjs
+index 698770f..94acce1 100644
+--- a/qa/lib/evidence-badge.mjs
++++ b/qa/lib/evidence-badge.mjs
+@@ -146,6 +146,17 @@ export function updateReadmeBadge(root) {
+   if (receipt && receipt.mode === "fast") {
+     return { changed: false, reason: "fast run — the inner loop bears no evidence, so the badge is left as it stands" };
+   }
++  // The same rule for the two other receipts qa/receipt-check.mjs refuses as
++  // done-evidence: smoke (Rule 0 — proves the framework, never the change) and
++  // nightly (proves the harness and the tree's invariants). Both derive no
++  // rung, and a smoke run — scripts/framework-check.mjs runs one on every
++  // scaffold — was rewriting a true L1 badge to "rung unrecorded". Found on
++  // 2026-09-03 by deriving the affected filter on a fresh app: README.md was
++  // the dirty file. Receipts predating `stage` are read by profile.
++  const stage = receipt && (typeof receipt.stage === "string" ? receipt.stage : receipt.profile);
++  if (stage === "smoke" || stage === "nightly") {
++    return { changed: false, reason: `${stage} run — refused as done-evidence, so the badge is left as it stands` };
++  }
+ 
+   const body = `${renderEvidenceBadge(receipt)}\n`;
+   const next = readme.replace(
+
+diff --git a/qa/lib/evidence-level.mjs b/qa/lib/evidence-level.mjs
+index 1f73e45..5c46359 100644
+--- a/qa/lib/evidence-level.mjs
++++ b/qa/lib/evidence-level.mjs
+@@ -65,6 +65,27 @@ const RELEASE_EXECUTION = "releaseSmoke";
+ 
+ const RUNG_NAMES = { L0: "scaffold", L1: "desktop", L2: "device", L3: "release" };
+ 
++/**
++ * The Compose Multiplatform pack's ladder — the step names above, as one
++ * object a pack hands to the spine. THE LADDER IS THE PACK'S, NOT THE SPINE'S
++ * (2026-09-03): vendored into a Kotlin backend, these names graded its
++ * strongest run — detekt, Konsist, mutation, gitleaks — as L0 "scaffold" and
++ * made L1 unreachable by construction. A fixed-amount understatement is not
++ * conservative, it is wrong, and receipts are where labels get quoted. So a
++ * pack declares its ladder (`evidenceLadder` on createXSteps' return); a pack
++ * that declares none earns no rung at all, which is the honest grade for a
++ * ladder nobody has calibrated. Every field is a list of step names except
++ * `release`, one name. `names` maps rung → label.
++ */
++export const CMP_LADDER = Object.freeze({
++  scaffoldCore: Object.freeze(SCAFFOLD_CORE),
++  l0Required: Object.freeze(L0_REQUIRED),
++  l1Required: Object.freeze(L1_REQUIRED),
++  deviceExecution: Object.freeze(DEVICE_EXECUTION),
++  release: RELEASE_EXECUTION,
++  names: Object.freeze(RUNG_NAMES),
++});
++
+ /**
+  * Derive the receipt's evidence rung from the lane's step results.
+  *
+@@ -81,10 +102,22 @@ const RUNG_NAMES = { L0: "scaffold", L1: "desktop", L2: "device", L3: "release"
+  *   was not earned. `satisfiedBy` lists the PASSed steps the rung counts as
+  *   its evidence, in lane order.
+  */
+-export function evidenceLevel(stepResults, profile, { mode } = {}) { // eslint-disable-line no-unused-vars
++export function evidenceLevel(stepResults, profile, { mode, ladder } = {}) { // eslint-disable-line no-unused-vars
+   if (mode === "fast") return null; // the inner loop derives no rung — ever
++  // `ladder` absent → the Compose ladder (every caller before packs declared
++  // one). `ladder: null` → the pack declares none: no rung, by decision.
++  if (ladder === null) return null;
++  const L = ladder ?? CMP_LADDER;
++  const SCAFFOLD_CORE = L.scaffoldCore ?? [];
++  const L0_REQUIRED = L.l0Required ?? [];
++  const L1_REQUIRED = L.l1Required ?? [];
++  const DEVICE_EXECUTION = L.deviceExecution ?? [];
++  const RELEASE_EXECUTION = L.release ?? null;
++  const RUNG_NAMES = L.names ?? CMP_LADDER.names;
+   const steps = Array.isArray(stepResults) ? stepResults.filter((s) => s && typeof s.name === "string") : [];
+-  if (steps.some((s) => s.verdict === "FAIL")) return null; // a failed lane has no rung
++  // A failed lane has no rung — and a lane with a step that could not run
++  // (ERROR) has none either: a rung is evidence, and "could not check" is not.
++  if (steps.some((s) => s.verdict === "FAIL" || s.verdict === "ERROR")) return null;
+   const passed = new Set(steps.filter((s) => s.verdict === "PASS").map((s) => s.name));
+ 
+   if (!L0_REQUIRED.every((name) => passed.has(name))) return null; // not even a stamp-time green build
+@@ -106,7 +139,7 @@ export function evidenceLevel(stepResults, profile, { mode } = {}) { // eslint-d
+ 
+       // Only a PASSed releaseSmoke lifts to L3 — a SKIP (unsigned keystore,
+       // no device) never does.
+-      if (passed.has(RELEASE_EXECUTION)) {
++      if (RELEASE_EXECUTION && passed.has(RELEASE_EXECUTION)) {
+         rung = "L3";
+         counted.add(RELEASE_EXECUTION);
+       }
+
+diff --git a/qa/lib/feature-brief.mjs b/qa/lib/feature-brief.mjs
+index dfea64f..cc6fb4c 100644
+--- a/qa/lib/feature-brief.mjs
++++ b/qa/lib/feature-brief.mjs
+@@ -7,8 +7,9 @@
+ // docs/features/ is a governed `feature-brief:<name>` artifact, hashed and
+ // signed like anything else, approved BEFORE the feature is built. (Harness
+ // design standards stay in docs/proposals/ — different directory, different
+-// meaning.) `<name>` matches the feature's spec: docs/features/meal.md pairs
+-// with specs/meal.spec.md.
++// meaning.) `<name>` pairs with the feature's spec — by default
++// specs/<name>.spec.md, overridable by the brief itself when its promises
++// genuinely live in several spec files (see pairedSpecNames).
+ //
+ // The brief carries at most ONE machine-read block, and it declares — it never
+ // gates:
+@@ -163,30 +164,90 @@ export function briefSections(markdown) {
+ 
+ /**
+  * A brief's declarations: blast radius (`touches`), UI surface (`screens`),
+- * and the reachability exemption (`unrouted` — FI-7's escape hatch: a screen
+- * intentionally not wired into the navigation graph yet). A missing block, or
+- * one without a field, declares nothing — legal and common. A block that IS
+- * present but malformed is surfaced as `error`: a doc that tried to declare
+- * and failed should say so, not read as "declares nothing".
++ * the reachability exemption (`unrouted` — FI-7's escape hatch: a screen
++ * intentionally not wired into the navigation graph yet), and the paired
++ * spec files (`specs` — walk-legibility L1: spec NAMES, no path/extension;
++ * `"specs": ["catalog", "entry-editing"]`). A missing block, or one without a
++ * field, declares nothing — legal and common. A block that IS present but
++ * malformed is surfaced as `error`: a doc that tried to declare and failed
++ * should say so, not read as "declares nothing".
+  * @param {string} markdown
+- * @returns {{touches: string[], screens: boolean, unrouted: boolean, error: (string|null)}}
++ * @returns {{touches: string[], screens: boolean, unrouted: boolean, specs: string[], error: (string|null)}}
+  */
+ export function parseFeatureBlock(markdown) {
+   const m = typeof markdown === "string" ? markdown.match(FEATURE_FENCE_RE) : null;
+-  if (!m) return { touches: [], screens: false, unrouted: false, error: null };
++  if (!m) return { touches: [], screens: false, unrouted: false, specs: [], error: null };
+   let parsed;
+   try {
+     parsed = JSON.parse(m[1]);
+   } catch (err) {
+-    return { touches: [], screens: false, unrouted: false, error: `cmp:feature block is not valid JSON — ${err.message}` };
++    return { touches: [], screens: false, unrouted: false, specs: [], error: `cmp:feature block is not valid JSON — ${err.message}` };
+   }
+   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+-    return { touches: [], screens: false, unrouted: false, error: "cmp:feature must be a JSON object" };
++    return { touches: [], screens: false, unrouted: false, specs: [], error: "cmp:feature must be a JSON object" };
+   }
+   const touches = Array.isArray(parsed.touches)
+     ? parsed.touches.filter((t) => typeof t === "string" && t.trim() !== "")
+     : [];
+-  return { touches, screens: parsed.screens === true, unrouted: parsed.unrouted === true, error: null };
++  // `specs` entries are normalized to bare names ("specs/catalog.spec.md" and
++  // "catalog" both mean specs/catalog.spec.md) — declaring in either form is
++  // fine; storing one form keeps every consumer's arithmetic identical.
++  const specs = Array.isArray(parsed.specs)
++    ? [
++        ...new Set(
++          parsed.specs
++            .filter((s) => typeof s === "string" && s.trim() !== "")
++            .map((s) => s.trim().replace(/^specs\//, "").replace(/\.spec\.md$/, "")),
++        ),
++      ]
++    : [];
++  return { touches, screens: parsed.screens === true, unrouted: parsed.unrouted === true, specs, error: null };
++}
++
++/**
++ * The spec files a brief's promises live in — THE pairing function
++ * (walk-legibility L1). One definition, consumed by the board derivation, the
++ * walk, and (through them) the console, so no surface can pair differently.
++ * Precedence:
++ *   1. the cmp:feature block's `"specs": [...]` — the explicit declaration
++ *   2. the brief's `**Spec:**` paragraph — every `specs/<name>.spec.md`
++ *      reference in it (the form briefs already carry for human readers)
++ *   3. the filename default: `specs/<name>.spec.md`
++ * Before this existed, a brief whose blast radius genuinely spans two specs
++ * (catalog-and-editing, showcase 2026-08-26) derived as "still awaiting a
++ * contract" forever — a standing false instruction on the primary surface
++ * that invites an agent to write a second definition of signed behavior.
++ * @param {string} markdown the brief's full text
++ * @param {string} name the brief's name (docs/features/<name>.md)
++ * @param {{specs?: string[]}} [block] a parseFeatureBlock result, if the
++ *   caller already has one (avoids re-parsing; same answer either way)
++ * @returns {string[]} spec names, e.g. ["catalog", "entry-editing"]
++ */
++export function pairedSpecNames(markdown, name, block) {
++  const declared = (block ?? parseFeatureBlock(markdown)).specs ?? [];
++  if (declared.length > 0) return declared;
++  const fromHeader = specHeaderNames(markdown);
++  if (fromHeader.length > 0) return fromHeader;
++  return [name];
++}
++
++/**
++ * Every `specs/<name>.spec.md` referenced in the brief's `**Spec:**`
++ * paragraph — the line starting `**Spec:**` through the next blank line, so
++ * later prose that merely MENTIONS a spec path never redirects the pairing.
++ */
++function specHeaderNames(markdown) {
++  if (typeof markdown !== "string") return [];
++  const lines = markdown.split("\n");
++  const start = lines.findIndex((l) => /^\*\*Spec:?\*\*/.test(l.trim()));
++  if (start === -1) return [];
++  const para = [];
++  for (let i = start; i < lines.length && lines[i].trim() !== ""; i++) para.push(lines[i]);
++  const out = [];
++  for (const m of para.join("\n").matchAll(/specs\/([A-Za-z0-9_-]+)\.spec\.md/g)) {
++    if (!out.includes(m[1])) out.push(m[1]);
++  }
++  return out;
+ }
+ 
+ /**
+@@ -262,12 +323,21 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
+   } catch {
+     readable = false;
+   }
+-  const block = readable ? parseFeatureBlock(markdown) : { touches: [], screens: false, error: `${brief.rel} could not be read` };
++  const block = readable
++    ? parseFeatureBlock(markdown)
++    : { touches: [], screens: false, specs: [], error: `${brief.rel} could not be read` };
+ 
+-  const specRel = `specs/${brief.name}.spec.md`;
+-  const specExists = fs.existsSync(path.join(root, specRel));
++  // The paired specs (walk-legibility L1): usually one, by filename; a brief
++  // may name several. Clauses concatenate in declaration order — "done" means
++  // every live clause across ALL of them is cited.
++  const specNames = pairedSpecNames(markdown, brief.name, block);
++  const specRels = specNames.map((n) => `specs/${n}.spec.md`);
++  const specExists = specRels.every((rel) => fs.existsSync(path.join(root, rel)));
++  const specRel = specRels.join(" + ");
+   const citedIds = new Set((pre.citations ?? scanCitations(root)).map((t) => t.id));
+-  const clauses = clausesOfSpec(root, specRel).map((c) => ({ ...c, cited: citedIds.has(c.id) }));
++  const clauses = specRels
++    .flatMap((rel) => clausesOfSpec(root, rel))
++    .map((c) => ({ ...c, cited: citedIds.has(c.id) }));
+   const live = clauses.filter((c) => !c.withdrawn);
+   const covered = live.filter((c) => c.cited).length;
+ 
+@@ -286,6 +356,8 @@ export function deriveFeatureStatus(root, brief, pre = {}) {
+     // rung's only mechanical signal (see countEdgeCases).
+     edgeCases: readable ? countEdgeCases(markdown) : 0,
+     specRel,
++    specNames,
++    specRels,
+     specExists,
+     clauses,
+     covered,
+
+diff --git a/qa/lib/inputs-hash.mjs b/qa/lib/inputs-hash.mjs
+index 0a0f2a5..fc2c998 100644
+--- a/qa/lib/inputs-hash.mjs
++++ b/qa/lib/inputs-hash.mjs
+@@ -17,8 +17,19 @@ import { createHash } from "node:crypto";
+ import fs from "node:fs";
+ import path from "node:path";
+ 
+-// Directories / files INCLUDED in the verified surface (relative to project ROOT).
++// Directories / files included in the verified surface (relative to project ROOT).
+ // Principle: every tracked file whose content can change the lane's verdict.
++//
++// THIS IS A DEFAULT, NOT A LAW (evidence-economics S8, 2026-09-03). It is the
++// surface of a Compose Multiplatform app, and it used to be hardcoded inside
++// this module — which is the SPINE, shared by every adopter. A repo whose code
++// lives in services/ or src/ that vendored this file had its verified surface
++// silently shrink to whatever happened to match: no error, no failed step, a
++// receipt that still validated and still looked identical, and a hash that had
++// quietly stopped covering the application. A gate that attests less while
++// looking the same is the worst failure this harness can have, so the surface
++// is now resolved per project (see resolveVerifiedSurface) and an empty one is
++// refused rather than hashed.
+ export const VERIFIED_SURFACE = [
+   "composeApp",
+   "specs",
+@@ -48,7 +59,16 @@ export const VERIFIED_SURFACE = [
+ // bookkeeping about a commit that already happened, so appending a record
+ // must never invalidate a receipt for a tree whose code did not change
+ // (approvals.log.jsonl's principle, applied to audits).
++// qa/.request.json and qa/.plan.json are the live chain's EPHEMERAL state
++// (studio-drive-mode): the request file is rewritten on EVERY user prompt by
++// the UserPromptSubmit hook, so hashing either would invalidate the receipt
++// the moment the human speaks. They are also gitignored on fresh scaffolds,
++// but the exclusion here is the load-bearing one — upgraded apps keep their
++// own .gitignore, which never learns new entries.
+ const EXCLUDED_PREFIXES = [
++  "qa/.plan.json",
++  "qa/.request.json",
++  "qa/.plan-history.jsonl",
+   "qa/evidence",
+   "qa-artifacts",
+   "qa/comments.json",
+@@ -138,9 +158,52 @@ function walkAllFiles(dir) {
+   return out;
+ }
+ 
++/** Where a project may declare its own verified surface (see resolveVerifiedSurface). */
++export const SURFACE_CONFIG_REL = "qa/verified-surface.json";
++
++/**
++ * The surface THIS project attests — its own declaration when it has one, the
++ * Compose Multiplatform default otherwise.
++ *
++ * Read from a file rather than passed as an argument on purpose: qa/verify.mjs
++ * (which writes inputs.hash) and qa/receipt-check.mjs (which recomputes it)
++ * must never disagree about what was hashed, and two call sites taking a
++ * parameter is two places to get it wrong. The file lives under qa/, so it is
++ * itself inside the surface — changing the definition invalidates receipts,
++ * which is correct: the tree's coverage changed.
++ *
++ * Shape: {"surface": ["services", "docs", "build-logic", ".github", "qa"]}.
++ * Malformed or empty content is REFUSED, never silently defaulted — a project
++ * that tried to declare a surface and failed must not fall back to a smaller
++ * one behind the operator's back.
++ *
++ * @param {string} root project root
++ * @returns {string[]} surface entries, relative to root
++ */
++export function resolveVerifiedSurface(root) {
++  const p = path.join(root, SURFACE_CONFIG_REL);
++  let raw;
++  try {
++    raw = fs.readFileSync(p, "utf8");
++  } catch {
++    return VERIFIED_SURFACE; // no declaration — the CMP default, unchanged
++  }
++  let parsed;
++  try {
++    parsed = JSON.parse(raw);
++  } catch (err) {
++    throw new Error(`${SURFACE_CONFIG_REL} is not valid JSON (${err.message}) — refusing to hash a surface this project failed to declare.`);
++  }
++  const list = parsed && Array.isArray(parsed.surface) ? parsed.surface.filter((x) => typeof x === "string" && x.trim() !== "") : null;
++  if (!list || list.length === 0) {
++    throw new Error(`${SURFACE_CONFIG_REL} declares no surface — expected {"surface": ["dir", …]}. Refusing to hash nothing.`);
++  }
++  return list;
++}
++
+ // Resolve the verified surface to a flat, sorted list of paths (relative to
+ // root, POSIX-style `/` separators) that currently exist on disk.
+-function resolveSurfaceFiles(root) {
++function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
+   const gitFiles = tryGitLsFiles(root);
+ 
+   if (gitFiles) {
+@@ -169,6 +232,33 @@ function resolveSurfaceFiles(root) {
+   return collected.filter((relPath) => !isExcluded(relPath));
+ }
+ 
++/**
++ * Top-level entries (first path segment of every file git would commit) that
++ * NO surface entry covers — the files the receipt does not attest. An
++ * allowlist is silent about what it omits: a new top-level directory is simply
++ * unmatched, no error, unattested (payment-blueprint, 2026-09-03). This names
++ * the omission so the receipt can carry it and a reader can decide whether
++ * it belongs in qa/verified-surface.json. Sorted; [] when git is unavailable
++ * (the walk fallback has no notion of "what git sees") or everything is
++ * covered. Lane outputs (EXCLUDED_PREFIXES) are not "undeclared" — they are
++ * excluded by decision.
++ * @param {string} root
++ * @param {string[]} [surface] defaults to resolveVerifiedSurface(root)
++ * @returns {string[]}
++ */
++export function undeclaredTopLevel(root, surface = resolveVerifiedSurface(root)) {
++  const gitFiles = tryGitLsFiles(root);
++  if (!gitFiles) return [];
++  const covered = (relPath) => surface.some((entry) => relPath === entry || relPath.startsWith(`${entry}/`)) || isExcluded(relPath);
++  const out = new Set();
++  for (const raw of gitFiles) {
++    const relPath = raw.split(path.sep).join("/");
++    if (covered(relPath)) continue;
++    out.add(relPath.includes("/") ? relPath.slice(0, relPath.indexOf("/")) : relPath);
++  }
++  return [...out].sort();
++}
++
+ /**
+  * Compute the sha256 hash of the verified surface for the project rooted at `root`.
+  * Deterministic: same tree (same file paths + same file bytes) → same hash.
+@@ -180,7 +270,20 @@ export function computeInputsHash(root) {
+   // on iteration order, and ICU collation varies with the machine's locale
+   // (e.g. a da_DK machine orders "aa" after "z"; en orders case-insensitively
+   // where code units do not) — the same tree must hash identically everywhere.
+-  const files = [...new Set(resolveSurfaceFiles(root))].sort();
++  const surface = resolveVerifiedSurface(root);
++  const files = [...new Set(resolveSurfaceFiles(root, surface))].sort();
++
++  // A surface that matches NOTHING is a misconfiguration, not a valid hash.
++  // Hashing zero files yields a stable, confident-looking digest that attests
++  // the empty set — the silent shrink this whole change exists to prevent, in
++  // its most extreme form. Refuse, and name what was looked for.
++  if (files.length === 0) {
++    throw new Error(
++      `the verified surface matched no files under ${root} — nothing would be attested. ` +
++        `Surface: ${surface.join(", ")}. ` +
++        `A project whose code lives elsewhere declares its own in ${SURFACE_CONFIG_REL}: {"surface": ["services", "qa", …]}.`,
++    );
++  }
+ 
+   const overall = createHash("sha256");
+   for (const relPath of files) {
+
+diff --git a/qa/lib/receipt-validate.mjs b/qa/lib/receipt-validate.mjs
+index 3dff836..3cc1a26 100644
+--- a/qa/lib/receipt-validate.mjs
++++ b/qa/lib/receipt-validate.mjs
+@@ -45,6 +45,51 @@ export function readReceipt(root, relPath = RECEIPT_REL_PATH) {
+  *   FAIL verdict), so callers don't pay for a hash they don't need.
+  * @returns {{valid: boolean, reason: string, profile: (string|undefined), recomputed?: {hash: string, fileCount: number}}}
+  */
++/**
++ * Does this receipt's own row-level evidence support its PASS?
++ *
++ * The receipt is necessarily excluded from the inputs hash it carries — a file
++ * cannot hash itself — so steps[] is the only thing between this gate and a text
++ * editor, and the top-level verdict is the most editable field on it.
++ *
++ * Two failures this catches, both observed downstream (payment-blueprint F2/F3):
++ * a receipt whose verdict was hand-edited from FAIL to PASS while its rows still
++ * said otherwise, and a lane made green by DELETING harness.lock.json, which
++ * downgraded harnessIntegrity from FAIL to SKIP and took the lane's verdict with
++ * it — a lane vouching for a tree with nothing vouching for the lane.
++ *
++ * @param {{verdict?: string, steps?: Array<{name?: string, verdict?: string}>}} receipt
++ * @returns {{ok: boolean, detail: string}}
++ */
++export function checkLaneVouching(receipt) {
++  const steps = Array.isArray(receipt?.steps) ? receipt.steps : null;
++  if (!steps || steps.length === 0) {
++    return { ok: false, detail: "receipt lists no verify-lane steps — a PASS over nothing attests nothing" };
++  }
++  const failed = steps.filter((s) => s && (s.verdict === "FAIL" || s.verdict === "ERROR"));
++  if (failed.length > 0) {
++    const names = failed.map((s) => `${s.name ?? "?"} (${s.verdict})`).join(", ");
++    return {
++      ok: false,
++      detail: `the receipt's verdict is PASS but ${failed.length} step(s) did not pass: ${names} — the row is the more specific truth`,
++    };
++  }
++  const integrity = steps.find((s) => s && s.name === "harnessIntegrity");
++  if (!integrity) {
++    return {
++      ok: false,
++      detail: "receipt has no harnessIntegrity row — nothing vouches that the lane's own code is the code that ran",
++    };
++  }
++  if (integrity.verdict !== "PASS") {
++    return {
++      ok: false,
++      detail: `harnessIntegrity is ${integrity.verdict}, not PASS — the lane did not vouch for itself, so its PASS over the tree cannot be trusted`,
++    };
++  }
++  return { ok: true, detail: "lane vouched for itself (harnessIntegrity PASS, no failing rows)" };
++}
++
+ export function evaluateReceipt(receipt, recompute) {
+   const profile = receipt.profile;
+ 
+@@ -83,6 +128,13 @@ export function evaluateReceipt(receipt, recompute) {
+     };
+   }
+ 
++  // Did the lane vouch for ITSELF? See checkLaneVouching — the top-level verdict
++  // is the most editable field on a file the hash cannot cover.
++  const vouching = checkLaneVouching(receipt);
++  if (!vouching.ok) {
++    return { valid: false, reason: `${vouching.detail} (attesting profile: ${profile ?? "unknown"})`, profile, recomputed };
++  }
++
+   return { valid: true, reason: `receipt is valid — PASS, attesting profile: ${profile ?? "unknown"}`, profile, recomputed };
+ }
+ 
+@@ -134,7 +186,10 @@ export function checkExecutionPlausibility(receipt, { minExecutedMs = DEFAULT_PO
+   if (!steps || steps.length === 0) {
+     return { ok: false, detail: "receipt lists no verify-lane steps — nothing was executed" };
+   }
+-  const executed = steps.filter((s) => s && s.verdict !== "SKIP");
++  // Executed = produced a verdict about the tree. SKIP did not try; ERROR
++  // tried and could not (a deadline, zero tests, a throw) — neither measured
++  // anything, so neither counts toward "this lane verified something".
++  const executed = steps.filter((s) => s && s.verdict !== "SKIP" && s.verdict !== "ERROR");
+   if (executed.length === 0) {
+     return { ok: false, detail: "every step in the receipt is a SKIP — the lane verified nothing" };
+   }
+
+diff --git a/qa/lib/spec-coverage.mjs b/qa/lib/spec-coverage.mjs
+index 94282b6..2643ac2 100644
+--- a/qa/lib/spec-coverage.mjs
++++ b/qa/lib/spec-coverage.mjs
+@@ -14,8 +14,94 @@ import path from "node:path";
+ 
+ /** `- **HOME-01** — …` (live) or `- ~~**HOME-01**~~ — …` (withdrawn). */
+ export const CLAUSE_LINE_RE = /^-\s+(~~)?\*\*([A-Z][A-Z0-9]*-\d{2,})\*\*/;
++// An OPTIONAL tier requirement on the clause line itself:
++//
++//   - **MOTION-13** [tier: device] — Given a cold start, When … Then …
++//
++// The clause declares what it takes to OBSERVE it, which is a property of the
++// promise, not of whatever test happened to cite it. Note this attaches to the
++// clause line, not to `[enforced: …]` — that tags docs/ARCHITECTURE.md prose and
++// is a different grammar entirely.
++const CLAUSE_TIER_RE = /\[tier:\s*(device|e2e)\]/i;
++/** Which citing tiers satisfy a declared requirement. */
++export const TIERS_SATISFYING = Object.freeze({
++  device: ["androidInstrumentedTest", "e2e"],
++  e2e: ["e2e"],
++});
+ 
+ const TAG_LINE_RE = /^(?:\/\/|#)\s*SPEC:/;
++
++// A citation is a claim that a TEST covers a clause, so it has to sit on one.
++// Counting the tag wherever it appears makes a red specCoverage curable with a
++// comment and zero assertions — the one escape this gate exists to close. It is
++// not hypothetical: payment-blueprint hit a citation that had drifted onto a
++// class declaration, where it counted for the whole file while testing nothing.
++//
++// So a tag counts only when a test declaration follows it within
++// BINDING_WINDOW non-blank lines. The window is small enough that the tag must
++// be attached to the test, and loose enough for the @DisplayName / annotation
++// stack that idiomatically sits between them.
++export const BINDING_WINDOW = 5;
++
++// Kotlin @Test, a backticked test function, and the node:test / Maestro-adjacent
++// `test(` / `it(` call forms. Deliberately syntactic: a citation's binding must
++// be readable without compiling anything.
++const TEST_DECL_RE = /@Test\b|\bfun\s+`[^`]+`\s*\(|\b(?:test|it)\s*\(/;
++
++// A tag whose first meaningful line declares a TYPE is documenting that type,
++// not claiming a test — and it must be refused structurally rather than by
++// distance, because a short class body puts a real @Test inside the window and
++// would otherwise launder the citation. This is exactly payment-blueprint's
++// drift: `// SPEC: PP-07` sat on `class PaymentWorkerTest`, three properties
++// above a genuine @Test, and vouched for the whole file.
++const TYPE_DECL_RE = /^(?:@\w+\s+)*(?:public\s+|internal\s+|private\s+|abstract\s+|open\s+|sealed\s+|data\s+|enum\s+)*(?:class|object|interface)\b/;
++
++// A YAML flow's own shape counts as its test: a Maestro file IS the test, so a
++// tag in one binds to the flow rather than to a declaration inside it.
++const FLOW_EXTS = [".yaml", ".yml"];
++
++/**
++ * Does a test declaration follow `index` within BINDING_WINDOW non-blank lines,
++ * skipping block-comment bodies (a tag inside one is documentation, not a claim)?
++ * @param {string[]} lines
++ * @param {number} index line the tag sits on
++ * @returns {boolean}
++ */
++export function citationIsBound(lines, index) {
++  let seen = 0;
++  let inBlockComment = false;
++  for (let i = index + 1; i < lines.length && seen < BINDING_WINDOW; i += 1) {
++    const line = lines[i].trim();
++    if (line === "") continue;
++    if (inBlockComment) {
++      if (line.includes("*/")) inBlockComment = false;
++      continue;
++    }
++    if (line.startsWith("/*")) {
++      if (!line.includes("*/")) inBlockComment = true;
++      continue;
++    }
++    if (line.startsWith("//") || line.startsWith("*")) continue;
++    seen += 1;
++    // The FIRST meaningful line decides whether this tag is on a test at all.
++    if (seen === 1 && TYPE_DECL_RE.test(line)) return false;
++    if (TEST_DECL_RE.test(line)) return true;
++  }
++  return false;
++}
++
++/** Is this tag inside a block comment that began earlier in the file? */
++function insideBlockComment(lines, index) {
++  let open = false;
++  for (let i = 0; i < index; i += 1) {
++    const line = lines[i];
++    for (let c = 0; c < line.length - 1; c += 1) {
++      if (!open && line[c] === "/" && line[c + 1] === "*") open = true;
++      else if (open && line[c] === "*" && line[c + 1] === "/") open = false;
++    }
++  }
++  return open;
++}
+ const TAG_IDS_RE = /SPEC:\s*([A-Z0-9,\s-]+)/;
+ const CLAUSE_ID_RE = /^[A-Z][A-Z0-9]*-\d{2,}$/;
+ 
+@@ -45,7 +131,12 @@ export function scanSpecClauses(root) {
+     for (const line of fs.readFileSync(abs, "utf8").split("\n")) {
+       const m = line.match(CLAUSE_LINE_RE);
+       if (!m) continue;
+-      clauses.set(m[2], { file: path.relative(root, abs), withdrawn: Boolean(m[1]) });
++      const tierMatch = line.match(CLAUSE_TIER_RE);
++      clauses.set(m[2], {
++        file: path.relative(root, abs),
++        withdrawn: Boolean(m[1]),
++        requiredTier: tierMatch ? tierMatch[1].toLowerCase() : null,
++      });
+     }
+   }
+   return clauses;
+@@ -86,11 +177,14 @@ export function scanCitations(root) {
+     const tier = tierForFile(rel);
+     fs.readFileSync(f, "utf8")
+       .split("\n")
+-      .forEach((line, i) => {
++      .forEach((line, i, lines) => {
+         const trimmed = line.trim();
+         if (!TAG_LINE_RE.test(trimmed)) return;
+         const m = trimmed.match(TAG_IDS_RE);
+         if (!m) return;
++        // A flow file IS its test; anything else must have a test under the tag.
++        const isFlow = FLOW_EXTS.some((ext) => rel.endsWith(ext));
++        if (!isFlow && (insideBlockComment(lines, i) || !citationIsBound(lines, i))) return;
+         const ids = m[1]
+           .split(/[,\s]+/)
+           .map((s) => s.trim())
+@@ -108,6 +202,9 @@ export function scanCitations(root) {
+  * (commonTest/desktopTest) — behavior claims no device-tier evidence backs.
+  * `summaryLine` is the one line the lane's specCoverage step (and any other
+  * consumer) can print verbatim; null when nothing is desktop-only.
++ * `unmetTier` is the PRESCRIPTIVE half — clauses that declared `[tier: …]` and
++ * have no citation from a tier that could observe them. specCoverage FAILS on it:
++ * "instrument before you police" was the right first move, and this is the second.
+  * @param {Map<string, {file: string, withdrawn: boolean}>} clauses from scanSpecClauses
+  * @param {Array<{id: string, tier: string}>} tags from scanCitations
+  * @returns {{tiersByClause: Record<string, string[]>, desktopOnly: string[], summaryLine: string|null}}
+@@ -117,6 +214,17 @@ export function clauseTierCoverage(clauses, tags) {
+   for (const t of tags) {
+     (tiersByClause[t.id] ??= []).includes(t.tier) || tiersByClause[t.id].push(t.tier);
+   }
++  // The gate input. A clause that DECLARED the tier it needs and has no citation
++  // from that tier is not covered — it is cited by tests structurally incapable
++  // of observing it, which is the exact hole `desktopOnly` below could only ever
++  // describe. MOTION-13 promised an animation "plays once per process start" and
++  // was cited by a desktop Compose test, a tier with no process lifecycle at all:
++  // the citation existed, the gate went green, and nothing ever observed the
++  // promise. Declared requirements are checked; undeclared clauses are unchanged.
++  const unmetTier = [...clauses.entries()]
++    .filter(([, c]) => !c.withdrawn && c.requiredTier)
++    .map(([id, c]) => ({ id, requiredTier: c.requiredTier, tiers: tiersByClause[id] ?? [], file: c.file }))
++    .filter((u) => !(TIERS_SATISFYING[u.requiredTier] ?? []).some((t) => u.tiers.includes(t)));
+   const desktopOnly = [...clauses.entries()]
+     .filter(([, c]) => !c.withdrawn)
+     .map(([id]) => id)
+@@ -127,5 +235,5 @@ export function clauseTierCoverage(clauses, tags) {
+   const summaryLine = desktopOnly.length
+     ? `${desktopOnly.length} clause${desktopOnly.length === 1 ? "" : "s"} cited only from desktop-tier tests (${desktopOnly.join(", ")})`
+     : null;
+-  return { tiersByClause, desktopOnly, summaryLine };
++  return { tiersByClause, desktopOnly, unmetTier, summaryLine };
+ }
+
+diff --git a/qa/lib/walk.mjs b/qa/lib/walk.mjs
+index 05a503a..466092c 100644
+--- a/qa/lib/walk.mjs
++++ b/qa/lib/walk.mjs
+@@ -13,11 +13,14 @@
+ // test is that promise kept, provenDone is all of them kept with the receipt
+ // attesting this tree.
+ 
++import crypto from "node:crypto";
+ import fs from "node:fs";
++import os from "node:os";
+ import path from "node:path";
+ 
+ import { getFeatureBoard, getApprovalStatuses, readJournal } from "./approvals.mjs";
+ import { CLAUSE_LINE_RE } from "./spec-coverage.mjs";
++import { deriveChain, renderChain } from "./plan.mjs";
+ 
+ /** The six stages, in walk order. `label` is the only user-facing name (D2). */
+ export const STAGES = [
+@@ -29,6 +32,32 @@ export const STAGES = [
+   { key: "signoff", label: "Sign-off" },
+ ];
+ 
++/**
++ * Plain-language glosses (walk-legibility L3) — what each stage IS, for a
++ * reader who did not build the harness. Rendered beside the stage name
++ * wherever a human reads; the keys and ids underneath never change.
++ */
++export const STAGE_GLOSS = {
++  decide: "choosing what to build, and why",
++  design: "how it looks — judged on rendered screens",
++  contract: "agreeing what it promises",
++  build: "keeping the promises",
++  prove: "checking every promise",
++  signoff: "your sign-off",
++};
++
++/**
++ * A governed artifact id in plain words (L3): `feature-spec:meal` reads as
++ * "the promises for meal". Ledger ids stay ids; only the human rendering
++ * translates. Unknown shapes pass through untouched — never invented prose.
++ */
++export function humanArtifact(id) {
++  const m = /^feature-(brief|design|spec):(.+)$/.exec(String(id));
++  if (!m) return String(id);
++  const what = m[1] === "brief" ? "the decisions for" : m[1] === "design" ? "the design of" : "the promises for";
++  return `${what} ${m[2]}`;
++}
++
+ /** nextStep.key -> the stage that step belongs to. `closed` maps to none. */
+ const STEP_STAGE = {
+   "sign-brief": "decide",
+@@ -105,21 +134,50 @@ function remainingStops(stages, currentIdx) {
+  * provenDone) to ONE next act — stages before it are done, after it pending.
+  * Design is `skipped` when the feature honestly has no UI surface (D2).
+  */
+-function walkOfFeature(root, f) {
++function walkOfFeature(root, f, lane = null) {
+   const currentKey = STEP_STAGE[f.nextStep?.key] ?? null; // null => closed
+   const currentIdx = currentKey ? STAGES.findIndex((s) => s.key === currentKey) : STAGES.length;
+   const stages = STAGES.map((s, i) => {
+     if (s.key === "design" && f.design === null)
+       return { ...s, state: "skipped", note: "no UI surface" };
+-    return { ...s, state: i < currentIdx ? "done" : i === currentIdx ? "current" : "pending" };
++    const state = i < currentIdx ? "done" : i === currentIdx ? "current" : "pending";
++    // Time is part of position (L4): Prove is the one stage with its own
++    // recorded history (the lane journals every run), so it says what it
++    // costs — measured, never the agent's memory of it.
++    if (s.key === "prove" && lane)
++      return { ...s, state, note: laneCostPhrase(lane) };
++    return { ...s, state };
+   });
+ 
+-  const promises = listPromises(root, f.specRel).filter((p) => !p.withdrawn);
++  // The paired specs (L1): promises concatenate across every spec the brief
++  // names, in declaration order — same pairing the board derivation used.
++  const specRels = f.specRels ?? [f.specRel];
++  const promises = specRels.flatMap((rel) => listPromises(root, rel)).filter((p) => !p.withdrawn);
+   // The promise being kept NOW: first live clause without a citing test —
+   // board clause order, titles from the spec's own words.
+   const citedIds = new Set(f.clauses.filter((c) => c.cited).map((c) => c.id));
+   const current = promises.find((p) => !citedIds.has(p.id)) ?? null;
+ 
++  // The signature the current step is waiting for, when it IS a signature —
++  // so a surface with a signing control (the console) can put the button on
++  // the walk card itself instead of pointing at a CLI incantation (L5).
++  // Derived from the board's own step key, never a fourth approve path.
++  const signable = (() => {
++    switch (f.nextStep?.key) {
++      case "sign-brief":
++      case "re-approve":
++        return [{ verb: "approve", artifact: `feature-brief:${f.name}` }];
++      case "sign-design":
++        return [{ verb: "approve", artifact: `feature-design:${f.name}` }];
++      case "sign-spec":
++        return (f.specNames ?? [f.name]).map((n) => ({ verb: "approve", artifact: `feature-spec:${n}` }));
++      case "accept":
++        return [{ verb: "accept", artifact: f.name }];
++      default:
++        return [];
++    }
++  })();
++
+   // Whose turn (D4): from the board's own owner, never re-derived.
+   const owner = f.nextStep?.owner ?? null;
+   const you =
+@@ -137,13 +195,127 @@ function walkOfFeature(root, f) {
+     open: f.phase !== "accepted",
+     stages,
+     currentStage: currentKey,
+-    promises: { total: f.total, kept: f.covered, current },
+-    you,
++    // `all` is the full promise list with per-promise kept state (L5) — the
++    // console renders the promises themselves, not only the tally.
++    promises: {
++      total: f.total,
++      kept: f.covered,
++      current,
++      all: promises.map((p) => ({ ...p, kept: citedIds.has(p.id) })),
++    },
++    you: { ...you, signable },
+     stops: remainingStops(stages, currentIdx),
+     doneReason: f.doneReason,
+   };
+ }
+ 
++/**
++ * What a full verify-lane run costs HERE, from the lane's own journal
++ * (qa/flight-recorder.jsonl) — the most recent non-fast run's wall time and
++ * verdict. Walk-legibility L4: any surface quoting the lane quotes this,
++ * never a memory of it (the observed failure: a 3× overestimate, spoken
++ * while the human was deciding whether a run was worth it, lost the run).
++ * @returns {{durationMs: number, verdict: (string|null)} | null}
++ */
++export function laneTiming(root) {
++  let text;
++  try {
++    text = fs.readFileSync(path.join(root, "qa/flight-recorder.jsonl"), "utf8");
++  } catch {
++    return null;
++  }
++  // EVERY recorded full run, not just the last one. A single "last run" figure
++  // is dominated by Gradle's cache state: a run that changed nothing reports the
++  // no-op cost (a 2s releaseBuild cache hit), and the operator plans a real
++  // change around it. Observed spread on one project: last 25s, median 140s,
++  // worst 558s. The distribution is the honest answer to "what will this cost";
++  // `durationMs` stays the last run so existing callers keep their meaning.
++  const full = [];
++  for (const line of text.split("\n")) {
++    if (line.trim() === "") continue;
++    let e;
++    try {
++      e = JSON.parse(line);
++    } catch {
++      continue;
++    }
++    if (e && e.mode !== "fast" && typeof e.durationMs === "number" && e.durationMs > 0) full.push(e);
++  }
++  if (full.length === 0) return null;
++  const sorted = full.map((e) => e.durationMs).sort((a, b) => a - b);
++  const last = full[full.length - 1];
++  return {
++    durationMs: last.durationMs,
++    verdict: last.verdict ?? null,
++    runs: sorted.length,
++    // Median over an even count takes the lower of the two middles — a measured
++    // run rather than an average of two, so every figure quoted is one that
++    // actually happened.
++    medianMs: sorted[Math.floor((sorted.length - 1) / 2)],
++    maxMs: sorted[sorted.length - 1],
++  };
++}
++
++/**
++ * What a full check costs, said honestly: the last run when that is all there
++ * is, and last + typical + worst once the journal can support a spread. Never
++ * an estimate — every number here is a run that happened (walk-legibility L4).
++ * @param {{durationMs: number, medianMs?: number, maxMs?: number, runs?: number}|null} lane
++ * @returns {string|null} null when nothing was ever recorded
++ */
++export function laneCostPhrase(lane) {
++  if (!lane || !(lane.durationMs > 0)) return null;
++  const last = `${humanDuration(lane.durationMs)} last full run`;
++  // One or two runs is not a distribution; saying "typical" over them would be
++  // the same overclaim in a new costume.
++  if (!(lane.runs > 2) || !(lane.medianMs > 0)) return `${last} (measured)`;
++  const spread =
++    lane.maxMs > lane.medianMs ? `, typically ${humanDuration(lane.medianMs)}, worst ${humanDuration(lane.maxMs)}` : `, typically ${humanDuration(lane.medianMs)}`;
++  return `${last}${spread} (measured over ${lane.runs} full runs)`;
++}
++
++/** "98s" under two minutes, "~5 min" above — for humans deciding whether to wait. */
++export function humanDuration(ms) {
++  if (!(ms > 0)) return "unknown";
++  return ms < 120000 ? `${Math.round(ms / 1000)}s` : `~${Math.round(ms / 60000)} min`;
++}
++
++/**
++ * The studio console currently registered for `root`, from the same tmp-dir
++ * record the console itself writes — a CROSS-PACKAGE CONTRACT with the
++ * inspector's preview-service.mjs (consoleRegistryPath): sha1(resolved
++ * root).slice(0,12), `cmp-console-<key>.json` in os.tmpdir(), fields
++ * {pid, port, url, buildStale}. pid-liveness only, no HTTP — this runs inside a
++ * statusline with a <300ms budget.
++ *
++ * `buildStale` is the console's OWN verdict on itself (studio-self-renewal R5):
++ * a console serving code that is no longer the code on disk. It is carried on
++ * the record rather than recomputed here on purpose — the harness cannot hash
++ * the inspector's sources (in a scaffolded app the inspector is an npm package
++ * elsewhere), and a per-prompt hook must not make an HTTP call. The process
++ * that owns the fact publishes it; every consumer stays dumb.
++ * @returns {{url: string, buildStale: boolean} | {stale: true} | null} null = no
++ *   record at all (never started, or stopped cleanly — silence, not an alarm)
++ */
++export function consoleState(root) {
++  try {
++    const key = crypto.createHash("sha1").update(path.resolve(root)).digest("hex").slice(0, 12);
++    const rec = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), `cmp-console-${key}.json`), "utf8"));
++    if (!rec || typeof rec.pid !== "number") return null;
++    try {
++      process.kill(rec.pid, 0); // signal 0: existence probe, touches nothing
++    } catch (err) {
++      if (!(err && err.code === "EPERM")) return { stale: true }; // record left by a crashed console
++    }
++    return {
++      url: typeof rec.url === "string" ? rec.url : `http://127.0.0.1:${rec.port}/`,
++      buildStale: rec.buildStale === true,
++    };
++  } catch {
++    return null;
++  }
++}
++
+ /**
+  * Everything the status surfaces render (D5): open walks, plus ARRIVALS (D7)
+  * — governed artifacts drifted or reopened that NO open walk accounts for
+@@ -167,15 +339,22 @@ export function deriveWalks(root) {
+   // worked on today (seen on the showcase: bfl-catalog, alphabetical, outshouted
+   // the live navigation-ia walk in the statusline).
+   const journalForOrder = readJournal(root);
++  const byName = new Map(board.features.map((f) => [f.name, f]));
+   const lastActivity = (name) => {
+-    const family = new Set([`feature-brief:${name}`, `feature-design:${name}`, `feature-spec:${name}`]);
++    const specNames = byName.get(name)?.specNames ?? [name];
++    const family = new Set([
++      `feature-brief:${name}`,
++      `feature-design:${name}`,
++      ...specNames.map((n) => `feature-spec:${n}`),
++    ]);
+     for (let i = journalForOrder.length - 1; i >= 0; i--) {
+       if (family.has(journalForOrder[i].artifact)) return i;
+     }
+     return -1;
+   };
++  const lane = laneTiming(root);
+   const walks = board.features
+-    .map((f) => walkOfFeature(root, f))
++    .map((f) => walkOfFeature(root, f, lane))
+     .filter((w) => w.open)
+     .sort((a, b) => lastActivity(b.name) - lastActivity(a.name));
+ 
+@@ -187,7 +366,9 @@ export function deriveWalks(root) {
+     if (f.phase === "accepted") continue;
+     owned.add(`feature-brief:${f.name}`);
+     owned.add(`feature-design:${f.name}`);
+-    owned.add(`feature-spec:${f.name}`);
++    // The spec side follows the brief's own pairing (L1) — a reopened spec a
++    // multi-spec walk owns is that walk's Contract stage, never an arrival.
++    for (const n of f.specNames ?? [f.name]) owned.add(`feature-spec:${n}`);
+     for (const t of f.touches) owned.add(t.id);
+   }
+   const journal = journalForOrder;
+@@ -206,7 +387,13 @@ export function deriveWalks(root) {
+       reason: s.status === "reopened" ? lastReopenReason(s.id) : "changed since its signature",
+     }));
+ 
+-  return { available: true, walks, arrivals };
++  // `lane` (L4) and `console` (L6) ride along so every rendering can say
++  // what a check costs and where the buttons are — both derived, never
++  // remembered, and both null-safe for projects that have neither yet.
++  // The live CHAIN (studio-drive-mode) rides along too: request + declared
++  // step plan + what is actually running. Declared state, labeled as such by
++  // every renderer; it gates nothing and the walk stays the truth.
++  return { available: true, walks, arrivals, lane, console: consoleState(root), chain: deriveChain(root) };
+ }
+ 
+ // ── Renderings — one grammar, four slots (D4) ────────────────────────────────
+@@ -225,35 +412,51 @@ function loudest(walks) {
+  * The always-on one-liner (statusline). "" when there is nothing to say — an
+  * ungoverned project's statusline stays silent, never fabricated.
+  */
+-export function renderStatusline({ available, walks, arrivals }) {
++export function renderStatusline({ available, walks, arrivals, console: consoleRec }) {
+   if (!available || walks.length === 0) return "";
+   const w = loudest(walks);
+   const extra = walks.length > 1 ? ` · +${walks.length - 1} walk${walks.length > 2 ? "s" : ""}` : "";
+   const arrived = arrivals.length > 0 ? ` · ▲${arrivals.length} arrived` : "";
+-  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}`;
++  // L6: the always-visible surface reports the other surface's death. A stale
++  // record means the console CRASHED (a clean stop removes it) — the failure
++  // mode was silence, and silence is the one thing this line never does.
++  const down = consoleRec && consoleRec.stale ? " · console down" : consoleRec && consoleRec.buildStale ? " · console stale" : "";
++  if (w.you.turn === "you") return `■ YOUR TURN — ${w.name}: ${w.you.act}${extra}${arrived}${down}`;
+   const now =
+     w.currentStage === "build" && w.promises.total > 0
+       ? `keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)}/${w.promises.total}`
+       : stageLabel(w);
+-  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}`;
++  return `${w.name} ${bar(w.stages)} ${now} · you: nothing${extra}${arrived}${down}`;
+ }
+ 
+-/** One walk's full card — the CLI default and the loud stop-card's body. */
+-export function renderCard(w) {
++/**
++ * One walk's full card — the CLI default and the loud stop-card's body.
++ * `ctx` carries the derivation's ride-alongs ({console, lane} from
++ * deriveWalks): with a live console, a human gate leads with the console
++ * (L5 — the product ships buttons; the CLI stays as the fallback beneath).
++ */
++export function renderCard(w, ctx = {}) {
+   const line = w.stages
+-    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.state === "skipped" ? ` (${s.note})` : ""}`)
++    .map((s) => `${s.state === "current" ? "▶" : s.state === "done" ? "●" : s.state === "skipped" ? "·" : "○"} ${s.label}${s.note ? ` (${s.note})` : ""}`)
+     .join("  ");
++  const gloss = STAGE_GLOSS[w.currentStage] ? ` — ${STAGE_GLOSS[w.currentStage]}` : "";
++  const laneNote =
++    w.currentStage === "prove" && ctx.lane ? ` (${laneCostPhrase(ctx.lane)} here)` : "";
+   const nowLine =
+     w.currentStage === "build" && w.promises.current
+       ? `Now: keeping promise ${Math.min(w.promises.kept + 1, w.promises.total)} of ${w.promises.total} — “${w.promises.current.title || w.promises.current.id}”`
+-      : `Now: ${w.you.act ?? w.doneReason}`;
++      : `Now: ${w.you.act ?? w.doneReason}${laneNote}`;
++  const consoleLine =
++    w.you.turn === "you" && ctx.console && ctx.console.url
++      ? `\n→ Easiest: the studio console at ${ctx.console.url} — the row carries the button. CLI fallback below.`
++      : "";
+   const youLine =
+     w.you.turn === "you"
+-      ? `■ YOUR TURN: ${w.you.act}`
++      ? `■ YOUR TURN: ${w.you.act}${consoleLine}`
+       : w.you.turn === "agent"
+         ? `You: nothing needed${w.stops.length ? ` · next stop${w.stops.length > 1 ? "s" : ""} for you: ${w.stops.join(", ")}` : ""}`
+         : "Closed.";
+-  return `${w.name} — stage: ${stageLabel(w)}\n${line}\n${nowLine}\n${youLine}`;
++  return `${w.name} — stage: ${stageLabel(w)}${gloss}\n${line}\n${nowLine}\n${youLine}`;
+ }
+ 
+ /**
+@@ -261,17 +464,55 @@ export function renderCard(w) {
+  * standing protocol reminders, re-delivered every turn so the narration rules
+  * are decay-proof — re-told, never remembered (D5/D6).
+  */
+-export function renderInject({ available, walks, arrivals }) {
++/**
++ * The studio's status, said plainly every prompt (studio-drive-mode: the
++ * agent ALWAYS knows whether the human's window exists, and healing it is a
++ * standing instruction, not a discovery).
++ */
++function studioLine(consoleRec) {
++  // Order matters: a console that is UP but drawing from old code is not
++  // healthy, and reporting it as "running" is the clean bill of health that
++  // let this go unnoticed for a whole session. It heals itself (the worker
++  // renews on quiescence), so say what is true and why it may be waiting.
++  if (consoleRec && consoleRec.url && consoleRec.buildStale)
++    return `[studio: running at ${consoleRec.url} but STALE — it is serving code older than the tree, and everything it shows was drawn by that older code. It renews itself once no render or lane is in flight; if it stays stale, say so rather than citing what it shows.]`;
++  if (consoleRec && consoleRec.url) return `[studio: running at ${consoleRec.url}]`;
++  if (consoleRec && consoleRec.stale)
++    return "[studio: DOWN — it crashed (stale registry record). Restore it now: call the cmp-inspector `preview { projectDir }` tool (it starts a detached resident console), or tell the human it is down. Do not proceed silently.]";
++  return "[studio: not running. If the cmp-inspector tools are available, start it now with `preview { projectDir }` — the human's window should exist whenever work is happening. If they are absent, say so once.]";
++}
++
++export function renderInject(data) {
++  const { available, walks, arrivals, chain } = data;
+   if (!available || (walks.length === 0 && arrivals.length === 0)) return "";
+   const parts = [];
++  // L2 — chat is a walk surface: the reply opens with the derivation's OWN
++  // one-liner, pasted verbatim. Machinery-authored so it cannot drift, and
++  // transcript-persistent, which the statusline never is.
++  const header = renderStatusline(data);
++  if (header !== "") {
++    parts.push(`[chat header — open your reply with this exact line (verbatim, then a blank line):]\n${header}`);
++  }
++  // The studio's status is stated EVERY prompt — its absence was silent once
++  // (the walk-wiring lesson) and never gets to be silent again.
++  parts.push(studioLine(data.console));
++  // The live chain (studio-drive-mode): the current request and the declared
++  // step plan, with its age. Declared by the agent — which is exactly why it
++  // is re-shown every turn: keeping it current is part of the contract.
++  const chainText = renderChain(chain);
++  parts.push(
++    chainText !== ""
++      ? `[the chain — the current request's steps. Keep it CURRENT: advance with \`node qa/plan.mjs --step N\` as steps land, \`--done\` when the request lands. If the human redirects, re-declare (\`--set\` again) — the chain is an offer they can reshape, not an announcement. A stale chain misleads the human watching the studio.]\n${chainText}`
++      : '[no chain declared. At kickoff, declare the request\'s steps and show them in your first reply AS AN OFFER — the human can reorder or redirect, and you re-declare without ceremony; work starts immediately either way: `node qa/plan.mjs --set "step | step | …" --title "<the ask, restated>"`.]',
++  );
+   if (walks.length > 0) {
+     parts.push("[walk-status — derived from the ledgers; render this state, never your own memory of it]");
+-    for (const w of walks) parts.push(renderCard(w));
++    for (const w of walks) parts.push(renderCard(w, data));
+   }
+   for (const a of arrivals)
+     parts.push(`▲ ARRIVED, UNPLANNED — ${a.label} (${a.status}): ${a.reason ?? "no recorded reason"}. Offer: handle now, or after the current walk lands (recommended: after).`);
+   parts.push(
+-    "Protocol: speak stages as Decide·Design·Contract·Build·Prove·Sign-off and clauses as promises. Quiet while working (one line per stage transition). At any human gate, render the full stop card (stage, what it is in plain words, exactly what to do, what comes after). Never open a second walk silently.",
++    "Protocol: open every reply with the chat header line above, verbatim. Speak stages as Decide·Design·Contract·Build·Prove·Sign-off — with their plain-words gloss on first mention — and clauses as promises. Declare the chain at kickoff and advance it as you go; if the studio line above says DOWN or not running, restore it (preview tool) or surface it before proceeding. Quiet between headers (one line per stage transition). At any human gate, render the full stop card: stage, what it is in plain words, then the easiest act first (the studio console when it is up; the CLI as fallback), then what comes after. Quote the lane's cost only from the measured figure in the card — never estimate it. Never open a second walk silently. Principles that bind THIS turn (docs/PRINCIPLES.md): derived, never claimed — name the command behind any claim; the layer you changed cannot certify itself — run its consumers, stamp a fresh app for a template or harness change; never wait on nothing — every wait is bounded, and if you are blocked, say on what and stop.",
+   );
+   return parts.join("\n\n");
+ }
+
+diff --git a/qa/receipt-check.mjs b/qa/receipt-check.mjs
+index db67715..fc6531b 100644
+--- a/qa/receipt-check.mjs
++++ b/qa/receipt-check.mjs
+@@ -28,6 +28,39 @@ const args = process.argv.slice(2);
+ const asHook = args.includes("--hook");
+ const asJson = args.includes("--json");
+ 
++// The lane's own in-flight marker (verify.mjs stamps it, rewriting it at each
++// step start with the step name and index). Mirrors qa/watch.mjs's bound.
++const LANE_MARKER_REL = ["composeApp", "build", ".cmp-lane-in-progress"];
++const LANE_MARKER_STALE_MS = 30 * 60 * 1000;
++
++/**
++ * The full check running RIGHT NOW, or null. The gate must still refuse — a
++ * lane in flight has not produced a receipt yet — but it must not tell the
++ * agent to start one. Repeating "run the lane" at a session whose lane is
++ * already ten minutes into its release build is an instruction to do the wrong
++ * thing, and it fired ~8 times in one observed session.
++ * @returns {{step: string|null, index: number|null, total: number|null}|null}
++ */
++function laneInFlight() {
++  try {
++    const p = path.join(ROOT, ...LANE_MARKER_REL);
++    const st = fs.statSync(p);
++    if (Date.now() - st.mtimeMs >= LANE_MARKER_STALE_MS) return null;
++    // Content is a bonus, never a requirement: legacy markers hold "pid iso".
++    try {
++      const n = JSON.parse(fs.readFileSync(p, "utf8"));
++      if (n && typeof n === "object") {
++        return { step: n.step ?? null, index: n.index ?? null, total: n.total ?? null };
++      }
++    } catch {
++      /* legacy marker — its EXISTENCE is the fact that matters */
++    }
++    return { step: null, index: null, total: null };
++  } catch {
++    return null;
++  }
++}
++
+ function readStdinJson() {
+   try {
+     const raw = fs.readFileSync(0, "utf8");
+@@ -56,7 +89,40 @@ function evaluate() {
+       profile: receipt.profile,
+     };
+   }
+-  const result = evaluateReceipt(receipt, () => computeInputsHash(ROOT));
++  // A nightly receipt proves the HARNESS and the tree's invariants under a
++  // forced double-run — never a change. Refused as done-evidence for the same
++  // reason --fast is: the receipt's own stage says what it is allowed to mean.
++  if (receipt.stage === "nightly" || receipt.profile === "nightly") {
++    return {
++      valid: false,
++      reason: "the last verify run was the nightly stage (it proves the harness, not this change); run the change-stage lane (`node qa/verify.mjs`) before finishing",
++      profile: receipt.profile,
++    };
++  }
++  // smoke (GATE-RULES Rule 0) runs no Gradle: it proves the framework returns,
++  // never that the change is good. Refused like --fast, for the same reason.
++  if (receipt.stage === "smoke" || receipt.profile === "smoke") {
++    return {
++      valid: false,
++      reason: "the last verify run was the smoke profile (the framework check — no build, no tests; it proves the instrument, not this change); run the change-stage lane (`node qa/verify.mjs`) before finishing",
++      profile: receipt.profile,
++    };
++  }
++  // A surface this project cannot resolve is a REFUSAL with an explanation,
++  // never an unhandled stack trace: this runs as the Stop hook on every turn
++  // end, and a crash there reads as a broken harness rather than as the
++  // misconfiguration it is. (evidence-economics S8 follow-up: computeInputsHash
++  // now throws rather than returning a confident hash of the empty set.)
++  let result;
++  try {
++    result = evaluateReceipt(receipt, () => computeInputsHash(ROOT));
++  } catch (err) {
++    return {
++      valid: false,
++      reason: `cannot verify this receipt — ${err && err.message ? err.message : String(err)}`,
++      profile: receipt.profile,
++    };
++  }
+   // Surface the receipt's evidence rung (the ladder — qa/lib/evidence-level.mjs)
+   // alongside the verdict: the rung is the receipt's own derived field, read
+   // verbatim, never recomputed here. Older receipts without it stay valid.
+@@ -75,8 +141,23 @@ if (asHook) {
+     process.exit(0);
+   }
+   if (!result.valid) {
++    // The walk's vocabulary (walk-legibility L3): this gate IS the Prove
++    // stage refusing to close — same fact, same enforcement, words that match
++    // every other surface. The precise reason stays verbatim beneath.
++    //
++    // The REFUSAL never changes with a lane in flight — no receipt yet means
++    // not done, and that is the whole point of the gate. What changes is the
++    // INSTRUCTION: "run the lane" is wrong advice when one is already running,
++    // and a gate that tells you to do the thing you are doing trains you to
++    // stop reading it.
++    const flight = laneInFlight();
++    const act = flight
++      ? `A full check is ALREADY RUNNING${flight.step ? ` (${flight.step}${flight.index && flight.total ? `, step ${flight.index} of ${flight.total}` : ""})` : ""} — ` +
++        `wait for it to finish and commit its receipt. Do NOT start a second one; two lanes fight over the same build directory.`
++      : "Run `node qa/verify.mjs` (it checks every promise and writes the receipt), " +
++        "commit the receipt, or see README §Verification enforcement to bypass.";
+     process.stderr.write(
+-      `Not done: ${result.reason}. Run \`node qa/verify.mjs\` and commit the receipt, or see README §Verification enforcement to bypass.\n`,
++      `■ Prove — not done: the promises are not yet checked against this tree. ${result.reason}. ${act}\n`,
+     );
+     process.exit(2);
+   }
+
 diff --git a/qa/verify.mjs b/qa/verify.mjs
-index e22e385..9ad6767 100644
+index e22e385..18d25e1 100644
 --- a/qa/verify.mjs
 +++ b/qa/verify.mjs
 @@ -1,7 +1,7 @@
@@ -39,15 +1286,17 @@ index e22e385..9ad6767 100644
  // FAILed. SKIPs are recorded with reasons — green-with-gaps is visible, never
  // silent. Exit code: 0 = PASS, 1 = FAIL.
  //
-@@ -31,23 +32,16 @@ import path from "node:path";
+@@ -30,24 +31,17 @@ import fs from "node:fs";
+ import path from "node:path";
  import { fileURLToPath } from "node:url";
  
- import { computeInputsHash } from "./lib/inputs-hash.mjs";
+-import { computeInputsHash } from "./lib/inputs-hash.mjs";
 -import { compareTokenDrift } from "./lib/token-drift.mjs";
 -import { evaluateApprovalsGate } from "./lib/approvals.mjs";
 -import { clauseTierCoverage, scanCitations, scanSpecClauses, walkFiles } from "./lib/spec-coverage.mjs";
 -import { evaluateComponentStoryParity } from "./lib/component-stories.mjs";
 -import { evaluateReachability } from "./lib/reachability.mjs";
++import { computeInputsHash, undeclaredTopLevel } from "./lib/inputs-hash.mjs";
  import { evidenceLevel } from "./lib/evidence-level.mjs";
  import { updateReadmeBadge, README_REL_PATH } from "./lib/evidence-badge.mjs";
 -import { memoizeStep } from "./lib/step-cache.mjs";
@@ -546,13 +1795,7 @@ index e22e385..9ad6767 100644
 -  // Untracked files never appear here — a brand-new version file is by definition
 -  // not yet frozen history.
 -  const dirtyFiles = tryGitLines(`diff --name-only HEAD -- "${schemasRel.replace(/\\/g, "/")}"`);
-+// ── The step pack (qa/lib/steps-cmp.mjs, evidence-economics S8b) ─────────────
-+// Every step this lane runs, behind one factory that borrows the spine's
-+// helpers explicitly. Swap the pack and the same spine verifies a different
-+// kind of project.
-+const pack = createCmpSteps({ ROOT, HERE, GRADLEW, RERUN, fast, determinism, profile, mode, sh, shGradle, tryGit, tryGitLines, DEGRADED_PATHS });
-+const { stepsForProfile, DEVICE_STEPS, FAST_EXCLUDED_NAMES, STEP_FN_BY_NAME } = pack;
- 
+-
 -  const violations = [];
 -  for (const rel of dirtyFiles) {
 -    const abs = path.resolve(gitTop, rel);
@@ -1027,7 +2270,13 @@ index e22e385..9ad6767 100644
 -  settleAdb();
 -  return runMaestroSmoke("e2eSmoke", install.durationMs);
 -}
--
++// ── The step pack (qa/lib/steps-cmp.mjs, evidence-economics S8b) ─────────────
++// Every step this lane runs, behind one factory that borrows the spine's
++// helpers explicitly. Swap the pack and the same spine verifies a different
++// kind of project.
++const pack = createCmpSteps({ ROOT, HERE, GRADLEW, RERUN, fast, determinism, profile, mode, sh, shGradle, tryGit, tryGitLines, DEGRADED_PATHS });
++const { stepsForProfile, DEVICE_STEPS, FAST_EXCLUDED_NAMES, STEP_FN_BY_NAME } = pack;
+ 
 -// Instrumented behavior tier (composeApp/src/androidInstrumentedTest) — the one step
 -// whose evidence crosses the process boundary. Alarms, notification channels,
 -// full-screen intents, PendingIntent identity, and audio routing are OS facts:
@@ -1413,7 +2662,32 @@ index e22e385..9ad6767 100644
  
  // Receipt STRENGTH — a desktop-only green and an on-device green are different
  // claims, and the difference should never live only in the SKIP lines. Device-
-@@ -1605,9 +498,16 @@ const inputs = computeInputsHash(ROOT);
+@@ -1557,7 +450,10 @@ const strengthLabel = onDeviceSteps.length ? `on-device: ${onDeviceSteps.join("+
+ // fine print; the rung is added alongside, never in place of it. null on FAIL —
+ // a failed lane has no rung. null on a --fast run too: the inner loop is a
+ // signal, never evidence, so a fast receipt derives NO rung at all.
+-const level = evidenceLevel(steps, profile, { mode });
++// The ladder is the PACK's: a pack that declares none earns no rung (a
++// backend graded by Compose step names was L0 by construction — wrong, not
++// conservative).
++const level = evidenceLevel(steps, profile, { mode, ladder: pack.evidenceLadder ?? null });
+ 
+ // Artifacts: hash whatever the run left under qa-artifacts/ (never committed).
+ const artifacts = [];
+@@ -1601,13 +497,29 @@ function harnessForReceipt() {
+ }
+ 
+ const inputs = computeInputsHash(ROOT);
++// What the surface does NOT cover, at the top level. A surface is an allowlist,
++// and a new top-level directory is simply unmatched: no error, silently
++// unattested (payment-blueprint's finding, 2026-09-03). This is a REPORT on the
++// receipt, never a gate — the Compose default deliberately leaves docs/, the
++// README and the wrapper out — so a reader can see the gap and decide.
++const undeclared = undeclaredTopLevel(ROOT);
++if (undeclared.length) {
++  console.log(`  ⓘ inputs: ${undeclared.length} top-level entr${undeclared.length === 1 ? "y is" : "ies are"} outside the verified surface (unattested): ${undeclared.join(", ")}`);
++}
+ 
  // The receipt. Deterministic key order; ONE volatile timestamp field.
  // commit.sha is the parent HEAD at run time (you cannot know the sha of the
  // commit the receipt will be part of); commit.dirty lists what was uncommitted.
@@ -1430,7 +2704,18 @@ index e22e385..9ad6767 100644
    // "full" is the done-gate; "fast" (--fast) excluded the device/release tier
    // and is REFUSED by qa/receipt-check.mjs — a fast run can never end a session
    // as "done". Receipts predating this field are treated as full.
-@@ -1708,6 +608,28 @@ if (asJson) {
+@@ -1620,6 +532,10 @@ const receipt = {
+   inputs: {
+     hash: inputs.hash,
+     fileCount: inputs.fileCount,
++    // Top-level entries the surface leaves unattested (see above). Absent when
++    // there are none, so a receipt whose surface covers everything keeps its
++    // exact prior shape.
++    ...(undeclared.length ? { undeclared } : {}),
+   },
+   steps,
+   // WHICH LANE issued this verdict. A receipt that cannot name its own harness
+@@ -1708,6 +624,28 @@ if (asJson) {
    console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict}${level ? ` · ${level.rung} ${level.name}` : ""} (${strengthLabel}) — receipt written to qa/evidence/latest.json${badge.changed ? ` and ${README_REL_PATH}'s evidence badge refreshed` : ""} (commit ${badge.changed ? "them" : "it"} with your change)`);
  }
  
@@ -1459,3 +2744,62 @@ index e22e385..9ad6767 100644
  // The audit-cadence nudges print in the human path, not only inside the
  // receipt JSON — a ship-time report that lives only in a JSON field is a
  // report nobody reads at ship time. Nudges only; a gate this is not.
+
+diff --git a/qa/walk-status.mjs b/qa/walk-status.mjs
+index 984ffed..f06aab9 100644
+--- a/qa/walk-status.mjs
++++ b/qa/walk-status.mjs
+@@ -19,8 +19,41 @@ import { fileURLToPath } from "node:url";
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const args = process.argv.slice(2);
+ 
++/**
++ * The hook's stdin, parsed — UserPromptSubmit delivers {prompt, ...} as JSON.
++ * Bounded read, fail-soft: no stdin / non-JSON / no prompt -> null. Only the
++ * --inject path consumes this (the statusline gets no stdin and must not wait
++ * on one).
++ */
++async function readHookStdin() {
++  if (process.stdin.isTTY) return null;
++  try {
++    let raw = "";
++    for await (const chunk of process.stdin) {
++      raw += chunk;
++      if (raw.length > 1_000_000) break; // a prompt is never this — stop reading, keep what we have
++    }
++    const parsed = JSON.parse(raw);
++    return parsed && typeof parsed === "object" ? parsed : null;
++  } catch {
++    return null;
++  }
++}
++
+ try {
+   const { deriveWalks, renderStatusline, renderCard, renderInject } = await import("./lib/walk.mjs");
++
++  // Tier 1 of the chain (studio-drive-mode): record the human's own prompt
++  // BEFORE deriving, so this very inject already reflects the new request.
++  // Machinery-owned — the words are the hook's, never the agent's.
++  if (args.includes("--inject")) {
++    const hook = await readHookStdin();
++    if (hook && typeof hook.prompt === "string") {
++      const { recordRequest } = await import("./lib/plan.mjs");
++      recordRequest(ROOT, hook.prompt);
++    }
++  }
++
+   const data = deriveWalks(ROOT);
+ 
+   if (args.includes("--json")) {
+@@ -43,7 +76,10 @@ try {
+     } else if (data.walks.length === 0 && data.arrivals.length === 0) {
+       process.stdout.write("No open walks. Every accepted feature's brief is its doc-of-record.\n");
+     } else {
+-      for (const w of data.walks) process.stdout.write(`${renderCard(w)}\n\n`);
++      const { renderChain } = await import("./lib/plan.mjs");
++      const chainText = renderChain(data.chain);
++      if (chainText !== "") process.stdout.write(`${chainText}\n\n`);
++      for (const w of data.walks) process.stdout.write(`${renderCard(w, data)}\n\n`);
+       for (const a of data.arrivals)
+         process.stdout.write(`▲ ARRIVED, UNPLANNED — ${a.label} (${a.status}): ${a.reason ?? "no recorded reason"}\n`);
+     }

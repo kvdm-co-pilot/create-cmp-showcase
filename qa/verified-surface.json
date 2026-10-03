@@ -1,0 +1,17 @@
+{
+  "surface": [
+    "composeApp",
+    "specs",
+    "qa",
+    "gradle/libs.versions.toml",
+    "build.gradle.kts",
+    "settings.gradle.kts",
+    "gradle.properties"
+  ],
+  "ignore": [
+    "composeApp/build",
+    ".gradle",
+    ".kotlin",
+    ".idea"
+  ]
+}

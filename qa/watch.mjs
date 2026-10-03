@@ -26,8 +26,9 @@
 // COORDINATION (non-negotiable): two concurrent Gradle invocations against one
 // project corrupt each other's output (KSP cache collisions, half-written
 // classes dirs — a real 20+ bogus-failure cascade). The lane and the preview
-// daemon already coordinate via marker files under composeApp/build:
-//   .cmp-lane-in-progress    — stamped by verify.mjs for a run's duration
+// daemon already coordinate via marker files:
+//   qa/.lane-in-progress     — stamped by verify.mjs for a run's duration (core
+//                              state; qa/lib/lane-markers.mjs)
 //   .cmp-render-in-progress  — stamped by the preview daemon while its Gradle
 //                              build is in flight
 // Watch mode participates as a third citizen: it never launches a run while a
@@ -51,17 +52,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { LANE_MARKER_REL, LANE_MARKER_STALE_MS, RENDER_MARKER_FRESH_MS, laneMarkerPath, renderMarkerPath } from "./lib/lane-markers.mjs";
+import { resolveSpecModel } from "./lib/spec-model.mjs";
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // ── CLI ─────────────────────────────────────────────────────────────────────
 
 export const USAGE = `node qa/watch.mjs [--once] [--json] [--help]
 
-Resident watch mode — the inner verification loop. Watches composeApp/src,
-specs/, and qa/ and runs \`node qa/verify.mjs --fast\` on every save (debounced;
+Resident watch mode — the inner verification loop. Watches the project's
+source roots, specs/, and qa/ and runs \`node qa/verify.mjs --fast\` on every save (debounced;
 a save storm triggers ONE run, changes during a run coalesce into one
 follow-up). It defers while a verify lane or a preview-daemon render holds the
-project (the .cmp-*-in-progress markers under composeApp/build), so two Gradle
+project (qa/.lane-in-progress and the eyes' own render marker), so two build
 invocations never collide.
 
 THIS IS NOT A GATE. It runs the fast tier only: every receipt records
@@ -93,23 +97,106 @@ export function parseWatchArgs(rawArgs) {
 }
 
 // ── The watch set ───────────────────────────────────────────────────────────
-// composeApp/src (the app), specs/ (the contract), qa/ (the harness itself —
-// a golden-tree or e2e-flow edit should re-verify too). NOT watched: build
-// output anywhere, qa/evidence/ (verify.mjs writes latest.json there on every
-// run — watching your own output is an infinite loop), and dotfiles (VCS
-// internals, editor droppings, and the .cmp-*-in-progress markers themselves).
+// The profile's source roots (the app), its specs directory (the contract),
+// and qa/ (the harness itself — a golden-tree or flow edit should re-verify
+// too). NOT watched: the build output directory the PROFILE declares, at any
+// depth (see shouldIgnorePath); qa/evidence/ (verify.mjs writes latest.json
+// there on every run — watching your own output is an infinite loop); and
+// dotfiles (VCS internals, editor droppings, and the in-progress markers
+// themselves).
 
-export const WATCH_ROOTS = ["composeApp/src", "specs", "qa"];
+/**
+ * The trees this loop watches: the profile's own source roots and specs
+ * directory, plus qa/ (the harness judging itself — always core).
+ *
+ * Stage 0 PR 6b: this was `["composeApp/src", "specs", "qa"]`, so the inner
+ * loop in a repo whose code lives anywhere else watched two directories out of
+ * three and never fired on a source edit — a watcher that looks idle and is.
+ * A project with no usable manifest gets the core roots alone and the startup
+ * banner says so, rather than guessing a source layout.
+ * @param {string} root
+ * @returns {{roots: string[], degraded: string|null}}
+ */
+export function watchRoots(root) {
+  const model = resolveSpecModel(root);
+  if (!model.ok) {
+    return { roots: ["specs", "qa"], degraded: model.reason };
+  }
+  return { roots: [...new Set([...model.model.sourceRoots, model.model.specsDir, "qa"])], degraded: null };
+}
 
-/** Ignore predicate over a ROOT-relative path (forward slashes or backslashes). */
-export function shouldIgnorePath(rel) {
+// ── Build output: the profile's word, not one stack's ───────────────────────
+// The ignore set's whole job is to keep the loop from watching its own output.
+// It used to find that output by the single literal directory name `build`,
+// which is Gradle's — Rust writes `target/`, .NET `bin/` and `obj/`, Python
+// `__pycache__`, Xcode `DerivedData`. Both halves were wrong, and both
+// silently, with a watcher that looked like it was working:
+//
+//   on those stacks the lane's own writes woke the watcher, which ran the lane
+//   again — a feedback loop, in the one process whose entire purpose is to fire
+//   on a human's edit
+//   and on EVERY stack a real source directory named `build/` (a build script
+//   package, a `build/` module, Python's `app/build/`) was never watched at
+//   all — the "watcher that looks idle and is" that Stage 0 PR 6b already
+//   fixed once for source ROOTS and left in place here
+//
+// The profile declares `layout.buildDir` (qa/lib/spec-model.mjs), so the name
+// is available and was simply not asked for.
+//
+// THE DECLARED DIRECTORY'S NAME MATCHES AT ANY DEPTH, not just the one declared
+// path. A profile declares its app module's output, but a multi-module tree has
+// one such directory PER MODULE (Gradle writes one into every module; the
+// harness's own qa/ subtrees get one too — see test/watch-loop.test.mjs's
+// `qa/somewhere/build/out.json`). Ignoring only the declared path would re-open
+// the feedback loop one directory over. Only that name matches, so a stack that
+// calls its output `target` starts watching `build/` as the ordinary source it
+// is there.
+//
+// That rule is deliberately BROADER than the declaration, and the price is
+// named here rather than discovered: a profile declaring a nested `buildDir`
+// gets its LEAF name ignored everywhere (`build/outputs` ignores every
+// `outputs/` in the tree, not just that one). The startup banner prints the
+// glob it settled on for exactly this reason — an ignore set a reader can see
+// is one they can correct in `layout.buildDir`.
+
+/**
+ * The historical name, kept ONLY for a project whose profile could not be
+ * resolved or which declares no `layout.buildDir`. It is a FALLBACK and not a
+ * default in the approving sense — the startup banner names it, exactly as
+ * spec-model.mjs's `DEFAULT_GRAMMAR.isDefault` makes the borrowed citation
+ * grammar say so out loud. The two failures are not symmetric: watching your
+ * own output loops forever, while missing a source directory named `build/`
+ * costs one manual run. When we know nothing, we take the cheaper mistake.
+ */
+export const FALLBACK_BUILD_OUTPUT_NAME = "build";
+
+/**
+ * The directory NAMES this project's build output wears, from the profile's
+ * declaration. `composeApp/build` → ["build"]; `target` → ["target"].
+ * @param {{buildDir?: string|null}|null} [model] a SpecModel, or null when none resolved
+ * @returns {string[]}
+ */
+export function buildOutputNames(model) {
+  const declared = typeof model?.buildDir === "string" ? model.buildDir : "";
+  const name = declared.replace(/\\/g, "/").split("/").filter(Boolean).pop();
+  return name ? [name] : [FALLBACK_BUILD_OUTPUT_NAME];
+}
+
+/**
+ * Ignore predicate over a ROOT-relative path (forward slashes or backslashes).
+ * @param {string} rel
+ * @param {{buildDir?: string|null}|null} [model] the project's SpecModel — supplies the
+ *   build output name. Omitted/null falls back to FALLBACK_BUILD_OUTPUT_NAME.
+ */
+export function shouldIgnorePath(rel, model = null) {
   const norm = String(rel).replace(/\\/g, "/");
   if (!norm) return true;
   const parts = norm.split("/");
-  // Any dotted segment: .git, .gradle, .DS_Store, .cmp-lane-in-progress, …
+  // Any dotted segment: .git, .gradle, .DS_Store, .lane-in-progress, …
   if (parts.some((s) => s.startsWith("."))) return true;
-  // Any build dir at any depth (composeApp/build, qa/**/build, …).
-  if (parts.includes("build")) return true;
+  // This profile's build output, at any depth (see the note above).
+  const buildNames = buildOutputNames(model);
+  if (parts.some((s) => buildNames.includes(s))) return true;
   // The lane's own output — the one path that would make watch feed itself.
   if (norm === "qa/evidence" || norm.startsWith("qa/evidence/")) return true;
   return false;
@@ -133,10 +220,11 @@ export const POLL_MS = 2000; // marker-wait poll AND the no-recursive-watch fall
 // around its Gradle builds. Freshness is mtime-bounded so a crashed stamper
 // never wedges us.
 
-export const LANE_MARKER_REL = ["composeApp", "build", ".cmp-lane-in-progress"];
-export const RENDER_MARKER_REL = ["composeApp", "build", ".cmp-render-in-progress"];
-export const LANE_MARKER_STALE_MS = 30 * 60 * 1000; // preview-service.mjs's bound for this marker
-export const RENDER_MARKER_FRESH_MS = 5 * 60 * 1000; // verify.mjs's bound for this marker
+// Paths and bounds are qa/lib/lane-markers.mjs's — the lane marker is core state
+// under qa/, the render marker is the profile's (under its buildDir, or none).
+// Re-exported because markerDecision's bounds are part of this module's
+// contract (qa/watch.mjs --json consumers and the engine suite read them).
+export { LANE_MARKER_STALE_MS, RENDER_MARKER_FRESH_MS };
 
 /**
  * The launch decision, pure: given the two markers' mtimes (null = absent) and
@@ -145,10 +233,10 @@ export const RENDER_MARKER_FRESH_MS = 5 * 60 * 1000; // verify.mjs's bound for t
  */
 export function markerDecision({ laneMtimeMs = null, renderMtimeMs = null, nowMs = Date.now() } = {}) {
   if (laneMtimeMs != null && nowMs - laneMtimeMs < LANE_MARKER_STALE_MS) {
-    return { launch: false, reason: "a verify lane is in progress (.cmp-lane-in-progress is fresh) — deferring; changes coalesce into one run when it finishes" };
+    return { launch: false, reason: `a verify lane is in progress (${LANE_MARKER_REL} is fresh) — deferring; changes coalesce into one run when it finishes` };
   }
   if (renderMtimeMs != null && nowMs - renderMtimeMs < RENDER_MARKER_FRESH_MS) {
-    return { launch: false, reason: "the preview daemon has a Gradle build in flight (.cmp-render-in-progress is fresh) — deferring; changes coalesce into one run when it finishes" };
+    return { launch: false, reason: "the preview daemon has a build in flight (.cmp-render-in-progress is fresh) — deferring; changes coalesce into one run when it finishes" };
   }
   return { launch: true };
 }
@@ -304,8 +392,8 @@ function markerMtime(absPath) {
 
 function launchDecisionNow() {
   return markerDecision({
-    laneMtimeMs: markerMtime(path.join(ROOT, ...LANE_MARKER_REL)),
-    renderMtimeMs: markerMtime(path.join(ROOT, ...RENDER_MARKER_REL)),
+    laneMtimeMs: markerMtime(laneMarkerPath(ROOT)),
+    renderMtimeMs: markerMtime(renderMarkerPath(ROOT)),
   });
 }
 
@@ -359,7 +447,7 @@ function main() {
       const startedAtIso = new Date().toISOString();
       const started = Date.now();
       say(`── watch run #${n} starting (node qa/verify.mjs --fast --no-journal) …`);
-      const child = spawn(process.execPath, [path.join(ROOT, "qa", "verify.mjs"), "--fast", "--json", "--no-journal"], {
+      const child = spawn(process.execPath, [path.join(ROOT, "qa", "verify.mjs"), "--fast", "--json", "--no-journal", "--events"], {
         cwd: ROOT,
         stdio: ["ignore", "pipe", "pipe"],
         // Its own process GROUP: verify spawns Gradle through a shell, and a
@@ -372,7 +460,31 @@ function main() {
       let stdout = "";
       let stderr = "";
       child.stdout.on("data", (d) => (stdout += d));
-      child.stderr.on("data", (d) => (stderr += d));
+      // stderr carries two things now: verify's own diagnostics, and one NDJSON
+      // line per finished step (--events). The step lines are RELAYED as they
+      // arrive — that is the whole point, a console appending a row while the
+      // lane runs rather than learning the story from a receipt after it ends.
+      // Everything else is kept verbatim for the failure report, because a
+      // watcher that swallowed a stack trace to look tidy would be hiding the
+      // one thing a red run is for.
+      let stderrPartial = "";
+      child.stderr.on("data", (d) => {
+        stderr += d;
+        stderrPartial += d;
+        const lines = stderrPartial.split("\n");
+        stderrPartial = lines.pop() ?? "";
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith("{")) continue;
+          let obj;
+          try {
+            obj = JSON.parse(t);
+          } catch {
+            continue; // not ours — a diagnostic that merely starts with a brace
+          }
+          if (obj && obj.event === "step") emit({ ...obj, n });
+        }
+      });
       child.on("error", (err) => {
         currentChild = null;
         say(`── watch run #${n}: could not spawn verify — ${err.message}`);
@@ -383,7 +495,7 @@ function main() {
         currentChild = null;
         // A signal-killed child never ran verify's `finally` — clean the lane
         // marker it stamped so nothing defers on a ghost for 30 minutes.
-        if (signal) clearMarkerIfOwnedBy(path.join(ROOT, ...LANE_MARKER_REL), child.pid);
+        if (signal) clearMarkerIfOwnedBy(laneMarkerPath(ROOT), child.pid);
         const durationMs = Date.now() - started;
         const receipt = parseReceipt(stdout);
         const rawTail = `${stdout}\n${stderr}`.split("\n").filter(Boolean);
@@ -453,7 +565,18 @@ function main() {
 
   const watchers = [];
   const pollTimers = [];
-  const watchedRoots = WATCH_ROOTS.filter((rel) => fs.existsSync(path.join(ROOT, rel)));
+  const { roots: declaredRoots, degraded: rootsDegraded } = watchRoots(ROOT);
+  const watchedRoots = declaredRoots.filter((rel) => fs.existsSync(path.join(ROOT, rel)));
+  // The ignore set is this profile's too: WHICH directory holds build output is
+  // a stack fact (`layout.buildDir`), and a watcher that guesses it either
+  // feeds itself or skips real source. resolveSpecModel shares the module cache
+  // with watchRoots's own call, so this is a map lookup, not a second load.
+  const specModel = (() => {
+    const r = resolveSpecModel(ROOT);
+    return r.ok ? r.model : null;
+  })();
+  const ignoredBuildNames = buildOutputNames(specModel);
+  const ignorePath = (rel) => shouldIgnorePath(rel, specModel);
 
   // Poll fallback for platforms without recursive fs.watch: a full mtime scan
   // per tick, diffed against the previous one so changed paths still get
@@ -470,7 +593,7 @@ function main() {
       }
       for (const e of entries) {
         const rel = `${dirRel}/${e.name}`;
-        if (shouldIgnorePath(rel)) continue;
+        if (ignorePath(rel)) continue;
         const abs = path.join(dirAbs, e.name);
         if (e.isDirectory()) walk(abs, rel);
         else {
@@ -511,7 +634,7 @@ function main() {
     try {
       const w = fs.watch(path.join(ROOT, rootRel), { recursive: true }, (_event, filename) => {
         const rel = filename ? `${rootRel}/${String(filename).replace(/\\/g, "/")}` : rootRel;
-        if (shouldIgnorePath(rel)) return;
+        if (ignorePath(rel)) return;
         loop.change(rel);
       });
       w.on("error", () => {
@@ -531,9 +654,23 @@ function main() {
   }
 
   // Startup: what is watched, what is respected, what this is NOT.
+  // The ignore globs are PRINTED, never assumed: they name the directory this
+  // profile declared, so a reader can see at a glance that the loop is ignoring
+  // this stack's output and not some other stack's word for it.
+  const ignoreGlobs = [...ignoredBuildNames.map((n) => `**/${n}/**`), "qa/evidence/**", "dotfiles"];
   say("qa/watch.mjs — resident inner loop: runs `node qa/verify.mjs --fast` on save");
-  say(`watching: ${watchedRoots.join(", ")}  (ignoring **/build/**, qa/evidence/**, dotfiles)`);
-  say("coordination: defers while composeApp/build/.cmp-lane-in-progress or .cmp-render-in-progress is fresh — never two Gradle invocations against this project");
+  say(`watching: ${watchedRoots.join(", ")}  (ignoring ${ignoreGlobs.join(", ")})`);
+  // Never watch a guessed layout silently: if the manifest could not be read,
+  // the source roots are unknown and this loop is watching less than it looks.
+  if (rootsDegraded) say(`NOTE: watching the core roots only — ${rootsDegraded}`);
+  // And never ignore a guessed layout silently either. A profile that declares
+  // no layout.buildDir leaves this loop on FALLBACK_BUILD_OUTPUT_NAME — one
+  // stack's convention, applied to a stack that never claimed it — so it says
+  // so, the way a borrowed citation grammar does (spec-model.mjs).
+  else if (specModel && typeof specModel.buildDir !== "string") {
+    say(`NOTE: this profile declares no layout.buildDir — ignoring **/${FALLBACK_BUILD_OUTPUT_NAME}/** as a fallback, which may be this project's real source`);
+  }
+  say(`coordination: defers while ${LANE_MARKER_REL} or the eyes' render marker is fresh — never two builds against this project`);
   say(`debounce: ${DEBOUNCE_MS}ms — a save storm triggers one run; changes during a run coalesce into one follow-up`);
   say(FOOTER);
   say("waiting for changes… (Ctrl-C to stop · --once for a single pass · --json for line-per-run output)");
@@ -541,9 +678,9 @@ function main() {
     event: "start",
     pid: process.pid,
     watching: watchedRoots,
-    ignoring: ["**/build/**", "qa/evidence/**", "dotfiles"],
+    ignoring: ignoreGlobs,
     debounceMs: DEBOUNCE_MS,
-    coordinates: [LANE_MARKER_REL.join("/"), RENDER_MARKER_REL.join("/")],
+    coordinates: [LANE_MARKER_REL, renderMarkerPath(ROOT) ? path.relative(ROOT, renderMarkerPath(ROOT)).split(path.sep).join("/") : null].filter(Boolean),
     runs: "node qa/verify.mjs --fast",
     note: FOOTER,
   });
@@ -598,7 +735,7 @@ function installSignalHandlers(stopWork, getChild, emit, say) {
         signalTree("SIGKILL");
         await Promise.race([exited, sleep(1000)]);
       }
-      clearMarkerIfOwnedBy(path.join(ROOT, ...LANE_MARKER_REL), child.pid);
+      clearMarkerIfOwnedBy(laneMarkerPath(ROOT), child.pid);
     }
     say(`watch mode stopped (${sig}) — no receipt was made valid by watching; the done-gate is still one full \`node qa/verify.mjs\` run`);
     emit({ event: "shutdown", reason: sig });

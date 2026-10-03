@@ -20,7 +20,7 @@ const previewsDir = resolve(
   process.argv[2] || join(HERE, "..", "composeApp", "build", "previews"),
 );
 
-const { renderTreeSvg } = await import(new URL("./lib/render.mjs", import.meta.url));
+const { renderTreeSvg } = await import(new URL("./lib/profiles/cmp/render.mjs", import.meta.url));
 const { auditA11y } = await import(new URL("./lib/a11y.mjs", import.meta.url));
 
 // The app's display name is read at RUNTIME from create-cmp.json, never stamped in.

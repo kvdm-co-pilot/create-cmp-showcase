@@ -10,6 +10,17 @@
 //   node qa/plan.mjs --done                            # close the chain
 //   node qa/plan.mjs --clear                           # a landed request leaves no stale windshield
 //
+//   node qa/plan.mjs --hold "adopting the ports" [--as <name>]   # I am working in this tree
+//   node qa/plan.mjs --beat ["what I am on now"]                 # still here (every few minutes)
+//   node qa/plan.mjs --release                                   # done, or gone
+//
+// The hold is LIVENESS, not a lock: nothing waits on it and it gates nothing.
+// It exists so "is the agent working or wedged?" is `tail` on a file instead of
+// filesystem archaeology — the question that got a healthy agent killed
+// mid-proof on 2026-09-04 — and so the Stop hook can say "wait for it" instead
+// of "run the lane" at a tree that would not compile. A heartbeat older than
+// five minutes is a crashed writer; a hold older than the ceiling is a wedge.
+//
 // Unlike walk-status (a fail-open status surface), this CLI is a WRITER the
 // agent invokes deliberately: bad input gets a refusal and exit 1, because a
 // silently-dropped declaration would leave the surfaces lying about position.
@@ -18,6 +29,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { deriveChain, markStep, readPlan, renderChain, setPlan, clearPlan } from "./lib/plan.mjs";
+import { assessHold, beatHold, claimHold, describeHold, readHold, releaseHold } from "./lib/agent-hold.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -37,7 +49,24 @@ function out(result) {
   process.exit(0);
 }
 
-if (args.includes("--set")) {
+function holdOut(result) {
+  if (!result.ok) {
+    process.stderr.write(`plan: ${result.error}\n`);
+    process.exit(1);
+  }
+  const line = describeHold(assessHold(readHold(ROOT)));
+  process.stdout.write(`${line ?? "No agent holds this tree."}\n`);
+  process.exit(0);
+}
+
+if (args.includes("--hold")) {
+  holdOut(claimHold(ROOT, { holder: valueOf("--as") ?? process.env.CMP_AGENT ?? "an agent", note: valueOf("--hold") ?? "" }));
+} else if (args.includes("--beat")) {
+  const note = valueOf("--beat");
+  holdOut(beatHold(ROOT, note === null ? {} : { note }));
+} else if (args.includes("--release")) {
+  holdOut(releaseHold(ROOT));
+} else if (args.includes("--set")) {
   const spec = valueOf("--set");
   if (spec === null) {
     process.stderr.write('plan: --set needs a value: --set "step | step | …"\n');

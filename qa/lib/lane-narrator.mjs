@@ -12,7 +12,7 @@
 // that can take minutes must emit a heartbeat, or the operator's only signal is
 // silence, and silence is exactly what a crash looks like.
 //
-// The marker verify.mjs already rewrites at each step start (.cmp-lane-in-progress,
+// The marker verify.mjs already rewrites at each step start (qa/.lane-in-progress,
 // JSON: step, index, total, stepStartedAt, expectedStepMs, expectedLaneMs) carries
 // everything a pulse needs, so this narrator INVENTS NOTHING — it reads what the
 // lane declared about itself and says it out loud on a timer the lane cannot run.
@@ -24,8 +24,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { laneMarkerPath } from "./lane-markers.mjs";
+
 const ROOT = process.argv[2];
-const MARKER = path.join(ROOT ?? ".", "composeApp", "build", ".cmp-lane-in-progress");
+const MARKER = laneMarkerPath(ROOT ?? ".");
 
 // A step under this is not a wait — saying anything about it is noise.
 const FIRST_AFTER_MS = 20_000;

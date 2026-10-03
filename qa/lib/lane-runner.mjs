@@ -17,7 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 
-import { stepDeadlineMs, stepErrorResult } from "./step-outcomes.mjs";
+import { stepDeadlineMs, stepErrorResult, resolveStepDeadlines } from "./step-outcomes.mjs";
 
 /**
  * Per-step expected durations from the journal's LAST FULL run — the source
@@ -62,6 +62,53 @@ export function verdictMark(verdict) {
   return verdict === "PASS" ? "✓" : verdict === "CACHED" ? "⚡" : verdict === "SKIP" ? "→" : verdict === "ERROR" ? "⊘" : "✗";
 }
 
+// ── The compile short-circuit ───────────────────────────────────────────────
+// Once the thing that turns source into a runnable artifact has FAILED, every
+// verdict behind it is meaningless: the tests are testing the last successful
+// artifact or nothing at all, and the lane would spend minutes producing rows
+// nobody can read. Stopping there is right.
+//
+// WHICH STEP THAT IS, IS THE PACK'S TO SAY. This predicate was written
+// `r.name === "build"`, which is Gradle's word twice over — the directory and
+// the task. Keyed to the literal it was wrong in both directions on any other
+// stack, and wrong SILENTLY, with a plausible-looking lane to show for it:
+//
+//   a pack that compiles in `py_build` never short-circuited, so its whole slow
+//   tier ran against a tree that does not compile
+//   a pack that compiles elsewhere but has SOME step named `build` — a
+//   packaging step, a container image, a docs build; the word is not reserved —
+//   had its lane truncated there, dropping real verdicts on the floor
+//
+// So the name arrives on `ctx.compileStepName`, declared by the step pack
+// (test/fixtures/profiles/py-alien/index.mjs declares "py_build";
+// profiles/cmp/steps-cmp.mjs declares "build"). Three cases, and the
+// distinction is the KEY's presence, not its value:
+//
+//   key absent      a caller written before the declaration existed. It keeps
+//                   the historical behaviour rather than silently losing its
+//                   short-circuit — a compatibility fallback, and the only
+//                   place this file still spells one stack's word.
+//   key present,    the pack has no compile phase (a lint-only lane, an
+//   no name         interpreted stack). Short-circuit on NOTHING: every step
+//                   runs and every verdict is taken. Never inherit someone
+//                   else's step name — that is how a lane loses rows.
+//   key present,    stop after that step FAILs, and only that step.
+//   a name
+//
+// FAIL and not ERROR, deliberately and unchanged: ERROR means "I could not
+// check this", which is not the same claim as "this does not compile", and
+// widening it here would change the shipped cmp lane's behaviour.
+export const LEGACY_COMPILE_STEP_NAME = "build";
+
+function compileShortCircuit(ctx) {
+  if (!Object.hasOwn(ctx, "compileStepName")) {
+    return (r) => r.name === LEGACY_COMPILE_STEP_NAME && r.verdict === "FAIL";
+  }
+  const declared = ctx.compileStepName;
+  if (typeof declared !== "string" || declared === "") return () => false;
+  return (r) => r.name === declared && r.verdict === "FAIL";
+}
+
 /**
  * Run the steps, in order, under the lane's own discipline.
  *
@@ -78,8 +125,12 @@ export function verdictMark(verdict) {
  * @param {{entry: string, root: string}|null} [ctx.narrator] the pulse process to spawn
  *   beside the loop (lane-narrator.mjs) — a separate process because the steps are
  *   synchronous and no timer in this process can fire while one runs
- * @param {(result: object) => boolean} [ctx.stopAfter] short-circuit predicate; default:
- *   stop after a FAILed "build" — nothing downstream is meaningful
+ * @param {string|null} [ctx.compileStepName] the PACK's name for the step whose failure
+ *   makes every later verdict meaningless (see compileShortCircuit above). Omit the key
+ *   entirely and the historical `"build"` short-circuit is kept; pass null/undefined and
+ *   the lane short-circuits on nothing
+ * @param {(result: object) => boolean} [ctx.stopAfter] short-circuit predicate — the
+ *   caller's own word, outranking ctx.compileStepName; default: compileShortCircuit(ctx)
  * @param {() => void} [ctx.onFinally] runs in the finally (the project releases its device lease here)
  * @param {number} [ctx.startedAt] the lane's start, for the marker's `at`
  * @returns {{steps: object[], verdict: "PASS"|"FAIL", durationMs: number}}
@@ -90,12 +141,34 @@ export function runLane(ctx) {
     markerPath,
     expected = { byName: new Map(), laneMs: null },
     setDeadline = () => {},
+    // HOW LONG a step may take before it is wedged is the pack's to say, the
+    // same way `compileStepName` and `timeoutHint` are. Absent, the spine's
+    // fallback applies AND the ERROR row says so, so an adopter whose cold
+    // toolchain was cut short learns the knob exists.
+    stepDeadlines = undefined,
     print = null,
+    // A STRUCTURED report of each step as it finishes, beside `print`'s human
+    // row. They are deliberately different channels: `print` writes prose for a
+    // person watching a terminal, and is null on a machine run because a
+    // narrator during one is a lane doing something unasked. `onStep` is the
+    // machine's version of the same instant — the result object, unformatted —
+    // so a console can append a row while the lane is still running instead of
+    // learning the whole story from a receipt after it ends.
+    //
+    // It must never be able to fail the lane: a reporter that throws would turn
+    // a passing run red for a reason that has nothing to do with the code under
+    // test, which is the exact false red this project exists to remove.
+    onStep = null,
     narrator = null,
-    stopAfter = (r) => r.name === "build" && r.verdict === "FAIL",
+    stopAfter = compileShortCircuit(ctx),
     onFinally = () => {},
     startedAt = Date.now(),
   } = ctx;
+
+  // Resolved once per lane, not once per step: the bounds cannot change mid-run
+  // and `isDefault` must be the same answer in the deadline and in the ERROR row
+  // that explains it.
+  const DEADLINES = resolveStepDeadlines(stepDeadlines);
 
   const stamp = (stepFn, index, total) => {
     try {
@@ -137,13 +210,18 @@ export function runLane(ctx) {
       // S4: every step under a deadline from its own history (×3, floor 5 min,
       // ceiling 30). A deadline or a throw is ONE ERROR row — the lane keeps
       // going, because the other verdicts are still worth having.
-      setDeadline(stepDeadlineMs(expected.byName.get(name)));
+      setDeadline(stepDeadlineMs(expected.byName.get(name), DEADLINES));
       const stepStarted = Date.now();
       let result;
       try {
         result = step();
       } catch (err) {
-        result = stepErrorResult(name, err, Date.now() - stepStarted);
+        // `step.timeoutHint` is the pack's where-to-look sentence, marked on the
+        // step function like `step.layer`. The spine carries it; it never writes one.
+        result = stepErrorResult(name, err, Date.now() - stepStarted, {
+          hint: typeof step.timeoutHint === "string" ? step.timeoutHint : undefined,
+          deadlineWasDefault: DEADLINES.isDefault,
+        });
       }
       // Layer tag: a pack may mark a step function with the layer of the
       // stack it proves (`fn.layer = "backend"`). The runner stamps it onto
@@ -153,6 +231,13 @@ export function runLane(ctx) {
         result.layer = step.layer;
       }
       results.push(result);
+      if (onStep) {
+        try {
+          onStep(result, { index: results.length - 1, total: stepFns.length });
+        } catch {
+          /* a reporter may not fail the lane — see the option's note */
+        }
+      }
       if (print) {
         print(
           `${verdictMark(result.verdict)} ${result.name}: ${result.verdict}${result.note ? ` (${result.note})` : ""}${result.reason ? ` — ${String(result.reason).split("\n")[0]}` : ""}`,

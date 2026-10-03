@@ -3,7 +3,7 @@
 <!--
   PrivacyInfo.xcprivacy — Apple Privacy Manifest (required from May 2024).
   Declare privacy-sensitive API usages used by the app and its SDKs. Extend as you add data
-  collection (Firebase Auth email/phone, location, etc.).
+  collection (sign-in email/phone, location, etc.).
   https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
 -->
 <plist version="1.0">
@@ -19,7 +19,7 @@
 
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
-        <!-- UserDefaults: required by Firebase, Koin, and local cache -->
+        <!-- UserDefaults: required by Koin and the local cache -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryUserDefaults</string>

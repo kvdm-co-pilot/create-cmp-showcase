@@ -14,7 +14,7 @@
 //      rendering carries the declaration's age — a stale plan reads as
 //      stale, never as true.
 //   3. The CORROBORATION is derived and overrides: the lane/render markers
-//      (composeApp/build/.cmp-lane-in-progress / .cmp-render-in-progress,
+//      (qa/.lane-in-progress / the profile's <buildDir>/.cmp-render-in-progress,
 //      mtime-bounded like every other consumer) say what is ACTUALLY running
 //      right now, regardless of what was declared.
 //
@@ -29,7 +29,11 @@
 // status surface never breaks the work it reports on.
 
 import fs from "node:fs";
+import { gitignoredDirs, declaredIgnore } from "./inputs-hash.mjs";
 import path from "node:path";
+
+import { laneMarkerPath, renderMarkerPath } from "./lane-markers.mjs";
+import { resolveSpecModel } from "./spec-model.mjs";
 
 export const PLAN_REL = "qa/.plan.json";
 export const REQUEST_REL = "qa/.request.json";
@@ -146,11 +150,20 @@ export function markStep(root, n) {
   return { ok: true, plan };
 }
 
-/** The receipt's verdict + rung right now, for the trail — fail-soft glance. */
+/**
+ * The receipt's verdict + rung right now, for the trail — fail-soft glance.
+ *
+ * The pack rides along with the rung and is not optional decoration. This
+ * record is WRITTEN to the plan history and outlives the run that made it, so a
+ * bare rung here is worse than a bare rung printed to a terminal: nothing later
+ * can attribute it, and §8.9's rule that one pack's L2 and another's are
+ * different claims becomes unenforceable for every reader of the trail. `null`
+ * when the receipt names no pack, which is itself the honest answer.
+ */
 function receiptGlance(root) {
   try {
     const r = JSON.parse(fs.readFileSync(path.join(root, "qa/evidence/latest.json"), "utf8"));
-    return { verdict: r?.verdict ?? null, rung: r?.evidenceLevel?.rung ?? null };
+    return { verdict: r?.verdict ?? null, rung: r?.evidenceLevel?.rung ?? null, pack: r?.pack?.id ?? null };
   } catch {
     return null;
   }
@@ -235,8 +248,8 @@ export function clearPlan(root) {
  * reads as a bare truthy {} — busy, no narration. Stale/absent -> false.
  * @returns {object|false}
  */
-function markerInfo(root, name) {
-  const p = path.join(root, "composeApp", "build", name);
+function markerInfo(p) {
+  if (!p) return false;
   try {
     const st = fs.statSync(p);
     if (Date.now() - st.mtimeMs >= MARKER_FRESH_MS) return false;
@@ -262,8 +275,27 @@ function markerInfo(root, name) {
 // this corroborates the build stage the same way: writes in the working tree
 // since the current request began. No agent cooperation required — which is
 // the point.
-const ACTIVITY_ROOTS = ["composeApp/src", "specs", "qa", "docs"];
-const ACTIVITY_SKIP_DIRS = new Set(["build", ".gradle", ".kotlin", ".git", ".idea", "node_modules", "evidence"]);
+/**
+ * The trees whose writes count as observed agent activity: the profile's own
+ * source roots and specs directory, plus qa/ and docs/ (the harness and the
+ * governed prose — always core). Stage 0 PR 6b: this was a hardcoded
+ * ["composeApp/src", …], so on any other stack the build stage's observed tier
+ * saw nothing and the chain view reported an idle agent that was working.
+ * A project with no usable manifest gets the core roots alone — never a guess.
+ * @param {string} root
+ * @returns {string[]}
+ */
+function activityRoots(root) {
+  const model = resolveSpecModel(root);
+  if (!model.ok) return ["qa", "docs"];
+  return [...new Set([...model.model.sourceRoots, model.model.specsDir, "qa", "docs"])];
+}
+// Machinery and the repo's own ignored directories — never one stack's build
+// dirs by name (the 2026-09-08 language audit found .gradle and .kotlin here).
+const ACTIVITY_SKIP_FLOOR = new Set([".git", "node_modules", "evidence"]);
+function activitySkipDirs(root) {
+  return new Set([...ACTIVITY_SKIP_FLOOR, ...gitignoredDirs(root), ...declaredIgnore(root)]);
+}
 // Machinery, not work: the chain's own files and the lane's outputs must not
 // count as "the agent wrote something", or the pulse would corroborate itself.
 const ACTIVITY_SKIP_FILES = new Set([".plan.json", ".request.json", ".plan-history.jsonl", "flight-recorder.jsonl", "approvals.log.jsonl", ".DS_Store"]);
@@ -282,6 +314,7 @@ export const ACTIVITY_STALL_MS = 10 * 60 * 1000;
  *   null when there is no request to measure from
  */
 export function observeActivity(root, sinceIso, { now = Date.now() } = {}) {
+  const skipDirs = activitySkipDirs(root);
   const since = Date.parse(sinceIso ?? "");
   if (Number.isNaN(since)) return null;
   let filesChanged = 0;
@@ -295,7 +328,7 @@ export function observeActivity(root, sinceIso, { now = Date.now() } = {}) {
     }
     for (const e of entries) {
       if (e.isDirectory()) {
-        if (!ACTIVITY_SKIP_DIRS.has(e.name)) walk(path.join(dir, e.name));
+        if (!skipDirs.has(e.name)) walk(path.join(dir, e.name));
         continue;
       }
       if (!e.isFile() || ACTIVITY_SKIP_FILES.has(e.name)) continue;
@@ -311,7 +344,7 @@ export function observeActivity(root, sinceIso, { now = Date.now() } = {}) {
       }
     }
   };
-  for (const rel of ACTIVITY_ROOTS) walk(path.join(root, rel));
+  for (const rel of activityRoots(root)) walk(path.join(root, rel));
   return {
     filesChanged,
     lastWriteAgoMs: filesChanged > 0 ? Math.max(0, now - newest) : null,
@@ -333,8 +366,8 @@ export function deriveChain(root) {
   const plan = readPlan(root);
   const at = plan ? Date.parse(plan.updatedAt) : NaN;
   const busy = {
-    lane: markerInfo(root, ".cmp-lane-in-progress"),
-    render: markerInfo(root, ".cmp-render-in-progress"),
+    lane: markerInfo(laneMarkerPath(root)),
+    render: markerInfo(renderMarkerPath(root)),
   };
   const request = readRequest(root);
   // S3: the build stage's observed tier — writes since the request began.

@@ -16,6 +16,8 @@ build/
 
 # Verify-lane binary evidence (screenshots, reports, page sources). The RECEIPT
 # (qa/evidence/latest.json) IS committed — these artifacts are hashed into it instead.
+# A --fast run writes latest-fast.json: inner-loop feedback, never evidence, never committed.
+qa/evidence/latest-fast.json
 qa-artifacts/
 
 # iOS / CocoaPods / XcodeGen
@@ -35,21 +37,29 @@ xcuserdata/
 *.bak-upgrade
 *.cmp-new
 
-# Release signing — generated locally by scripts/generate-signing-key.sh, NEVER committed.
-# The keystore IS the app's identity on Android; the properties file holds its passwords.
-# Back both up out-of-band (see the script's header) — a lost signing key cannot be reissued.
-keystore.properties
-keystore/
-*.jks
-*.keystore
-
 # The live chain's ephemeral state (studio-drive-mode): the current request
 # (rewritten by the UserPromptSubmit hook on every prompt) and the agent's
 # declared step plan. Per-session windshield, not project history — and also
 # hard-excluded from the receipt's hashed input surface (qa/lib/inputs-hash.mjs).
 qa/.request.json
 qa/.plan.json
-
 # The closed-chain trail (drive-narration N5): local because it carries raw
 # human prompts — the committed journal for lane runs stays qa/flight-recorder.jsonl.
 qa/.plan-history.jsonl
+qa/.agent-hold.json
+qa/.lane-in-progress
+# The running lane's step stream (`verify --events`, LIVE-CONSOLE.md Phase B):
+# one NDJSON line per finished step, so the console can render a row as each one
+# lands and can still render the run afterwards. Progress, never evidence — the
+# receipt-of-record stays qa/evidence/latest.json — and rewritten on every save
+# in the watch loop, which is why committing it would be pure churn.
+qa/.lane-steps.ndjson
+
+# Android signing. The keystore IS the app's identity on Android — it cannot be reissued —
+# and keystore.properties holds its passwords. Never committed, never in a sidecar diff.
+# (create-cmp-showcase, 2026-09-03: three consecutive upgrades' .gitignore sidecars lacked
+# these four lines, leaving the key one `git add -A` from a public repo.)
+keystore.properties
+keystore/
+*.jks
+*.keystore

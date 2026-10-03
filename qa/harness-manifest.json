@@ -1,0 +1,10 @@
+{
+  "schema": "harness-manifest/2",
+  "profile": { "id": "cmp" },
+  "receipt": "qa/evidence/latest.json",
+  "architectureDoc": "docs/ARCHITECTURE.md",
+  "specs": "specs",
+  "citationRoots": ["composeApp/src", "qa/e2e"],
+  "approvals": "qa/approvals.json",
+  "packs": ["cmp"]
+}

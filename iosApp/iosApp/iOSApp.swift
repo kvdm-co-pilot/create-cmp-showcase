@@ -19,10 +19,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        // Firebase native init (GitLive wraps the native SDK; reads GoogleService-Info.plist).
-        // MUST run before doInitKoin(), which wires the GitLive emulators.
-        FirebaseApp.configure()
         // Koin initialisation for iOS.
+        // Firebase native init (reads GoogleService-Info.plist). MUST run before doInitKoin(),
+        // which points the GitLive clients at the local emulators in a debug build.
+        FirebaseApp.configure()
         KoinHelperKt.doInitKoin()
         return true
     }

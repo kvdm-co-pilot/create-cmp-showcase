@@ -18,6 +18,15 @@ on:
 jobs:
   android:
     runs-on: ubuntu-latest # ships with JDK + Android SDK preinstalled
+    # The attestation step below signs the receipt keylessly: id-token lets the
+    # job ask GitHub's OIDC provider for its identity, attestations lets it store
+    # the result. Declaring any permission sets every other one to none, so
+    # contents: read (what checkout needs) is declared too. docs/adr/0017 in
+    # create-cmp explains why the attester must not be the receipt's producer.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
 
@@ -42,8 +51,11 @@ jobs:
       # still matching the verified surface — BEFORE we spend a runner re-running the
       # lane. Robust to rebase/merge/squash: validity is a content hash of the inputs,
       # not a parent SHA (docs/adr/0005). This is the same predicate the local Stop
-      # hook runs (qa/receipt-check.mjs) — one check, two locations — so a stale or
-      # hand-edited receipt fails here even if the author bypassed the local hook.
+      # hook runs (qa/receipt-check.mjs) — one check, two locations — so a stale
+      # receipt fails here even if the author bypassed the local hook. A receipt
+      # whose verdict was hand-edited still passes this step (qa/evidence is outside
+      # the hash, and nothing signs it); the lane re-run below is what catches a
+      # forged L1 result. L2 rungs are attested only by the machine that ran them.
       - name: Receipt attests HEAD
         run: node qa/receipt-check.mjs
 
@@ -51,8 +63,38 @@ jobs:
       # verdict and an evidence receipt. If the build step fails after a
       # dependency bump, remember: Kotlin / KSP / Compose / Room / AGP move as
       # ONE set (see the comments in gradle/libs.versions.toml).
+      # CMP_DEVICE=none is the ONE explicit opt-out of the device tier: this
+      # hosted runner has no emulator, so e2eSmoke/androidChecks SKIP with that
+      # reason on the merge-stage receipt (visible, never silent). The lane boots
+      # a headless emulator itself everywhere else — locally that is the
+      # change-stage gate, and qa/receipt-check.mjs refuses a receipt whose
+      # device tier was opted out. To prove L2 here too, drop the variable and
+      # boot an emulator first (e.g. reactivecircus/android-emulator-runner).
       - name: Verify lane
+        env:
+          CMP_DEVICE: none
         run: node qa/verify.mjs --profile ci
+
+      # CI attests the receipt CI itself just produced. The signature is keyless
+      # (Sigstore, bound to this workflow's OIDC identity), so no key exists that
+      # the receipt's author could reach, and anyone can then check it:
+      #   gh attestation verify qa/evidence/latest.json --repo <owner>/<repo>
+      # answers "a GitHub-hosted run of this workflow produced this receipt from
+      # this commit". What it covers is the rungs this run executed: L1 here,
+      # because CMP_DEVICE=none above — the L2 verdict stays the author's
+      # machine's word until CI runs that tier.
+      # UNVERIFIED: the input name `subject-path` and the major `v2` are taken
+      # from the plan, not yet checked against the action's README. A fork's
+      # pull request gets no id-token, so the step runs only where it can.
+      # Attestations are plan-gated: public repositories on every plan, private
+      # and internal ones on GitHub Enterprise Cloud only — so the step runs on
+      # public repositories, and a private repo's required check never fails for
+      # a plan it is not on (ADR-0017). On Enterprise Cloud, widen this `if:`.
+      - name: Attest evidence receipt
+        if: github.event.repository.visibility == 'public' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: qa/evidence/latest.json
 
       # The receipt this run produced, kept as a build artifact. The receipt
       # committed by the author (qa/evidence/latest.json) lives in the repo —

@@ -34,7 +34,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { parseFeatureBlock } from "./feature-brief.mjs";
+import { parseFeatureBlock } from "../../feature-brief.mjs";
 
 // Mirrors component-stories.mjs's walkDirs: every directory named `wanted`
 // anywhere under `root`, recursive.

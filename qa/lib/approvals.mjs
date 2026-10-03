@@ -10,19 +10,14 @@
 //
 // Three concerns, kept separable:
 //   1. The REGISTRY (`listGovernedArtifacts`) — artifact id -> resolved file list, in
-//      definition order (GENESIS-FLOW-DESIGN.md §1 + CHANGE-FLOW-DESIGN.md §6):
-//      intent(0), feature-brief:<name> per docs/features/*.md (the decide layer,
-//      directly after intent), architecture, exemplar-spec, exemplar-feature,
-//      design-system, components, then one `feature-spec:<name>` per non-base,
-//      non-exemplar spec file present in specs/ right now. (Decide-first: a brief
-//      speaks intent's vocabulary. Spec-first: the exemplar's clauses are confirmed
-//      before the slice is built. UI-first: design system + components are distilled
-//      from the real screens, so they lock after the exemplar.) The exemplar is
-//      CONFIGURABLE — see
-//      `getExemplarFeature`/`resolveExemplarNames` below — defaulting to `home` so
-//      every ledger written before this config key existed keeps meaning what it
-//      meant. The registry is recomputed on every call — it reflects the tree as it
-//      stands, never a stale snapshot.
+//      definition order. WHICH artifacts, in what order, and how each is hashed is
+//      the PROFILE's (Stage 0 PR 5): the profile the manifest names exports
+//      `artifacts(root)`, composing its own entries with the neutral helpers below
+//      (feature briefs, feature designs, feature specs, the architecture artifact).
+//      Mobile's list — intent, briefs, architecture, exemplar-spec, exemplar-feature,
+//      design-system, components, designs, feature specs — lives in
+//      profiles/cmp/artifacts.mjs. The registry is recomputed on every call — it
+//      reflects the tree as it stands, never a stale snapshot.
 //   2. STATE (`loadApprovals`/`saveApprovals`) — qa/approvals.json, the human's
 //      decisions: { artifact, status, hash, approvedAt, mode?, reopenedAt?, via?,
 //      reason? } plus the top-level `exemplarFeature` config key. Absent or corrupt is TOLERATED
@@ -51,18 +46,23 @@
 //
 // Consumers: qa/approve.mjs (the CLI — thin shell over this file), qa/verify.mjs
 // (the `approvals` gate), qa/scaffold-feature.mjs (seeds a new feature's spec as
-// unreviewed, and resolves its clone-FROM exemplar through `resolveExemplarNames`).
+// unreviewed; its exemplar names come from the cmp profile).
 // The console (inspector/mcp/src/lib/approvals-bridge.mjs) calls this same library.
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { ARCH_DOC_REL_PATH, stripGeneratedSections } from "./arch-doc.mjs";
+import { stripGeneratedSections } from "./arch-doc.mjs";
 import { deriveAllFeatures, deriveFeatureStatus, listFeatureBriefs, parseFeatureBlock, stripFeatureBlock } from "./feature-brief.mjs";
+import { resolveHarnessManifest } from "./harness-manifest.mjs";
+import { loadProfileSync } from "./profile-loader.mjs";
 
 export const APPROVALS_REL_PATH = "qa/approvals.json";
-export const APPROVALS_SCHEMA = "cmp-approvals/1";
+// Free to move: the reader is tolerant by construction — `parsed.schema ??
+// APPROVALS_SCHEMA` — so a ledger written under the old name reads back
+// unchanged and is rewritten under the new one at the next signature.
+export const APPROVALS_SCHEMA = "prooflane-approvals/1";
 // The JOURNAL (2026-07-28 flow audit, fix 1): qa/approvals.json is a mutable
 // snapshot — every transition overwrites the row, so the ledger cannot answer
 // "what happened while I was away?". The journal is the append-only memory
@@ -74,212 +74,160 @@ export const APPROVALS_SCHEMA = "cmp-approvals/1";
 // invalidate the receipt for a tree whose code did not change.
 export const APPROVALS_JOURNAL_REL_PATH = "qa/approvals.log.jsonl";
 
-// Kotlin source-set roots, relative to project root — mirrors qa/scaffold-feature.mjs's
-// SRC() helper (composeApp/src/<sourceSet>/kotlin/<packageDir>).
-const KOTLIN_SOURCE_SETS = {
-  commonMain: "composeApp/src/commonMain/kotlin",
-  commonTest: "composeApp/src/commonTest/kotlin",
-  desktopTest: "composeApp/src/desktopTest/kotlin",
-};
-
-// The canonical 11-file EXEMPLAR SHAPE (10 kotlin files + 1 spec), parametrized by
-// the exemplar's own names — F (PascalCase feature, e.g. "Home"), f (lowercase
-// package segment, e.g. "home"), E (PascalCase entity, e.g. "Item"). This is the
-// SAME shape qa/scaffold-feature.mjs's ALL_FILES clones FROM (GENESIS-FLOW-DESIGN.md
-// §1's "configurable exemplar") — the stamper imports this exact function so the
-// clone-source list and the governed-artifact list can never drift from each other
-// (single source of truth, not a parallel copy to keep in sync by hand).
-// @param {string} F PascalCase feature name (e.g. "Home", "Favorites")
-// @param {string} f lowercase package-segment name (e.g. "home", "favorites")
-// @param {string} E PascalCase entity name (e.g. "Item", "Favorite")
-// @returns {Array<{sourceSet: string, rel: string}>}
-export function exemplarKotlinFileSet(F, f, E) {
-  return [
-    { sourceSet: "commonMain", rel: `domain/model/${E}.kt` },
-    { sourceSet: "commonMain", rel: `domain/repository/${E}Repository.kt` },
-    { sourceSet: "commonMain", rel: `domain/usecase/Get${E}sUseCase.kt` },
-    { sourceSet: "commonMain", rel: `data/remote/${E}RepositoryImpl.kt` },
-    { sourceSet: "commonTest", rel: `testing/fakes/Fake${E}Repository.kt` },
-    { sourceSet: "commonMain", rel: `presentation/${f}/${F}Screen.kt` },
-    { sourceSet: "commonMain", rel: `presentation/${f}/${F}ViewModel.kt` },
-    { sourceSet: "commonTest", rel: `presentation/${f}/${F}ViewModelTest.kt` },
-    { sourceSet: "desktopTest", rel: `presentation/${f}/${F}ScreenTest.kt` },
-    { sourceSet: "desktopTest", rel: `presentation/${f}/${F}GoldenTreeTest.kt` },
-  ];
-}
-
-// Naive de-pluralization, shared verbatim with qa/scaffold-feature.mjs's own
-// entity-name default (a feature stamped without `--entity` gets this exact
-// guess). Exported so both the stamper (deriving a NEW feature's entity) and this
-// registry (guessing a CONFIGURED exemplar's entity from its feature name alone —
-// see resolveExemplarNames) apply the identical heuristic. Unreliable for
-// irregular nouns by design (the skill surfaces the guess for human override at
-// stamp time); a wrong guess here simply fails to resolve files, which is refused
-// (never fabricated), not silently wrong.
-export function defaultEntityName(feature) {
-  if (feature.endsWith("ies") && feature.length > 3) return `${feature.slice(0, -3)}y`;
-  if (feature.endsWith("s") && !feature.endsWith("ss")) return feature.slice(0, -1);
-  return feature;
-}
-
-function toPascalCase(f) {
-  return f.charAt(0).toUpperCase() + f.slice(1);
-}
-
-function toUpperSnake(F) {
-  return F.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase();
-}
-
-/**
- * Resolve the CONFIGURED exemplar's names — the ones the exemplar-feature/
- * exemplar-spec governed artifacts (and qa/scaffold-feature.mjs's clone source)
- * are built from.
- *
- * `home` (the default, and the only exemplar that predates configurability) is a
- * hardcoded exception: its entity is `Item`, not derivable from `Home` by
- * `defaultEntityName` (which would naively guess `Home`). Every OTHER exemplar is
- * itself a feature that was stamped by qa/scaffold-feature.mjs, so its entity
- * followed defaultEntityName(F) UNLESS it was stamped with an explicit `--entity`
- * override — a choice this config key cannot see. In that mismatch case the guess
- * is wrong and the file set simply fails to resolve (0 or partial files), which
- * `resolveArtifactStatus`/`approveArtifact` already refuse rather than fabricate —
- * the correct failure mode, not a special case to add here.
- * @param {string} root
- * @returns {{f: string, F: string, F_UPPER: string, E: string}}
- */
-export function resolveExemplarNames(root) {
-  const f = getExemplarFeature(root);
-  const F = toPascalCase(f);
-  const F_UPPER = toUpperSnake(F);
-  const E = f === "home" ? "Item" : defaultEntityName(F);
-  return { f, F, F_UPPER, E };
-}
-
-// Backward-compatible constants for the DEFAULT (`home`) exemplar — kept exported
-// because they describe the shipped template's own exemplar shape independent of
-// any project's configuration, and because they're the fixture the "stamping from
-// home must be byte-identical" pin (test/genesis-flow.test.mjs) anchors to.
-export const EXEMPLAR_FEATURE_KOTLIN_FILES = exemplarKotlinFileSet("Home", "home", "Item");
-export const EXEMPLAR_SPEC_REL = "specs/home.spec.md";
-export const ARCHITECTURE_SPEC_REL = "specs/app-base.spec.md";
-export const INTENT_REL = "specs/intent.md";
-
-// ── Package resolution ───────────────────────────────────────────────────────
-// Mirrors qa/scaffold-feature.mjs's resolvePackage() primary path (the
-// composeApp/build.gradle.kts namespace). Unlike the stamper, this NEVER dies —
-// an unresolved package means the kotlin-rooted artifacts resolve to zero files.
-// Zero resolution never CRASHES anything (the lane and the stamper stay up),
-// but it is NOT benign for decisions: an approval over zero files would be the
-// empty-input sha256 attesting nothing — a silent vacuous PASS, the exact
-// failure mode this harness exists to kill (evidence must attest execution).
-// So: approveArtifact REFUSES zero-file artifacts, and an already-approved
-// artifact whose files stop resolving goes to changed-since-approval (FAIL),
-// never PASS.
-//
-// IMPORTANT: detect "unresolved" by TOKEN SHAPE (`/^__[A-Z_]+__$/`), never by
-// comparing against the literal string "__PACKAGE__". This file ships through
-// the SAME scaffold pipeline that resolves that token — a literal comparison
-// string is itself blindly text-substituted at stamp time (`replaceContents`
-// does a global `"__PACKAGE__" -> config.package` replace over every template
-// file's content, this one included), which would silently rewrite the
-// sentinel into the real package and make the check always fail. A shape
-// regex never spells the token out, so the pipeline has nothing to match.
-const UNRESOLVED_TOKEN_RE = /^__[A-Z_]+__$/;
-
-function resolvePackageDir(root) {
-  const gradleFile = path.join(root, "composeApp", "build.gradle.kts");
-  if (!fs.existsSync(gradleFile)) return null;
-  let contents;
-  try {
-    contents = fs.readFileSync(gradleFile, "utf8");
-  } catch {
-    return null;
-  }
-  const m = contents.match(/namespace\s*=\s*"([^"]+)"/);
-  if (!m || UNRESOLVED_TOKEN_RE.test(m[1])) return null;
-  return m[1].split(".").join("/");
-}
-
-function kotlinFile(root, sourceSet, rel) {
-  const packageDir = resolvePackageDir(root);
-  if (!packageDir) return null;
-  return path.posix.join(KOTLIN_SOURCE_SETS[sourceSet], packageDir, rel);
-}
-
-/**
- * Is the project's package resolvable at all? False in the raw template (the
- * namespace is still a placeholder token) and in any pre-stamp tree — the tell
- * that this is not a generated project. The approve CLI refuses to WRITE
- * approvals in such a tree (recording decisions against a template pollutes
- * the template itself); read-only status remains available.
- * @param {string} root
- * @returns {boolean}
- */
-export function isPackageResolvable(root) {
-  return resolvePackageDir(root) !== null;
-}
-
-// ── Components glob ─────────────────────────────────────────────────────────
-
-/**
- * Sorted list of `presentation/components/*.kt` files under the resolved
- * package, non-recursive (GENESIS-FLOW-DESIGN.md §1's `components` artifact — the
- * component vocabulary conversation 3 approves). Package-unresolvable or a
- * missing/empty directory both yield `[]` — resolveArtifactStatus/approveArtifact
- * already treat a 0-file artifact as unresolvable ("a components glob matching
- * zero files is unresolvable, not approvable-empty" — §1), so no special-casing
- * is needed here beyond returning the honest (possibly empty) list.
- * @param {string} root
- * @returns {string[]} root-relative paths, sorted
- */
-function listComponentFiles(root) {
-  const dirRel = kotlinFile(root, "commonMain", "presentation/components");
-  if (!dirRel) return [];
-  let entries;
-  try {
-    entries = fs.readdirSync(path.join(root, dirRel), { withFileTypes: true });
-  } catch {
-    return [];
-  }
-  return entries
-    .filter((e) => e.isFile() && e.name.endsWith(".kt"))
-    .map((e) => path.posix.join(dirRel, e.name))
-    .sort((a, b) => a.localeCompare(b));
-}
-
-// ── Feature screens glob ────────────────────────────────────────────────────
+// ── The profile ─────────────────────────────────────────────────────────────
+// WHICH artifacts a human signs, in what order, and how each is hashed is the
+// profile's model (Stage 0 PR 5 — NORTH-STAR §6; profiles/cmp/artifacts.mjs
+// holds mobile's six genesis artifacts). This file keeps the MECHANIC: an
+// artifact is a path set with a hash; a signature binds the hash; status is
+// derived on every read; reopen and accept are attributed; the gate reads it
+// all. The neutral entries every profile shares — feature briefs (Decide),
+// feature designs (one per brief with a surface) and feature specs — are
+// built by the helpers below, which a profile's `artifacts(root)` composes.
 
 /** The `feature-design:` id prefix — one place, so the CLI/console/gate never drift on it. */
 export const FEATURE_DESIGN_PREFIX = "feature-design:";
 
 /**
- * The screen files of one feature — `presentation/<name>/**\/*Screen.kt`,
- * recursive, sorted. DELIBERATELY only `*Screen.kt`: the design signature
- * covers the FORM (what renders), so binding the whole presentation dir would
- * make every ViewModel edit during a legitimate build read as design drift.
+ * The profile the manifest names, loaded synchronously — the registry is read
+ * from sync chains (the gate, the CLI, the console bridge). No manifest or no
+ * profile is a refusal by name, never an empty registry: an empty ledger that
+ * looked governed would be the vacuous PASS this file exists to refuse.
  * @param {string} root
- * @param {string} name the feature name (presentation/<name>/)
- * @returns {string[]} repo-relative posix paths
+ * @returns {object} the profile module
  */
-function listFeatureScreenFiles(root, name) {
-  const dirRel = kotlinFile(root, "commonMain", `presentation/${name}`);
-  if (!dirRel) return [];
+function profileFor(root) {
+  const manifest = resolveHarnessManifest(root);
+  if (!manifest.ok) throw new Error(manifest.reason);
+  const loaded = loadProfileSync(root, manifest.manifest.profile);
+  if (!loaded.ok) throw new Error(loaded.reason);
+  return loaded.profile;
+}
+
+/**
+ * May approvals be RECORDED in this tree? The core requires a manifest and a
+ * loadable profile; the profile may add its own test (`governable(root)` —
+ * mobile refuses the raw template, whose package is still a placeholder).
+ * Read-only status stays available anywhere.
+ * @param {string} root
+ * @returns {{ok: true} | {ok: false, reason: string}}
+ */
+export function isProjectGovernable(root) {
+  let profile;
+  try {
+    profile = profileFor(root);
+  } catch (err) {
+    return { ok: false, reason: err && err.message ? err.message : String(err) };
+  }
+  if (typeof profile.governable === "function") {
+    const v = profile.governable(root);
+    if (!v || v.ok !== true) return { ok: false, reason: (v && v.reason) || `profile "${profile.id}" refuses to record approvals in this tree` };
+  }
+  return { ok: true };
+}
+
+// ── The neutral entries — helpers a profile's artifacts(root) composes ──────
+
+/**
+ * One `feature-brief:<name>` per doc under docs/features/ — LOCATION is the
+ * governance opt-in (CHANGE-FLOW-DESIGN.md §2); docs/proposals/ stays
+ * ungoverned harness-standards prose. They sit DIRECTLY after intent: the
+ * decide layer. At genesis the first feature's brief is drafted from the
+ * intent interview before architecture is even walked; post-genesis every
+ * decision-carrying change enters here. Approving one hashes the doc's bytes
+ * (with the declaration block stripped — hashFeatureBriefArtifact), so a
+ * signed brief cannot be quietly rewritten; acceptance is a LEDGER field on
+ * the same row (acceptFeature below), so the human's bookend never touches
+ * the signed bytes.
+ * @param {string} root
+ * @returns {Array<{id: string, label: string, files: string[], complete: boolean, hash: (root: string) => {hash: string, fileCount: number, missing: string[]}}>}
+ */
+export function featureBriefArtifacts(root) {
+  return listFeatureBriefs(root).map((brief) => ({
+    id: `${FEATURE_BRIEF_PREFIX}${brief.name}`,
+    label: `Feature brief (${brief.rel})`,
+    files: [brief.rel],
+    complete: true,
+    hash: (r) => hashFeatureBriefArtifact(r, { id: `${FEATURE_BRIEF_PREFIX}${brief.name}`, files: [brief.rel] }),
+  }));
+}
+
+/**
+ * Feature designs (brief → design → spec → build, decided 2026-07-25): one
+ * `feature-design:<name>` per BRIEF with a surface — declared in the brief's
+ * cmp:feature block (`declares(block)`, so the gate exists before any file
+ * does) or evident on disk (`surfaceFiles(root, name)` non-empty). Signed on
+ * RENDERED output, never descriptions, BEFORE the behavior contract pins the
+ * form down. Briefs only, deliberately: legacy features never sprout
+ * retro-governance. With no surface files yet, `complete: false` —
+ * approveArtifact refuses, exactly right: you cannot sign a design that has
+ * nothing rendered. What a surface IS (screens, an API contract diff) is the
+ * profile's answer.
+ * @param {string} root
+ * @param {{surfaceFiles: (root: string, name: string) => string[], declares: (block: object) => boolean, label?: (name: string) => string, complete?: (files: string[]) => boolean}} surface
+ * @returns {Array<{id: string, label: string, files: string[], complete: boolean}>}
+ */
+export function featureDesignArtifacts(root, surface) {
   const out = [];
-  const walk = (rel) => {
-    let entries;
+  for (const brief of listFeatureBriefs(root)) {
+    let declares = false;
     try {
-      entries = fs.readdirSync(path.join(root, rel), { withFileTypes: true });
+      declares = Boolean(surface.declares(parseFeatureBlock(fs.readFileSync(path.join(root, brief.rel), "utf8"))));
     } catch {
-      return;
+      /* an unreadable brief declares nothing */
     }
-    for (const e of entries) {
-      const childRel = path.posix.join(rel, e.name);
-      if (e.isDirectory()) walk(childRel);
-      else if (e.isFile() && e.name.endsWith("Screen.kt")) out.push(childRel);
-    }
+    const files = surface.surfaceFiles(root, brief.name);
+    if (!declares && files.length === 0) continue;
+    const complete = surface.complete ? surface.complete(files) : files.length > 0;
+    const incompleteReason = complete ? undefined : surface.incompleteReason ? surface.incompleteReason(files) : undefined;
+    out.push({
+      id: `${FEATURE_DESIGN_PREFIX}${brief.name}`,
+      label: surface.label ? surface.label(brief.name) : `Feature design (${brief.name}, signed on rendered output)`,
+      files,
+      complete,
+      ...(incompleteReason ? { incompleteReason } : {}),
+    });
+  }
+  return out;
+}
+
+/**
+ * One `feature-spec:<name>` per spec file present right now, minus the names
+ * the profile excludes (mobile: the base spec and the exemplar's own).
+ * @param {string} root
+ * @param {{specsDir?: string, exclude?: string[]}} [opts]
+ * @returns {Array<{id: string, label: string, files: string[], complete: boolean}>}
+ */
+export function featureSpecArtifacts(root, { specsDir = "specs", exclude = [] } = {}) {
+  const dir = path.join(root, ...specsDir.split("/"));
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".spec.md") && !exclude.includes(f))
+    .sort((a, b) => a.localeCompare(b))
+    .map((file) => ({
+      id: `feature-spec:${file.slice(0, -".spec.md".length)}`,
+      label: `Feature spec (${specsDir}/${file})`,
+      files: [`${specsDir}/${file}`],
+      complete: true,
+    }));
+}
+
+/**
+ * The `architecture` artifact: a structural spec plus the architecture doc
+ * with its generated sections stripped (hashArchitectureArtifact). Which
+ * files those are is the profile's; the hashing rule is the core's.
+ * @param {string} root
+ * @param {{specRel: string, docRel: string}} files
+ * @returns {{id: string, label: string, files: string[], complete: boolean, hash: (root: string) => {hash: string, fileCount: number, missing: string[]}}}
+ */
+export function architectureArtifact(root, { specRel, docRel }) {
+  return {
+    id: "architecture",
+    label: `Architecture + structure (${specRel} + ${docRel}, generated sections stripped)`,
+    files: [specRel, docRel],
+    complete: true,
+    hash: (r) => hashArchitectureArtifact(r, { specRel, docRel }),
   };
-  walk(dirRel);
-  return out.sort((a, b) => a.localeCompare(b));
 }
 
 // ── Registry ─────────────────────────────────────────────────────────────────
@@ -309,132 +257,21 @@ function listFeatureScreenFiles(root, name) {
  * @returns {Array<{id: string, label: string, files: string[], complete: boolean}>}
  */
 export function listGovernedArtifacts(root) {
-  const artifacts = [];
-  const packageResolved = resolvePackageDir(root) !== null;
-
-  artifacts.push({
-    id: "intent",
-    label: `Intent brief (${INTENT_REL})`,
-    files: [INTENT_REL],
-    complete: true,
-  });
-
-  // Feature briefs (feature-brief.mjs): one `feature-brief:<name>` per doc
-  // under docs/features/ — LOCATION is the governance opt-in (CHANGE-FLOW-
-  // DESIGN.md §2); docs/proposals/ stays ungoverned harness-standards prose.
-  // They sit DIRECTLY after intent: the decide layer. At genesis the first
-  // feature's brief is drafted from the intent interview before architecture
-  // is even walked; post-genesis every decision-carrying change enters here.
-  // Approving one hashes the doc's bytes, so a signed brief cannot be quietly
-  // rewritten; acceptance is a LEDGER field on the same row (acceptFeature
-  // below), so the human's bookend never touches the signed bytes.
-  for (const brief of listFeatureBriefs(root)) {
-    artifacts.push({
-      id: `feature-brief:${brief.name}`,
-      label: `Feature brief (${brief.rel})`,
-      files: [brief.rel],
-      complete: true,
-    });
+  const profile = profileFor(root);
+  if (typeof profile.artifacts !== "function") {
+    // A profile that declares no artifact model still has the Decide layer:
+    // briefs are the workflow loop's, not a stack's. Nothing else is assumed.
+    return featureBriefArtifacts(root);
   }
-
-  artifacts.push({
-    id: "architecture",
-    label: `Architecture + structure (${ARCHITECTURE_SPEC_REL} + ${ARCH_DOC_REL_PATH}, generated sections stripped)`,
-    // Hashed via hashArchitectureArtifact (spec bytes + stripped-doc content),
-    // NOT the generic hashArtifactFiles — this list is still the artifact's
-    // expected-files surface (missing-file refusal messages, "what governs
-    // this" bookkeeping), just not what gets hashed raw. See computeArtifactHash.
-    files: [ARCHITECTURE_SPEC_REL, ARCH_DOC_REL_PATH],
-    complete: true,
-  });
-
-  const { f: exemplarF, F: exemplarF_Pascal, E: exemplarE } = resolveExemplarNames(root);
-  const exemplarSpecRel = `specs/${exemplarF}.spec.md`;
-  const exemplarKotlinFiles = exemplarKotlinFileSet(exemplarF_Pascal, exemplarF, exemplarE);
-
-  // Spec-first: the exemplar's behavior clauses are confirmed BEFORE the slice
-  // is built — the definition order is the discipline, not just a display order.
-  artifacts.push({
-    id: "exemplar-spec",
-    label: `Exemplar spec (${exemplarSpecRel})`,
-    files: [exemplarSpecRel],
-    complete: true,
-  });
-
-  artifacts.push({
-    id: "exemplar-feature",
-    label: `Exemplar feature (${exemplarF} — the file set the stamper clones)`,
-    files: [
-      ...exemplarKotlinFiles.map((f) => kotlinFile(root, f.sourceSet, f.rel)).filter(Boolean),
-      exemplarSpecRel,
-    ],
-    complete: packageResolved,
-  });
-
-  // UI-first: the design system LOCKS on the real exemplar (candidates render on
-  // real screens, never stubs), and the component vocabulary is DISTILLED from
-  // those screens — both follow the exemplar in the definition order.
-  artifacts.push({
-    id: "design-system",
-    label: "Design system (presentation/theme/Theme.kt, Tokens.kt)",
-    files: [
-      kotlinFile(root, "commonMain", "presentation/theme/Theme.kt"),
-      kotlinFile(root, "commonMain", "presentation/theme/Tokens.kt"),
-    ].filter(Boolean),
-    complete: packageResolved,
-  });
-
-  artifacts.push({
-    id: "components",
-    label: "Components (presentation/components/*.kt)",
-    files: listComponentFiles(root),
-    complete: packageResolved,
-  });
-
-  // Feature designs (brief → design → spec → build, decided 2026-07-25): one
-  // `feature-design:<name>` per BRIEF with a UI surface — declared
-  // (`"screens": true` in the cmp:feature block, so the gate exists before any
-  // file does) or evident (presentation/<name>/*Screen.kt on disk). Signed on
-  // RENDERED output, never descriptions, BEFORE the behavior contract pins the
-  // form down. Briefs only, deliberately: legacy features (governed by
-  // exemplar-feature or nothing) never sprout retro-governance. With no screen
-  // files yet, `complete: false` — approveArtifact refuses, exactly right: you
-  // cannot sign a design that has nothing rendered.
-  for (const brief of listFeatureBriefs(root)) {
-    let declaresScreens = false;
-    try {
-      declaresScreens = parseFeatureBlock(fs.readFileSync(path.join(root, brief.rel), "utf8")).screens;
-    } catch {
-      /* an unreadable brief declares nothing */
-    }
-    const screenFiles = listFeatureScreenFiles(root, brief.name);
-    if (!declaresScreens && screenFiles.length === 0) continue;
-    artifacts.push({
-      id: `${FEATURE_DESIGN_PREFIX}${brief.name}`,
-      label: `Feature design (${brief.name} — presentation/${brief.name}/*Screen.kt, signed on rendered output)`,
-      files: screenFiles,
-      complete: packageResolved && screenFiles.length > 0,
-    });
+  const list = profile.artifacts(root);
+  if (!Array.isArray(list)) throw new Error(`profile "${profile.id}" artifacts(root) must return an array`);
+  const seen = new Set();
+  for (const a of list) {
+    if (!a || typeof a.id !== "string" || !a.id || !Array.isArray(a.files)) throw new Error(`profile "${profile.id}" returned a malformed artifact: ${JSON.stringify(a)}`);
+    if (seen.has(a.id)) throw new Error(`profile "${profile.id}" lists artifact "${a.id}" twice`);
+    seen.add(a.id);
   }
-
-  const specsDir = path.join(root, "specs");
-  if (fs.existsSync(specsDir)) {
-    const featureSpecs = fs
-      .readdirSync(specsDir)
-      .filter((f) => f.endsWith(".spec.md") && f !== "app-base.spec.md" && f !== `${exemplarF}.spec.md`)
-      .sort((a, b) => a.localeCompare(b));
-    for (const file of featureSpecs) {
-      const name = file.slice(0, -".spec.md".length);
-      artifacts.push({
-        id: `feature-spec:${name}`,
-        label: `Feature spec (specs/${file})`,
-        files: [`specs/${file}`],
-        complete: true,
-      });
-    }
-  }
-
-  return artifacts;
+  return list;
 }
 
 // ── Hashing (mirrors qa/lib/inputs-hash.mjs's computeInputsHash style) ───────
@@ -477,7 +314,7 @@ export function hashArtifactFiles(root, relFiles) {
 
 /**
  * The `architecture` artifact's hash basis (docs/proposals/architecture-document-
- * standard.md §4.4): `${ARCHITECTURE_SPEC_REL}`'s raw bytes + `${ARCH_DOC_REL_PATH}`
+ * standard.md §4.4): the structural spec's raw bytes + the architecture doc
  * with every `cmp:generated` marker's BODY stripped — `arch-doc.mjs`'s
  * `stripGeneratedSections` is the ONE definition of "generated" for that doc,
  * reused here rather than forked, so a new/changed marker id is understood
@@ -501,21 +338,22 @@ export function hashArtifactFiles(root, relFiles) {
  * `cmp:generated` marker itself (structural, not generated content) — changes
  * it, same as editing the spec.
  * @param {string} root
+ * @param {{specRel: string, docRel: string}} files which spec and which doc — the profile's
  * @returns {{ hash: string, fileCount: number, missing: string[] }}
  */
-export function hashArchitectureArtifact(root) {
+export function hashArchitectureArtifact(root, { specRel, docRel }) {
   const rows = [];
   const missing = [];
 
   try {
-    const specBytes = fs.readFileSync(path.join(root, ARCHITECTURE_SPEC_REL));
-    rows.push([ARCHITECTURE_SPEC_REL, createHash("sha256").update(specBytes).digest("hex")]);
+    const specBytes = fs.readFileSync(path.join(root, specRel));
+    rows.push([specRel, createHash("sha256").update(specBytes).digest("hex")]);
   } catch {
-    missing.push(ARCHITECTURE_SPEC_REL);
+    missing.push(specRel);
   }
 
   try {
-    const docRaw = fs.readFileSync(path.join(root, ARCH_DOC_REL_PATH), "utf8");
+    const docRaw = fs.readFileSync(path.join(root, docRel), "utf8");
     // Normalize line endings BEFORE stripping: the marker grammar
     // (`arch-doc.mjs`'s MARKER_BLOCK_RE) matches a literal `\n` right after
     // `-->`, so CRLF content would fail to match at all and nothing would be
@@ -523,9 +361,9 @@ export function hashArchitectureArtifact(root) {
     // hash itself.
     const docNormalized = docRaw.replace(/\r\n/g, "\n");
     const docStripped = stripGeneratedSections(docNormalized);
-    rows.push([ARCH_DOC_REL_PATH, createHash("sha256").update(docStripped, "utf8").digest("hex")]);
+    rows.push([docRel, createHash("sha256").update(docStripped, "utf8").digest("hex")]);
   } catch {
-    missing.push(ARCH_DOC_REL_PATH);
+    missing.push(docRel);
   }
 
   // Code-unit sort for the same reason as hashArtifactFiles: hash order must
@@ -539,9 +377,11 @@ export function hashArchitectureArtifact(root) {
 }
 
 /**
- * Recompute one artifact's hash — `hashArchitectureArtifact` for `architecture`
- * (spec + stripped doc, its own basis), `hashArtifactFiles(root, artifact.files)`
- * for every other artifact (raw file bytes). The ONE dispatch point
+ * Recompute one artifact's hash — the artifact's own `hash(root)` when the
+ * profile attached one (the architecture artifact: spec + stripped doc), the
+ * brief rule for `feature-brief:*` (declaration block stripped — a core
+ * mechanic, so a bare {id, files} brief still hashes right), else
+ * `hashArtifactFiles(root, artifact.files)` (raw file bytes). The ONE dispatch point
  * `resolveArtifactStatus`/`approveArtifact` both call, so the two never
  * disagree about what "the architecture artifact's hash" means.
  * @param {string} root
@@ -549,7 +389,7 @@ export function hashArchitectureArtifact(root) {
  * @returns {{ hash: string, fileCount: number, missing: string[] }}
  */
 function computeArtifactHash(root, artifact) {
-  if (artifact.id === "architecture") return hashArchitectureArtifact(root);
+  if (typeof artifact.hash === "function") return artifact.hash(root);
   if (artifact.id.startsWith(FEATURE_BRIEF_PREFIX)) return hashFeatureBriefArtifact(root, artifact);
   return hashArtifactFiles(root, artifact.files);
 }
@@ -602,9 +442,10 @@ function hashFeatureBriefArtifact(root, artifact) {
  * "unreviewed" and every exemplar lookup to the default (`home`). Never throws.
  *
  * `exemplarFeature` is `undefined` when the key is absent or not a non-empty
- * string — callers resolve the default (`getExemplarFeature`), never this
- * function directly, so every ledger written before this key existed keeps
- * meaning what it meant (GENESIS-FLOW-DESIGN.md §1).
+ * string — a profile that uses the key (mobile's configurable exemplar,
+ * profiles/cmp/artifacts.mjs getExemplarFeature) resolves its own default, never
+ * this function, so every ledger written before the key existed keeps meaning
+ * what it meant (GENESIS-FLOW-DESIGN.md §1).
  * @param {string} root
  * @returns {{ schema: string, artifacts: Array<{artifact: string, status: string, hash: (string|null), approvedAt: (string|null), mode?: string, reopenedAt?: string}>, exemplarFeature: (string|undefined) }}
  */
@@ -696,20 +537,6 @@ export function readJournal(root) {
     }
   }
   return events;
-}
-
-/**
- * The configured exemplar feature's lowercase name (the package-segment form,
- * e.g. `"home"`, `"favorites"`) — `qa/approvals.json`'s top-level
- * `exemplarFeature` key, defaulting to `"home"` when absent (GENESIS-FLOW-DESIGN.md
- * §1). This is the ONE function both `resolveExemplarNames` (registry) and
- * qa/scaffold-feature.mjs (clone-source resolution) call — never read the raw key
- * directly, so the default lives in exactly one place.
- * @param {string} root
- * @returns {string}
- */
-export function getExemplarFeature(root) {
-  return loadApprovals(root).exemplarFeature ?? "home";
 }
 
 /**
@@ -909,9 +736,9 @@ export function approveArtifact(root, artifactId, options = {}) {
     return {
       ok: false,
       reason:
-        `cannot approve "${artifactId}" — its file set cannot be fully resolved: the kotlin-rooted files are unresolvable because ` +
-        "the project package is not resolvable from composeApp/build.gradle.kts (likely the raw template or a pre-stamp tree — " +
-        `run this in a generated project); only ${resolved.fileCount} file(s) resolved. ` +
+        `cannot approve "${artifactId}" — its file set cannot be fully resolved: ` +
+        `${artifact.incompleteReason || "the profile marked it incomplete (typically the project is not yet stamped, so source-rooted files cannot be located)"}; ` +
+        `only ${resolved.fileCount} file(s) resolved. ` +
         "A partial or empty approval is vacuous (it attests nothing for the unresolved files) and is refused.",
     };
   }
