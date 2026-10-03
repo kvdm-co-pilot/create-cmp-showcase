@@ -29,7 +29,7 @@ const USAGE = `node qa/record-audit.mjs <subsystem> [--by <who-or-what>]
 Appends one audit record (subsystem, HEAD sha, ISO timestamp, recorder) to
 ${AUDITS_REL_PATH}. The verify lane's release profile reports which
 subsystems changed since their last record. Subsystems are derived from the
-tree: the immediate package directories under the androidMain Kotlin source
+tree: the immediate package directories under the platform source set
 root ("${ROOT_SUBSYSTEM}" for files directly at the package root).
 
   --list        print the derived subsystems and their audit status

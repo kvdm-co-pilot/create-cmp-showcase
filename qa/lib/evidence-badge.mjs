@@ -18,6 +18,12 @@
 // a FAIL says so, and a --fast run (which the ladder deliberately grants no
 // rung) says so rather than borrowing the last good one.
 //
+// And it never renders a rung without the PACK that graded it, which is the
+// same rule in the other axis: the commit says WHEN the claim was true, the
+// pack says WHOSE L2 it is. Until 2026-09-08 it printed the rung alone, so the
+// most-travelled surface this harness writes invited exactly the comparison
+// NORTH-STAR.md §8.9 forbids — one pack's L2 read as another's.
+//
 // Written by the lane AFTER the receipt (it is an output derived from the
 // receipt, never a gate), and committed alongside it.
 
@@ -94,10 +100,36 @@ export function renderEvidenceBadge(receipt) {
   const satisfied = Array.isArray(level.satisfiedBy) && level.satisfiedBy.length
     ? ` Earned by: ${level.satisfiedBy.map((s) => `\`${s}\``).join(", ")}.`
     : "";
+  // THE PACK TRAVELS WITH THE RUNG, in the badge itself and not only in the
+  // prose under it. NORTH-STAR.md §6.5 requires it of every surface that shows
+  // a rung, and §8.9 says why: one pack's L2 and another pack's L2 are
+  // different claims — one may mean a phone drove the app, another that a
+  // container held a real database. This badge is the surface that TRAVELS
+  // furthest (a GitHub repo page, a PR, a screenshot in a deck), so it is the
+  // one where a bare "L2" does the most damage: the reader who sees it has no
+  // receipt in front of them to check which ladder it was graded against.
+  //
+  // Only the ID. `pack.version` on a receipt is currently the harness lock's
+  // number rather than the profile's — docs/adr/0008-a-resolved-harness-is-
+  // still-a-vendored-one.md — so a badge that printed it would be publishing a
+  // borrowed fact on the most-quoted surface we own. The id is the part that
+  // carries the meaning, and the id is the profile's own.
+  //
+  // A receipt with no pack SAYS SO instead of rendering as though the question
+  // never arose — an unattributed rung is comparable to nothing, and hiding
+  // that is the overclaim this file exists to refuse.
+  const pack = typeof receipt.pack?.id === "string" && receipt.pack.id.trim() ? receipt.pack.id.trim() : null;
+  const message = pack ? `${pack} ${level.rung} ${level.name}` : `${level.rung} ${level.name}, pack unnamed`;
+  const comparability = pack
+    ? ` The rung is this pack's: \`${pack}\`'s ${level.rung} and another pack's ${level.rung} are different claims.`
+    : ` The receipt names no pack, so this rung cannot be compared with any other project's.`;
   return (
-    `${badge("evidence", `${level.rung} ${level.name}`, color, `Evidence ${level.rung} — ${level.name}`)}` +
+    // The alt text is a rung-bearing surface too — it is what a screen reader
+    // and a text-only renderer get instead of the image, so it carries the pack
+    // for the same reason the image does.
+    `${badge("evidence", message, color, `Evidence ${level.rung} — ${level.name}${pack ? ` (pack ${pack})` : " (pack unnamed)"}`)}` +
     ` — the verify lane passed${at}${on} at rung **${level.rung} · ${level.name}**.` +
-    `${satisfied}${uncommitted}` +
+    `${comparability}${satisfied}${uncommitted}` +
     ` The rung describes that run; it says nothing about changes made since.`
   );
 }
@@ -149,10 +181,10 @@ export function updateReadmeBadge(root) {
   // The same rule for the two other receipts qa/receipt-check.mjs refuses as
   // done-evidence: smoke (Rule 0 — proves the framework, never the change) and
   // nightly (proves the harness and the tree's invariants). Both derive no
-  // rung, and a smoke run — scripts/framework-check.mjs runs one on every
-  // scaffold — was rewriting a true L1 badge to "rung unrecorded". Found on
-  // 2026-09-03 by deriving the affected filter on a fresh app: README.md was
-  // the dirty file. Receipts predating `stage` are read by profile.
+  // rung, and a smoke run — qa/framework-check.mjs runs several, and restores
+  // this file afterwards — was rewriting a true L1 badge to "rung unrecorded".
+  // Found on 2026-09-03 by deriving the affected filter on a fresh app:
+  // README.md was the dirty file. Receipts predating `stage` are read by profile.
   const stage = receipt && (typeof receipt.stage === "string" ? receipt.stage : receipt.profile);
   if (stage === "smoke" || stage === "nightly") {
     return { changed: false, reason: `${stage} run — refused as done-evidence, so the badge is left as it stands` };

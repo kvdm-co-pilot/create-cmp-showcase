@@ -6,10 +6,10 @@
 // tarball rather than the working tree.
 //
 // SINGLE SOURCE OF TRUTH: packages/receipts/src/receipt-validate.mjs in the
-// create-cmp repo (the `@create-cmp/receipts` package). The copy in a generated
+// create-cmp repo (the `prooflane-receipts` package). The copy in a generated
 // project's qa/lib/ is vendored byte-identical at scaffold time and pinned by
 // test/receipts-parity.test.mjs — edit the package source, then run
-// `node scripts/sync-harness.mjs`.
+// `node scripts/sync-harness.mjs` in the create-cmp repo.
 //
 // See docs/adr/0005-evidence-binding-by-inputs-hash.md for the why.
 
@@ -74,20 +74,31 @@ export function checkLaneVouching(receipt) {
       detail: `the receipt's verdict is PASS but ${failed.length} step(s) did not pass: ${names} — the row is the more specific truth`,
     };
   }
-  const integrity = steps.find((s) => s && s.name === "harnessIntegrity");
+  // THE ROW THAT VOUCHES IS THE ROW CARRYING THE VOUCHING DATA, not the row with
+  // a particular name. This found a step named exactly `harnessIntegrity` — a
+  // name the cmp pack chose, that `REQUIRED_EXPORTS` never mentions, and that a
+  // profile author has no way to discover. A green lane whose self-vouching step
+  // was spelled `harness_integrity` minted receipts that were invalid FOREVER,
+  // in every reader, and the refusal accused the lane of not vouching for
+  // itself. The `harness` object on a step row is what the schema already
+  // documents as the integrity check's own findings, so it is the honest key.
+  // The name is kept as a fallback for receipts written before rows carried it.
+  const integrity = steps.find((s) => s && s.harness && typeof s.harness === "object") ?? steps.find((s) => s && s.name === "harnessIntegrity");
   if (!integrity) {
     return {
       ok: false,
-      detail: "receipt has no harnessIntegrity row — nothing vouches that the lane's own code is the code that ran",
+      detail:
+        "no step on this receipt vouches for the lane — no row carries a `harness` object and none is named harnessIntegrity, " +
+        "so nothing attests that the lane's own code is the code that ran",
     };
   }
   if (integrity.verdict !== "PASS") {
     return {
       ok: false,
-      detail: `harnessIntegrity is ${integrity.verdict}, not PASS — the lane did not vouch for itself, so its PASS over the tree cannot be trusted`,
+      detail: `${integrity.name ?? "the integrity step"} is ${integrity.verdict}, not PASS — the lane did not vouch for itself, so its PASS over the tree cannot be trusted`,
     };
   }
-  return { ok: true, detail: "lane vouched for itself (harnessIntegrity PASS, no failing rows)" };
+  return { ok: true, detail: `lane vouched for itself (${integrity.name ?? "integrity step"} PASS, no failing rows)` };
 }
 
 export function evaluateReceipt(receipt, recompute) {
@@ -97,6 +108,33 @@ export function evaluateReceipt(receipt, recompute) {
     return {
       valid: false,
       reason: `receipt predates evidence binding — re-run the lane (attesting profile: ${profile ?? "unknown"})`,
+      profile,
+    };
+  }
+
+  // WHICH PACK GRADED THIS — ADR-0011. §8.9's comparability rule rests entirely
+  // on this field ("a `cmp` L2 and any other pack's L2 are different claims"),
+  // and until now no predicate read it: remove `pack` and a receipt kept its
+  // rung while losing the only thing that says what the rung is a rung OF.
+  //
+  // REFUSED, not flagged, and the cost is known. A receipt written before the
+  // field existed (2026-09-04) is refused too, because nothing in a receipt can
+  // tell "never had one" from "had one, and it was removed" — and of those two
+  // errors, accepting tampering is the one a predicate exists to prevent. The
+  // remedy is the one the binding check above already offers for the same class
+  // of staleness, and costs the same: re-run the lane.
+  //
+  // This is deliberately NOT the ADR-0007 case. There a label moved and no
+  // assertion changed, so invalidating old receipts would have been pure loss.
+  // Here the receipt is genuinely missing the field that makes its rung mean
+  // something — it is not being punished for a name, it is being asked for a
+  // claim it never made.
+  if (!receipt.pack || typeof receipt.pack.id !== "string" || receipt.pack.id.length === 0) {
+    return {
+      valid: false,
+      reason:
+        `receipt names no step pack — re-run the lane (attesting profile: ${profile ?? "unknown"}). ` +
+        `A rung is comparable only within its pack, so a receipt that does not name one cannot be compared to any other`,
       profile,
     };
   }
@@ -146,12 +184,33 @@ export const DEFAULT_POLICY = {
   /** A receipt older than this no longer counts as fresh (hosted check only). */
   maxAgeMs: 30 * 24 * 60 * 60 * 1000, // 30 days
   /**
-   * Executed (non-SKIP) gates must report at least this much total wall time.
-   * A "PASS" receipt whose executed gates sum to less cannot attest a real
-   * lane run — the tell for replayed/cached or hand-written verdicts
-   * (evidence must attest execution, not results).
+   * An absolute wall-time floor for executed (non-SKIP) gates. `null` — OFF by
+   * default, and that is a decision rather than an omission.
+   *
+   * This was 5000, with the reasoning that a PASS receipt summing to less
+   * cannot attest a real lane run: the tell for a replayed/cached green or a
+   * hand-written verdict. That reasoning holds for a Gradle lane and is FALSE
+   * for a Go service, a Rust crate, a Python package or a TypeScript library,
+   * whose lanes honestly finish in hundreds of milliseconds. Those adopters
+   * were told their evidence was fabricated — the one accusation this product
+   * cannot afford to make wrongly.
+   *
+   * The number was not the defect. ONE receipt carries nothing that could
+   * justify any number: no start time, no top-level duration, no baseline —
+   * `generatedAt` is a timestamp, not an interval — so nothing on it can be
+   * cross-checked against anything else on it. A floor is therefore a fact
+   * about the STACK, and this module does not know the stack. It is the
+   * notary's to set, from data the notary has and the receipt does not: a
+   * lane that has taken thirty seconds every day for a month and today claims
+   * forty-two milliseconds is a real finding, and it is a finding about a
+   * HISTORY, not about a receipt.
+   *
+   * What is lost, said plainly: a hand-written receipt claiming small
+   * durations is no longer refused here. It was never much of a defence — a
+   * forger types a larger number — and every stack-independent check that
+   * does catch fabrication is untouched below.
    */
-  minExecutedMs: 5000,
+  minExecutedMs: null,
 };
 
 /**
@@ -176,9 +235,15 @@ export function checkFreshness(receipt, { now = Date.now(), maxAgeMs = DEFAULT_P
 }
 
 /**
- * Execution plausibility: do the executed (non-SKIP) gates report durations a
- * real lane run could produce? Catches replayed/cached greens and hand-edited
- * receipts whose numbers were never lived.
+ * Execution plausibility: did this lane execute anything, and are its numbers
+ * real numbers?
+ *
+ * Three refusals, all stack-independent and all about the SHAPE of the
+ * evidence rather than its size: a receipt with no steps, a receipt whose every
+ * step is a SKIP or an ERROR (neither measured anything), and a step whose
+ * duration is not a finite non-negative number. An absolute wall-time floor is
+ * a fourth check and is OFF unless a caller sets `minExecutedMs` — see
+ * DEFAULT_POLICY for why a default one is a claim about the stack.
  * @returns {{ok: boolean, detail: string, executedMs?: number, executedSteps?: number}}
  */
 export function checkExecutionPlausibility(receipt, { minExecutedMs = DEFAULT_POLICY.minExecutedMs } = {}) {
@@ -200,10 +265,13 @@ export function checkExecutionPlausibility(receipt, { minExecutedMs = DEFAULT_PO
     }
     total += step.durationMs;
   }
-  if (total < minExecutedMs) {
+  // Applied only when a caller supplies one. The message attributes the floor
+  // to whoever set it and states the measurement, rather than asserting that a
+  // fast receipt cannot be real — which this module has no way to know.
+  if (typeof minExecutedMs === "number" && minExecutedMs > 0 && total < minExecutedMs) {
     return {
       ok: false,
-      detail: `implausibly fast — executed gates report ${total}ms total, below the ${minExecutedMs}ms floor; a receipt this fast cannot attest a real lane run (evidence must attest execution)`,
+      detail: `executed gates report ${total}ms total, below this validator's configured ${minExecutedMs}ms floor — for a fast stack that may be honest, so treat it as a finding to explain rather than proof of fabrication`,
       executedMs: total,
       executedSteps: executed.length,
     };
@@ -224,6 +292,129 @@ export function listSkippedSteps(receipt) {
     .map((s) => ({ name: s.name ?? "?", reason: s.reason ?? "no reason recorded" }));
 }
 
+/** The rung order every ladder shares (the schema's enum). */
+const RUNG_ORDER = ["L0", "L1", "L2", "L3"];
+
+/**
+ * Which of a receipt's rungs a party other than its producer vouches for, and
+ * which rest on the producer's word alone (docs/adr/0017). A REPORT, never a
+ * verdict: nothing here changes what `evaluateReceipt` or `checkDoneEvidence`
+ * decide.
+ *
+ * THE MARKER IS NOT IN THE RECEIPT, AND CANNOT BE. An attestation covers the
+ * receipt's bytes, so writing it into the receipt afterwards would change the
+ * bytes it covers; and any field the producer writes — `attestation`,
+ * `producedBy: "ci"` — is the producer's word again, which is the very gap
+ * this reports (a hand-edited receipt passes every check that reads it). So
+ * the only thing that moves a rung to "attested" is `attestedThrough`: the
+ * highest rung a CALLER has checked an attestation for, outside this file
+ * (e.g. `gh attestation verify` over the CI run's own receipt). A caller that
+ * has checked nothing passes nothing, and every rung is self-attested.
+ *
+ * @param {object} receipt the receipt as read
+ * @param {{attestedThrough?: string|null}} [opts] the highest rung an
+ *   independently verified attestation covers; rungs at or below it are
+ *   attested, rungs above it are self-attested
+ * @returns {{claimed: string[], attested: string[], selfAttested: string[], line: string}}
+ */
+export function attestationStanding(receipt, { attestedThrough = null } = {}) {
+  const rung = receipt?.evidenceLevel?.rung;
+  const top = RUNG_ORDER.indexOf(typeof rung === "string" ? rung : "");
+  const claimed = top < 0 ? [] : RUNG_ORDER.slice(0, top + 1);
+  const through = RUNG_ORDER.indexOf(typeof attestedThrough === "string" ? attestedThrough : "");
+  const attested = claimed.filter((r) => RUNG_ORDER.indexOf(r) <= through);
+  const selfAttested = claimed.filter((r) => RUNG_ORDER.indexOf(r) > through);
+  const list = (rs) => (rs.length ? rs.join(", ") : "none");
+  const line = claimed.length
+    ? `attestation — CI-attested: ${list(attested)} · self-attested: ${list(selfAttested)}`
+    : "attestation — no rung claimed, nothing to attest";
+  return { claimed, attested, selfAttested, line };
+}
+
+/** How a refusal names the lane when its caller does not spell it. */
+export const DEFAULT_LANE_COMMAND = "node qa/verify.mjs";
+
+/**
+ * THE DONE-EVIDENCE REFUSALS — a receipt that binds to its tree and says PASS
+ * can still be no proof that a change is done, and says so about itself. Four
+ * shapes, each refused with a named reason:
+ *
+ *   - `mode: "fast"` — verify --fast is an inner-loop signal, never done evidence;
+ *   - `stage` or `profile` `nightly` — it proves the harness under a forced
+ *     double-run, never a change;
+ *   - `stage` or `profile` `smoke` — the framework check (GATE-RULES Rule 0)
+ *     runs no build and no tests: it proves the instrument, not the change;
+ *   - any step SKIPped with `skipKind: "environment"` — a tier that COULD have
+ *     run and did not is a gap a human can close (2026-09-03). A `structure`
+ *     SKIP — this project has no such tier at all — is honest and allowed.
+ *
+ * ONE SOURCE OF TRUTH (KD-266). These lived only in the harness's
+ * qa/receipt-check.mjs, before it called this library, so a hosted validator
+ * calling only the library (validateReceiptForTree) said "valid" to all six
+ * shapes. The done-check now calls this; the reasons are its words.
+ *
+ * A SKIP WITH NO `skipKind` IS NOT REFUSED BY DEFAULT. Not every current SKIP
+ * carries one — the cmp profile's tokenDrift "inspector endpoint not reachable"
+ * SKIP, emitted on every headless L2 run, does not (KD-5) — and refusing the
+ * unlabelled would refuse every such receipt. Receipts predating `skipKind`
+ * (0.19.0 and earlier) were judged by reason text, and those texts and step
+ * names are a PROFILE's, never this stack-agnostic library's: a caller that
+ * holds the profile passes them as `legacySkips`; a caller that does not
+ * (a hosted validator) gets no legacy fallback. A fallback that guessed would
+ * be worse than none.
+ *
+ * @param {object} receipt the parsed receipt
+ * @param {object} [opts]
+ * @param {string} [opts.laneCommand] how the refusal names the lane (default `node qa/verify.mjs`)
+ * @param {{names?: string[], reasons?: string[]}|null} [opts.legacySkips] a profile's pre-`skipKind`
+ *   fallback: an unlabelled SKIP of a step in `names` whose reason contains any of `reasons` is
+ *   environmental. Applied only when both are non-empty.
+ * @returns {{ok: boolean, refusal: (null|"fast-mode"|"nightly"|"smoke"|"environment-skip"), detail: string}}
+ */
+export function checkDoneEvidence(receipt, { laneCommand = DEFAULT_LANE_COMMAND, legacySkips = null } = {}) {
+  const lane = `\`${laneCommand}\``;
+  if (receipt?.mode === "fast") {
+    return {
+      ok: false,
+      refusal: "fast-mode",
+      detail: `the last verify run was --fast (inner-loop only); run the full lane (${lane}) before finishing`,
+    };
+  }
+  if (receipt?.stage === "nightly" || receipt?.profile === "nightly") {
+    return {
+      ok: false,
+      refusal: "nightly",
+      detail: `the last verify run was the nightly stage (it proves the harness, not this change); run the change-stage lane (${lane}) before finishing`,
+    };
+  }
+  if (receipt?.stage === "smoke" || receipt?.profile === "smoke") {
+    return {
+      ok: false,
+      refusal: "smoke",
+      detail: `the last verify run was the smoke profile (the framework check — no build, no tests; it proves the instrument, not this change); run the change-stage lane (${lane}) before finishing`,
+    };
+  }
+  const names = Array.isArray(legacySkips?.names) ? legacySkips.names : [];
+  const reasons = Array.isArray(legacySkips?.reasons) ? legacySkips.reasons.map(String) : [];
+  const legacyEnvironmental = (s) =>
+    names.length > 0 && reasons.length > 0 && names.includes(s.name) && reasons.some((r) => String(s.reason ?? "").includes(r));
+  const envSkipped = (Array.isArray(receipt?.steps) ? receipt.steps : []).filter((s) => {
+    if (!s || s.verdict !== "SKIP") return false;
+    if (s.skipKind) return s.skipKind === "environment";
+    return legacyEnvironmental(s);
+  });
+  if (envSkipped.length) {
+    return {
+      ok: false,
+      refusal: "environment-skip",
+      detail:
+        `a tier did not run — ${envSkipped.map((s) => `${s.name}: ${String(s.reason ?? "").split("\n")[0]}`).join("; ")}. ` +
+        `Those steps skipped for an environmental reason, not because this project lacks them; fix the cause and run ${lane} again before finishing`,
+    };
+  }
+  return { ok: true, refusal: null, detail: "done evidence — a full change-stage run with no environment SKIP" };
+}
+
 /**
  * The hosted composite: validate the receipt found in an extracted repo tree
  * (e.g. a tarball at a PR's head SHA) with the full service-grade policy.
@@ -232,6 +423,8 @@ export function listSkippedSteps(receipt) {
  * @param {string} args.root absolute path to the extracted tree's project root
  * @param {number} [args.now] epoch ms, for freshness (defaults to Date.now())
  * @param {object} [args.policy] overrides for DEFAULT_POLICY
+ * @param {{names?: string[], reasons?: string[]}|null} [args.legacySkips] a profile's pre-`skipKind`
+ *   SKIP fallback, handed to checkDoneEvidence; omitted, no legacy fallback applies
  * @returns {{
  *   status: "missing"|"valid"|"invalid",
  *   reason: string,
@@ -240,14 +433,14 @@ export function listSkippedSteps(receipt) {
  *   skips: Array<{name: string, reason: string}>,
  * }}
  */
-export function validateReceiptForTree({ root, now = Date.now(), policy = {} } = {}) {
+export function validateReceiptForTree({ root, now = Date.now(), policy = {}, legacySkips = null } = {}) {
   const effective = { ...DEFAULT_POLICY, ...policy };
   const receipt = readReceipt(root);
 
   if (receipt === null) {
     return {
       status: "missing",
-      reason: `no receipt at ${RECEIPT_REL_PATH} — this repo does not carry the create-cmp evidence harness (that is not a failure)`,
+      reason: `no receipt at ${RECEIPT_REL_PATH} — this repo does not carry the prooflane evidence harness (that is not a failure)`,
       checks: [{ id: "receipt-present", ok: false, detail: `no parsable receipt at ${RECEIPT_REL_PATH}` }],
       skips: [],
     };
@@ -255,6 +448,13 @@ export function validateReceiptForTree({ root, now = Date.now(), policy = {} } =
 
   const checks = [{ id: "receipt-present", ok: true, detail: RECEIPT_REL_PATH }];
   const skips = listSkippedSteps(receipt);
+
+  // The done-evidence refusals the harness's own done-check applies (KD-266),
+  // so a notary refuses what the Stop hook refuses — with one stated exception:
+  // a pre-`skipKind` receipt's environmental SKIP is judged by the profile's
+  // reason text, and a caller that passes no `legacySkips` cannot judge it.
+  const done = checkDoneEvidence(receipt, { legacySkips });
+  checks.push({ id: "done-evidence", ok: done.ok, detail: done.detail });
 
   // The core predicate (binding + verdict + hash), verbatim local semantics.
   const core = evaluateReceipt(receipt, () => computeInputsHash(root));

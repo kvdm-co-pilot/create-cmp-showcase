@@ -32,13 +32,22 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { computeInputsHash, undeclaredTopLevel } from "./lib/inputs-hash.mjs";
-import { evidenceLevel } from "./lib/evidence-level.mjs";
+import { gradeEvidence } from "./lib/evidence-level.mjs";
+import { evidenceLadderFor } from "./lib/evidence-ladder.mjs";
 import { updateReadmeBadge, README_REL_PATH } from "./lib/evidence-badge.mjs";
+// The `--html` snapshot (LIVE-CONSOLE.md D3a) and the Rule 0 record it reports
+// beside the run. Both are OUTPUTS derived from artifacts — neither can change
+// a verdict, and the second is only ever read.
+import { SNAPSHOT_REL, snapshotHtml } from "./lib/evidence-html.mjs";
+import { readFrameworkRecord } from "./lib/framework-record.mjs";
 import { appendFlightRecord, buildFlightEntry, neverRunTiers, readFlightJournal } from "./lib/flight-recorder.mjs";
-import { StepTimeout, androidChecksOutcome, spawnTimedOut } from "./lib/step-outcomes.mjs";
-import { expectedDurations, runLane } from "./lib/lane-runner.mjs";
-import { createCmpSteps } from "./lib/steps-cmp.mjs";
+import { StepTimeout, spawnTimedOut } from "./lib/step-outcomes.mjs";
+import { expectedDurations, runLane, stepDisplayName } from "./lib/lane-runner.mjs";
+import { resolveHarnessManifest } from "./lib/harness-manifest.mjs";
+import { loadProfile, loadProfileSync } from "./lib/profile-loader.mjs";
+import { laneMarkerPath, laneStepsPath } from "./lib/lane-markers.mjs";
 import { checkHarnessIntegrity, describeIntegrity, LOCK_PATH } from "./lib/harness-lock.mjs";
+import { readHarnessSource } from "./lib/harness-source.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -51,7 +60,7 @@ const ARTIFACTS_DIR = path.join(ROOT, "qa-artifacts");
 // killed). Same refusal-over-fabrication stance as qa/approve.mjs, which
 // refuses an unknown artifact by name rather than guessing: an unknown
 // argument here is refused by name, not swallowed into "run everything".
-const USAGE = `node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json] [--help]
+const USAGE = `node qa/verify.mjs [--profile smoke|scaffold|local|ci|nightly|release] [--fast] [--json] [--html] [--help]
 
 The verify lane — this project's single verification gate. Runs every
 verification step this project carries, aggregates a typed PASS/FAIL
@@ -62,22 +71,19 @@ Flags:
   --profile <smoke|scaffold|local|ci|nightly|release>
                                  which step set to run (default: local)
   --fast                         INNER LOOP ONLY — run the resolved profile
-                                  minus the device/release tier (releaseBuild,
-                                  tokenDrift, e2eSmoke, androidChecks,
-                                  releaseSmoke), unconditionally, device
-                                  attached or not. Also reuses the pure-Node
-                                  steps' last PASS when their inputs are
-                                  unchanged (verdict CACHED), lets Gradle's
-                                  up-to-date checks stand (no --rerun), and
-                                  scopes unit tests to the working-tree change
-                                  (broad-impact changes run everything). The
+                                  minus this pack's expensive tier (named
+                                  under "This project" below), unconditionally,
+                                  device attached or not. Also reuses the
+                                  pure-Node steps' last PASS when their inputs
+                                  are unchanged (verdict CACHED), and lets the
+                                  pack scope its own build and test steps to
+                                  the working-tree change. The
                                   receipt records mode "fast", derives no
                                   evidence rung, and can NEVER satisfy the
                                   done-gate — run the full lane once before
                                   you call it done
-  --determinism                  run the timezone determinism probe: the JVM
-                                  test tier (unit + golden + the other
-                                  desktop suites) executes TWICE, under
+  --determinism                  run the timezone determinism probe: the
+                                  pack's host test tier executes TWICE, under
                                   TZ=Etc/GMT+12 (UTC-12) and TZ=Etc/GMT-14
                                   (UTC+14), and the probe FAILs naming every
                                   test whose verdict or failure output
@@ -97,32 +103,82 @@ Flags:
                                   output
   --json                         print the receipt as JSON instead of the
                                   human-readable step-by-step log
+  --events                       one NDJSON object per finished step, on STDERR.
+                                 stdout keeps its contract (one receipt with --json);
+                                 stderr carries progress. Combine them freely.
+                                 The same objects are ALSO appended to
+                                 qa/.lane-steps.ndjson (truncated per run,
+                                 gitignored) so a console that was not running
+                                 can still render the run afterwards.
+  --html                         also write qa/evidence/latest.html — this run
+                                 as ONE self-contained page: no server, no
+                                 script, no external fetch, so it opens from a
+                                 file:// URL and attaches to a PR. Opt-in on
+                                 purpose (docs/proposals/LIVE-CONSOLE.md D3a);
+                                 writing it every run was rejected as churn
   --help, -h                     print this usage and exit 0 without
                                   running anything
 
-Profiles:
-  smoke     the smallest end-to-end lane: every pure-Node gate through the real
-            runner, receipt and journal — no Gradle, no device. Seconds. Proves the
-            FRAMEWORK returns, both ways; never the change (its receipt is refused
-            as done-evidence). Driven by scripts/framework-check.mjs.
-  scaffold  spec coverage + build + unit tests (what \`create-cmp --verify\`
-            proves at stamp time)
-  local     everything; device-dependent steps SKIP when no device is
-            attached
+Profiles — WHAT EACH ONE IS FOR. Which steps each runs is your profile's, and
+they are listed under "This project" below.
+  smoke     the smallest end-to-end lane: the pack's pure-Node gates only,
+            through the real runner, receipt and journal. Seconds. Proves the
+            FRAMEWORK returns, both ways; never the change (its receipt is
+            refused as done-evidence). Driven by qa/framework-check.mjs.
+  scaffold  what a stamp-time verify proves — enough to trust a fresh tree
+  local     everything; steps needing a resource this host lacks SKIP, and the
+            reason is recorded rather than swallowed
   ci        everything; SKIPs are recorded so the pipeline stays honest
-  nightly   everything ci proves with the determinism probe FORCED ON (it doubles
-            the JVM test tier — the budget a scheduled run has and a per-change run
-            does not). Proves the HARNESS, not a change: its receipt is refused as
-            done-evidence by qa/receipt-check.mjs. Schedule it; never wait on it.
-  release   everything ci proves PLUS the release-APK smoke (releaseSmoke) —
-            the ship-time profile; run it before cutting a release, never
-            per-change
+  nightly   everything ci proves with the determinism probe FORCED ON (it
+            doubles the host test tier — the budget a scheduled run has and a
+            per-change run does not). Proves the HARNESS, not a change: its
+            receipt is refused as done-evidence by qa/receipt-check.mjs.
+            Schedule it; never wait on it.
+  release   everything ci proves PLUS the pack's ship-time step; run it before
+            cutting a release, never per-change
 `;
+
+/**
+ * What THIS project's lane actually runs, appended to the neutral usage above.
+ *
+ * The help text used to enumerate a Compose app's step names — releaseBuild,
+ * tokenDrift, e2eSmoke, androidChecks — so `--help` in any other repo
+ * described a lane that repo does not have. The step names belong to the pack,
+ * so they are read from it. A project with no usable manifest still gets full
+ * help plus the one line that says why the rest is missing: `--help` must
+ * never refuse, and must never invent a lane either.
+ * @param {string} root
+ * @returns {string}
+ */
+function projectSection(root) {
+  const manifest = resolveHarnessManifest(root);
+  if (!manifest.ok) return `\nThis project:\n  ${manifest.reason}\n`;
+  const loaded = loadProfileSync(root, manifest.manifest.profile);
+  if (!loaded.ok) return `\nThis project:\n  ${loaded.reason}\n`;
+  let pack;
+  try {
+    pack = loaded.profile.steps({
+      ROOT: root, HERE: path.join(root, "qa"), fast: false, determinism: false, profile: "local", mode: "full",
+      sh: () => ({ ok: true, out: "" }), tryGit: () => null, tryGitLines: () => [], DEGRADED_PATHS: [],
+    });
+  } catch (err) {
+    return `\nThis project:\n  profile "${loaded.profile.id}" could not describe its steps: ${err && err.message ? err.message : String(err)}\n`;
+  }
+  const names = (fns) => (Array.isArray(fns) ? fns.map((fn) => stepDisplayName(fn)).filter(Boolean) : []);
+  const lines = [`\nThis project (profile "${loaded.profile.id}"):`];
+  for (const [name, fns] of Object.entries(pack.stepsForProfile ?? {})) {
+    const list = names(fns);
+    if (list.length) lines.push(`  ${name.padEnd(9)} ${list.join(", ")}`);
+  }
+  const excluded = Array.isArray(pack.FAST_EXCLUDED_NAMES) ? pack.FAST_EXCLUDED_NAMES : [];
+  if (excluded.length) lines.push(`  --fast omits: ${excluded.join(", ")}`);
+  return `${lines.join("\n")}\n`;
+}
 
 const rawArgs = process.argv.slice(2);
 
 if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
-  console.log(USAGE);
+  console.log(USAGE + projectSection(ROOT));
   process.exit(0);
 }
 
@@ -132,7 +188,7 @@ if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
 // save without ever running the lane. test/verify-flags.test.mjs now pins
 // consumed ⊆ recognized and watch's spawn ⊆ recognized so the class cannot
 // recur.
-const RECOGNIZED_FLAGS = new Set(["--profile", "--json", "--fast", "--determinism", "--no-journal"]);
+const RECOGNIZED_FLAGS = new Set(["--profile", "--json", "--fast", "--determinism", "--no-journal", "--events", "--html"]);
 for (let i = 0; i < rawArgs.length; i += 1) {
   const arg = rawArgs[i];
   if (arg === "--profile") {
@@ -147,6 +203,58 @@ for (let i = 0; i < rawArgs.length; i += 1) {
 const args = rawArgs;
 const profile = args.includes("--profile") ? args[args.indexOf("--profile") + 1] : "local";
 const asJson = args.includes("--json");
+// Step events go to STDERR, deliberately. `--json` prints ONE object on stdout
+// and both qa/watch.mjs and qa/refusal-demo.mjs parse it that way; interleaving
+// step lines there would break every existing reader for the benefit of a new
+// one. stdout stays the result, stderr becomes the progress — the oldest
+// convention there is, and it lets a caller consume both at once.
+const asEvents = args.includes("--events");
+// The shareable snapshot (docs/proposals/LIVE-CONSOLE.md D3a, 2026-09-09): this
+// run as one self-contained file beside the receipt. OPT-IN — D3b, writing it
+// on every run, was rejected as churn, and this flag is the whole of that
+// decision. It is an OUTPUT derived from the receipt, exactly like the README
+// badge: written after the verdict, unable to change one.
+const asHtml = args.includes("--html");
+// The same events, ALSO left behind as an artifact (docs/proposals/LIVE-CONSOLE.md
+// Phase B, decided 2026-09-09). stderr reaches whoever is holding the pipe;
+// qa/.lane-steps.ndjson reaches whoever arrives afterwards — a console that
+// was not running when the lane ran still renders the run, because the file is
+// still on disk. That is the whole reason the console TAILS a file instead of
+// the lane PUSHING to a console: the console never becomes the thing that runs
+// the lane, and every value on its page is read from an artifact.
+//
+// TRUNCATED at the start of each run, so the file is exactly one run: bounded
+// on a watcher that runs the fast lane on every save, and unambiguous for the
+// reader (the last `run/start` line wins).
+//
+// WHERE it goes is qa/lib/lane-markers.mjs's to say, beside the in-flight
+// marker and for the same reasons — it is transient lane state, not evidence,
+// so it is gitignored, excluded from the receipt's hashed input surface, and a
+// lane OUTPUT for the fast filter. One spelling of the path: the lane writes
+// it, the console reads it, and neither may guess where the other put it.
+const STEPS_STREAM_PATH = laneStepsPath(ROOT);
+const appendStepStream = asEvents
+  ? (obj, { truncate = false } = {}) => {
+      try {
+        fs.mkdirSync(path.dirname(STEPS_STREAM_PATH), { recursive: true });
+        const line = `${JSON.stringify(obj)}\n`;
+        if (truncate) fs.writeFileSync(STEPS_STREAM_PATH, line);
+        else fs.appendFileSync(STEPS_STREAM_PATH, line);
+      } catch {
+        /* an unwritable qa/ must never fail the lane it narrates */
+      }
+    }
+  : null;
+const emitStepEvent = asEvents
+  ? (obj) => {
+      try {
+        process.stderr.write(`${JSON.stringify(obj)}\n`);
+      } catch {
+        /* a blocked or closed stderr must never fail the lane */
+      }
+      appendStepStream(obj);
+    }
+  : null;
 const fast = args.includes("--fast");
 // --no-journal suppresses the flight-recorder append (qa/watch.mjs passes it).
 // See the append site below for why the inner loop must not write here.
@@ -180,19 +288,9 @@ if (determinism && profileExplicit && profile !== "ci" && profile !== "release")
   process.exit(2);
 }
 
-const GRADLEW = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
-
-// ── `--rerun` is scoped to FULL mode ────────────────────────────────────────
-// `--rerun` exists for evidence integrity (see stepUnitTests's comment): it
-// stops Gradle's build cache replaying a PASS recorded against a different
-// tree into a receipt that claims tests executed. That mechanism belongs to
-// the runs that produce integrity-bearing artifacts — and a --fast run does
-// not: its receipt already declares itself non-evidence (mode "fast", no
-// evidence rung, refused by qa/receipt-check.mjs), so forcing execution there
-// paid an integrity tax to protect an artifact with nothing to protect. Fast
-// mode therefore omits the flag and lets Gradle's up-to-date/cache machinery
-// do its job; full mode keeps it, byte-identical to before.
-const RERUN = fast ? "" : " --rerun";
+// `--rerun` (evidence integrity: no build cache replaying a PASS from a
+// different tree) is the pack's to apply — it knows its build tool. The pack
+// reads `fast` from ctx and scopes the flag to FULL mode itself.
 
 // The running step's deadline (evidence-economics S4). Set by the step loop
 // before each step from the journal's measured duration for it; every
@@ -204,8 +302,8 @@ let CURRENT_STEP_DEADLINE_MS = 30 * 60_000;
 
 function sh(cmd, opts = {}) {
   const started = Date.now();
-  // maxBuffer: first-run Gradle output easily exceeds spawnSync's 1MB default,
-  // which would surface as a bogus FAIL (status null / ENOBUFS).
+  // maxBuffer: a build tool's first-run output easily exceeds spawnSync's 1MB
+  // default, which would surface as a bogus FAIL (status null / ENOBUFS).
   const res = spawnSync(cmd, {
     shell: true,
     cwd: ROOT,
@@ -223,23 +321,13 @@ function sh(cmd, opts = {}) {
   return { ok, status: res.status, error: res.error?.message, out: `${res.stdout ?? ""}${res.stderr ?? ""}`, durationMs: Date.now() - started };
 }
 
-// ── Preview-daemon coexistence ──────────────────────────────────────────────
-// The preview daemon (the eyes) and this lane both spawn Gradle against this
-// project and share composeApp/build/kspCaches, whose KSP incremental storage
-// is single-owner — two concurrent builds throw "Storage for [...] is already
-// registered" and one side dies. Three defenses, all automatic:
-//   1. COORDINATE (this lane -> the daemon): this lane stamps a marker file
-//      for its duration; the preview service defers renders while it exists
-//      (mtime-bounded, so a crashed lane never wedges the eyes for long).
-//   2. COORDINATE (the daemon -> this lane), the symmetric half: the daemon
-//      stamps its OWN marker for the duration of a render's Gradle build;
-//      shGradle waits for it to clear (or go stale) before launching this
-//      lane's own Gradle command — same mtime-bounded shape, so a crashed
-//      daemon never wedges the lane for long either.
-//   3. SELF-HEAL: a Gradle step that still hits the collision clears kspCaches
-//      and retries once — the manual recovery that always worked, automated.
-const LANE_MARKER = path.join(ROOT, "composeApp", "build", ".cmp-lane-in-progress");
-const KSP_COLLISION_RE = /Storage for \[[^\]]*\] is already registered/;
+// ── The lane marker ─────────────────────────────────────────────────────────
+// Stamped for the run's duration and rewritten at every step start (the
+// narration the narrator, the watcher, the Stop hook and the chain view read).
+// Core state, under qa/, beside the agent hold — qa/lib/lane-markers.mjs.
+// Coexistence with the eyes' own builds (the render marker, the KSP self-heal)
+// is the pack's: it knows its build tool and its build directory.
+const LANE_MARKER = laneMarkerPath(ROOT);
 
 // Degraded-path activations observed during this run — self-heals and
 // fallbacks that kept the lane moving without failing it. Collected for the
@@ -248,49 +336,6 @@ const KSP_COLLISION_RE = /Storage for \[[^\]]*\] is already registered/;
 // quietly rotting under a green lane — and only a journal can tell those
 // two apart.
 const DEGRADED_PATHS = [];
-
-// The daemon's half of defense 2 above — pid + ISO timestamp, mirroring
-// LANE_MARKER's own content shape (see where LANE_MARKER is stamped, below).
-const RENDER_MARKER = path.join(ROOT, "composeApp", "build", ".cmp-render-in-progress");
-const RENDER_MARKER_FRESH_MS = 5 * 60 * 1000; // older than this = a crashed daemon's stale marker, ignore it
-const RENDER_WAIT_TIMEOUT_MS = 3 * 60 * 1000; // give up waiting after this long regardless
-const RENDER_WAIT_POLL_MS = 2000;
-
-/**
- * Defer this lane's next Gradle command while the preview daemon's render
- * marker is present AND fresh (mtime younger than RENDER_MARKER_FRESH_MS).
- * Polls every RENDER_WAIT_POLL_MS; gives up and proceeds anyway after
- * RENDER_WAIT_TIMEOUT_MS, or the moment the marker disappears or goes stale —
- * whichever comes first. A missing/unreadable marker returns immediately:
- * this is a coexistence courtesy, never a hard dependency on the daemon.
- */
-function waitForRenderMarker() {
-  const deadline = Date.now() + RENDER_WAIT_TIMEOUT_MS;
-  for (;;) {
-    let stat;
-    try {
-      stat = fs.statSync(RENDER_MARKER);
-    } catch {
-      return; // no render in flight
-    }
-    if (Date.now() - stat.mtimeMs >= RENDER_MARKER_FRESH_MS) return; // gone stale
-    if (Date.now() >= deadline) return; // waited long enough — proceed regardless
-    sh(`sleep ${RENDER_WAIT_POLL_MS / 1000}`);
-  }
-}
-
-function shGradle(cmd, opts = {}) {
-  waitForRenderMarker();
-  const first = sh(cmd, opts);
-  if (first.ok || !KSP_COLLISION_RE.test(first.out)) return first;
-  console.error("· KSP cache collision (concurrent Gradle — the preview daemon?) — clearing kspCaches, retrying once");
-  fs.rmSync(path.join(ROOT, "composeApp", "build", "kspCaches"), { recursive: true, force: true });
-  const retry = sh(cmd, opts);
-  retry.durationMs += first.durationMs;
-  retry.selfHealed = "ksp-cache-collision";
-  DEGRADED_PATHS.push("ksp-cache-collision: cleared kspCaches and retried the Gradle step");
-  return retry;
-}
 
 function tryGit(cmd) {
   try {
@@ -316,13 +361,42 @@ function tryGitLines(cmd) {
   }
 }
 
-// ── The step pack (qa/lib/steps-cmp.mjs, evidence-economics S8b) ─────────────
-// Every step this lane runs, behind one factory that borrows the spine's
-// helpers explicitly. Swap the pack and the same spine verifies a different
-// kind of project.
-const pack = createCmpSteps({ ROOT, HERE, GRADLEW, RERUN, fast, determinism, profile, mode, sh, shGradle, tryGit, tryGitLines, DEGRADED_PATHS });
+// ── The stack profile (qa/harness-manifest.json → qa/lib/profiles/<id>/) ─────
+// Every step this lane runs comes from the profile the MANIFEST names, loaded
+// by id — never imported by name. This runner does not know what Compose is;
+// it knows the shape of a profile (qa/lib/profile-loader.mjs) and asks the
+// project which one it uses. No manifest, no profile, no lane: there is no
+// default, and each refusal names the command that fixes it. Refused before a
+// single step runs, on the same exit code as an unknown argument — the lane
+// was asked to do something it cannot honestly do.
+const manifest = resolveHarnessManifest(ROOT);
+if (!manifest.ok) {
+  console.error(manifest.reason);
+  process.exit(2);
+}
+const loaded = await loadProfile(ROOT, manifest.manifest.profile);
+if (!loaded.ok) {
+  console.error(loaded.reason);
+  process.exit(2);
+}
+const pack = loaded.profile.steps({ ROOT, HERE, fast, determinism, profile, mode, sh, tryGit, tryGitLines, DEGRADED_PATHS });
 const { stepsForProfile, DEVICE_STEPS, FAST_EXCLUDED_NAMES, STEP_FN_BY_NAME } = pack;
 
+// ── The evidence ladder, resolved once, before a step runs ──────────────────
+// The ladder has TWO spellings — the profile's top-level `ladder` and the
+// pack's `evidenceLadder` — and this line used to read only the second one,
+// while the Stop hook read only the first. Both spellings are legitimate and
+// qa/lib/evidence-ladder.mjs carries the argument for the precedence; what was
+// not legitimate is that a profile declaring only the spelling `harness init`
+// SEEDS was graded at no rung with nothing said about it. Resolved here rather
+// than at the grading call so the refusal — two declarations that disagree —
+// lands before any work is done, and so the rung the receipt records and the
+// rung a no-lane reader would compute come from the same bytes.
+const resolvedLadder = evidenceLadderFor(loaded.profile, pack);
+if (!resolvedLadder.ok) {
+  console.error(resolvedLadder.reason);
+  process.exit(2);
+}
 
 if (!stepsForProfile[profile]) {
   console.error(`Unknown profile "${profile}" — use smoke | scaffold | local | ci | nightly | release.`);
@@ -334,8 +408,8 @@ if (!stepsForProfile[profile]) {
 // qa/evidence/latest.json. The done-gate (qa/receipt-check.mjs) validates a
 // receipt by verdict + content hash — a receipt whose steps are one probe
 // would satisfy it while attesting almost nothing, so a probe-only run must
-// never mint one. The lane marker IS still stamped: the probe runs Gradle
-// and owes the preview daemon the same coexistence courtesy as the lane.
+// never mint one. The lane marker IS still stamped: the probe runs the pack's
+// own build steps and owes every other watcher the same courtesy as the lane.
 if (determinism && !profileExplicit) {
   fs.mkdirSync(path.dirname(LANE_MARKER), { recursive: true });
   fs.writeFileSync(LANE_MARKER, `${process.pid} ${new Date().toISOString()}\n`);
@@ -356,19 +430,17 @@ if (determinism && !profileExplicit) {
 }
 
 // ── --fast: the inner loop, mechanically unable to claim done ───────────────
-// The genuinely slow tier is device/release work — every DEVICE_STEPS entry
-// (Gradle install + emulator + Maestro + instrumented runner) plus
-// releaseBuild (R8 + lintVital, the slow release COMPILE). --fast filters
-// that tier out of whatever profile resolved, UNCONDITIONALLY — device
-// attached or not — so a small change gets its did-I-break-anything-obvious
-// signal in JVM time. The rest of the profile still runs — but cheaply: the
-// pure-Node steps reuse an unchanged PASS from the step cache (CACHED — see
-// the memoization block above), the Gradle test steps drop --rerun (see
-// RERUN above), and unitTests scopes itself to the working-tree change
-// (see stepUnitTests). The loophole is closed at the receipt, not by
-// convention: mode "fast" is
-// recorded, no evidence rung is derived (qa/lib/evidence-level.mjs), and
-// qa/receipt-check.mjs refuses a fast receipt as done evidence.
+// The genuinely slow tier is the pack's own: whatever it names in
+// FAST_EXCLUDED_NAMES — whichever steps THIS profile calls expensive. --fast
+// filters that tier out of whatever profile resolved, UNCONDITIONALLY — so a
+// small change gets its did-I-break-anything-obvious signal without paying
+// for the expensive half. The rest of the profile still runs, but cheaply:
+// the pure-Node steps reuse an unchanged PASS from the step cache (CACHED —
+// see the memoization block above), and the pack scopes its own test steps to
+// the working-tree change (it reads `fast` from ctx). The loophole is closed
+// at the receipt, not by convention: mode "fast" is recorded, no evidence
+// rung is derived (qa/lib/evidence-level.mjs), and qa/receipt-check.mjs
+// refuses a fast receipt as done evidence.
 const FAST_EXCLUDED_FNS = new Set(FAST_EXCLUDED_NAMES.map((name) => STEP_FN_BY_NAME[name]));
 const laneSteps = fast
   ? stepsForProfile[profile].filter((fn) => !FAST_EXCLUDED_FNS.has(fn))
@@ -381,7 +453,7 @@ if (fast) {
   console.error(
     [
       "⚡⚡ FAST MODE — INNER LOOP ONLY, NOT THE DONE-GATE ⚡⚡",
-      `   skipping the device/release tier: ${fastExcluded.join(", ") || "(none in this profile)"}`,
+      `   skipping this profile's expensive steps: ${fastExcluded.join(", ") || "(none in this profile)"}`,
       '   this run\'s receipt records mode "fast", earns no evidence rung, and can NEVER satisfy "done"',
       "   run the full lane once (node qa/verify.mjs) before you finish",
     ].join("\n"),
@@ -411,6 +483,29 @@ const expectedByStep = (() => {
     return { byName: new Map(), laneMs: null }; // narration is optional; the lane never depends on its own journal
   }
 })();
+// The stream's opening line, written BEFORE the first step runs. It is what
+// makes the file readable rather than merely appendable: a reader learns the
+// run's identity (so an arriving row can be told from the previous run's), how
+// many steps there are, and their NAMES — which is the only way a console can
+// say "unitTests — not yet" instead of inventing a placeholder for a step it
+// cannot name. Nothing here is a claim about the run's outcome.
+const RUN_ID = `${laneStartedAt}-${process.pid}`;
+const RUN_STARTED_AT = new Date(laneStartedAt).toISOString();
+if (appendStepStream) {
+  appendStepStream(
+    {
+      event: "run",
+      phase: "start",
+      runId: RUN_ID,
+      startedAt: RUN_STARTED_AT,
+      profile,
+      mode,
+      total: laneSteps.length,
+      steps: laneSteps.map((fn) => stepDisplayName(fn)).filter(Boolean),
+    },
+    { truncate: true },
+  );
+}
 const lane = runLane({
   steps: laneSteps,
   markerPath: LANE_MARKER,
@@ -423,26 +518,107 @@ const lane = runLane({
   // Human runs print a row per step and get the pulse; --json gets neither
   // (a narrator during a machine run is a lane doing something unasked).
   print: asJson ? null : (line) => console.log(line),
+  // One NDJSON line per finished step, on stderr, only when asked. A console
+  // can append a row while the lane runs instead of learning the whole story
+  // from the receipt after it ends.
+  onStep: emitStepEvent
+    ? (result, { index, total }) =>
+        emitStepEvent({
+          event: "step",
+          // Which run this row belongs to, and when it landed. Both exist for
+          // the reader that arrives LATER (the artifact's whole point): the id
+          // tells an appended row from the previous run's, and the instant is
+          // how the next step's elapsed time is counted without the console
+          // keeping a clock of its own.
+          runId: RUN_ID,
+          at: new Date().toISOString(),
+          index,
+          total,
+          name: result.name,
+          verdict: result.verdict,
+          durationMs: result.durationMs ?? null,
+          // What this step USUALLY costs, from this project's own flight
+          // journal. It rides along because "impossibly fast" is meaningless
+          // without it: a 6ms gate and a 52-second build are both suspicious
+          // at 10x under their own history and at no fixed number
+          // (evidence-must-attest-execution — a build cache can replay a PASS).
+          expectedMs: expectedByStep.byName.get(result.name) ?? null,
+          layer: result.layer ?? null,
+          // The step's own words, never this file's: a note explains a SKIP and
+          // a reason explains a FAIL, and rewording either is how a console
+          // starts telling a story the lane did not.
+          note: result.note ?? null,
+          // VERBATIM, newlines and all. This used to be the first line only,
+          // which was right while stderr's only reader was a terminal and
+          // wrong the moment the events became the console's FAIL row:
+          // LIVE-CONSOLE.md requires that row to show "the tool's own reason
+          // and its own fix, verbatim", and a reason truncated at the emitter
+          // cannot be shown verbatim anywhere downstream. The human one-line
+          // row is still one line — that truncation belongs to `print` above,
+          // not to the machine event.
+          reason: result.reason ? String(result.reason) : null,
+        })
+    : null,
   narrator: { entry: path.join(HERE, "lib", "lane-narrator.mjs"), root: ROOT },
   // The device lease (if a device step took it) is held to the very end of the
   // run — see the scope decision at leaseDeviceForStep. Release is idempotent
   // and never deletes a foreign holder's lease.
   onFinally: () => pack.releaseLease(),
+  // WHICH step's failure makes every verdict behind it meaningless is the
+  // PACK's to name, never the spine's to guess (lane-runner.mjs's
+  // compileShortCircuit). Passed unconditionally, so the KEY is always present:
+  // presence is what tells the runner "this caller knows about the
+  // declaration", and a pack that declares nothing then short-circuits on
+  // NOTHING rather than inheriting another stack's step name. Writing
+  // `pack.compileStepName ?? "build"` here would put the literal back and
+  // undo the fix.
+  compileStepName: pack.compileStepName,
+  // How long a step may take before it is wedged — the pack's judgement about
+  // its own toolchain, never the spine's about somebody else's. A pack that
+  // declares none gets the fallback and its ERROR rows say so.
+  stepDeadlines: pack.stepDeadlines,
 });
 const steps = lane.steps;
+// The stream's closing line. It is what lets a reader tell a lane that is
+// still running from a lane that DIED: an open stream that has gone silent
+// past the harness's own lane-marker bound is reported as stopped, never as
+// forever-running, and a step is never called "pending" (LIVE-CONSOLE §3.2).
+// `completed` is written from the rows the lane actually produced, so a
+// short-circuited run (a compile FAIL that made the rest meaningless) says so
+// instead of leaving the remainder looking like work still to come.
+if (appendStepStream) {
+  appendStepStream({
+    event: "run",
+    phase: "end",
+    runId: RUN_ID,
+    endedAt: new Date().toISOString(),
+    verdict: lane.verdict,
+    durationMs: lane.durationMs ?? null,
+    completed: steps.length,
+    total: laneSteps.length,
+  });
+}
 // CACHED counts as PASS for the lane verdict (it IS a prior PASS, reused only
 // in fast mode on an unchanged input set) — but it stays CACHED on the
 // receipt, visibly distinct. ERROR fails the lane: "I could not check this" is
 // not green; only the ACCUSATION is withheld. (laneVerdict, qa/lib/lane-runner.mjs)
 const verdict = lane.verdict;
 
-// Receipt STRENGTH — a desktop-only green and an on-device green are different
-// claims, and the difference should never live only in the SKIP lines. Device-
-// dependent steps that actually RAN (PASSed) are named on the receipt and in the
-// verdict line: "PASS (on-device: e2eSmoke)" vs "PASS (desktop-only)".
-// (DEVICE_STEPS itself is defined above the lane — it also drives --fast.)
+// Receipt STRENGTH — a green that reached the harder tier and a green that did
+// not are different claims, and the difference should never live only in the
+// SKIP lines. Which steps needed a resource the host may not have is the pack's
+// (DEVICE_STEPS, which also drives --fast); those that actually RAN are named on
+// the receipt.
+//
+// THE LABEL IS THE PACK'S TOO. The core used to compose it here, and its
+// negative case was the word "desktop-only" — printed on the verdict line of
+// every lane in every repo, including a backend service with no desktop and no
+// device. A profile could name its device steps and still could not name the
+// CATEGORY, so the most-read string the lane emits asserted a stack fact the
+// core has no way to know. Now the core prints what it is handed and prints
+// NOTHING when it is handed nothing: silence is honest, a borrowed noun is not.
 const onDeviceSteps = steps.filter((s) => DEVICE_STEPS.includes(s.name) && s.verdict === "PASS").map((s) => s.name);
-const strengthLabel = onDeviceSteps.length ? `on-device: ${onDeviceSteps.join("+")}` : "desktop-only";
+const strengthLabel = typeof pack.strengthLabel === "function" ? pack.strengthLabel(onDeviceSteps) : null;
 
 // Receipt RUNG — the evidence ladder (qa/lib/evidence-level.mjs): the coarse,
 // named grade (L0 scaffold / L1 desktop / L2 device / L3 release) DERIVED from
@@ -450,10 +626,20 @@ const strengthLabel = onDeviceSteps.length ? `on-device: ${onDeviceSteps.join("+
 // fine print; the rung is added alongside, never in place of it. null on FAIL —
 // a failed lane has no rung. null on a --fast run too: the inner loop is a
 // signal, never evidence, so a fast receipt derives NO rung at all.
-// The ladder is the PACK's: a pack that declares none earns no rung (a
-// backend graded by Compose step names was L0 by construction — wrong, not
-// conservative).
-const level = evidenceLevel(steps, profile, { mode, ladder: pack.evidenceLadder ?? null });
+// The ladder is the PROFILE's, in either of the two places a profile may
+// declare it (resolved above, qa/lib/evidence-ladder.mjs): a profile that
+// declares none in either earns no rung (a backend graded by another stack's
+// step names was L0 by construction — wrong, not conservative).
+//
+// AND THE BADGE FLOOR: the profile's `plants` declaration goes to the grader
+// too, because a ladder is a vocabulary and plants are what prove the steps
+// under it still bite. A profile shipping none earns NO rung however green its
+// lane (NORTH-STAR §8.9, §6.7, §3's third *never*) — measured on two adopters
+// differing in exactly one export, both of which earned L1 until 2026-09-08.
+// `.why` is the sentence for a rung that is absent: derived by the same call,
+// so the grade and its explanation can never disagree.
+const grade = gradeEvidence(steps, profile, { mode, ladder: resolvedLadder.ladder, plants: loaded.profile.plants });
+const level = grade.level;
 
 // Artifacts: hash whatever the run left under qa-artifacts/ (never committed).
 const artifacts = [];
@@ -488,6 +674,13 @@ function harnessForReceipt() {
     status: r.status,
     intact: r.status === "intact",
   };
+  // PROVENANCE (ADR-0008): where these bytes came from, when the tree records
+  // it. Omitted entirely when unrecorded — absent means "not known", and every
+  // receipt minted before the record existed is in that state. Never defaulted
+  // to `local`, which would invent an origin for all of them. It is reported,
+  // never consulted: no verdict, gate or level reads this field.
+  const provenance = readHarnessSource(ROOT);
+  if (provenance?.source) summary.source = provenance.source;
   if (r.status === "modified") {
     summary.modified = r.modified;
     summary.missing = r.missing;
@@ -516,8 +709,15 @@ if (undeclared.length) {
 // ci → merge, nightly → nightly (proves the harness, never a change), release →
 // release. Receipts predating this field are read as their profile's stage.
 const STAGE_OF_PROFILE = { smoke: "smoke", scaffold: "scaffold", local: "change", ci: "merge", nightly: "nightly", release: "release" };
+// Computed once: `harness` and `pack` both read it, and checkHarnessIntegrity
+// hashes the whole region.
+const harnessSummary = harnessForReceipt();
 const receipt = {
-  schema: "cmp-evidence/1",
+  // ADR-0007: the format name is ROUTING METADATA, not part of the claim, so
+  // this rename asserts nothing new and expires nothing old. Readers accept
+  // both names for the life of /1; `cmp-evidence/1` stopped being WRITTEN here
+  // and never stops being READ.
+  schema: "prooflane-evidence/1",
   profile,
   stage: STAGE_OF_PROFILE[profile] ?? profile,
   // "full" is the done-gate; "fast" (--fast) excluded the device/release tier
@@ -547,7 +747,20 @@ const receipt = {
   // checksum, not a signature, and someone who edits the lane can edit this
   // too. What they cannot edit is what the registry published under that
   // version, which is why `version` + `sha256` travel together.
-  harness: harnessForReceipt(),
+  harness: harnessSummary,
+  // WHICH PACK produced these rows. `harness` says which lane ran; `pack` says
+  // which step pack the lane loaded — and the two can differ once a profile is
+  // versioned on its own. Without this a cmp L2 and a backend pack's L2 are the
+  // same bytes on the wire and an auditor cannot tell "device e2e passed" from
+  // "integration tests passed" (AGNOSTIC-HARNESS-ARCHITECTURE.md §8). Named
+  // `pack` because `profile` is taken by the RUN profile (scaffold/local/ci/…);
+  // the collision is resolved at schema/2, not here. The pack declares its id;
+  // its version is the lock's until the profile loader gives it its own.
+  // ADR-0008 (accepted 2026-09-08): the pack's version is the PROFILE'S OWN —
+  // `export const version` — or null. Never the harness lock's number, which is
+  // a version of the wrong thing: a profile declaring 0.3.1 was minting receipts
+  // that said 0.20.0 (NORTH-STAR §9.2).
+  pack: { id: pack.id, version: typeof loaded.profile?.version === "string" ? loaded.profile.version : null },
   strength: { onDeviceSteps },
   evidenceLevel: level,
   artifacts,
@@ -559,7 +772,13 @@ const receipt = {
 };
 
 fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
-fs.writeFileSync(path.join(EVIDENCE_DIR, "latest.json"), `${JSON.stringify(receipt, null, 2)}\n`);
+// A fast run writes its own file. Before 2026-09-08 it wrote latest.json, so a
+// resident watcher's next pass overwrote the checkpoint's receipt with a fast
+// one the Stop hook refuses — the agent had done everything right and was told
+// it had not. latest-fast.json is never committed (template gitignore) and is
+// read by nothing that grades; latest.json stays the single receipt-of-record.
+const RECEIPT_FILE = fast ? "latest-fast.json" : "latest.json";
+fs.writeFileSync(path.join(EVIDENCE_DIR, RECEIPT_FILE), `${JSON.stringify(receipt, null, 2)}\n`);
 // latest.json is the single receipt-of-record. Commit it with your change: the
 // studio console's Evidence audit trail reconstructs the full history from the
 // git log of this file — every commit is one verified, attributed state.
@@ -569,6 +788,31 @@ fs.writeFileSync(path.join(EVIDENCE_DIR, "latest.json"), `${JSON.stringify(recei
 // renders the rung together with the commit it was attested against, so the
 // sentence stays true as the tree moves on (qa/lib/evidence-badge.mjs).
 const badge = updateReadmeBadge(ROOT);
+
+// ── The shareable snapshot (LIVE-CONSOLE.md D3a) ────────────────────────────
+// One file, no server, opens from a file:// URL. Derived from the receipt just
+// written plus the two artifacts the console's own rows read — the profile's
+// ladder (already resolved above, before a step ran) and Rule 0's record, if
+// this tree has one. A failed write is a note, never a verdict: this is an
+// output like the badge, and a renderer that could fail a lane would be the
+// recorder breaking the thing it observes.
+const snapshot = (() => {
+  if (!asHtml) return null;
+  try {
+    const html = snapshotHtml({
+      receipt,
+      ladder: resolvedLadder.ladder,
+      frameworkRecord: readFrameworkRecord(ROOT),
+      appName: path.basename(ROOT),
+    });
+    const rel = fast ? SNAPSHOT_REL.replace("latest.html", "latest-fast.html") : SNAPSHOT_REL;
+    fs.writeFileSync(path.join(ROOT, ...rel.split("/")), html);
+    return { ok: true, rel };
+  } catch (err) {
+    return { ok: false, reason: err && err.message ? err.message : String(err) };
+  }
+})();
+if (snapshot && !snapshot.ok) console.error(`  ⓘ --html: could not write the snapshot — ${snapshot.reason}`);
 
 // ── Flight recorder (roadmap §10 item 5) — the lane journals its own run ────
 // One JSON line per run into qa/flight-recorder.jsonl (committed, and
@@ -598,6 +842,9 @@ const flight = noJournal
         mode,
         verdict,
         evidenceLevel: level,
+        // The grader travels with the grade — §8.9's comparability rule is
+        // unenforceable in a journal that records rungs without packs.
+        pack: { id: pack.id },
         steps,
         sha: receipt.commit.sha,
         durationMs: Date.now() - laneStartedAt,
@@ -618,10 +865,29 @@ if (asJson) {
   // Deliberately NOT the full lane's verdict-line shape: fast-green must never
   // be mistakable for done-green.
   console.log(
-    `\n${verdict === "PASS" ? "⚡⚡" : "❌"} verify lane [FAST — INNER LOOP ONLY, NOT DONE]: ${verdict} (skipped device/release tier: ${fastExcluded.join(", ") || "none"}) — this fast receipt satisfies no done-gate; run the full lane (node qa/verify.mjs) once before you finish`,
+    `\n${verdict === "PASS" ? "⚡⚡" : "❌"} verify lane [FAST — INNER LOOP ONLY, NOT DONE]: ${verdict} (skipped: ${fastExcluded.join(", ") || "none"}) — this fast receipt satisfies no done-gate; run the full lane (node qa/verify.mjs) once before you finish`,
   );
 } else {
-  console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict}${level ? ` · ${level.rung} ${level.name}` : ""} (${strengthLabel}) — receipt written to qa/evidence/latest.json${badge.changed ? ` and ${README_REL_PATH}'s evidence badge refreshed` : ""} (commit ${badge.changed ? "them" : "it"} with your change)`);
+  // The rung NEVER appears without the pack that defines it. §8.9 makes one
+  // pack's L2 and another's different claims that must be "shown as such", and
+  // this is the line an agent reads on every single run — the surface where a
+  // bare rung would do the most quiet damage. Only the pack's ID: `pack.version`
+  // is the profile's own or null (ADR-0008), and a null is not worth a column.
+  console.log(`\n${verdict === "PASS" ? "✅" : "❌"} verify lane: ${verdict}${level ? ` · ${level.rung} ${level.name} · pack ${pack.id}` : ""}${strengthLabel ? ` (${strengthLabel})` : ""} — receipt written to qa/evidence/latest.json${badge.changed ? ` and ${README_REL_PATH}'s evidence badge refreshed` : ""} (commit ${badge.changed ? "them" : "it"} with your change)`);
+  // A GREEN LANE THAT EARNED NO RUNG SAYS WHY, on the line a human is already
+  // reading. Silence here is the exact shape of the defect that cost a foreign
+  // author their grade — a lane that passed, a rung that never appeared, and
+  // nothing anywhere connecting the two (NORTH-STAR §9.2). On a FAILed lane the
+  // absence explains itself, so this stays quiet and lets the red row speak.
+  if (verdict === "PASS" && !level && grade.why) console.log(`  ⓘ ${grade.why}`);
+}
+
+// The snapshot is NAMED when it was asked for — a file written silently is a
+// file nobody attaches to anything. Outside the verdict branches, so a --fast
+// run that asked for one is told where its own file went (latest-fast.html) as
+// plainly as a full run is; `--json` stays one object on stdout.
+if (!asJson && snapshot && snapshot.ok) {
+  console.log(`  ⓘ snapshot written to ${snapshot.rel} — one self-contained page, no server`);
 }
 
 // A TIER THAT HAS NEVER RUN HERE. A SKIP is non-fatal by design — absence of a

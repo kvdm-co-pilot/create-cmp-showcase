@@ -130,8 +130,9 @@ only — release builds contain no inspector code.
 **iOS:** `cd iosApp && xcodegen generate && pod install`, then open
 `iosApp.xcworkspace` in Xcode and run. (First time: `brew install xcodegen`.)
 
-**Firebase:** the scaffold ships a placeholder `google-services.json`. Wire your real project
-before shipping — from Claude Code, the `cmp-firebase-connect` skill drives it end to end.
+**Firebase:** not part of this scaffold. `npx create-cmp-cli add firebase` adds it — the GitLive SDK,
+the debug-build emulator redirect, and your real `google-services.json` (or a mock config that
+says it is one). From Claude Code, the `cmp-firebase-connect` skill drives it end to end.
 
 ## Project structure
 
@@ -158,6 +159,7 @@ docs/                        architecture, testing, ADRs
 | [`docs/adr/`](./docs/adr/) | Architecture decision records |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Workflow, definition of done, commit style |
 | [`CLAUDE.md`](./CLAUDE.md) | The AI delivery contract |
+| [`.claude/rules/`](./.claude/rules/), [`.claude/skills/`](./.claude/skills/) | What the contract loads only when it applies: the approvals, comments and lane rules (by the files they govern) and the walk, UI-loop and generator skills |
 | [`CHANGELOG.md`](./CHANGELOG.md) | Notable changes (Keep a Changelog) |
 
 ## Verification
@@ -166,20 +168,46 @@ Every change must pass the verify lane (`node qa/verify.mjs`) and commit its upd
 (`qa/evidence/latest.json`). CI re-runs the same lane on every push — see
 [`.github/workflows/verify.yml`](./.github/workflows/verify.yml).
 
+The committed receipt is written on your machine, so it is your machine's word. CI's own receipt
+is signed by GitHub for the run that produced it (an artifact attestation, keyless — on public
+repositories only, since private ones need GitHub Enterprise Cloud; the step is skipped there), and
+`gh attestation verify <file> --repo <owner>/<repo>` checks it, where `<file>` is the `latest.json`
+inside a run's downloaded `verify-evidence` artifact — not the committed file, whose timestamps
+differ from CI's. The L1 check is
+CI-attested; the L2 verdict is the machine's word until CI runs that tier.
+`node qa/receipt-check.mjs` prints which rungs are which.
+
+To make the check binding, require it on your default branch with no bypass:
+`gh api -X POST repos/{owner}/{repo}/rulesets --input qa/ruleset.json`. The ruleset requires the
+status check `android`, the job name in `verify.yml`; rename one and you must rename the other.
+The JSON's shape has not been checked against GitHub's rulesets API yet, so read the response:
+a 422 names the field it refused.
+
 ## Verification enforcement
 
 For AI sessions using Claude Code, a **Stop hook** (`.claude/settings.json`) makes
 `CLAUDE.md`'s definition of done mechanical instead of honor-system.
 
 **What it does:** when a session tries to end, the hook runs
-`node qa/receipt-check.mjs --hook`. That script recomputes a sha256 hash over the project's
+`qa/receipt-check.mjs --hook` through `qa/hooks/fail-closed.sh`, which turns a gate that
+crashes, finds no `node`, or outlives its own deadline into a named refusal rather than a
+silent pass (a hard kill by Claude Code itself still lets the stop through). The paths are anchored to the
+project root because Claude Code runs a hook in the *session's* working directory, which is not
+always this one — a session opened in a subdirectory would otherwise fail to find the script.
+(`:-.` means an unset `CLAUDE_PROJECT_DIR` falls back to the current directory, so the hook is
+never worse off than a plain relative path.) That script recomputes a sha256 hash over the project's
 verified surface (`composeApp/`, `specs/`, `qa/`, and the Gradle build files — see
 `qa/lib/inputs-hash.mjs`) and compares it to the `inputs.hash` in the committed
 `qa/evidence/latest.json`. A `PASS` receipt whose hash matches the tree ends the session
 silently. Source changed without a fresh `PASS` — or a missing, failed, or pre-mechanism
 receipt — blocks with the specific reason and asks for `node qa/verify.mjs` plus a committed
 receipt. It runs no build and no tests, only file hashing, so it costs milliseconds, and it
-never fires twice in a row for the same stop.
+never fires twice in a row for the same stop. Each session also opens with one derived line,
+`node qa/gates-status.mjs --line`, naming which gates are active here — the Stop hook, the
+pre-push hook (`.githooks` on or off), and the CI Verify workflow (whether GitHub requires it is
+unknown locally unless an authenticated `gh` answers). Edits to the gate's own files
+(`qa/receipt-check.mjs`, `qa/lib/`, `qa/evidence/`, `qa/hooks/`, `.githooks/`) ask for your approval
+first.
 
 Doc-only edits (`*.md`, `README`, `.github/`, `.claude/`) are deliberately outside the
 verified surface: editing docs never invalidates a good receipt. The intent is transparent

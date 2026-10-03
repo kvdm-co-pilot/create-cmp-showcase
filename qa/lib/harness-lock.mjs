@@ -8,19 +8,27 @@
 //              Answered LOCALLY, offline, on every lane run. Needs nothing
 //              but the tree and this file.
 //
-//   AUTHENTICITY  "is my lane the real published @create-cmp/harness@X?"
-//              Answered REMOTELY, on request, by comparing this file's
-//              `sha256` against the published version's — `create-cmp
-//              upgrade --harness` does it, and so can any third party
-//              holding a receipt.
+//   AUTHENTICITY  "is my lane the real published prooflane-harness@X?"
+//              NOT ANSWERED ANYWHERE IN THIS REPO — see below. The per-file
+//              map this lock records is what such a check would compare
+//              against a published artifact; nothing performs the comparison.
 //
-// Being honest about that split matters. Someone who edits the lane AND
-// rewrites this lock defeats the local check — of course they do; it is a
-// checksum, not a signature. What it cannot survive is the remote comparison,
-// because the attacker cannot change what the registry published under that
-// version number. Local integrity catches the accident and the drift (an
-// agent "fixing" a lane file, a half-applied upgrade); the remote comparison
-// catches the lie. Neither claim is stretched to cover the other's job.
+// Being honest about that split matters, and this comment was not. It used to
+// say `create-cmp upgrade --harness` performed the remote comparison. It does
+// not and never has: that command reads the version out of a LOCAL
+// packages/harness/package.json and re-locks from local bytes
+// (src/commands/upgrade.mjs:410-413). The only registry call in the tree packs
+// `create-cmp-cli@<v>` as an upgrade's merge base. So the sentence promising
+// that "the attacker cannot change what the registry published" described a
+// defence that does not exist — in the module whose whole job is to be precise
+// about which question it answers, which is the failure this harness exists to
+// refuse (ADR-0008, which found it).
+//
+// What is true: someone who edits the lane AND rewrites this lock defeats the
+// local check — of course they do; it is a checksum, not a signature. Local
+// integrity catches the accident and the drift (an agent "fixing" a lane file,
+// a half-applied upgrade). It catches no lie, and until a remote comparison is
+// built, nothing here does.
 //
 // The lock is deliberately NOT a .mjs file, so it is not part of the region it
 // describes — a manifest inside its own manifest could never settle.
@@ -30,10 +38,16 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { hashHarnessRegion, compareHarnessRegion } from "./harness-region.mjs";
+import { hashHarnessRegion, compareHarnessRegion, isAdopterOwned } from "./harness-region.mjs";
 
 export const LOCK_PATH = "qa/harness.lock.json";
-export const LOCK_SCHEMA = "cmp-harness-lock/1";
+// ADR-0007 deferred this one with a condition: the lock's schema string
+// "finishes that journey with the package work, not in this PR". That work has
+// landed — the lock has written `name: "prooflane-harness"` since the package
+// rename, which is the split ADR-0007 itself pointed at as observable in the
+// tree. The condition is met, so the journey finishes here. Nothing reads the
+// field; `readHarnessLock` parses the file and never inspects it.
+export const LOCK_SCHEMA = "prooflane-harness-lock/1";
 
 /**
  * Read the lock, or null when it is absent or unparsable. An unreadable lock
@@ -61,7 +75,7 @@ export function readHarnessLock(root) {
  * @param {{name?: string, version: string}} harness identity to record
  * @returns {{sha256: string, fileCount: number}}
  */
-export function writeHarnessLock(root, { name = "@create-cmp/harness", version }) {
+export function writeHarnessLock(root, { name = "prooflane-harness", version }) {
   if (typeof version !== "string" || version.length === 0) {
     throw new Error("writeHarnessLock: a harness version is required");
   }
@@ -109,6 +123,8 @@ export function checkHarnessIntegrity(root) {
       missing: [],
       extra: [],
       fileCount: region.fileCount,
+      engineFiles: region.engineFiles,
+      vacuous: region.engineFiles === 0,
     };
   }
 
@@ -123,6 +139,12 @@ export function checkHarnessIntegrity(root) {
     missing: cmp.missing,
     extra: cmp.extra,
     fileCount: region.fileCount,
+    // ADR-0010: how much of this region is the LANE, and whether it is a lane
+    // at all. `status` is deliberately untouched — a region of three
+    // declarations genuinely IS unmodified since it was locked; it is simply
+    // not a lane, and that is a different question from the one status answers.
+    engineFiles: region.engineFiles,
+    vacuous: region.engineFiles === 0,
   };
 }
 
@@ -133,15 +155,66 @@ export function checkHarnessIntegrity(root) {
  * @returns {string}
  */
 export function describeIntegrity(r) {
+  // ADR-0010, AND THIS IS THE REACHABLE HALF OF IT. `status` is honest — a
+  // region of declarations really is unmodified since it was locked — so a
+  // caller rendering that status alone says "N files verified" over a lane that
+  // holds no lane. Every caller that checks a tree it does not LIVE in reaches
+  // this: `create-cmp upgrade --harness` and `harden` print it over an
+  // arbitrary project directory, `prooflane upgrade` over the adopter's root,
+  // and a hosted checker over a repo it fetched. The shipped lane cannot (it
+  // derives its root from its own location, so its own module is always in the
+  // region) — which is exactly why the fix belongs in the shared voice rather
+  // than in one step.
+  if (r.vacuous) {
+    return `${r.name ?? "harness"} ${r.version ?? "?"} — ${r.fileCount} file(s) locked and NONE of them engine code: this is not a lane, and nothing here can vouch for one`;
+  }
   if (r.status === "intact") {
-    return `${r.name ?? "harness"} ${r.version ?? "?"} — ${r.fileCount} files verified`;
+    // The region digest rides beside the version: two lanes can carry the same
+    // package version with different content (create-cmp-showcase, 2026-09-03 —
+    // seven files changed, "0.16.0" on both receipts), and a receipt must name
+    // WHICH lane produced it in words a human reads, not only in the lock file.
+    const region = typeof r.sha256 === "string" && r.sha256 ? ` (region ${r.sha256.slice(0, 8)})` : "";
+    return `${r.name ?? "harness"} ${r.version ?? "?"}${region} — ${r.fileCount} files verified`;
   }
   if (r.status === "unlocked") {
     return `no ${LOCK_PATH} — this app's lane version is unrecorded`;
   }
+  // NAME THE FILES. This used to report counts only — "1 unrecorded" — while
+  // holding the paths in `r.extra` and never showing them. The first adopter to
+  // hit it was following our own README, whose step 1 writes a file that is in
+  // HARNESS_DECLARATIONS: a correct refusal they could not act on, because the
+  // one fact that makes it actionable was in the object and not in the sentence.
+  // Evidence-or-silence: a gate that refuses names what it refused over.
   const parts = [];
-  if (r.modified.length) parts.push(`${r.modified.length} modified`);
-  if (r.missing.length) parts.push(`${r.missing.length} missing`);
-  if (r.extra.length) parts.push(`${r.extra.length} unrecorded`);
-  return `${r.name ?? "harness"} ${r.version ?? "?"} — ${parts.join(", ")}`;
+  const show = (list, label) => {
+    if (!list.length) return;
+    const head = list.slice(0, 3).join(", ");
+    parts.push(`${list.length} ${label}: ${head}${list.length > 3 ? `, +${list.length - 3} more` : ""}`);
+  };
+  show(r.modified, "modified");
+  show(r.missing, "missing");
+  show(r.extra, "unrecorded");
+  // WHICH command helps depends on WHOSE files differ, and the two answers are
+  // opposites. An adopter editing their own profile or declaration is doing the
+  // one thing the harness tells them to do (the profile header says "This file
+  // is YOURS"), and the cure is to re-take the lock. A machine-owned file
+  // differing is a fork, and re-taking the lock over THAT would make every
+  // later receipt vouch for code the harness has never seen. Naming one command
+  // for both is how the first adopter to edit their profile got a lane that
+  // could not be un-failed: `harness init` refused ("already exists") and
+  // `upgrade --harness` refused (no create-cmp.json).
+  //
+  // CONDITIONAL on purpose. `isAdopterOwned` is a name rule and cannot know
+  // whether a given profile is one the ENGINE vendors (`qa/lib/profiles/cmp/`
+  // in every stamped Compose app) — teaching this module a profile id is the
+  // coupling Stage 0 removed. So this offers the command rather than asserting
+  // the ownership; `create-cmp harness relock` is where the decision is made,
+  // and it refuses a shipped profile by name.
+  const differing = [...r.modified, ...r.missing, ...r.extra];
+  const fix = differing.every(isAdopterOwned)
+    ? " — if these are yours (your profile, your declarations), re-lock with `create-cmp harness relock`"
+    : r.extra.length && !r.modified.length && !r.missing.length
+      ? " — re-lock with `create-cmp upgrade --harness`, or remove the file if it should not be there"
+      : "";
+  return `${r.name ?? "harness"} ${r.version ?? "?"} — ${parts.join("; ")}${fix}`;
 }

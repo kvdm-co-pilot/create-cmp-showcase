@@ -34,7 +34,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const AUDITS_REL_PATH = "qa/audits.jsonl";
-export const AUDIT_RECORD_SCHEMA = "cmp-audit-record/1";
+export const AUDIT_RECORD_SCHEMA = "prooflane-audit-record/1";
 
 /** The pseudo-subsystem for Kotlin files directly at the androidMain package root. */
 export const ROOT_SUBSYSTEM = "(root)";

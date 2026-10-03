@@ -181,10 +181,18 @@ try {
 } catch {
   approvalsLib = null;
 }
+// The exemplar's shape and names are the cmp profile's (Stage 0 PR 5 —
+// qa/lib/profiles/cmp/artifacts.mjs); this stamper is that profile's tool.
+let profileLib = null;
+try {
+  profileLib = await import("./lib/profiles/cmp/artifacts.mjs");
+} catch {
+  profileLib = null;
+}
 
 function resolveSourceNames() {
-  if (approvalsLib && typeof approvalsLib.resolveExemplarNames === "function") {
-    return approvalsLib.resolveExemplarNames(ROOT);
+  if (profileLib && typeof profileLib.resolveExemplarNames === "function") {
+    return profileLib.resolveExemplarNames(ROOT);
   }
   return { f: "home", F: "Home", F_UPPER: "HOME", E: "Item" };
 }
@@ -314,6 +322,55 @@ const ALL_FILES = [
   { from: path.join(SRC("desktopTest"), `presentation/${SOURCE_f}/${SOURCE_F}GoldenTreeTest.kt`), to: path.join(SRC("desktopTest"), `presentation/${f}/${F}GoldenTreeTest.kt`), presets: ["feature", "screen"] },
   { from: path.join(ROOT, `specs/${SOURCE_f}.spec.md`), to: path.join(ROOT, `specs/${f}.spec.md`), isDefaultSpec: true, presets: ["feature", "screen"] },
 ];
+
+// The feature's Maestro flow (2026-09-03): every feature with a screen gets
+// qa/e2e/<feature>.yaml, because the lane now runs EVERY flow in that
+// directory and a feature with no flow has no device-tier journey by
+// construction. It is a SKELETON that passes — launch + shell — with the
+// feature's screen id and its spec clauses named as the work to do; it cites
+// nothing (a citation it has not earned would read as coverage). Demand comes
+// from the spec: a clause marked `[tier: e2e]` fails specCoverage until a
+// flow cites them. Written only when the project carries the e2e harness.
+const E2E_FLOW_PATH = path.join(ROOT, "qa", "e2e", `${f}.yaml`);
+const WRITE_E2E_FLOW = ["feature", "screen"].includes(preset) && fs.existsSync(path.join(ROOT, "qa", "e2e")) && !fs.existsSync(E2E_FLOW_PATH);
+function e2eFlowSkeleton() {
+  const appId = (() => {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "create-cmp.json"), "utf8"));
+      if (typeof cfg.package === "string" && cfg.package) return cfg.package;
+    } catch {
+      /* fall through to the smoke flow's own appId */
+    }
+    try {
+      const m = fs.readFileSync(path.join(ROOT, "qa", "e2e", "smoke.yaml"), "utf8").match(/^appId:\s*(\S+)/m);
+      if (m) return m[1];
+    } catch {
+      /* no smoke flow */
+    }
+    return "__PACKAGE__";
+  })();
+  return `# E2E flow — ${f}. Maestro. The lane runs every flow in qa/e2e/ (e2eSmoke).
+#
+# SKELETON stamped by qa/scaffold-feature.mjs: it launches the app and proves the
+# shell, then stops. Make it the ${f} journey:
+#   1. navigate to the screen (its title carries testTag "${f}_title");
+#   2. assert the behaviour the clauses in specs/${f}.spec.md promise — one
+#      "# SPEC: ${F_UPPER}-NN" line above the steps that prove each clause;
+#   3. mark clauses only a device can observe "[tier: e2e]" in the spec — until a
+#      flow cites them, specCoverage FAILs by name, which is the point.
+# Selectors by testTag (id:), never display text. After any interaction that
+# triggers async state, assert with extendedWaitUntil (see smoke.yaml's SETTLE RULE).
+appId: ${appId}
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "app_bottom_nav"
+    timeout: 60000
+# TODO(${f}): navigate to ${f} and assertVisible id: "${f}_title", then the ${F_UPPER}-NN journeys.
+`;
+}
 
 const FILES = ALL_FILES.filter((file) => file.presets.includes(preset));
 
@@ -688,6 +745,12 @@ for (const file of FILES) {
   fs.mkdirSync(path.dirname(file.to), { recursive: true });
   fs.writeFileSync(file.to, contents);
   filesWritten += 1;
+}
+if (WRITE_E2E_FLOW) {
+  fs.mkdirSync(path.dirname(E2E_FLOW_PATH), { recursive: true });
+  fs.writeFileSync(E2E_FLOW_PATH, e2eFlowSkeleton());
+  console.log(`  wrote ${path.relative(ROOT, E2E_FLOW_PATH)} — the feature's Maestro flow (skeleton; the lane runs it)`);
+  console.log(`  NOTE: the lane's e2eCoverage gate FAILs for ${f} until that flow is the journey and cites a ${F_UPPER}-NN clause it proves — that is the point.`);
 }
 
 let injectionsApplied = 0;

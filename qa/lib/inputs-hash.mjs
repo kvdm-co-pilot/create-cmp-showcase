@@ -5,10 +5,10 @@
 // there is exactly one definition of the surface and the algorithm.
 //
 // SINGLE SOURCE OF TRUTH: packages/receipts/src/inputs-hash.mjs in the
-// create-cmp repo (the `@create-cmp/receipts` package). The copy in a generated
+// create-cmp repo (the `prooflane-receipts` package). The copy in a generated
 // project's qa/lib/ is vendored byte-identical at scaffold time and pinned by
 // test/receipts-parity.test.mjs — edit the package source, then run
-// `node scripts/sync-harness.mjs`.
+// `node scripts/sync-harness.mjs` in the create-cmp repo.
 //
 // See docs/adr/0005-evidence-binding-by-inputs-hash.md for the why.
 
@@ -30,15 +30,46 @@ import path from "node:path";
 // looking the same is the worst failure this harness can have, so the surface
 // is now resolved per project (see resolveVerifiedSurface) and an empty one is
 // refused rather than hashed.
-export const VERIFIED_SURFACE = [
-  "composeApp",
-  "specs",
-  "qa",
-  "gradle/libs.versions.toml",
-  "build.gradle.kts",
-  "settings.gradle.kts",
-  "gradle.properties",
-];
+/**
+ * The surface a project gets when it has NOT declared one.
+ *
+ * This used to be a constant: `composeApp`, `specs`, `qa`, and the Gradle files
+ * — one stack's directory names, in the module every adopter's receipt is
+ * computed by. Vendored into a repo whose code lives under `services/`, it
+ * matched `qa/` and `specs/` and nothing else, so the lane produced a valid,
+ * confident, SMALLER hash: a receipt attesting a fraction of a project while
+ * looking complete. The file's own header calls that the worst failure this
+ * harness can have, and then shipped it as the default.
+ *
+ * Derived from the tree instead, and deliberately WIDE. Over-attesting costs a
+ * hash that moves more often than it needs to; under-attesting silently drops
+ * files from what a receipt claims. Only one of those is a lie, so the error is
+ * taken in the safe direction. Build output and dependency directories are
+ * excluded because they are outputs, not the thing being attested.
+ *
+ * A project that wants a narrower or pinned surface DECLARES one — `harness
+ * init` writes it, and the template ships one, so this fallback is for repos
+ * that predate the declaration rather than the normal path.
+ *
+ * @param {string} root
+ * @returns {string[]}
+ */
+export function defaultSurface(root) {
+  // The same construction as the walk — the universal floor plus what this
+  // repo's own .gitignore says — so the two agree by construction. qa-artifacts
+  // is the lane's own output and stays named.
+  const skip = new Set([...WALK_FLOOR, "qa-artifacts", ...gitignoredDirs(root), ...declaredIgnore(root)]);
+  let entries;
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((e) => !e.name.startsWith(".") && !skip.has(e.name))
+    .map((e) => e.name)
+    .sort();
+}
 
 // Paths EXCLUDED even though they fall under an included surface dir above.
 // qa/evidence and qa-artifacts are lane OUTPUTS — including them would make
@@ -69,6 +100,21 @@ const EXCLUDED_PREFIXES = [
   "qa/.plan.json",
   "qa/.request.json",
   "qa/.plan-history.jsonl",
+  // Who is typing right now (qa/lib/agent-hold.mjs). A liveness declaration
+  // that could invalidate a receipt would mean an agent saying "I am here"
+  // un-proves the tree — the exact inversion this family of exclusions exists
+  // to prevent.
+  "qa/.agent-hold.json",
+  // The lane's own in-flight marker (qa/lib/lane-markers.mjs): stamped for a
+  // run's duration, rewritten at every step. Hashing it would make the lane
+  // invalidate its own receipt mid-run.
+  "qa/.lane-in-progress",
+  // The lane's own step stream (qa/lib/lane-markers.mjs): one NDJSON line per
+  // finished step, appended WHILE the lane runs so the console can render it
+  // (docs/proposals/LIVE-CONSOLE.md Phase B). Same reason as the marker above —
+  // a lane that hashed its own progress would invalidate its own receipt
+  // between two of its own steps.
+  "qa/.lane-steps.ndjson",
   "qa/evidence",
   "qa-artifacts",
   "qa/comments.json",
@@ -134,7 +180,111 @@ function tryGitLsFiles(root) {
 // "INVALID — source changed" the moment the user runs `git init`, even though
 // no source changed. Pre-git and post-git hashes must agree for identical
 // source; that is the invariant the regression test pins.
-const WALK_EXCLUDED_DIRS = new Set(["build", ".gradle", ".kotlin", ".git", ".idea", "node_modules"]);
+// A FLOOR, not the rule. This used to BE the rule, and it was one ecosystem's:
+// it knew build/.gradle/.kotlin/.idea/node_modules and nothing of __pycache__,
+// venv, target (Rust, Maven), bin and obj (.NET), vendor (Go, PHP), Pods or
+// DerivedData. So a Python tree hashed one set of bytes before `git init` and a
+// different set after, and the stamp-time PASS receipt read "source changed
+// since the receipt" the instant a user ran `git init` — with no source change.
+// That is the exact invariant the constant was written to hold, broken for
+// every ecosystem but the first.
+// THE FLOOR IS UNIVERSAL; EVERYTHING ELSE IS DECLARED. `.git` is git's, and
+// `node_modules` is this lane's own runtime. Until 2026-09-08 this set also
+// carried `build`, `.gradle`, `.kotlin`, `.idea` — one ecosystem's build output,
+// applied to every tree. PATTERN: the repo's own ignore file is the truth
+// (ripgrep, watchman and git itself all read .gitignore rather than a table);
+// beneath it, the profile declares `layout.ignore` and `layout.buildDir`,
+// written into qa/verified-surface.json as `ignore` so THIS package — the
+// notary's, which must know no profile — reads a project fact, not a stack.
+// WHY IT WORKS: the people who know the stack maintain the list, in the file
+// they already maintain. HOW IT FAILS: a tree with no git, no .gitignore and no
+// declaration hashes its build output — a hash that moves too often, which is
+// the safe direction. WHAT WE DO: that case is the walk, and the walk prints
+// its rules. Q5 (NORTH-STAR §10): git-mode hashing is untouched, and a cmp
+// tree's .gitignore already lists these directories, so no receipt moves.
+const WALK_FLOOR = new Set([".git", "node_modules"]);
+const WALK_EXCLUDED_DIRS = WALK_FLOOR;
+
+/**
+ * Directories the project DECLARED unhashable — qa/verified-surface.json's
+ * optional `ignore` list, written by `harness init` from `layout.ignore` and
+ * `layout.buildDir`, so the notary reads a project fact rather than a profile.
+ * @param {string} root
+ * @returns {Set<string>}
+ */
+export function declaredIgnore(root) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(path.join(root, SURFACE_CONFIG_REL), "utf8"));
+    const list = Array.isArray(parsed?.ignore) ? parsed.ignore : [];
+    return new Set(list.filter((x) => typeof x === "string" && x.trim() && !x.includes("..")).map((x) => x.replace(/^\.\//, "").replace(/\/$/, "")));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * The directories THIS repo ignores, read from its own `.gitignore`.
+ *
+ * Walk mode exists only before `git init`, and its whole job is to agree with
+ * what `git ls-files --exclude-standard` will say afterwards. Maintaining a
+ * hand-written list of every ecosystem's build directory is a losing game and
+ * was already lost; reading the file git reads makes the two modes agree BY
+ * CONSTRUCTION rather than by vigilance.
+ *
+ * Deliberately a small subset of gitignore syntax — bare directory names, with
+ * or without a leading or trailing slash. Globs, negations and nested paths are
+ * left to git, which is running in every case that matters. Missing one costs a
+ * hash that moves too often; that is the safe direction, and the same one
+ * `defaultSurface` errs in.
+ *
+ * @param {string} root
+ * @returns {Set<string>}
+ */
+export function gitignoredDirs(root) {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(root, ".gitignore"), "utf8");
+  } catch {
+    return new Set();
+  }
+  const out = new Set();
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#") || line.startsWith("!")) continue;
+    if (line.includes("*") || line.includes("?") || line.includes("[")) continue;
+    const name = line.replace(/^\//, "").replace(/\/$/, "");
+    if (name && !name.includes("/")) out.add(name);
+  }
+  return out;
+}
+/**
+ * Files that are INPUTS TO THE RESOLUTION rather than members of the surface.
+ *
+ * `.gitignore` decides what is attested: `git ls-files --exclude-standard`
+ * honours it, and `gitignoredDirs` above makes the walk fallback honour it too.
+ * A file that decides the attested set and is not itself attested is a hole —
+ * edit one line and a directory silently leaves every future receipt, with
+ * nothing in the chain saying the coverage moved. That is the narrowing failure
+ * this module's header calls the worst one it can have, arriving through the
+ * side door.
+ *
+ * Attested STRUCTURALLY, outside `surfaceEntries`, because a declaration that
+ * could omit it would reopen exactly the hole: `defaultSurface` skips dotfiles,
+ * the shipped template surface lists none, and no adopter writing
+ * `qa/verified-surface.json` by hand would think to add it. It is not the
+ * adopter's to declare — it is the resolver's own input.
+ *
+ * Not locked: adopters edit `.gitignore` legitimately and often. Attestation is
+ * the right instrument — a change makes the receipt say "source changed", which
+ * is true, and re-running mints a valid one.
+ */
+const RESOLUTION_INPUTS = Object.freeze([".gitignore"]);
+
+/** @param {string} relPath @returns {boolean} */
+function isResolutionInput(relPath) {
+  return RESOLUTION_INPUTS.includes(relPath);
+}
+
 // File-level mirror of the same principle (OS/editor junk the .gitignore covers).
 const WALK_EXCLUDED_FILES = new Set([".DS_Store"]);
 const WALK_EXCLUDED_SUFFIXES = [".iml", ".log"];
@@ -145,14 +295,16 @@ function walkIncludesFile(name) {
 }
 
 // Dependency-free recursive walk, used when git is unavailable (non-git scaffold).
-function walkAllFiles(dir) {
+// `ignored` is the floor plus whatever this repo's own .gitignore names, so the
+// pre-git hash agrees with the post-git one for any ecosystem, not just the first.
+function walkAllFiles(dir, ignored = WALK_EXCLUDED_DIRS) {
   const out = [];
   if (!fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (WALK_EXCLUDED_DIRS.has(entry.name)) continue; // non-source scratch — see note above
-      out.push(...walkAllFiles(p));
+      if (ignored.has(entry.name)) continue; // non-source scratch — see note above
+      out.push(...walkAllFiles(p, ignored));
     } else if (entry.isFile() && walkIncludesFile(entry.name)) out.push(p);
   }
   return out;
@@ -186,7 +338,7 @@ export function resolveVerifiedSurface(root) {
   try {
     raw = fs.readFileSync(p, "utf8");
   } catch {
-    return VERIFIED_SURFACE; // no declaration — the CMP default, unchanged
+    return defaultSurface(root); // no declaration — the tree's own top level
   }
   let parsed;
   try {
@@ -203,31 +355,40 @@ export function resolveVerifiedSurface(root) {
 
 // Resolve the verified surface to a flat, sorted list of paths (relative to
 // root, POSIX-style `/` separators) that currently exist on disk.
-function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
+function resolveSurfaceFiles(root, surfaceEntries) {
   const gitFiles = tryGitLsFiles(root);
 
   if (gitFiles) {
     return gitFiles
       .map((p) => p.split(path.sep).join("/"))
-      .filter((relPath) => VERIFIED_SURFACE.some((surface) => relPath === surface || relPath.startsWith(`${surface}/`)))
+      .filter((relPath) => isResolutionInput(relPath) || surfaceEntries.some((surface) => relPath === surface || relPath.startsWith(`${surface}/`)))
       .filter((relPath) => !isExcluded(relPath))
       .filter((relPath) => fs.existsSync(path.join(root, relPath)) && fs.statSync(path.join(root, relPath)).isFile());
   }
 
   // Fallback: no git available — walk the surface directories directly so a
-  // non-git scaffold still produces a stable hash.
+  // non-git scaffold still produces a stable hash. The ignore set is the floor
+  // PLUS this repo's own .gitignore, which is what `git ls-files
+  // --exclude-standard` will honour the moment the tree becomes a repo. Reading
+  // the same file is what makes the two modes agree by construction.
+  const ignored = new Set([...WALK_FLOOR, ...gitignoredDirs(root), ...declaredIgnore(root)]);
   const collected = [];
-  for (const surface of VERIFIED_SURFACE) {
+  for (const surface of surfaceEntries) {
     const abs = path.join(root, surface);
     if (!fs.existsSync(abs)) continue;
     const stat = fs.statSync(abs);
     if (stat.isFile()) {
       collected.push(surface);
     } else if (stat.isDirectory()) {
-      for (const file of walkAllFiles(abs)) {
+      for (const file of walkAllFiles(abs, ignored)) {
         collected.push(path.relative(root, file).split(path.sep).join("/"));
       }
     }
+  }
+  // The resolver's own inputs, attested whatever the surface declares.
+  for (const rel of RESOLUTION_INPUTS) {
+    const abs = path.join(root, rel);
+    if (!collected.includes(rel) && fs.existsSync(abs) && fs.statSync(abs).isFile()) collected.push(rel);
   }
   return collected.filter((relPath) => !isExcluded(relPath));
 }
@@ -241,7 +402,9 @@ function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
  * it belongs in qa/verified-surface.json. Sorted; [] when git is unavailable
  * (the walk fallback has no notion of "what git sees") or everything is
  * covered. Lane outputs (EXCLUDED_PREFIXES) are not "undeclared" — they are
- * excluded by decision.
+ * excluded by decision, and RESOLUTION_INPUTS are not undeclared either: they
+ * are attested structurally, so naming them here would report a file as
+ * unattested that the very same hash attests.
  * @param {string} root
  * @param {string[]} [surface] defaults to resolveVerifiedSurface(root)
  * @returns {string[]}
@@ -249,7 +412,8 @@ function resolveSurfaceFiles(root, VERIFIED_SURFACE) {
 export function undeclaredTopLevel(root, surface = resolveVerifiedSurface(root)) {
   const gitFiles = tryGitLsFiles(root);
   if (!gitFiles) return [];
-  const covered = (relPath) => surface.some((entry) => relPath === entry || relPath.startsWith(`${entry}/`)) || isExcluded(relPath);
+  const covered = (relPath) =>
+    surface.some((entry) => relPath === entry || relPath.startsWith(`${entry}/`)) || isExcluded(relPath) || isResolutionInput(relPath);
   const out = new Set();
   for (const raw of gitFiles) {
     const relPath = raw.split(path.sep).join("/");

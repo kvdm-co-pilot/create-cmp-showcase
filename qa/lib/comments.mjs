@@ -17,7 +17,7 @@
 //   - A MISSING file is tolerated as the empty seed on read (a brand-new project has
 //     no comments yet — that's not corruption) and is created on first write.
 //   - A file that EXISTS but is corrupt (unparsable JSON, wrong shape, or a schema
-//     string that isn't "cmp-comments/1") is NOT tolerated on read — listComments
+//     string this reader does not know) is NOT tolerated on read — listComments
 //     throws a descriptive error instead of returning an empty list. Approvals can
 //     safely treat corruption as "all unreviewed" because that is the conservative
 //     (non-blocking) default; silently reading a broken comments ledger as "no
@@ -30,7 +30,21 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const COMMENTS_REL_PATH = "qa/comments.json";
-export const COMMENTS_SCHEMA = "cmp-comments/1";
+export const COMMENTS_SCHEMA = "prooflane-comments/1";
+
+/**
+ * Every schema name a comments ledger may declare — ADR-0007's enum pattern,
+ * applied where it is load-bearing rather than cosmetic.
+ *
+ * This reader REFUSES an unknown schema by design ("a ledger whose schema we do
+ * not know is not one we may interpret"), which makes it the one artifact in
+ * this rename where getting it wrong destroys user data: an adopter's existing
+ * `cmp-comments/1` ledger would become unreadable, and the comments in it are
+ * theirs, not ours. So the old name stays ACCEPTED for the life of /1 and stops
+ * only being WRITTEN — exactly what ADR-0007 decided for the receipt, for the
+ * same reason: renaming a label must not invalidate what was written under it.
+ */
+export const COMMENTS_SCHEMAS = Object.freeze(["cmp-comments/1", COMMENTS_SCHEMA]);
 
 /** target.type -> the fields addComment requires on `target` for that type. */
 const TARGET_FIELD_REQUIREMENTS = {
@@ -70,9 +84,9 @@ function parseLedger(raw) {
       `${COMMENTS_REL_PATH} has an unexpected shape (expected {schema, comments: [...]}) — refusing to read it as a ledger.`,
     );
   }
-  if (parsed.schema !== undefined && parsed.schema !== COMMENTS_SCHEMA) {
+  if (parsed.schema !== undefined && !COMMENTS_SCHEMAS.includes(parsed.schema)) {
     throw new Error(
-      `${COMMENTS_REL_PATH} declares schema "${parsed.schema}", expected "${COMMENTS_SCHEMA}" — refusing to read an unknown-schema ledger.`,
+      `${COMMENTS_REL_PATH} declares schema ${JSON.stringify(parsed.schema)}, expected one of ${COMMENTS_SCHEMAS.map((x) => `"${x}"`).join(" or ")} — refusing to read an unknown-schema ledger.`,
     );
   }
   return { schema: COMMENTS_SCHEMA, comments: parsed.comments };

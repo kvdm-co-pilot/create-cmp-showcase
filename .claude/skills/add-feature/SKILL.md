@@ -15,7 +15,7 @@ description: >-
 
 > Spec-first, deterministic-stamp, gate-proven. The script (`qa/scaffold-feature.mjs`) does the
 > mechanical work — copy the exemplar file set, whole-word identifier rename, anchor
-> injection into the three shared files. You (the AI) only refine spec wording and adapt the
+> injection into the three shared files (four when the inspector shipped — the preview registry too). You (the AI) only refine spec wording and adapt the
 > feature to its real shape. You are not done until `node qa/verify.mjs` PASSes and the receipt
 > is committed — see this project's `CLAUDE.md`.
 
@@ -126,7 +126,7 @@ Then adapt the generated code to match:
   registry vocabulary** (`ScreenColumn`/`AppHeader`/`ContentStateContainer`/`ListItemCard`,
   `presentation/components/*.kt`) — adapt the content shape inside `ContentStateContainer`'s
   trailing slot, don't hand-roll a new header/loading state/list row on top of it. If the
-  feature's data genuinely needs a component the nine don't cover, propose the addition to the
+  feature's data genuinely needs a component the registry doesn't cover, propose the addition to the
   human explicitly (a new file is a registry change — it invalidates the `components` approval).
 - Update the copied tests (`<Feature>ViewModelTest.kt`, `<Feature>ScreenTest.kt`) to match
   whatever you changed. The gate (step 6) will tell you exactly what you missed — a compile
@@ -152,12 +152,16 @@ copy-paste artifact. Commit it alongside the feature.
 
 ### 6. Gate
 
+**Before the lane — the device journey.** The stamper wrote `qa/e2e/<feature>.yaml` as a placeholder and
+said so; the lane's `e2eCoverage` gate FAILs until that flow is a real journey citing a `<FEATURE>-NN`
+clause it proves. That red is the gate working, not a bug — make the flow real first.
+
 ```
 node qa/verify.mjs
 ```
 
 This must PASS. It proves: the spec's seven clauses are all bound to a citing test
-(`specCoverage`), the build compiles, unit tests pass (ViewModel + UseCase + Repository +
+(`specCoverage`), the device journey cites a clause it proves (`e2eCoverage`), the build compiles, unit tests pass (ViewModel + UseCase + Repository +
 fakes), architecture conformance holds (`presentation` doesn't import `data`, the new
 `*Screen.kt` is automation-reachable — a literal `testTag` or `screenTag =` wiring into a
 registry component — the new `*ViewModel.kt` has a matching test, and it references no

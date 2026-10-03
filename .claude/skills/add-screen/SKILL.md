@@ -3,7 +3,7 @@ name: add-screen
 description: >-
   Add a presentation-only slice — Screen + ViewModel + tests + golden tree + spec + nav route —
   for an EXISTING entity/repository in this Compose Multiplatform app, cloned deterministically
-  from the `home` exemplar's presentation layer. Requires the entity's data layer (model,
+  from the project's configured exemplar feature's presentation layer (`qa/approvals.json`'s `exemplarFeature` — `home` by default). Requires the entity's data layer (model,
   repository, use case, fake) to already exist. Use this when the user wants to "add a screen",
   "add a screen for an existing entity", "add a screen backed by a repository I already have",
   "put a UI on this data", or names an existing domain noun they want a screen for (e.g. "add a
@@ -86,7 +86,7 @@ failure.
 
 ### 4. Refine the spec, then the behavior
 
-Rewrite the clause prose in `specs/<feature>.spec.md` for the entity's real behavior — the six
+Rewrite the clause prose in `specs/<feature>.spec.md` for the entity's real behavior — the seven
 clause **ids stay fixed** (specCoverage binds tests to ids, not prose). Propose the rewritten
 clauses to the human; get them confirmed before moving on.
 
@@ -114,12 +114,16 @@ it alongside the feature.
 
 ### 6. Gate
 
+**Before the lane — the device journey.** The stamper wrote `qa/e2e/<feature>.yaml` as a placeholder and
+said so; the lane's `e2eCoverage` gate FAILs until that flow is a real journey citing a `<FEATURE>-NN`
+clause it proves. That red is the gate working, not a bug — make the flow real first.
+
 ```
 node qa/verify.mjs
 ```
 
-This must PASS. It proves: the spec's six clauses are all bound to a citing test
-(specCoverage — `<FEATURE>-01..07` newly bound), the build compiles, unit tests pass, architecture
+This must PASS. It proves: the spec's seven clauses are all bound to a citing test
+(specCoverage — `<FEATURE>-01..07` newly bound), the device journey cites a clause it proves (e2eCoverage), the build compiles, unit tests pass, architecture
 conformance holds (the screen is automation-reachable via a literal `testTag` or `screenTag =`
 wiring into a registry component, and references no `CircularProgressIndicator`/
 `LinearProgressIndicator` directly), the golden tree matches, and accessibility holds. **Not done

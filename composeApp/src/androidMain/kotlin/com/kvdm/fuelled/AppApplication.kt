@@ -1,12 +1,6 @@
 package com.kvdm.fuelled
 
 import android.app.Application
-import com.kvdm.fuelled.data.remote.FIREBASE_FUNCTIONS_REGION
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
-import dev.gitlive.firebase.firestore.firestore
-import dev.gitlive.firebase.functions.functions
-import dev.gitlive.firebase.storage.storage
 import com.kvdm.fuelled.data.local.AppDatabase
 import com.kvdm.fuelled.data.local.appContext
 import com.kvdm.fuelled.data.local.buildDatabase
@@ -43,16 +37,4 @@ class AppApplication : Application() {
         }
     }
 
-    // Debug builds talk to the local Firebase emulators (BuildConfig flags set in build.gradle.kts).
-    private fun configureFirebaseEmulators() {
-        if (!BuildConfig.USE_FIREBASE_EMULATORS) return
-        val host = BuildConfig.FIREBASE_EMULATOR_HOST
-        runCatching {
-            Firebase.auth.useEmulator(host, BuildConfig.FIREBASE_AUTH_PORT)
-            Firebase.firestore.useEmulator(host, BuildConfig.FIREBASE_FIRESTORE_PORT)
-            Firebase.functions(FIREBASE_FUNCTIONS_REGION)
-                .useEmulator(host, BuildConfig.FIREBASE_FUNCTIONS_PORT)
-            Firebase.storage.useEmulator(host, BuildConfig.FIREBASE_STORAGE_PORT)
-        }
-    }
 }

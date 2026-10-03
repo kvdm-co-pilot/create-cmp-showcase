@@ -22,8 +22,17 @@ const args = process.argv.slice(2);
 /**
  * The hook's stdin, parsed — UserPromptSubmit delivers {prompt, ...} as JSON.
  * Bounded read, fail-soft: no stdin / non-JSON / no prompt -> null. Only the
- * --inject path consumes this (the statusline gets no stdin and must not wait
- * on one).
+ * --inject path consumes it.
+ *
+ * A statusline command is handed JSON on stdin as well, and it carries the
+ * project root as workspace.project_dir — which is exactly the root the
+ * --statusline invocation cannot otherwise find when a session starts in
+ * another directory. Nothing here reads it yet: that is a fix not taken, not a
+ * property of the surface. This comment used to assert the opposite ("the
+ * statusline gets no stdin and must not wait on one"), and that is false — it
+ * is corrected rather than deleted because it would send whoever takes that fix
+ * looking for a mechanism that is already there. (Claude Code statusLine
+ * documentation, read 2026-09-19: a fact nothing in this tree can re-derive.)
  */
 async function readHookStdin() {
   if (process.stdin.isTTY) return null;

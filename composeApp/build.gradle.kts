@@ -80,13 +80,6 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
-            implementation(libs.firebase.auth)
-            implementation(libs.firebase.firestore)
-            implementation(libs.firebase.functions)
-            implementation(libs.firebase.storage)
-            implementation(libs.firebase.messaging)
-            implementation(libs.firebase.config)
-
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
 
@@ -186,11 +179,9 @@ android {
 
     // AGP resolves BUILD-TYPE source sets at src/<buildType>/, while the Kotlin
     // Multiplatform plugin only remaps the `main` one to src/androidMain/. Without this
-    // wiring, src/androidDebug/'s manifest and resources are silently never merged —
-    // dead files that look live: the debug network-security config never applied, and a
-    // permission declared there never reached the APK. Point the debug build type at them
-    // explicitly. Caught when an instrumented test asserted canScheduleExactAlarms() and
-    // found the grant it had declared was absent on the device.
+    // wiring, src/androidDebug/'s manifest and resources are silently never merged: the
+    // debug network-security config would not apply, and a permission declared there would
+    // not reach the APK. Point the debug build type at them explicitly.
     sourceSets {
         getByName("debug") {
             manifest.srcFile("src/androidDebug/AndroidManifest.xml")
@@ -229,41 +220,20 @@ android {
     }
 
     buildTypes {
-        getByName("debug") {
-            // Debug builds point GitLive Firebase at the local emulators (see Application/KoinHelper).
-            // 10.0.2.2 is the Android emulator's host-loopback alias.
-            buildConfigField("boolean", "USE_FIREBASE_EMULATORS", "true")
-            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"10.0.2.2\"")
-            buildConfigField("int", "FIREBASE_AUTH_PORT", "9099")
-            buildConfigField("int", "FIREBASE_FIRESTORE_PORT", "8080")
-            buildConfigField("int", "FIREBASE_FUNCTIONS_PORT", "5001")
-            buildConfigField("int", "FIREBASE_STORAGE_PORT", "9199")
-            manifestPlaceholders["usesCleartextTraffic"] = "true"
-        }
         getByName("release") {
             // Null without keystore.properties — an unsigned release apk, which builds fine
             // and cannot be installed. The asymmetry is the point (see signingConfigs above).
             signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
-            // Every field debug declares, release must declare too. BuildConfig is generated
-            // PER BUILD TYPE, so a field only debug carries simply does not exist in release —
-            // and `if (!USE_FIREBASE_EMULATORS) return` is a RUNTIME guard that does nothing
-            // for a compile-time symbol. Declaring the flag alone made release the one build
-            // nobody could produce: the code reading the host and ports failed to resolve them.
-            // The values below are never used (the flag is false); they exist so the shape of
-            // BuildConfig is the same in both build types.
-            buildConfigField("boolean", "USE_FIREBASE_EMULATORS", "false")
-            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"\"")
-            buildConfigField("int", "FIREBASE_AUTH_PORT", "0")
-            buildConfigField("int", "FIREBASE_FIRESTORE_PORT", "0")
-            buildConfigField("int", "FIREBASE_FUNCTIONS_PORT", "0")
-            buildConfigField("int", "FIREBASE_STORAGE_PORT", "0")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        getByName("debug") {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
     }
 
@@ -271,7 +241,7 @@ android {
         // ONE disabled check, not the gate. `lintVitalRelease` runs on every release build and
         // it is worth keeping; what is not worth keeping is a detector that CRASHES on it.
         // NullSafeMutableLiveData's detector throws IncompatibleClassChangeError against this
-        // Kotlin version (AGP's bug, not ours) and takes the whole release build with it.
+        // Kotlin version (an AGP bug) and takes the whole release build with it.
         //
         // Disabling it costs nothing here beyond the crash: this app has no LiveData at all —
         // state is Compose + Flow throughout — so the check has never had anything to inspect.
@@ -400,3 +370,48 @@ tasks.withType<Test>().configureEach {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.property("updateGolden", System.getenv("UPDATE_GOLDEN") ?: "")
 }
+
+// >>> create-cmp add firebase
+// Added by `create-cmp add firebase`: the GitLive Firebase KMP SDK, and the debug-build switch
+// FirebaseEmulators.kt reads. Your own buildTypes above are not edited — the block below only adds
+// two BuildConfig fields to each.
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.firebase.auth)
+            implementation(libs.firebase.firestore)
+            implementation(libs.firebase.functions)
+            implementation(libs.firebase.storage)
+            implementation(libs.firebase.messaging)
+            implementation(libs.firebase.config)
+        }
+        // GitLive's android artifacts leave their com.google.firebase versions to the Firebase BoM, and
+        // publish it on their runtime variant only: a classpath that sees just their API variant (the
+        // instrumented tests' compile classpath) finds those versions empty. The BoM on androidMain
+        // reaches every android classpath, at the version the registry pairs with firebase-gitlive.
+        androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.firebase.bom))
+        }
+    }
+}
+
+android {
+    buildFeatures {
+        buildConfig = true
+    }
+    buildTypes {
+        getByName("debug") {
+            // 10.0.2.2 is the Android emulator's alias for the host loopback, where the suite listens.
+            buildConfigField("boolean", "USE_FIREBASE_EMULATORS", "true")
+            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"10.0.2.2\"")
+        }
+        getByName("release") {
+            // Every field debug declares, release declares too: BuildConfig is generated PER BUILD
+            // TYPE, and FirebaseEmulators.kt names both fields in every build. The values are never
+            // used — the flag is false.
+            buildConfigField("boolean", "USE_FIREBASE_EMULATORS", "false")
+            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"\"")
+        }
+    }
+}
+// <<< create-cmp add firebase

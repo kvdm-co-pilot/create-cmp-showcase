@@ -13,6 +13,15 @@ if [ ! -f qa/receipt-check.mjs ]; then
   exit 0 # not a create-cmp project layout — nothing to gate
 fi
 
+# First the half nothing else checks: the receipt must be IN the commit being
+# pushed, not merely on disk. receipt-check reads the working tree by hash and
+# has no opinion about git; this line is what makes "committed receipt" true.
+if ! git ls-files --error-unmatch qa/evidence/latest.json >/dev/null 2>&1 || ! git diff --quiet HEAD -- qa/evidence/latest.json; then
+  echo ""
+  echo "✗ pre-push blocked — qa/evidence/latest.json is not committed (or differs from HEAD)."
+  echo "  Commit the receipt with your change, then push again."
+  exit 1
+fi
 if node qa/receipt-check.mjs; then
   exit 0
 fi

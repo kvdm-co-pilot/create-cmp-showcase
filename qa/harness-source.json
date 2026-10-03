@@ -1,0 +1,6 @@
+{
+  "schema": "prooflane-harness-source/1",
+  "name": "prooflane-harness",
+  "version": "0.23.6",
+  "source": "local"
+}

@@ -3,7 +3,7 @@ name: add-repository
 description: >-
   Add a data/domain slice ONLY — model, repository interface + impl, use case, and a
   hand-written fake — to this Compose Multiplatform app, cloned deterministically from the
-  `home` exemplar's data layer. No screen, no ViewModel, no nav route, no spec clauses. Use this
+  project's configured exemplar feature's data layer (`qa/approvals.json`'s `exemplarFeature` — `home` by default). No screen, no ViewModel, no nav route, no spec clauses. Use this
   when the user wants to "add a repository", "add a data source", "model a new entity", "new
   entity with a repository", or names a domain noun they want backed by data before any UI exists
   (e.g. "add a Tag repository", "I need a data source for Bookmarks"). Works with NO create-cmp
@@ -14,7 +14,7 @@ description: >-
 # add-repository — stamp a data/domain slice only
 
 > Deterministic-stamp, gate-proven. The script (`qa/scaffold-feature.mjs --preset repository`)
-> does the mechanical work — copy the `home` exemplar's data/domain files, whole-word identifier
+> does the mechanical work — copy the exemplar's data/domain files, whole-word identifier
 > rename, DI injection for the repository + use case only. You (the AI) only customize the
 > entity's fields and its sample data. You are not done until `node qa/verify.mjs` PASSes and the
 > receipt is committed — see this project's `CLAUDE.md`.

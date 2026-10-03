@@ -185,7 +185,7 @@ verbatim — the errors-on-save loop an IDE gives a human, for the agent. What i
 evidence. It runs the fast tier only, so nothing it produces can satisfy the done-gate,
 and every run says so in a standing footer; the checkpoint remains one deliberate full
 `node qa/verify.mjs` run. Coordination: it never launches while a verify lane
-(`.cmp-lane-in-progress`) or a preview-daemon render (`.cmp-render-in-progress`) holds the
+(`qa/.lane-in-progress`) or a preview-daemon render (`composeApp/build/.cmp-render-in-progress`) holds the
 project — it waits and coalesces, so watch mode, the preview daemon, and the lane can all
 be resident on one project without two Gradle invocations ever colliding. `--once` runs a
 single coordinated pass for scripting; `--json` emits one JSON object per run for

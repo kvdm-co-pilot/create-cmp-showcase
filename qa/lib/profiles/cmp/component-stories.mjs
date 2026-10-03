@@ -1,5 +1,8 @@
-// component-stories.mjs — the component ↔ story parity gate (the IMP-1
-// screen↔registry parity idea, applied at component granularity).
+// profiles/cmp/component-stories.mjs — the component ↔ story parity gate (the
+// IMP-1 screen↔registry parity idea, applied at component granularity).
+// Mobile's, by definition: a @Composable and a preview-registry story are
+// Compose facts, and this file names composeApp source paths throughout.
+// Stage 0 PR 6b.2 moved it out of the spine (docs/NORTH-STAR.md §6).
 //
 // Every `@Composable fun` in `composeApp/src/commonMain/**/presentation/
 // components/*.kt` must have a preview-registry story whose id is

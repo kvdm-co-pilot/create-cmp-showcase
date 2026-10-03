@@ -21,7 +21,7 @@
 // Trees produced before the role/clickable/disabled contract extension are handled
 // gracefully: nodes without `clickable` are simply skipped, never crashed on.
 
-import { walk } from "./tree.mjs";
+import { walk } from "./profiles/cmp/tree.mjs";
 
 /**
  * Audit a tree for accessibility faults.

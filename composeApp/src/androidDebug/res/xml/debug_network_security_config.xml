@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Debug-only cleartext to the local Firebase emulators / dev backends. -->
+    <!-- Debug-only cleartext to local dev backends on the host loopback. -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>

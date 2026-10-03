@@ -1,18 +1,19 @@
-# iOS native Firebase SDKs for the GitLive Firebase KMP bindings (v2.1.0 -> Firebase iOS 11.x).
-# The ComposeApp KMP framework references these Obj-C symbols at link time; the app provides them.
+# Native pods the app links. None by default: the ComposeApp KMP framework needs no pod.
+# `create-cmp add firebase` adds the Firebase iOS SDKs inside the target block below.
 platform :ios, '16.0'
 
 # Static linkage pairs with the static ComposeApp.framework (isStatic = true).
 use_frameworks! :linkage => :static
 
 target 'iosApp' do
-  pod 'FirebaseCore',          '~> 11.0'
-  pod 'FirebaseAuth',          '~> 11.0'
-  pod 'FirebaseFirestore',     '~> 11.0'
-  pod 'FirebaseFunctions',     '~> 11.0'
-  pod 'FirebaseStorage',       '~> 11.0'
-  pod 'FirebaseMessaging',     '~> 11.0'
-  pod 'FirebaseRemoteConfig',  '~> 11.0'
+  # The native Firebase iOS SDKs the GitLive bindings link against: GitLive 2.1.0 is built against Firebase iOS 11.1.0 (create-cmp's version registry).
+  pod 'FirebaseCore',          '~> 11.1'
+  pod 'FirebaseAuth',          '~> 11.1'
+  pod 'FirebaseFirestore',     '~> 11.1'
+  pod 'FirebaseFunctions',     '~> 11.1'
+  pod 'FirebaseStorage',       '~> 11.1'
+  pod 'FirebaseMessaging',     '~> 11.1'
+  pod 'FirebaseRemoteConfig',  '~> 11.1'
 end
 
 post_install do |installer|
