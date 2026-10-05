@@ -1,0 +1,108 @@
+# E2E — Profile (PROF-01..04). Per-feature flow.
+#
+# The Profile tab is data-backed: identity and goals come out of Room through the ViewModel,
+# and the goal rows write back to the one goal store. A screen test with a fake source proves
+# the rendering; only the device proves the round-trip and that the settings rows reach a real
+# destination on the real nav graph.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: PROF-01 — the tab loads into the identity, and the load ends in content, not the error
+# arm. (The loading arm itself is transient; its rendering is held by the JVM tests.)
+- tapOn:
+    id: "nav_profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile_title"
+    timeout: 30000
+- assertNotVisible:
+    id: "profile_error"
+
+# SPEC: PROF-02 — the three goal rows are shown; calories opens its editor and the saved value
+# comes back from the goal store; activity is a read-only value with no editor behind it.
+- assertVisible:
+    id: "profile_goal_calories"
+- assertVisible:
+    id: "profile_goal_protein"
+- assertVisible:
+    id: "profile_goal_activity"
+- tapOn:
+    id: "profile_goal_calories"
+- extendedWaitUntil:
+    visible:
+      id: "profile_goal_editor"
+    timeout: 30000
+- tapOn:
+    id: "profile_goal_input"
+- eraseText: 10
+- inputText: "2345"
+- tapOn:
+    id: "profile_goal_save"
+- extendedWaitUntil:
+    notVisible:
+      id: "profile_goal_editor"
+    timeout: 30000
+# Re-open: the editor is seeded from the stored goal, so the field reading back the typed value
+# is the store round-trip, asserted on an editable node whose text the device reports verbatim.
+- tapOn:
+    id: "profile_goal_calories"
+- extendedWaitUntil:
+    visible:
+      id: "profile_goal_editor"
+    timeout: 30000
+- assertVisible:
+    id: "profile_goal_input"
+    text: "2345"
+- back
+- extendedWaitUntil:
+    notVisible:
+      id: "profile_goal_editor"
+    timeout: 30000
+# The activity row carries no tap: touching it opens nothing.
+- tapOn:
+    id: "profile_goal_activity"
+- assertNotVisible:
+    id: "profile_goal_editor"
+
+# SPEC: PROF-03 — the weekly stats row is shown.
+- assertVisible:
+    id: "profile_progress_link"
+
+# SPEC: PROF-04 — the settings rows are shown and are live controls opening Settings.
+# The list sits below the stats; tapOn targets an element's centre, so bring it up first.
+- swipe:
+    direction: UP
+    duration: 400
+- assertVisible:
+    id: "profile_setting_units"
+- assertVisible:
+    id: "profile_setting_stack"
+- assertVisible:
+    id: "profile_setting_reminders"
+- tapOn:
+    id: "profile_setting_reminders"
+- extendedWaitUntil:
+    visible:
+      id: "settings_screen"
+    timeout: 30000
+# A pushed destination: back returns to Profile. The root tag, not the title — back restores the
+# scroll position, which leaves the title above the viewport (supplements.yaml's lesson).
+- back
+- extendedWaitUntil:
+    visible:
+      id: "profile_screen"
+    timeout: 30000
+- assertVisible:
+    id: "app_bottom_nav"

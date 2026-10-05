@@ -1,0 +1,66 @@
+# E2E — Motion (MOTION-05, MOTION-15). Per-feature flow.
+#
+# Motion is judged here by the end states a device can report, never by timing. The ignition is
+# a sub-two-second surface, so racing it for visibility would make a flaky gate, not a proof;
+# what the device settles is that, under the motion scheme the device itself reports, it ENDS
+# and hands over to the gate's destination. The bottom bar's selection is read the way assistive
+# tech reads it — from the accessibility tree Maestro inspects.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+
+# SPEC: MOTION-15 — the ignition completes on its own on the device's real motion scheme and
+# hands over to the start gate's surface (onboarding, on a cleared install); it is gone after.
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- assertNotVisible:
+    id: "intro_screen"
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+- assertNotVisible:
+    id: "intro_screen"
+
+# SPEC: MOTION-05 — the selected bottom-bar item reports `selected` to assistive tech, and only
+# it does; selecting another item moves the selection to it.
+- assertVisible:
+    id: "nav_today"
+    selected: true
+- assertVisible:
+    id: "nav_week"
+    selected: false
+- tapOn:
+    id: "nav_week"
+- extendedWaitUntil:
+    visible:
+      id: "meal_plan_screen"
+    timeout: 30000
+- assertVisible:
+    id: "nav_week"
+    selected: true
+- assertVisible:
+    id: "nav_today"
+    selected: false
+- assertVisible:
+    id: "nav_profile"
+    selected: false
+- tapOn:
+    id: "nav_profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile_title"
+    timeout: 30000
+- assertVisible:
+    id: "nav_profile"
+    selected: true
+- assertVisible:
+    id: "nav_week"
+    selected: false
+- assertVisible:
+    id: "app_bottom_nav"
