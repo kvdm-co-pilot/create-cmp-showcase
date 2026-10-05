@@ -6,7 +6,7 @@
 </p>
 
 <!-- cmp:generated evidence -->
-[![Evidence L1 — desktop](https://img.shields.io/badge/evidence-L1_desktop-42A5F5)](https://github.com/kvdm-co-pilot/create-cmp) — the verify lane passed at `a85624a` on 2026-09-03 at rung **L1 · desktop**. Earned by: `specCoverage`, `approvals`, `componentStories`, `reachability`, `archDoc`, `schemaHistory`, `build`, `unitTests`, `conformance`, `goldenTrees`, `a11y`, `releaseBuild`. The tree had 11 uncommitted files at attestation, so this describes that run, not that commit. The rung describes that run; it says nothing about changes made since.
+[![Evidence L2 — device (pack cmp)](https://img.shields.io/badge/evidence-cmp_L2_device-26A69A)](https://github.com/kvdm-co-pilot/create-cmp) — the verify lane passed at `330addb` on 2026-10-05 at rung **L2 · device**. The rung is this pack's: `cmp`'s L2 and another pack's L2 are different claims. Earned by: `specCoverage`, `approvals`, `componentStories`, `reachability`, `e2eCoverage`, `archDoc`, `schemaHistory`, `build`, `unitTests`, `conformance`, `goldenTrees`, `tokenDrift`, `a11y`, `releaseBuild`, `e2eSmoke`, `androidChecks`. The rung describes that run; it says nothing about changes made since.
 <!-- /cmp:generated -->
 
 
