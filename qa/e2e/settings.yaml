@@ -1,0 +1,129 @@
+# E2E — Settings (SET-01, SET-04, SET-05, SET-07, SET-09). Per-feature flow.
+#
+# Settings is where the stack, the reminder lead and the unit system are written. Every control
+# here writes through the ViewModel into Room and the surface re-renders from what was stored —
+# a round-trip only the device's real database settles.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+# SPEC: SET-01 — Profile's settings rows open the Settings surface, which renders the unit
+# system, the reminder lead and the supplement stack.
+- tapOn:
+    id: "nav_profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile_title"
+    timeout: 30000
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "profile_setting_units"
+- extendedWaitUntil:
+    visible:
+      id: "settings_title"
+    timeout: 30000
+- assertVisible:
+    id: "settings_units"
+- assertVisible:
+    id: "settings_reminders"
+- assertVisible:
+    id: "settings_stack"
+
+# SPEC: SET-07 — the prep lead is chosen from a closed set; the choice is stored and the card
+# re-states it. (Arming reminders at N minutes is the scheduler's, proven on the JVM.)
+- tapOn:
+    id: "settings_lead_0"
+- assertVisible:
+    id: "settings_lead_summary"
+    text: "Reminders fire at the meal time\\."
+- tapOn:
+    id: "settings_lead_30"
+- assertVisible:
+    id: "settings_lead_summary"
+    text: "Reminders fire 30 minutes before each meal.*"
+
+# SPEC: SET-04 — a supplement added here joins the stack. The seed stack is ids 1..6, so the
+# client-minted id of the first custom supplement is `s-7` (newSupplementId, SettingsScreen.kt).
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "settings_stack_add"
+- extendedWaitUntil:
+    visible:
+      id: "settings_supplement_editor"
+    timeout: 30000
+- tapOn:
+    id: "settings_supplement_name"
+- inputText: "Ashwagandha"
+- tapOn:
+    id: "settings_supplement_dose"
+- inputText: "600 mg"
+# The IME overlays the lower half; put it down before tapping anything beneath the fields.
+- hideKeyboard
+- tapOn:
+    id: "settings_timing_PRE_WORKOUT"
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "settings_supplement_save"
+- extendedWaitUntil:
+    visible:
+      id: "settings_supplement_s-7"
+    timeout: 30000
+- assertNotVisible:
+    id: "settings_supplement_editor"
+- assertVisible:
+    text: "Ashwagandha"
+
+# SPEC: SET-05 — an existing supplement can be removed: its row leaves the stack.
+- tapOn:
+    id: "settings_supplement_edit_s-7"
+- extendedWaitUntil:
+    visible:
+      id: "settings_supplement_editor"
+    timeout: 30000
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "settings_supplement_delete"
+- extendedWaitUntil:
+    notVisible:
+      id: "settings_supplement_s-7"
+    timeout: 30000
+
+# SPEC: SET-09 — on Android (a platform that can install) the one entry into the update surface
+# is offered, at the foot of the screen.
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- assertVisible:
+    id: "settings_updates"
+
+# A pushed destination: back returns to Profile.
+- back
+- extendedWaitUntil:
+    visible:
+      id: "profile_screen"
+    timeout: 30000

@@ -1,0 +1,119 @@
+# E2E — App updates (UPD-09). Per-feature flow.
+#
+# The update surface is reached from Settings on a platform that can install (SET-09/UPD-08).
+# What it shows depends on the network and on the latest GitHub release, so the flow does not
+# pin a state: it pins the invariant — the installed version is always shown, alongside exactly
+# one state card — and checks whichever state the device actually reached.
+appId: com.kvdm.fuelled
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding_screen"
+    timeout: 60000
+- tapOn:
+    id: "onboarding_skip"
+- extendedWaitUntil:
+    visible:
+      id: "today_title"
+    timeout: 60000
+
+- tapOn:
+    id: "nav_profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile_title"
+    timeout: 30000
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "profile_setting_units"
+- extendedWaitUntil:
+    visible:
+      id: "settings_title"
+    timeout: 30000
+# The entry sits at the foot of a long screen; tapOn targets an element's centre.
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- swipe:
+    direction: UP
+    duration: 400
+- tapOn:
+    id: "settings_updates"
+
+# SPEC: UPD-09 — the surface always shows the installed version alongside exactly one of its
+# states. The check is a real network call, so wait it out before reading the state.
+- extendedWaitUntil:
+    notVisible:
+      id: "updates_loading"
+    timeout: 60000
+# The check completed: the installed version is shown with the state it reached.
+- runFlow:
+    when:
+      notVisible:
+        id: "updates_error"
+    commands:
+      - assertVisible:
+          id: "updates_title"
+      - assertVisible:
+          id: "updates_installed"
+# Exactly one state card: whichever one is shown, the others are absent.
+- runFlow:
+    when:
+      visible:
+        id: "updates_current"
+    commands:
+      - assertVisible:
+          id: "updates_installed"
+      - assertNotVisible:
+          id: "updates_available"
+      - assertNotVisible:
+          id: "updates_downloading"
+      - assertNotVisible:
+          id: "updates_failed"
+      - assertNotVisible:
+          id: "updates_download"
+- runFlow:
+    when:
+      visible:
+        id: "updates_available"
+    commands:
+      - assertVisible:
+          id: "updates_installed"
+      - assertVisible:
+          id: "updates_version"
+      - assertVisible:
+          id: "updates_download"
+      - assertNotVisible:
+          id: "updates_current"
+      - assertNotVisible:
+          id: "updates_downloading"
+      - assertNotVisible:
+          id: "updates_failed"
+# The check itself could not complete (no network, rate limit): it is rendered with a retry,
+# never as a crash and never as a silent "up to date".
+- runFlow:
+    when:
+      visible:
+        id: "updates_error"
+    commands:
+      - assertVisible:
+          id: "updates_retry"
+      - assertNotVisible:
+          id: "updates_current"
+
+# A pushed destination: back returns to Settings.
+- back
+- extendedWaitUntil:
+    visible:
+      id: "settings_screen"
+    timeout: 30000
