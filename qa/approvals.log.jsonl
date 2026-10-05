@@ -322,3 +322,4 @@
 {"at":"2026-09-03T16:51:13.234Z","verb":"accept","artifact":"feature-brief:workouts"}
 {"at":"2026-09-03T16:51:17.085Z","verb":"accept","artifact":"feature-brief:workouts"}
 {"at":"2026-09-03T16:51:17.800Z","verb":"accept","artifact":"feature-brief:usability-pass"}
+{"at":"2026-10-05T16:16:47.096Z","verb":"approve","artifact":"feature-design:settings","hash":"f7984d5c1f34ff84c6bf677b371a9c5c7af2139672cc190740be2a2b1ed8fc53","approvedBy":"Karel van der Merwe <karelvdmmisc@gmail.com>","via":"cli"}
