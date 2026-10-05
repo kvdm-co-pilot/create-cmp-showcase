@@ -69,6 +69,14 @@ appId: com.kvdm.fuelled
 - tapOn:
     id: "settings_supplement_name"
 - inputText: "Ashwagandha"
+# Settings is a lazy list: with the IME up the window shrinks and the editor's lower fields can
+# leave the tree (on device the next tap found no settings_supplement_dose). Put the keyboard
+# down and wait for the field before tapping it.
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "settings_supplement_dose"
+    timeout: 10000
 - tapOn:
     id: "settings_supplement_dose"
 - inputText: "600 mg"
