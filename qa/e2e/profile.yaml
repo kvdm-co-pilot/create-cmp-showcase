@@ -38,43 +38,56 @@ appId: com.kvdm.fuelled
     id: "profile_goal_protein"
 - assertVisible:
     id: "profile_goal_activity"
+# The editor is a Material AlertDialog, which Android renders in its OWN window. The
+# testTagsAsResourceId switch is set on the activity's compose root and does not reach a dialog
+# window, so none of its tags (profile_goal_editor / _input / _save) surface as resource-ids —
+# on device the open editor's tree was text only: "Calorie target", the field "2400",
+# "kcal / day", "Cancel", "Save". The dialog is read by that text. "kcal / day" is the field's
+# supporting text, unique to the calories editor and absent from the Profile screen (whose row
+# reads "<n> kcal"), so it marks the editor open and closed.
 - tapOn:
     id: "profile_goal_calories"
 - extendedWaitUntil:
     visible:
-      id: "profile_goal_editor"
+      text: "kcal / day"
     timeout: 30000
+# The fresh seed's calorie target, as the field rendered it on device.
 - tapOn:
-    id: "profile_goal_input"
+    text: "2400"
 - eraseText: 10
 - inputText: "2345"
+# Directly after inputText, so the IME is up and consumes hideKeyboard's BACK (smoke.yaml) —
+# never the dialog's dismiss.
+- hideKeyboard
 - tapOn:
-    id: "profile_goal_save"
+    text: "Save"
 - extendedWaitUntil:
     notVisible:
-      id: "profile_goal_editor"
+      text: "kcal / day"
     timeout: 30000
 # Re-open: the editor is seeded from the stored goal, so the field reading back the typed value
-# is the store round-trip, asserted on an editable node whose text the device reports verbatim.
+# is the store round-trip, asserted on the editable node whose text the device reports verbatim.
 - tapOn:
     id: "profile_goal_calories"
 - extendedWaitUntil:
     visible:
-      id: "profile_goal_editor"
+      text: "kcal / day"
     timeout: 30000
 - assertVisible:
-    id: "profile_goal_input"
     text: "2345"
 - back
 - extendedWaitUntil:
     notVisible:
-      id: "profile_goal_editor"
+      text: "kcal / day"
     timeout: 30000
-# The activity row carries no tap: touching it opens nothing.
+# The activity row carries no tap: touching it opens nothing — no editor window takes the
+# screen (while one is open the Profile rows are not in the tree at all).
 - tapOn:
     id: "profile_goal_activity"
 - assertNotVisible:
-    id: "profile_goal_editor"
+    text: "Save"
+- assertVisible:
+    id: "profile_goal_activity"
 
 # SPEC: PROF-03 — the weekly stats row is shown.
 - assertVisible:

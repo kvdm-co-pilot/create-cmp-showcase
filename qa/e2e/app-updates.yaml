@@ -47,8 +47,21 @@ appId: com.kvdm.fuelled
 - swipe:
     direction: UP
     duration: 400
+# The last swipes run the list into its end, and the tap that follows lands while the list is
+# still settling: on device it was spent stopping the scroll — Maestro tapped the row's centre,
+# saw no change, and the next tree was still Settings with the row in place. Let the motion end,
+# and retry a tap the UI did not answer.
+- waitForAnimationToEnd:
+    timeout: 5000
 - tapOn:
     id: "settings_updates"
+    retryTapIfNoChange: true
+# The push really happened: Settings has left the tree. Without this, every wait below passes
+# vacuously on the Settings screen (updates_loading is "not visible" there too).
+- extendedWaitUntil:
+    notVisible:
+      id: "settings_screen"
+    timeout: 30000
 
 # SPEC: UPD-09 — the surface always shows the installed version alongside exactly one of its
 # states. The check is a real network call, so wait it out before reading the state.

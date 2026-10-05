@@ -87,12 +87,21 @@ appId: com.kvdm.fuelled
     timeout: 30000
 - assertNotVisible:
     id: "settings_supplement_editor"
+# Closing the editor shortens the list under a screen scrolled to reach Save, which leaves the
+# new row's name ABOVE the viewport — on device only its dose line was in the tree. Pull the
+# list down a short way (not a full swipe: a fling can carry the row off the other edge) so the
+# whole row is on screen before reading its name and tapping its edit control.
+- swipe:
+    start: 50%, 40%
+    end: 50%, 60%
+    duration: 600
 - assertVisible:
     text: "Ashwagandha"
 
 # SPEC: SET-05 — an existing supplement can be removed: its row leaves the stack.
 - tapOn:
     id: "settings_supplement_edit_s-7"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible:
       id: "settings_supplement_editor"
@@ -102,6 +111,7 @@ appId: com.kvdm.fuelled
     duration: 400
 - tapOn:
     id: "settings_supplement_delete"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     notVisible:
       id: "settings_supplement_s-7"
