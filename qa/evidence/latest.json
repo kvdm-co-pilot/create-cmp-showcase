@@ -1,33 +1,20 @@
 {
-  "schema": "cmp-evidence/1",
+  "schema": "prooflane-evidence/1",
   "profile": "local",
   "stage": "change",
   "mode": "full",
   "verdict": "PASS",
   "commit": {
-    "sha": "a85624a41df3de8970799f2ae96a346fef55436a",
-    "dirty": [
-      "qa/evidence/latest.json",
-      "qa/flight-recorder.jsonl",
-      "qa/harness-local.patch",
-      "qa/harness.lock.json",
-      "qa/lib/affected-tests.mjs",
-      "qa/lib/evidence-badge.mjs",
-      "qa/lib/evidence-level.mjs",
-      "qa/lib/inputs-hash.mjs",
-      "qa/lib/lane-runner.mjs",
-      "qa/lib/steps-cmp.mjs",
-      "qa/verify.mjs"
-    ]
+    "sha": "330addb7bfc45df5e3ef54172b247ee233829215",
+    "dirty": []
   },
   "inputs": {
-    "hash": "0462ea0d2b564b5dd138e67ca73ba0623c741221aab685c2cd6289f4c020262b",
-    "fileCount": 486,
+    "hash": "f84622e567085b71559add50c593719831880933b94685e847376f9adbab91f4",
+    "fileCount": 527,
     "undeclared": [
       ".claude",
       ".githooks",
       ".github",
-      ".gitignore",
       "AGENTS.md",
       "CHANGELOG.md",
       "CLAUDE.md",
@@ -46,39 +33,41 @@
   "steps": [
     {
       "name": "harnessIntegrity",
-      "durationMs": 9,
+      "durationMs": 14,
       "harness": {
         "status": "intact",
-        "name": "@create-cmp/harness",
-        "version": "0.16.0",
-        "sha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
-        "recordedSha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
+        "name": "prooflane-harness",
+        "version": "0.23.6",
+        "sha256": "0e16c07858b83e40ccb761c85aad6b5587658fbd8ca63dfc29fa2ccfefcdb4ff",
+        "recordedSha256": "0e16c07858b83e40ccb761c85aad6b5587658fbd8ca63dfc29fa2ccfefcdb4ff",
         "modified": [],
         "missing": [],
         "extra": [],
-        "fileCount": 44
+        "fileCount": 75,
+        "engineFiles": 54,
+        "vacuous": false
       },
       "verdict": "PASS",
-      "note": "@create-cmp/harness 0.16.0 — 44 files verified",
+      "note": "prooflane-harness 0.23.6 (region 0e16c078) — 75 files verified",
       "layer": "spine"
     },
     {
       "name": "specCoverage",
       "verdict": "PASS",
-      "durationMs": 58,
+      "durationMs": 45,
       "details": {
         "clauses": 203,
         "withdrawn": 3,
-        "tags": 434,
-        "files": 332,
-        "tierNote": "187 clauses cited only from desktop-tier tests (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, UPD-09, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-05, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, MOTION-15, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-01, PROF-02, PROF-03, PROF-04, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-01, SET-02, SET-03, SET-04, SET-05, SET-06, SET-07, SET-08, SET-09, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
+        "tags": 446,
+        "files": 338,
+        "tierNote": "175 clauses cited only from host-only tiers (ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07, ARCH-08, ARCH-09, ARCH-10, ARCH-11, ARCH-12, ARCH-13, ARCH-14, SHELL-03, SHELL-04, SHELL-05, COMP-01, COMP-02, COMP-03, UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06, UPD-07, UPD-08, BFL-01, BFL-02, BFL-03, BFL-04, BFL-05, BFL-06, BFL-07, BFL-08, CAT-01, CAT-02, CAT-03, CAT-04, JRN-01, JRN-02, JRN-03, GOAL-01, GOAL-02, GOAL-03, GOAL-04, ENTRY-01, ENTRY-03, ENTRY-02, START-02, FOODS-01, FOODS-04, FOODS-05, FOODS-06, FOODS-07, FOODS-08, FOODS-09, HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08, PLAN-01, PLAN-03, PLAN-04, PLAN-05, PLAN-06, PLAN-07, PLAN-08, PLAN-09, PLAN-10, PLAN-12, PLAN-13, PLAN-14, PLAN-15, PLAN-16, PLAN-17, PLAN-19, PLAN-20, PLAN-21, PLAN-22, PLAN-23, PLAN-24, PLAN-25, PLAN-26, PLAN-18, MEAL-01, MEAL-02, MEAL-03, MEAL-05, MEAL-06, MEAL-07, MEAL-08, MEAL-09, MEAL-10, MEAL-11, MEAL-12, MOTION-01, MOTION-02, MOTION-03, MOTION-04, MOTION-06, MOTION-07, MOTION-08, MOTION-09, MOTION-10, MOTION-11, MOTION-12, MOTION-14, NAV-01, NAV-03, NAV-07, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, NOTIF-09, NOTIF-10, PERS-01, PERS-02, PERS-03, PROF-05, PROF-06, RS-01, RS-02, RS-03, RS-04, SET-02, SET-03, SET-06, SET-08, SUPP-01, SUPP-02, SUPP-07, SUPP-04, SUPP-05, SUPP-06, SUPP-08, SUPP-09, SUPP-10, SUPP-11, SUPP-12, SUPP-13, SUPP-14, TODAY-01, TODAY-02, TODAY-03, TODAY-04, TODAY-05, TODAY-06, TODAY-07, TODAY-09, TODAY-10, TODAY-11, TODAY-14, UX-01, UX-02, UX-03, UX-04, WORK-01, WORK-02, WORK-03, WORK-05, WORK-06, WORK-07, WORK-08, WORK-09)"
       },
       "layer": "spine"
     },
     {
       "name": "approvals",
       "verdict": "PASS",
-      "durationMs": 27,
+      "durationMs": 22,
       "details": {
         "artifacts": [
           {
@@ -224,7 +213,7 @@
           {
             "id": "feature-design:settings",
             "status": "approved",
-            "hash": "6c796fc252b9d90bd0630f48b7ee4ef86cf73c45b5e2bab19e1364f19e30659d"
+            "hash": "f7984d5c1f34ff84c6bf677b371a9c5c7af2139672cc190740be2a2b1ed8fc53"
           },
           {
             "id": "feature-design:workouts",
@@ -343,7 +332,7 @@
     {
       "name": "componentStories",
       "verdict": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "details": {
         "components": 22,
         "stories": 22,
@@ -355,7 +344,7 @@
     {
       "name": "reachability",
       "verdict": "PASS",
-      "durationMs": 17,
+      "durationMs": 11,
       "details": {
         "features": [
           {
@@ -475,9 +464,147 @@
       "layer": "spine"
     },
     {
+      "name": "e2eCoverage",
+      "verdict": "PASS",
+      "durationMs": 73,
+      "details": {
+        "features": [
+          {
+            "name": "app-updates",
+            "spec": "specs/app-updates.spec.md",
+            "liveClauses": 9,
+            "e2eCited": [
+              "UPD-09"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "builder",
+            "spec": null,
+            "liveClauses": 0,
+            "e2eCited": [],
+            "status": "unspecified"
+          },
+          {
+            "name": "foods",
+            "spec": "specs/foods.spec.md",
+            "liveClauses": 9,
+            "e2eCited": [
+              "FOODS-02",
+              "FOODS-03"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "meal",
+            "spec": "specs/meal.spec.md",
+            "liveClauses": 12,
+            "e2eCited": [
+              "MEAL-13"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "meal-plan",
+            "spec": "specs/meal-plan.spec.md",
+            "liveClauses": 26,
+            "e2eCited": [
+              "PLAN-02",
+              "PLAN-11"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "motion",
+            "spec": "specs/motion.spec.md",
+            "liveClauses": 15,
+            "e2eCited": [
+              "MOTION-05",
+              "MOTION-15"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "navigation",
+            "spec": null,
+            "liveClauses": 0,
+            "e2eCited": [],
+            "status": "unspecified"
+          },
+          {
+            "name": "onboarding",
+            "spec": null,
+            "liveClauses": 0,
+            "e2eCited": [],
+            "status": "unspecified"
+          },
+          {
+            "name": "profile",
+            "spec": "specs/profile.spec.md",
+            "liveClauses": 6,
+            "e2eCited": [
+              "PROF-01",
+              "PROF-02",
+              "PROF-03",
+              "PROF-04"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "progress",
+            "spec": null,
+            "liveClauses": 0,
+            "e2eCited": [],
+            "status": "unspecified"
+          },
+          {
+            "name": "settings",
+            "spec": "specs/settings.spec.md",
+            "liveClauses": 9,
+            "e2eCited": [
+              "SET-01",
+              "SET-04",
+              "SET-05",
+              "SET-07",
+              "SET-09"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "supplements",
+            "spec": "specs/supplements.spec.md",
+            "liveClauses": 14,
+            "e2eCited": [
+              "SUPP-03"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "today",
+            "spec": "specs/today.spec.md",
+            "liveClauses": 12,
+            "e2eCited": [
+              "TODAY-13"
+            ],
+            "status": "covered"
+          },
+          {
+            "name": "workouts",
+            "spec": "specs/workouts.spec.md",
+            "liveClauses": 9,
+            "e2eCited": [
+              "WORK-04"
+            ],
+            "status": "covered"
+          }
+        ]
+      },
+      "layer": "spine"
+    },
+    {
       "name": "archDoc",
       "verdict": "PASS",
-      "durationMs": 19,
+      "durationMs": 17,
       "details": {
         "sectionsChecked": 4
       },
@@ -486,7 +613,7 @@
     {
       "name": "schemaHistory",
       "verdict": "PASS",
-      "durationMs": 67,
+      "durationMs": 51,
       "details": {
         "schemaDirs": 3
       },
@@ -495,13 +622,13 @@
     {
       "name": "build",
       "verdict": "PASS",
-      "durationMs": 5303,
+      "durationMs": 2314,
       "layer": "compose"
     },
     {
       "name": "unitTests",
       "verdict": "PASS",
-      "durationMs": 14557,
+      "durationMs": 30061,
       "details": {
         "tests": 395,
         "failures": 0,
@@ -513,81 +640,159 @@
     {
       "name": "conformance",
       "verdict": "PASS",
-      "durationMs": 3133,
+      "durationMs": 8112,
       "layer": "compose"
     },
     {
       "name": "goldenTrees",
       "verdict": "PASS",
-      "durationMs": 4409,
+      "durationMs": 12044,
       "layer": "compose"
     },
     {
       "name": "tokenDrift",
-      "verdict": "SKIP",
-      "reason": "no Android device/emulator attached (adb) — runtime token drift needs the live inspector tier",
-      "durationMs": 29,
+      "verdict": "PASS",
+      "durationMs": 81816,
+      "details": {
+        "checked": 0,
+        "drifted": 0
+      },
       "layer": "device"
     },
     {
       "name": "a11y",
       "verdict": "PASS",
-      "durationMs": 3664,
+      "durationMs": 5234,
       "layer": "compose"
     },
     {
       "name": "releaseBuild",
       "verdict": "PASS",
-      "durationMs": 3750,
+      "durationMs": 4596,
       "layer": "compose"
     },
     {
       "name": "e2eSmoke",
-      "verdict": "SKIP",
-      "reason": "no Android device/emulator attached (adb)",
-      "durationMs": 0,
+      "verdict": "PASS",
+      "durationMs": 452854,
+      "note": "9 flows",
+      "details": {
+        "flows": [
+          "qa/e2e/app-updates.yaml",
+          "qa/e2e/meals.yaml",
+          "qa/e2e/motion.yaml",
+          "qa/e2e/profile.yaml",
+          "qa/e2e/settings.yaml",
+          "qa/e2e/smoke.yaml",
+          "qa/e2e/supplements.yaml",
+          "qa/e2e/training.yaml",
+          "qa/e2e/week.yaml"
+        ],
+        "results": [
+          {
+            "flow": "settings",
+            "ok": true
+          },
+          {
+            "flow": "training",
+            "ok": true
+          },
+          {
+            "flow": "motion",
+            "ok": true
+          },
+          {
+            "flow": "meals",
+            "ok": true
+          },
+          {
+            "flow": "supplements",
+            "ok": true
+          },
+          {
+            "flow": "app-updates",
+            "ok": true
+          },
+          {
+            "flow": "profile",
+            "ok": true
+          },
+          {
+            "flow": "smoke",
+            "ok": true
+          },
+          {
+            "flow": "week",
+            "ok": true
+          }
+        ]
+      },
       "layer": "device"
     },
     {
       "name": "androidChecks",
-      "verdict": "SKIP",
-      "reason": "no Android device/emulator attached (adb) — instrumented behavior needs the real process boundary",
-      "durationMs": 22,
+      "verdict": "PASS",
+      "durationMs": 34342,
+      "details": {
+        "tests": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "executed": false
+      },
       "layer": "device"
     }
   ],
   "harness": {
-    "name": "@create-cmp/harness",
-    "version": "0.16.0",
-    "sha256": "b56cd4f842ae6efdea248771fba358d7f4ce1b64d07971e70b68bf6a24ea8a26",
+    "name": "prooflane-harness",
+    "version": "0.23.6",
+    "sha256": "0e16c07858b83e40ccb761c85aad6b5587658fbd8ca63dfc29fa2ccfefcdb4ff",
     "status": "intact",
-    "intact": true
+    "intact": true,
+    "source": "local"
+  },
+  "pack": {
+    "id": "cmp",
+    "version": null
   },
   "strength": {
-    "onDeviceSteps": []
+    "onDeviceSteps": [
+      "tokenDrift",
+      "e2eSmoke",
+      "androidChecks"
+    ]
   },
   "evidenceLevel": {
-    "rung": "L1",
-    "name": "desktop",
+    "rung": "L2",
+    "name": "device",
     "satisfiedBy": [
       "specCoverage",
       "approvals",
       "componentStories",
       "reachability",
+      "e2eCoverage",
       "archDoc",
       "schemaHistory",
       "build",
       "unitTests",
       "conformance",
       "goldenTrees",
+      "tokenDrift",
       "a11y",
-      "releaseBuild"
+      "releaseBuild",
+      "e2eSmoke",
+      "androidChecks"
     ]
   },
-  "artifacts": [],
+  "artifacts": [
+    {
+      "path": "qa-artifacts/maestro-e2eSmoke.xml",
+      "sha256": "4458f6b69aa927ab4cedcf605c5c34301f93eae1e9ace159346b944ba209e442"
+    }
+  ],
   "toolVersions": {
     "node": "v24.18.0",
     "platform": "darwin-arm64"
   },
-  "generatedAt": "2026-09-03T17:41:36.603Z"
+  "generatedAt": "2026-10-05T16:42:04.731Z"
 }
