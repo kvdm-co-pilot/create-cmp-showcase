@@ -149,6 +149,7 @@ fun SettingsRoute(
                     onDeleteSupplement = viewModel::onDeleteSupplement,
                     onSaveWorkoutDay = viewModel::onSaveWorkoutDay,
                 ),
+                onOpenUpdates = onOpenUpdates,
             )
         }
     }
