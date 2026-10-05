@@ -1,5 +1,5 @@
 {
-  "schema": "cmp-approvals/1",
+  "schema": "prooflane-approvals/1",
   "artifacts": [
     {
       "artifact": "feature-brief:meal",
@@ -374,14 +374,6 @@
       "via": "cli"
     },
     {
-      "artifact": "feature-design:settings",
-      "status": "approved",
-      "hash": "6c796fc252b9d90bd0630f48b7ee4ef86cf73c45b5e2bab19e1364f19e30659d",
-      "approvedAt": "2026-09-03T12:34:35.089Z",
-      "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
-      "via": "cli"
-    },
-    {
       "artifact": "feature-spec:catalog",
       "status": "approved",
       "hash": "9b12b456226b0bd69950d8493f76f68f2815d9d2dbe9e6fc81295fc529dde0b7",
@@ -442,6 +434,14 @@
       "status": "approved",
       "hash": "ee9cc5044eb6f3eda9b0cbfd2542d16930a800e6ec2fc86960a9938e39e81818",
       "approvedAt": "2026-09-03T12:34:35.697Z",
+      "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
+      "via": "cli"
+    },
+    {
+      "artifact": "feature-design:settings",
+      "status": "approved",
+      "hash": "f7984d5c1f34ff84c6bf677b371a9c5c7af2139672cc190740be2a2b1ed8fc53",
+      "approvedAt": "2026-10-05T16:16:47.094Z",
       "approvedBy": "Karel van der Merwe <karelvdmmisc@gmail.com>",
       "via": "cli"
     }
