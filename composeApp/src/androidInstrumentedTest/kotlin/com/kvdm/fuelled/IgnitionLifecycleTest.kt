@@ -34,7 +34,7 @@ class IgnitionLifecycleTest {
 
     // SPEC: MOTION-13
     @Test
-    fun `coming straight back does not replay the ignition`() {
+    fun comingStraightBack_doesNotReplayTheIgnition() {
         TimeWarp.assumeOnEmulator()
         ProcessControl.relaunchApp()
         ProcessControl.backgroundApp()
@@ -46,7 +46,7 @@ class IgnitionLifecycleTest {
 
     // SPEC: MOTION-13
     @Test
-    fun `returning after the replay threshold plays the ignition again`() {
+    fun returningAfterTheReplayThreshold_playsTheIgnitionAgain() {
         TimeWarp.assumeOnEmulator()
         ProcessControl.relaunchApp()
         ProcessControl.backgroundApp()
